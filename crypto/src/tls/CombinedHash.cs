@@ -9,7 +9,9 @@ namespace Org.BouncyCastle.Tls
     public class CombinedHash
         : TlsHash
     {
+        /// <summary>The context.</summary>
         protected readonly TlsContext m_context;
+        /// <summary>The crypto.</summary>
         protected readonly TlsCrypto m_crypto;
         /// <summary>The md 5.</summary>
         protected readonly TlsHash m_md5;

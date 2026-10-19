@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public abstract class BcTlsSigner
         : TlsSigner
     {
+        /// <summary>The crypto.</summary>
         protected readonly BcTlsCrypto m_crypto;
         /// <summary>The private key.</summary>
         protected readonly AsymmetricKeyParameter m_privateKey;

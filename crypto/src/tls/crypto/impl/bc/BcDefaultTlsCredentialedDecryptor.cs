@@ -10,7 +10,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public class BcDefaultTlsCredentialedDecryptor
         : TlsCredentialedDecryptor
     {
+        /// <summary>The crypto.</summary>
         protected readonly BcTlsCrypto m_crypto;
+        /// <summary>The certificate.</summary>
         protected readonly Certificate m_certificate;
         /// <summary>The private key.</summary>
         protected readonly AsymmetricKeyParameter m_privateKey;

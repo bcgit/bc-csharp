@@ -5,6 +5,7 @@
     public class BcX25519Domain
         : TlsECDomain
     {
+        /// <summary>The crypto.</summary>
         protected readonly BcTlsCrypto m_crypto;
 
         /// <summary>Create a new <see cref="BcX25519Domain"/>.</summary>

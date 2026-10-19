@@ -9,7 +9,9 @@ namespace Org.BouncyCastle.Tls
     public class BasicTlsPskExternal
         : TlsPskExternal
     {
+        /// <summary>The identity.</summary>
         protected readonly byte[] m_identity;
+        /// <summary>The key.</summary>
         protected readonly TlsSecret m_key;
         /// <summary>The prf algorithm.</summary>
         protected readonly int m_prfAlgorithm;

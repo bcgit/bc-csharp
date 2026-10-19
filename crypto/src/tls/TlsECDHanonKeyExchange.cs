@@ -23,6 +23,7 @@ namespace Org.BouncyCastle.Tls
 
         /// <summary>The ec config.</summary>
         protected TlsECConfig m_ecConfig;
+        /// <summary>The agreement.</summary>
         protected TlsAgreement m_agreement;
 
         /// <summary>Create a new <see cref="TlsECDHanonKeyExchange"/>.</summary>

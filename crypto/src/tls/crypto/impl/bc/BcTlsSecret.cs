@@ -42,6 +42,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return result;
         }
 
+        /// <summary>The crypto.</summary>
         protected readonly BcTlsCrypto m_crypto;
 
         /// <summary>Create a new <see cref="BcTlsSecret"/>.</summary>

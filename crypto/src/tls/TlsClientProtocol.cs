@@ -22,6 +22,7 @@ namespace Org.BouncyCastle.Tls
         protected ClientHello m_clientHello = null;
         /// <summary>The key exchange.</summary>
         protected TlsKeyExchange m_keyExchange = null;
+        /// <summary>The authentication.</summary>
         protected TlsAuthentication m_authentication = null;
 
         /// <summary>The certificate status.</summary>

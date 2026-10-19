@@ -10,6 +10,7 @@ namespace Org.BouncyCastle.Tls
     public abstract class AbstractTlsServer
         : AbstractTlsPeer, TlsServer
     {
+        /// <summary>The context.</summary>
         protected TlsServerContext m_context;
         /// <summary>The protocol versions.</summary>
         protected ProtocolVersion[] m_protocolVersions;

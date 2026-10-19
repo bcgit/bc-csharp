@@ -29,6 +29,7 @@ namespace Org.BouncyCastle.Tls
         protected TlsCredentialedSigner m_serverCredentials = null;
         /// <summary>The server certificate.</summary>
         protected TlsCertificate m_serverCertificate = null;
+        /// <summary>The agreement.</summary>
         protected TlsAgreement m_agreement;
 
         /// <summary>Create a new <see cref="TlsECDheKeyExchange"/>.</summary>

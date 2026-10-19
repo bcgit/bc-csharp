@@ -46,7 +46,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new DHParameters(dhGroup.P, dhGroup.G, dhGroup.Q, dhGroup.L);
         }
 
+        /// <summary>The crypto.</summary>
         protected readonly BcTlsCrypto m_crypto;
+        /// <summary>The config.</summary>
         // TODO[api] Store IsPadded instead
         protected readonly TlsDHConfig m_config;
         /// <summary>The domain parameters.</summary>

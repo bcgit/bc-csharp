@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Tls
         /// <summary>The key exchange.</summary>
         protected readonly int m_keyExchange;
 
+        /// <summary>The context.</summary>
         protected TlsContext m_context;
 
         /// <summary>Create a new <see cref="AbstractTlsKeyExchange"/>.</summary>

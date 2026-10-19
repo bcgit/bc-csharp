@@ -9,10 +9,13 @@ namespace Org.BouncyCastle.Tls
     /// <summary>The SRP login parameters of a user, as returned by a server's identity manager.</summary>
     public class TlsSrpLoginParameters
     {
+        /// <summary>The identity.</summary>
         protected byte[] m_identity;
         /// <summary>The srp config.</summary>
         protected TlsSrpConfig m_srpConfig;
+        /// <summary>The verifier.</summary>
         protected BigInteger m_verifier;
+        /// <summary>The salt.</summary>
         protected byte[] m_salt;
 
         /// <summary>Create a new <see cref="TlsSrpLoginParameters"/>.</summary>

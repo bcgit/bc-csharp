@@ -49,7 +49,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return ECDomainParameters.LookupName(curveName);
         }
 
+        /// <summary>The crypto.</summary>
         protected readonly BcTlsCrypto m_crypto;
+        /// <summary>The config.</summary>
         // TODO[api] Remove
         protected readonly TlsECConfig m_config;
         /// <summary>The domain parameters.</summary>

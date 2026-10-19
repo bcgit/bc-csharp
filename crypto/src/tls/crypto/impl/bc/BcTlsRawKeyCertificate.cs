@@ -18,6 +18,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public class BcTlsRawKeyCertificate
         : TlsCertificate
     {
+        /// <summary>The crypto.</summary>
         protected readonly BcTlsCrypto m_crypto;
         /// <summary>The key info.</summary>
         protected readonly SubjectPublicKeyInfo m_keyInfo;

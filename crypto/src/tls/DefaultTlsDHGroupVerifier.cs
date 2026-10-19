@@ -43,6 +43,7 @@ namespace Org.BouncyCastle.Tls
             AddDefaultGroup(DHStandardGroups.rfc7919_ffdhe8192);
         }
 
+        /// <summary>The groups.</summary>
         // IList is (DHGroup)
         protected readonly IList<DHGroup> m_groups;
         /// <summary>The minimum prime bits.</summary>

@@ -8,7 +8,9 @@ namespace Org.BouncyCastle.Tls
     public class BasicTlsSrpIdentity
         : TlsSrpIdentity
     {
+        /// <summary>The identity.</summary>
         protected readonly byte[] m_identity;
+        /// <summary>The password.</summary>
         protected readonly byte[] m_password;
 
         /// <summary>Create a new <see cref="BasicTlsSrpIdentity"/>.</summary>

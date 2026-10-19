@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Tls.Crypto
         protected readonly DHGroup m_explicitGroup;
         /// <summary>The named group.</summary>
         protected readonly int m_namedGroup;
+        /// <summary>The padded.</summary>
         protected readonly bool m_padded;
 
         /// <summary>Create a new <see cref="TlsDHConfig"/>.</summary>

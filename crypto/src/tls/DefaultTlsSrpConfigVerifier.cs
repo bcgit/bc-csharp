@@ -25,6 +25,7 @@ namespace Org.BouncyCastle.Tls
             DefaultGroups.Add(Srp6StandardGroups.rfc5054_8192);
         }
 
+        /// <summary>The groups.</summary>
         // IList is (SRP6Group)
         protected readonly IList<Srp6Group> m_groups;
 

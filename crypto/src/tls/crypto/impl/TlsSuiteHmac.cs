@@ -23,6 +23,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         /// <summary>The crypto params.</summary>
         protected readonly TlsCryptoParameters m_cryptoParams;
+        /// <summary>The mac.</summary>
         protected readonly TlsHmac m_mac;
         /// <summary>The digest block size.</summary>
         protected readonly int m_digestBlockSize;

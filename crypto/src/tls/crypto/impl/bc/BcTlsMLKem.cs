@@ -8,12 +8,14 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public class BcTlsMLKem
         : TlsAgreement
     {
+        /// <summary>The domain.</summary>
         protected readonly BcTlsMLKemDomain m_domain;
 
         /// <summary>The private key.</summary>
         protected MLKemPrivateKeyParameters m_privateKey;
         /// <summary>The public key.</summary>
         protected MLKemPublicKeyParameters m_publicKey;
+        /// <summary>The secret.</summary>
         protected TlsSecret m_secret;
 
         /// <summary>Create a new <see cref="BcTlsMLKem"/>.</summary>

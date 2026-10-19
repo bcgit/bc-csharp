@@ -34,6 +34,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <summary>The certificate.</summary>
         protected readonly X509CertificateStructure m_certificate;
 
         /// <exception cref="IOException"/>

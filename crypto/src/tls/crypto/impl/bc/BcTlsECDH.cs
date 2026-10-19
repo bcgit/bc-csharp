@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public class BcTlsECDH
         : TlsAgreement
     {
+        /// <summary>The domain.</summary>
         protected readonly BcTlsECDomain m_domain;
 
         /// <summary>The local key pair.</summary>

@@ -12,9 +12,11 @@ namespace Org.BouncyCastle.Tls
     {
         /// <summary>The crypto params.</summary>
         protected readonly TlsCryptoParameters m_cryptoParams;
+        /// <summary>The certificate.</summary>
         protected readonly Certificate m_certificate;
         /// <summary>The signature and hash algorithm.</summary>
         protected readonly SignatureAndHashAlgorithm m_signatureAndHashAlgorithm;
+        /// <summary>The signer.</summary>
         protected readonly TlsSigner m_signer;
 
         /// <summary>Create a new <see cref="DefaultTlsCredentialedSigner"/>.</summary>

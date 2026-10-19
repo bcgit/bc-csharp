@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public abstract class BcTlsVerifier
         : TlsVerifier
     {
+        /// <summary>The crypto.</summary>
         protected readonly BcTlsCrypto m_crypto;
         /// <summary>The public key.</summary>
         protected readonly AsymmetricKeyParameter m_publicKey;

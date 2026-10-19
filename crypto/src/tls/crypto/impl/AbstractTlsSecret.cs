@@ -14,6 +14,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return other.CopyData();
         }
 
+        /// <summary>The data.</summary>
         protected byte[] m_data;
 
         /// <summary>Base constructor.</summary>

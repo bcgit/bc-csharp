@@ -34,12 +34,14 @@ namespace Org.BouncyCastle.Tls
 
         /// <summary>The psk identity hint.</summary>
         protected byte[] m_psk_identity_hint = null;
+        /// <summary>The psk.</summary>
         protected byte[] m_psk = null;
 
         /// <summary>The dh config.</summary>
         protected TlsDHConfig m_dhConfig;
         /// <summary>The ec config.</summary>
         protected TlsECConfig m_ecConfig;
+        /// <summary>The agreement.</summary>
         protected TlsAgreement m_agreement;
 
         /// <summary>The server credentials.</summary>

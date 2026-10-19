@@ -35,9 +35,11 @@ namespace Org.BouncyCastle.Tls
             return new SimulatedTlsSrpIdentityManager(group, crypto.CreateSrp6VerifierGenerator(srpConfig), mac);
         }
 
+        /// <summary>The group.</summary>
         protected readonly Srp6Group m_group;
         /// <summary>The verifier generator.</summary>
         protected readonly TlsSrp6VerifierGenerator m_verifierGenerator;
+        /// <summary>The mac.</summary>
         protected readonly TlsMac m_mac;
 
         /// <summary>Create a new <see cref="SimulatedTlsSrpIdentityManager"/>.</summary>

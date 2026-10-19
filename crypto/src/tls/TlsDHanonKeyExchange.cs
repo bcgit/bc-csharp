@@ -27,6 +27,7 @@ namespace Org.BouncyCastle.Tls
 
         /// <summary>The dh config.</summary>
         protected TlsDHConfig m_dhConfig;
+        /// <summary>The agreement.</summary>
         protected TlsAgreement m_agreement;
 
         /// <summary>Create a new <see cref="TlsDHanonKeyExchange"/>.</summary>

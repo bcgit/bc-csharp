@@ -200,6 +200,7 @@ namespace Org.BouncyCastle.Tls
         /// <summary>The expect session ticket.</summary>
         protected bool m_expectSessionTicket = false;
 
+        /// <summary>The blocking.</summary>
         protected readonly bool m_blocking;
         /// <summary>The input buffers.</summary>
         protected readonly ByteQueueInputStream m_inputBuffers;

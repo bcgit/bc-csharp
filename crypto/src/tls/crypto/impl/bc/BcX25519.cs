@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public class BcX25519
         : TlsAgreement
     {
+        /// <summary>The crypto.</summary>
         protected readonly BcTlsCrypto m_crypto;
         /// <summary>The private key.</summary>
         protected readonly byte[] m_privateKey = new byte[X25519.ScalarSize];
