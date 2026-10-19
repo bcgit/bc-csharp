@@ -19,11 +19,13 @@ namespace Org.BouncyCastle.Crypto.Signers
         private SecureRandom random;
         private bool forSigning;
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return key.AlgorithmName; }
         }
 
+        /// <inheritdoc/>
         public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
             this.forSigning = forSigning;
@@ -48,6 +50,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
+        /// <inheritdoc/>
         public virtual BigInteger Order => key.Parameters.N;
 
         /**

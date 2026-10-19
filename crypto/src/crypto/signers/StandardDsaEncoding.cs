@@ -6,12 +6,15 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
+    /// <summary>The standard ASN.1 (DER) encoding of DSA and ECDSA signatures.</summary>
     // TODO[api] Make sealed (no need for protected virtual methods)
     public class StandardDsaEncoding
         : IDsaEncoding
     {
+        /// <summary>The shared instance of <see cref="StandardDsaEncoding"/>.</summary>
         public static readonly StandardDsaEncoding Instance = new StandardDsaEncoding();
 
+        /// <inheritdoc/>
         public virtual BigInteger[] Decode(BigInteger n, byte[] encoding)
         {
             Asn1Sequence seq = Asn1Sequence.GetInstance(encoding);
@@ -28,6 +31,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             throw new ArgumentException("Malformed signature", nameof(encoding));
         }
 
+        /// <inheritdoc/>
         public virtual byte[] Encode(BigInteger n, BigInteger r, BigInteger s)
         {
             return new DerSequence(
@@ -37,6 +41,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int Encode(BigInteger n, BigInteger r, BigInteger s, Span<byte> output)
         {
             byte[] encoding = Encode(n, r, s);
@@ -45,6 +50,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int GetMaxEncodingSize(BigInteger n)
         {
             return DerSequence.GetEncodingLength(DerInteger.GetEncodingLength(n) * 2);

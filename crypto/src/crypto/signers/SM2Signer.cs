@@ -33,29 +33,39 @@ namespace Org.BouncyCastle.Crypto.Signers
         private ECKeyParameters ecKey;
         private byte[] z;
 
+        /// <summary>Create a new <see cref="SM2Signer"/>.</summary>
         public SM2Signer()
             : this(StandardDsaEncoding.Instance, new SM3Digest())
         {
         }
 
+        /// <summary>Create a new <see cref="SM2Signer"/>.</summary>
+        /// <param name="digest">The digest.</param>
         public SM2Signer(IDigest digest)
             : this(StandardDsaEncoding.Instance, digest)
         {
         }
 
+        /// <summary>Create a new <see cref="SM2Signer"/>.</summary>
+        /// <param name="encoding">The encoding.</param>
         public SM2Signer(IDsaEncoding encoding)
             : this(encoding, new SM3Digest())
         {
         }
 
+        /// <summary>Create a new <see cref="SM2Signer"/>.</summary>
+        /// <param name="encoding">The encoding.</param>
+        /// <param name="digest">The digest.</param>
         public SM2Signer(IDsaEncoding encoding, IDigest digest)
         {
             this.encoding = encoding;
             this.digest = digest;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => "SM2Sign";
 
+        /// <inheritdoc/>
         public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
             ICipherParameters baseParam;
@@ -107,6 +117,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             m_state = State.Init;
         }
 
+        /// <inheritdoc/>
         public virtual void Update(byte b)
         {
             CheckData();
@@ -114,6 +125,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             digest.Update(b);
         }
 
+        /// <inheritdoc/>
         public virtual void BlockUpdate(byte[] input, int inOff, int inLen)
         {
             CheckData();
@@ -122,6 +134,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void BlockUpdate(ReadOnlySpan<byte> input)
         {
             CheckData();
@@ -130,8 +143,10 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int GetMaxSignatureSize() => encoding.GetMaxEncodingSize(ecParams.N);
 
+        /// <inheritdoc/>
         public virtual byte[] GenerateSignature()
         {
             CheckData();
@@ -186,6 +201,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
+        /// <inheritdoc/>
         public virtual bool VerifySignature(byte[] signature)
         {
             CheckData();
@@ -207,6 +223,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             return false;
         }
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             switch (m_state)

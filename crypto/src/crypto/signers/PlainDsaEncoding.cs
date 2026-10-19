@@ -5,12 +5,17 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
+    /// <summary>
+    /// The plain (r || s) encoding of DSA and ECDSA signatures, as used by P1363 and in some protocols.
+    /// </summary>
     // TODO[api] Make sealed (no need for protected virtual methods)
     public class PlainDsaEncoding
         : IDsaEncoding
     {
+        /// <summary>The shared instance of <see cref="PlainDsaEncoding"/>.</summary>
         public static readonly PlainDsaEncoding Instance = new PlainDsaEncoding();
 
+        /// <inheritdoc/>
         public virtual BigInteger[] Decode(BigInteger n, byte[] encoding)
         {
             int valueLength = BigIntegers.GetUnsignedByteLength(n);
@@ -23,6 +28,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             };
         }
 
+        /// <inheritdoc/>
         public virtual byte[] Encode(BigInteger n, BigInteger r, BigInteger s)
         {
             int valueLength = BigIntegers.GetUnsignedByteLength(n);
@@ -33,6 +39,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int Encode(BigInteger n, BigInteger r, BigInteger s, Span<byte> output)
         {
             int valueLength = BigIntegers.GetUnsignedByteLength(n);
@@ -43,6 +50,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int GetMaxEncodingSize(BigInteger n)
         {
             return BigIntegers.GetUnsignedByteLength(n) * 2;

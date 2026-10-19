@@ -15,6 +15,7 @@ namespace Org.BouncyCastle.Crypto.Signers
     public class PssSigner
         : ISigner
     {
+        /// <summary>The <c>TrailerImplicit</c> constant, with the value <c>0xBC</c>.</summary>
         public const byte TrailerImplicit = 0xBC;
 
         private readonly IDigest m_contentDigest1, m_contentDigest2;
@@ -58,6 +59,9 @@ namespace Org.BouncyCastle.Crypto.Signers
                 trailer);
         }
 
+        /// <summary>Create a new <see cref="PssSigner"/>.</summary>
+        /// <param name="cipher">The cipher.</param>
+        /// <param name="digest">The digest.</param>
         public PssSigner(IAsymmetricBlockCipher cipher, IDigest digest)
             : this(cipher, digest, digest.GetDigestSize())
         {
@@ -81,21 +85,42 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
         }
 
+        /// <summary>Create a new <see cref="PssSigner"/>.</summary>
+        /// <param name="cipher">The cipher.</param>
+        /// <param name="contentDigest">The content digest.</param>
+        /// <param name="mgfDigest">The mgf digest.</param>
+        /// <param name="saltLen">The salt len.</param>
         public PssSigner(IAsymmetricBlockCipher cipher, IDigest contentDigest, IDigest mgfDigest, int saltLen)
             : this(cipher, contentDigest, mgfDigest, saltLen, TrailerImplicit)
         {
         }
 
+        /// <summary>Create a new <see cref="PssSigner"/>.</summary>
+        /// <param name="cipher">The cipher.</param>
+        /// <param name="contentDigest">The content digest.</param>
+        /// <param name="mgfDigest">The mgf digest.</param>
+        /// <param name="salt">The salt.</param>
         public PssSigner(IAsymmetricBlockCipher cipher, IDigest contentDigest, IDigest mgfDigest, byte[] salt)
             : this(cipher, contentDigest, contentDigest, mgfDigest, salt.Length, salt, TrailerImplicit)
         {
         }
 
+        /// <summary>Create a new <see cref="PssSigner"/>.</summary>
+        /// <param name="cipher">The cipher.</param>
+        /// <param name="digest">The digest.</param>
+        /// <param name="saltLen">The salt len.</param>
+        /// <param name="trailer">The trailer.</param>
         public PssSigner(IAsymmetricBlockCipher cipher, IDigest digest, int saltLen, byte trailer)
             : this(cipher, digest, digest, saltLen, trailer)
         {
         }
 
+        /// <summary>Create a new <see cref="PssSigner"/>.</summary>
+        /// <param name="cipher">The cipher.</param>
+        /// <param name="contentDigest">The content digest.</param>
+        /// <param name="mgfDigest">The mgf digest.</param>
+        /// <param name="saltLen">The salt len.</param>
+        /// <param name="trailer">The trailer.</param>
         public PssSigner(IAsymmetricBlockCipher cipher, IDigest contentDigest, IDigest mgfDigest, int saltLen,
             byte trailer)
             : this(cipher, contentDigest, contentDigest, mgfDigest, saltLen, null, trailer)
@@ -125,8 +150,10 @@ namespace Org.BouncyCastle.Crypto.Signers
             this.trailer = trailer;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => m_mgfDigest.AlgorithmName + "withRSAandMGF1";
 
+        /// <inheritdoc/>
         public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
             m_cipher.Init(forSigning, parameters);
@@ -157,17 +184,22 @@ namespace Org.BouncyCastle.Crypto.Signers
         /// <summary> clear possible sensitive data</summary>
         private void ClearBlock(byte[] block) => Arrays.ZeroMemory(block);
 
+        /// <inheritdoc/>
         public virtual void Update(byte input) => m_contentDigest1.Update(input);
 
+        /// <inheritdoc/>
         public virtual void BlockUpdate(byte[] input, int inOff, int inLen) =>
             m_contentDigest1.BlockUpdate(input, inOff, inLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void BlockUpdate(ReadOnlySpan<byte> input) => m_contentDigest1.BlockUpdate(input);
 #endif
 
+        /// <inheritdoc/>
         public virtual int GetMaxSignatureSize() => m_cipher.GetOutputBlockSize();
 
+        /// <inheritdoc/>
         public virtual byte[] GenerateSignature()
         {
             if (m_contentDigest1.GetDigestSize() != hLen)
@@ -213,6 +245,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             return b;
         }
 
+        /// <inheritdoc/>
         public virtual bool VerifySignature(byte[] signature)
         {
             if (m_contentDigest1.GetDigestSize() != hLen)
@@ -285,6 +318,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             return true;
         }
 
+        /// <inheritdoc/>
         public virtual void Reset() => m_contentDigest1.Reset();
 
         private byte[] MaskGeneratorFunction(byte[] z, int zOff, int zLen, int length)

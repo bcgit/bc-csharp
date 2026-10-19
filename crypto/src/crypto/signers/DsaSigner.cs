@@ -37,11 +37,13 @@ namespace Org.BouncyCastle.Crypto.Signers
             this.kCalculator = kCalculator;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "DSA"; }
         }
 
+        /// <inheritdoc/>
         public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
             if (forSigning)
@@ -64,6 +66,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
+        /// <inheritdoc/>
         public virtual BigInteger Order
         {
             get { return key.Parameters.Q; }

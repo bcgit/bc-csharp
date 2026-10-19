@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
+    /// <summary>A signer that applies an asymmetric cipher engine directly to the digest of the message.</summary>
     public class GenericSigner
         : ISigner
     {
@@ -12,12 +13,16 @@ namespace Org.BouncyCastle.Crypto.Signers
         private readonly IDigest m_digest;
         private bool m_forSigning;
 
+        /// <summary>Create a new <see cref="GenericSigner"/>.</summary>
+        /// <param name="engine">The underlying engine.</param>
+        /// <param name="digest">The digest.</param>
         public GenericSigner(IAsymmetricBlockCipher engine, IDigest digest)
         {
             m_engine = engine;
             m_digest = digest;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => $"Generic({m_engine.AlgorithmName}/{m_digest.AlgorithmName})";
 
         /**
@@ -45,17 +50,22 @@ namespace Org.BouncyCastle.Crypto.Signers
             m_engine.Init(forSigning, parameters);
         }
 
+        /// <inheritdoc/>
         public virtual void Update(byte input) => m_digest.Update(input);
 
+        /// <inheritdoc/>
         public virtual void BlockUpdate(byte[] input, int inOff, int inLen) =>
             m_digest.BlockUpdate(input, inOff, inLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void BlockUpdate(ReadOnlySpan<byte> input) => m_digest.BlockUpdate(input);
 #endif
 
+        /// <inheritdoc/>
         public virtual int GetMaxSignatureSize() => m_engine.GetOutputBlockSize();
 
+        /// <inheritdoc/>
         public virtual byte[] GenerateSignature()
         {
             if (!m_forSigning)
@@ -66,6 +76,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             return m_engine.ProcessBlock(hash, 0, hash.Length);
         }
 
+        /// <inheritdoc/>
         public virtual bool VerifySignature(byte[] signature)
         {
             if (m_forSigning)
@@ -93,6 +104,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
+        /// <inheritdoc/>
         public virtual void Reset() => m_digest.Reset();
     }
 }
