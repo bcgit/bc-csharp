@@ -17,6 +17,11 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
     public class BiometricData
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="BiometricData"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="BiometricData"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="BiometricData"/>, or null if <paramref name="obj"/> is null.</returns>
         public static BiometricData GetInstance(object obj)
         {
             if (obj == null)
@@ -26,9 +31,17 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
             return new BiometricData(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="BiometricData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="BiometricData"/>.</returns>
         public static BiometricData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new BiometricData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="BiometricData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="BiometricData"/>.</returns>
         public static BiometricData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new BiometricData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -52,12 +65,21 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="BiometricData"/>.</summary>
+        /// <param name="typeOfBiometricData">The type of biometric data.</param>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="biometricDataHash">The biometric data hash.</param>
         public BiometricData(TypeOfBiometricData typeOfBiometricData, AlgorithmIdentifier hashAlgorithm,
             Asn1OctetString biometricDataHash)
             : this(typeOfBiometricData, hashAlgorithm, biometricDataHash, null)
         {
         }
 
+        /// <summary>Create a new <see cref="BiometricData"/>.</summary>
+        /// <param name="typeOfBiometricData">The type of biometric data.</param>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="biometricDataHash">The biometric data hash.</param>
+        /// <param name="sourceDataUri">The source data uri.</param>
         public BiometricData(TypeOfBiometricData typeOfBiometricData, AlgorithmIdentifier hashAlgorithm,
             Asn1OctetString biometricDataHash, DerIA5String sourceDataUri)
         {
@@ -69,12 +91,16 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
 
         public TypeOfBiometricData TypeOfBiometricData => m_typeOfBiometricData;
 
+        /// <summary>Gets the hash algorithm.</summary>
         public AlgorithmIdentifier HashAlgorithm => m_hashAlgorithm;
 
+        /// <summary>Gets the biometric data hash.</summary>
         public Asn1OctetString BiometricDataHash => m_biometricDataHash;
 
+        /// <summary>Gets the source data uri.</summary>
         public DerIA5String SourceDataUri => m_sourceDataUri;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             return m_sourceDataUri == null

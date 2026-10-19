@@ -19,6 +19,11 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
     public class SemanticsInformation
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="SemanticsInformation"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="SemanticsInformation"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="SemanticsInformation"/>, or null if <paramref name="obj"/> is null.</returns>
         public static SemanticsInformation GetInstance(object obj)
         {
             if (obj == null)
@@ -30,6 +35,10 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="SemanticsInformation"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SemanticsInformation"/>.</returns>
         public static SemanticsInformation GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -37,6 +46,10 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="SemanticsInformation"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SemanticsInformation"/>.</returns>
         public static SemanticsInformation GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -47,6 +60,8 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
         private readonly DerObjectIdentifier m_semanticsIdentifier;
         private readonly GeneralName[] m_nameRegistrationAuthorities;
 
+        /// <summary>Create a new <see cref="SemanticsInformation"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public SemanticsInformation(Asn1Sequence seq)
         {
@@ -67,17 +82,24 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="SemanticsInformation"/>.</summary>
+        /// <param name="semanticsIdentifier">The semantics identifier.</param>
         public SemanticsInformation(DerObjectIdentifier semanticsIdentifier)
             : this(semanticsIdentifier, null)
         {
         }
 
+        /// <summary>Create a new <see cref="SemanticsInformation"/>.</summary>
+        /// <param name="generalNames">The general names.</param>
         // TODO[api] Rename parameter
         public SemanticsInformation(GeneralName[] generalNames)
             : this(null, generalNames)
         {
         }
 
+        /// <summary>Create a new <see cref="SemanticsInformation"/>.</summary>
+        /// <param name="semanticsIdentifier">The semantics identifier.</param>
+        /// <param name="generalNames">The general names.</param>
         public SemanticsInformation(DerObjectIdentifier semanticsIdentifier, GeneralName[] generalNames)
         {
             if (semanticsIdentifier == null && generalNames == null)
@@ -87,10 +109,13 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
             m_nameRegistrationAuthorities = generalNames;
         }
 
+        /// <summary>Gets the semantics identifier.</summary>
         public DerObjectIdentifier SemanticsIdentifier  => m_semanticsIdentifier;
 
+        /// <summary>Return the name registration authorities.</summary>
         public GeneralName[] GetNameRegistrationAuthorities() => m_nameRegistrationAuthorities;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(2);

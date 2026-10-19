@@ -13,6 +13,11 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
     public class QCStatement
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="QCStatement"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="QCStatement"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="QCStatement"/>, or null if <paramref name="obj"/> is null.</returns>
         public static QCStatement GetInstance(object obj)
         {
             if (obj == null)
@@ -22,9 +27,17 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
             return new QCStatement(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="QCStatement"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="QCStatement"/>.</returns>
         public static QCStatement GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new QCStatement(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="QCStatement"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="QCStatement"/>.</returns>
         public static QCStatement GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new QCStatement(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -45,12 +58,17 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="QCStatement"/>.</summary>
+        /// <param name="qcStatementId">The qc statement id.</param>
         // TODO[api] Rename parameter
         public QCStatement(DerObjectIdentifier qcStatementId)
             : this(qcStatementId, null)
         {
         }
 
+        /// <summary>Create a new <see cref="QCStatement"/>.</summary>
+        /// <param name="qcStatementId">The qc statement id.</param>
+        /// <param name="qcStatementInfo">The qc statement info.</param>
         // TODO[api] Rename parameters
         public QCStatement(DerObjectIdentifier qcStatementId, Asn1Encodable qcStatementInfo)
         {
@@ -58,10 +76,13 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
             m_statementInfo = qcStatementInfo;
         }
 
+        /// <summary>Gets the statement id.</summary>
         public DerObjectIdentifier StatementId => m_statementId;
 
+        /// <summary>Gets the statement info.</summary>
         public Asn1Encodable StatementInfo => m_statementInfo;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             return m_statementInfo == null
