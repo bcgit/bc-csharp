@@ -221,10 +221,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
-        /// <summary>Return an <see cref="LmsPrivateKeyParameters"/> from the given object.</summary>
-        /// <param name="privEnc">The priv enc.</param>
-        /// <param name="pubEnc">The pub enc.</param>
-        /// <returns>The <see cref="LmsPrivateKeyParameters"/>, or null if <paramref name="src"/> is null.</returns>
+        /// <summary>Parse a <see cref="LmsPrivateKeyParameters"/> from its encoded private key and public key.</summary>
+        /// <param name="privEnc">The encoded private key.</param>
+        /// <param name="pubEnc">The encoded public key.</param>
+        /// <returns>The parsed <see cref="LmsPrivateKeyParameters"/>.</returns>
         public static LmsPrivateKeyParameters GetInstance(byte[] privEnc, byte[] pubEnc) =>
             Parse(privEnc, 0, privEnc.Length, LmsPublicKeyParameters.Parse(pubEnc));
 

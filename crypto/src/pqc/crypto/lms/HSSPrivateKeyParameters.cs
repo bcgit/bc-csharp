@@ -222,10 +222,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         private Hierarchy CurrentHierarchy => Volatile.Read(ref m_hierarchy);
 
-        /// <summary>Return an <see cref="HssPrivateKeyParameters"/> from the given object.</summary>
-        /// <param name="privEnc">The priv enc.</param>
-        /// <param name="pubEnc">The pub enc.</param>
-        /// <returns>The <see cref="HssPrivateKeyParameters"/>, or null if <paramref name="src"/> is null.</returns>
+        /// <summary>Parse a <see cref="HssPrivateKeyParameters"/> from its encoded private key and public key.</summary>
+        /// <param name="privEnc">The encoded private key.</param>
+        /// <param name="pubEnc">The encoded public key.</param>
+        /// <returns>The parsed <see cref="HssPrivateKeyParameters"/>.</returns>
         public static HssPrivateKeyParameters GetInstance(byte[] privEnc, byte[] pubEnc) =>
             Parse(privEnc, 0, privEnc.Length, HssPublicKeyParameters.Parse(pubEnc));
 
