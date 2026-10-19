@@ -17,6 +17,11 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class CompressedData
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CompressedData"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="CompressedData"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="CompressedData"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CompressedData GetInstance(object obj)
         {
             if (obj == null)
@@ -28,6 +33,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="CompressedData"/> from a tagged object.</summary>
+        /// <param name="ato">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CompressedData"/>.</returns>
         public static CompressedData GetInstance(Asn1TaggedObject ato, bool explicitly)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -35,6 +44,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="CompressedData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CompressedData"/>.</returns>
         public static CompressedData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -46,6 +59,9 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly AlgorithmIdentifier m_compressionAlgorithm;
         private readonly ContentInfo m_encapContentInfo;
 
+        /// <summary>Create a new <see cref="CompressedData"/>.</summary>
+        /// <param name="compressionAlgorithm">The compression algorithm.</param>
+        /// <param name="encapContentInfo">The encap content info.</param>
         public CompressedData(AlgorithmIdentifier compressionAlgorithm, ContentInfo encapContentInfo)
         {
             m_version = DerInteger.Zero;
@@ -53,6 +69,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_encapContentInfo = encapContentInfo ?? throw new ArgumentNullException(nameof(encapContentInfo));
         }
 
+        /// <summary>Create a new <see cref="CompressedData"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public CompressedData(Asn1Sequence seq)
         {
@@ -71,12 +89,16 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
+        /// <summary>Gets the compression algorithm identifier.</summary>
         public AlgorithmIdentifier CompressionAlgorithmIdentifier => m_compressionAlgorithm;
 
+        /// <summary>Gets the encap content info.</summary>
         public ContentInfo EncapContentInfo => m_encapContentInfo;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() =>
             new BerSequence(m_version, m_compressionAlgorithm, m_encapContentInfo);
     }

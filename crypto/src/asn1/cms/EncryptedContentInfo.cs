@@ -4,9 +4,15 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>The EncryptedContentInfo structure of RFC 5652.</summary>
     public class EncryptedContentInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="EncryptedContentInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="EncryptedContentInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="EncryptedContentInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static EncryptedContentInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -18,6 +24,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="EncryptedContentInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EncryptedContentInfo"/>.</returns>
         public static EncryptedContentInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -25,6 +35,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="EncryptedContentInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EncryptedContentInfo"/>.</returns>
         public static EncryptedContentInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -36,6 +50,10 @@ namespace Org.BouncyCastle.Asn1.Cms
         private AlgorithmIdentifier m_contentEncryptionAlgorithm;
         private Asn1OctetString m_encryptedContent;
 
+        /// <summary>Create a new <see cref="EncryptedContentInfo"/>.</summary>
+        /// <param name="contentType">The content type.</param>
+        /// <param name="contentEncryptionAlgorithm">The content encryption algorithm.</param>
+        /// <param name="encryptedContent">The encrypted content.</param>
         public EncryptedContentInfo(DerObjectIdentifier contentType, AlgorithmIdentifier contentEncryptionAlgorithm,
             Asn1OctetString encryptedContent)
         {
@@ -44,6 +62,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_encryptedContent = encryptedContent;
         }
 
+        /// <summary>Create a new <see cref="EncryptedContentInfo"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public EncryptedContentInfo(Asn1Sequence seq)
         {
@@ -62,10 +82,13 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the content type.</summary>
         public DerObjectIdentifier ContentType => m_contentType;
 
+        /// <summary>Gets the content encryption algorithm.</summary>
         public AlgorithmIdentifier ContentEncryptionAlgorithm => m_contentEncryptionAlgorithm;
 
+        /// <summary>Gets the encrypted content.</summary>
         public Asn1OctetString EncryptedContent => m_encryptedContent;
 
         /**

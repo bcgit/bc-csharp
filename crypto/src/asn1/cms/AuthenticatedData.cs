@@ -4,9 +4,15 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>The AuthenticatedData structure of RFC 5652.</summary>
     public class AuthenticatedData
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="AuthenticatedData"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="AuthenticatedData"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="AuthenticatedData"/>, or null if <paramref name="obj"/> is null.</returns>
         public static AuthenticatedData GetInstance(object obj)
         {
             if (obj == null)
@@ -16,9 +22,17 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new AuthenticatedData(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="AuthenticatedData"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AuthenticatedData"/>.</returns>
         public static AuthenticatedData GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
             new AuthenticatedData(Asn1Sequence.GetInstance(obj, isExplicit));
 
+        /// <summary>Return an <see cref="AuthenticatedData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AuthenticatedData"/>.</returns>
         public static AuthenticatedData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new AuthenticatedData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -32,6 +46,15 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly Asn1OctetString m_mac;
         private readonly Asn1Set m_unauthAttrs;
 
+        /// <summary>Create a new <see cref="AuthenticatedData"/>.</summary>
+        /// <param name="originatorInfo">The originator info.</param>
+        /// <param name="recipientInfos">The recipient infos.</param>
+        /// <param name="macAlgorithm">The mac algorithm.</param>
+        /// <param name="digestAlgorithm">The digest algorithm.</param>
+        /// <param name="encapsulatedContent">The encapsulated content.</param>
+        /// <param name="authAttrs">The auth attrs.</param>
+        /// <param name="mac">The MAC.</param>
+        /// <param name="unauthAttrs">The unauth attrs.</param>
         public AuthenticatedData(OriginatorInfo originatorInfo, Asn1Set recipientInfos,
             AlgorithmIdentifier macAlgorithm, AlgorithmIdentifier digestAlgorithm, ContentInfo encapsulatedContent,
             Asn1Set authAttrs, Asn1OctetString mac, Asn1Set unauthAttrs)
@@ -70,22 +93,30 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
         public OriginatorInfo OriginatorInfo => m_originatorInfo;
 
+        /// <summary>Gets the recipient infos.</summary>
         public Asn1Set RecipientInfos => m_recipientInfos;
 
+        /// <summary>Gets the mac algorithm.</summary>
         public AlgorithmIdentifier MacAlgorithm => m_macAlgorithm;
 
+        /// <summary>Gets the digest algorithm.</summary>
         public AlgorithmIdentifier DigestAlgorithm => m_digestAlgorithm;
 
+        /// <summary>Gets the encapsulated content info.</summary>
         public ContentInfo EncapsulatedContentInfo => m_encapsulatedContentInfo;
 
+        /// <summary>Gets the auth attrs.</summary>
         public Asn1Set AuthAttrs => m_authAttrs;
 
+        /// <summary>Gets the mac.</summary>
         public Asn1OctetString Mac => m_mac;
 
+        /// <summary>Gets the unauth attrs.</summary>
         public Asn1Set UnauthAttrs => m_unauthAttrs;
 
         /// <summary>Produce an object suitable for an <see cref="Asn1OutputStream"/>.</summary>

@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>The TimeStampedData structure of RFC 5544.</summary>
     public class TimeStampedData
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="TimeStampedData"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="TimeStampedData"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="TimeStampedData"/>, or null if <paramref name="obj"/> is null.</returns>
         public static TimeStampedData GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +20,17 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new TimeStampedData(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="TimeStampedData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="TimeStampedData"/>.</returns>
         public static TimeStampedData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new TimeStampedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="TimeStampedData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="TimeStampedData"/>.</returns>
         public static TimeStampedData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new TimeStampedData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -26,6 +40,11 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly Asn1OctetString m_content;
         private readonly Evidence m_temporalEvidence;
 
+        /// <summary>Create a new <see cref="TimeStampedData"/>.</summary>
+        /// <param name="dataUri">The data uri.</param>
+        /// <param name="metaData">The meta data.</param>
+        /// <param name="content">The content.</param>
+        /// <param name="temporalEvidence">The temporal evidence.</param>
         public TimeStampedData(DerIA5String dataUri, MetaData metaData, Asn1OctetString content,
             Evidence temporalEvidence)
         {
@@ -52,12 +71,15 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the data uri.</summary>
         public virtual DerIA5String DataUri => m_dataUri;
 
         public MetaData MetaData => m_metaData;
 
+        /// <summary>Gets the content.</summary>
         public Asn1OctetString Content => m_content;
 
+        /// <summary>Gets the temporal evidence.</summary>
         public Evidence TemporalEvidence => m_temporalEvidence;
 
         /// <remarks>

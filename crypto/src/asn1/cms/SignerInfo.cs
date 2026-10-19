@@ -39,6 +39,9 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class SignerInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="SignerInfo"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="SignerInfo"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="SignerInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static SignerInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -48,9 +51,17 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new SignerInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="SignerInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SignerInfo"/>.</returns>
         public static SignerInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SignerInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="SignerInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SignerInfo"/>.</returns>
         public static SignerInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SignerInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -80,6 +91,13 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="SignerInfo"/>.</summary>
+        /// <param name="sid">The sid.</param>
+        /// <param name="digAlgorithm">The dig algorithm.</param>
+        /// <param name="authenticatedAttributes">The authenticated attributes.</param>
+        /// <param name="digEncryptionAlgorithm">The dig encryption algorithm.</param>
+        /// <param name="encryptedDigest">The encrypted digest.</param>
+        /// <param name="unauthenticatedAttributes">The unauthenticated attributes.</param>
         // TODO[api] Rename parameters according to fields
         public SignerInfo(SignerIdentifier sid, AlgorithmIdentifier digAlgorithm, Attributes authenticatedAttributes,
             AlgorithmIdentifier digEncryptionAlgorithm, Asn1OctetString encryptedDigest,
@@ -89,6 +107,13 @@ namespace Org.BouncyCastle.Asn1.Cms
         {
         }
 
+        /// <summary>Create a new <see cref="SignerInfo"/>.</summary>
+        /// <param name="sid">The sid.</param>
+        /// <param name="digAlgorithm">The dig algorithm.</param>
+        /// <param name="authenticatedAttributes">The authenticated attributes.</param>
+        /// <param name="digEncryptionAlgorithm">The dig encryption algorithm.</param>
+        /// <param name="encryptedDigest">The encrypted digest.</param>
+        /// <param name="unauthenticatedAttributes">The unauthenticated attributes.</param>
         // TODO[api] Rename parameters according to fields
         public SignerInfo(SignerIdentifier sid, AlgorithmIdentifier digAlgorithm, Asn1Set authenticatedAttributes,
             AlgorithmIdentifier digEncryptionAlgorithm, Asn1OctetString encryptedDigest,
@@ -104,32 +129,44 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_version = sid.IsTagged ? DerInteger.Three : DerInteger.One;
         }
 
+        /// <summary>Gets the authenticated attributes.</summary>
         [Obsolete("Use 'SignedAttrs' instead")]
         public Asn1Set AuthenticatedAttributes => m_signedAttrs;
 
+        /// <summary>Gets the digest algorithm.</summary>
         public AlgorithmIdentifier DigestAlgorithm => m_digestAlgorithm;
 
+        /// <summary>Gets the digest encryption algorithm.</summary>
         [Obsolete("Use 'SignatureAlgorithm' instead")]
         public AlgorithmIdentifier DigestEncryptionAlgorithm => m_signatureAlgorithm;
 
+        /// <summary>Gets the encrypted digest.</summary>
         [Obsolete("Use 'Signature' instead")]
         public Asn1OctetString EncryptedDigest => m_signature;
 
+        /// <summary>Gets the signature.</summary>
         public Asn1OctetString Signature => m_signature;
 
+        /// <summary>Gets the signature algorithm.</summary>
         public AlgorithmIdentifier SignatureAlgorithm => m_signatureAlgorithm;
 
+        /// <summary>Gets the signed attrs.</summary>
         public Asn1Set SignedAttrs => m_signedAttrs;
 
+        /// <summary>Gets the signer ID.</summary>
         public SignerIdentifier SignerID => m_sid;
 
+        /// <summary>Gets the unauthenticated attributes.</summary>
         [Obsolete("Use 'UnsignedAttrs' instead")]
         public Asn1Set UnauthenticatedAttributes => m_unsignedAttrs;
 
+        /// <summary>Gets the unsigned attrs.</summary>
         public Asn1Set UnsignedAttrs => m_unsignedAttrs;
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             var v = new Asn1EncodableVector(7){ m_version, m_sid, m_digestAlgorithm };

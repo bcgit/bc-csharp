@@ -4,32 +4,43 @@ using System.Diagnostics;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>A table of CMS attributes, keyed by attribute object identifier.</summary>
     public class AttributeTable
         : IReadOnlyCollection<Attribute>
     {
         private readonly Dictionary<DerObjectIdentifier, object> m_attributes;
         private readonly int m_count;
 
+        /// <summary>Create a new <see cref="AttributeTable"/>.</summary>
+        /// <param name="attrs">The attrs.</param>
         public AttributeTable(IDictionary<DerObjectIdentifier, object> attrs)
         {
             m_attributes = BuildAttributes(attrs, out m_count);
         }
 
+        /// <summary>Create a new <see cref="AttributeTable"/>.</summary>
+        /// <param name="v">The v.</param>
         public AttributeTable(Asn1EncodableVector v)
         {
             m_attributes = BuildAttributes(v, out m_count);
         }
 
+        /// <summary>Create a new <see cref="AttributeTable"/>.</summary>
+        /// <param name="attributes">The attributes.</param>
         public AttributeTable(IReadOnlyCollection<Attribute> attributes)
         {
             m_attributes = BuildAttributes(attributes, out m_count);
         }
 
+        /// <summary>Create a new <see cref="AttributeTable"/>.</summary>
+        /// <param name="s">The s.</param>
         public AttributeTable(Asn1Set s)
         {
             m_attributes = BuildAttributes(s, out m_count);
         }
 
+        /// <summary>Create a new <see cref="AttributeTable"/>.</summary>
+        /// <param name="attrs">The attrs.</param>
         public AttributeTable(Attributes attrs)
             : this(Asn1Set.GetInstance(attrs.ToAsn1Object()))
         {
@@ -44,10 +55,12 @@ namespace Org.BouncyCastle.Asn1.Cms
         /// <summary>Return the first attribute matching the given OBJECT IDENTIFIER, or <c>null</c>.</summary>
         public Attribute this[DerObjectIdentifier oid] => TryGetFirst(oid, out var first) ? first : null;
 
+        /// <summary>Gets the count.</summary>
         public int Count => m_count;
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 
+        /// <summary>Return the enumerator.</summary>
         public virtual IEnumerator<Attribute> GetEnumerator()
         {
             IEnumerable<Attribute> e = EnumerateAttributes(m_attributes);
@@ -237,6 +250,7 @@ namespace Org.BouncyCastle.Asn1.Cms
         }
     }
 
+    /// <summary>Extension methods for <see cref="AttributeTable"/>.</summary>
     public static class AttributeTableExtensions
     {
         public static AttributeTable ToAttributeTable(this Asn1EncodableVector v) => new AttributeTable(v);

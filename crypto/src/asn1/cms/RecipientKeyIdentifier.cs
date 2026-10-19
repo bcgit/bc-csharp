@@ -4,9 +4,15 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>The RecipientKeyIdentifier structure of RFC 5652.</summary>
     public class RecipientKeyIdentifier
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="RecipientKeyIdentifier"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="RecipientKeyIdentifier"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="RecipientKeyIdentifier"/>, or null if <paramref name="obj"/> is null.</returns>
         public static RecipientKeyIdentifier GetInstance(object obj)
         {
             if (obj == null)
@@ -18,6 +24,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="RecipientKeyIdentifier"/> from a tagged object.</summary>
+        /// <param name="ato">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RecipientKeyIdentifier"/>.</returns>
         public static RecipientKeyIdentifier GetInstance(Asn1TaggedObject ato, bool explicitly)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -25,6 +35,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="RecipientKeyIdentifier"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RecipientKeyIdentifier"/>.</returns>
         public static RecipientKeyIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -36,6 +50,10 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly Asn1GeneralizedTime m_date;
         private readonly OtherKeyAttribute m_other;
 
+        /// <summary>Create a new <see cref="RecipientKeyIdentifier"/>.</summary>
+        /// <param name="subjectKeyIdentifier">The subject key identifier.</param>
+        /// <param name="date">The date.</param>
+        /// <param name="other">The other.</param>
         public RecipientKeyIdentifier(Asn1OctetString subjectKeyIdentifier, Asn1GeneralizedTime date,
             OtherKeyAttribute other)
         {
@@ -44,11 +62,17 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_other = other;
         }
 
+        /// <summary>Create a new <see cref="RecipientKeyIdentifier"/>.</summary>
+        /// <param name="subjectKeyIdentifier">The subject key identifier.</param>
         public RecipientKeyIdentifier(byte[] subjectKeyIdentifier)
             : this(subjectKeyIdentifier, null, null)
         {
         }
 
+        /// <summary>Create a new <see cref="RecipientKeyIdentifier"/>.</summary>
+        /// <param name="subjectKeyIdentifier">The subject key identifier.</param>
+        /// <param name="date">The date.</param>
+        /// <param name="other">The other.</param>
         public RecipientKeyIdentifier(byte[] subjectKeyIdentifier, Asn1GeneralizedTime date, OtherKeyAttribute other)
         {
             m_subjectKeyIdentifier = DerOctetString.FromContents(subjectKeyIdentifier);
@@ -56,6 +80,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_other = other;
         }
 
+        /// <summary>Create a new <see cref="RecipientKeyIdentifier"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public RecipientKeyIdentifier(Asn1Sequence seq)
         {
@@ -74,8 +100,10 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the subject key identifier.</summary>
         public Asn1OctetString SubjectKeyIdentifier => m_subjectKeyIdentifier;
 
+        /// <summary>Gets the date.</summary>
         public Asn1GeneralizedTime Date => m_date;
 
         public OtherKeyAttribute OtherKeyAttribute => m_other;

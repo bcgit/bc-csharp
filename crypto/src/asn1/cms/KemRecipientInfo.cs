@@ -21,6 +21,11 @@ namespace Org.BouncyCastle.Asn1.Cms
     public sealed class KemRecipientInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="KemRecipientInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="KemRecipientInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="KemRecipientInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static KemRecipientInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -30,9 +35,17 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new KemRecipientInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="KemRecipientInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="KemRecipientInfo"/>.</returns>
         public static KemRecipientInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new KemRecipientInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="KemRecipientInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="KemRecipientInfo"/>.</returns>
         public static KemRecipientInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new KemRecipientInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -48,6 +61,15 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly AlgorithmIdentifier m_wrap;
         private readonly Asn1OctetString m_encryptedKey;
 
+        /// <summary>Create a new <see cref="KemRecipientInfo"/>.</summary>
+        /// <param name="rid">The rid.</param>
+        /// <param name="kem">The kem.</param>
+        /// <param name="kemct">The kemct.</param>
+        /// <param name="kdf">The kdf.</param>
+        /// <param name="kekLength">The kek length.</param>
+        /// <param name="ukm">The ukm.</param>
+        /// <param name="wrap">The wrap.</param>
+        /// <param name="encryptedKey">The encrypted key.</param>
         public KemRecipientInfo(RecipientIdentifier rid, AlgorithmIdentifier kem, Asn1OctetString kemct,
             AlgorithmIdentifier kdf, DerInteger kekLength, Asn1OctetString ukm, AlgorithmIdentifier wrap,
             Asn1OctetString encryptedKey)
@@ -90,18 +112,25 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public RecipientIdentifier RecipientIdentifier => m_rid;
 
+        /// <summary>Gets the kem.</summary>
         public AlgorithmIdentifier Kem => m_kem;
 
+        /// <summary>Gets the kemct.</summary>
         public Asn1OctetString Kemct => m_kemct;
 
+        /// <summary>Gets the kdf.</summary>
         public AlgorithmIdentifier Kdf => m_kdf;
 
+        /// <summary>Gets the wrap.</summary>
         public AlgorithmIdentifier Wrap => m_wrap;
 
+        /// <summary>Gets the ukm.</summary>
         public Asn1OctetString Ukm => m_ukm;
 
+        /// <summary>Gets the encrypted key.</summary>
         public Asn1OctetString EncryptedKey => m_encryptedKey;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(9);

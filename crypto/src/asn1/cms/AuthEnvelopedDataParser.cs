@@ -24,6 +24,8 @@ namespace Org.BouncyCastle.Asn1.Cms
         private bool originatorInfoCalled;
         private bool                isData;
 
+        /// <summary>Create a new <see cref="AuthEnvelopedDataParser"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         public AuthEnvelopedDataParser(
             Asn1SequenceParser seq)
         {
@@ -35,11 +37,13 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new Asn1ParsingException("AuthEnvelopedData version number must be 0");
         }
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version
         {
             get { return version; }
         }
 
+        /// <summary>Return the originator info.</summary>
         public OriginatorInfo GetOriginatorInfo()
         {
             originatorInfoCalled = true;
@@ -62,6 +66,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return null;
         }
 
+        /// <summary>Return the recipient infos.</summary>
         public Asn1SetParser GetRecipientInfos()
         {
             if (!originatorInfoCalled)
@@ -79,6 +84,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return recipientInfos;
         }
 
+        /// <summary>Return the auth encrypted content info.</summary>
         public EncryptedContentInfoParser GetAuthEncryptedContentInfo()
         {
             if (nextObject == null)
@@ -98,6 +104,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return null;
         }
 
+        /// <summary>Return the auth attrs.</summary>
         public Asn1SetParser GetAuthAttrs()
         {
             if (nextObject == null)
@@ -118,6 +125,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return null;
         }
 
+        /// <summary>Return the mac.</summary>
         public Asn1OctetString GetMac()
         {
             if (nextObject == null)
@@ -131,6 +139,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return Asn1OctetString.GetInstance(o.ToAsn1Object());
         }
 
+        /// <summary>Return the unauth attrs.</summary>
         public Asn1SetParser GetUnauthAttrs()
         {
             if (nextObject == null)

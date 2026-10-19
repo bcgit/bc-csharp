@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>The ContentInfo structure of RFC 5652: a content type and the content.</summary>
     public class ContentInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="ContentInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="ContentInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="ContentInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static ContentInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +20,16 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new ContentInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="ContentInfo"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ContentInfo"/>.</returns>
         public static ContentInfo GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
             new ContentInfo(Asn1Sequence.GetInstance(obj, isExplicit));
 
+        /// <summary>Return an <see cref="ContentInfo"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="ContentInfo"/>, or null if <paramref name="element"/> is null.</returns>
         public static ContentInfo GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -32,6 +45,10 @@ namespace Org.BouncyCastle.Asn1.Cms
             return null;
         }
 
+        /// <summary>Return an <see cref="ContentInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ContentInfo"/>.</returns>
         public static ContentInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ContentInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -57,6 +74,9 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_isDefiniteLength = IsDLSequence(seq);
         }
 
+        /// <summary>Create a new <see cref="ContentInfo"/>.</summary>
+        /// <param name="contentType">The content type.</param>
+        /// <param name="content">The content.</param>
         public ContentInfo(DerObjectIdentifier contentType, Asn1Encodable content)
         {
             m_contentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
@@ -65,8 +85,10 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_isDefiniteLength = IsDLContent(content);
         }
 
+        /// <summary>Gets the content type.</summary>
         public DerObjectIdentifier ContentType => m_contentType;
 
+        /// <summary>Gets the content.</summary>
         public Asn1Encodable Content => m_content;
 
         internal bool IsDefiniteLength => m_isDefiniteLength;

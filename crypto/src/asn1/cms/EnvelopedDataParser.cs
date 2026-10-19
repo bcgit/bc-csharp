@@ -21,6 +21,8 @@ namespace Org.BouncyCastle.Asn1.Cms
         private IAsn1Convertible _nextObject;
         private bool _originatorInfoCalled;
 
+        /// <summary>Create a new <see cref="EnvelopedDataParser"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         public EnvelopedDataParser(
             Asn1SequenceParser seq)
         {
@@ -28,11 +30,13 @@ namespace Org.BouncyCastle.Asn1.Cms
             this._version = (DerInteger)seq.ReadObject();
         }
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version
         {
             get { return _version; }
         }
 
+        /// <summary>Return the originator info.</summary>
         public OriginatorInfo GetOriginatorInfo()
         {
             _originatorInfoCalled = true;
@@ -55,6 +59,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return null;
         }
 
+        /// <summary>Return the recipient infos.</summary>
         public Asn1SetParser GetRecipientInfos()
         {
             if (!_originatorInfoCalled)
@@ -72,6 +77,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return recipientInfos;
         }
 
+        /// <summary>Return the encrypted content info.</summary>
         public EncryptedContentInfoParser GetEncryptedContentInfo()
         {
             if (_nextObject == null)
@@ -89,6 +95,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return null;
         }
 
+        /// <summary>Return the unprotected attrs.</summary>
         public Asn1SetParser GetUnprotectedAttrs()
         {
             if (_nextObject == null)

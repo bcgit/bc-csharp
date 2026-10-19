@@ -5,9 +5,17 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>
+    /// The IssuerAndSerialNumber structure, which identifies a certificate by its issuer and serial number.
+    /// </summary>
     public class IssuerAndSerialNumber
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="IssuerAndSerialNumber"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="IssuerAndSerialNumber"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="IssuerAndSerialNumber"/>, or null if <paramref name="obj"/> is null.</returns>
         public static IssuerAndSerialNumber GetInstance(object obj)
         {
             if (obj == null)
@@ -17,9 +25,16 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new IssuerAndSerialNumber(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="IssuerAndSerialNumber"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="IssuerAndSerialNumber"/>.</returns>
         public static IssuerAndSerialNumber GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new IssuerAndSerialNumber(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="IssuerAndSerialNumber"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="IssuerAndSerialNumber"/>, or null if <paramref name="element"/> is null.</returns>
         public static IssuerAndSerialNumber GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -35,6 +50,10 @@ namespace Org.BouncyCastle.Asn1.Cms
             return null;
         }
 
+        /// <summary>Return an <see cref="IssuerAndSerialNumber"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="IssuerAndSerialNumber"/>.</returns>
         public static IssuerAndSerialNumber GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new IssuerAndSerialNumber(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -54,6 +73,9 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="IssuerAndSerialNumber"/>.</summary>
+        /// <param name="name">The name.</param>
+        /// <param name="serialNumber">The serial number.</param>
         // TODO[api] 'name' => 'issuer'
         public IssuerAndSerialNumber(X509Name name, BigInteger serialNumber)
         {
@@ -61,6 +83,9 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_serialNumber = new DerInteger(serialNumber);
         }
 
+        /// <summary>Create a new <see cref="IssuerAndSerialNumber"/>.</summary>
+        /// <param name="name">The name.</param>
+        /// <param name="serialNumber">The serial number.</param>
         // TODO[api] 'name' => 'issuer'
         public IssuerAndSerialNumber(X509Name name, DerInteger serialNumber)
         {
@@ -68,19 +93,24 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_serialNumber = serialNumber ?? throw new ArgumentNullException(nameof(serialNumber));
         }
 
+        /// <summary>Create a new <see cref="IssuerAndSerialNumber"/>.</summary>
+        /// <param name="x509CertificateStructure">The x 509 certificate structure.</param>
         public IssuerAndSerialNumber(X509CertificateStructure x509CertificateStructure)
         {
             m_issuer = x509CertificateStructure.Issuer;
             m_serialNumber = x509CertificateStructure.SerialNumber;
         }
 
+        /// <summary>Gets the issuer.</summary>
         public X509Name Issuer => m_issuer;
 
         [Obsolete("Use 'Issuer' property instead")]
         public X509Name Name => m_issuer;
 
+        /// <summary>Gets the serial number.</summary>
         public DerInteger SerialNumber => m_serialNumber;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => new DerSequence(m_issuer, m_serialNumber);
     }
 }

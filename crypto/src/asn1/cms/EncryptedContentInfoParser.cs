@@ -19,6 +19,8 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly AlgorithmIdentifier m_contentEncryptionAlgorithm;
         private readonly Asn1TaggedObjectParser m_encryptedContent;
 
+        /// <summary>Create a new <see cref="EncryptedContentInfoParser"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         public EncryptedContentInfoParser(Asn1SequenceParser seq)
         {
             m_contentType = (DerObjectIdentifier)seq.ReadObject();
@@ -26,8 +28,10 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_encryptedContent = (Asn1TaggedObjectParser)seq.ReadObject();
         }
 
+        /// <summary>Gets the content type.</summary>
         public DerObjectIdentifier ContentType => m_contentType;
 
+        /// <summary>Gets the content encryption algorithm.</summary>
         public AlgorithmIdentifier ContentEncryptionAlgorithm => m_contentEncryptionAlgorithm;
 
         public IAsn1Convertible GetEncryptedContent(int tag)

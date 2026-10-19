@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>The AuthEnvelopedData structure of RFC 5083.</summary>
     public class AuthEnvelopedData
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="AuthEnvelopedData"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="AuthEnvelopedData"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="AuthEnvelopedData"/>, or null if <paramref name="obj"/> is null.</returns>
         public static AuthEnvelopedData GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +20,17 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new AuthEnvelopedData(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="AuthEnvelopedData"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AuthEnvelopedData"/>.</returns>
         public static AuthEnvelopedData GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
             new AuthEnvelopedData(Asn1Sequence.GetInstance(obj, isExplicit));
 
+        /// <summary>Return an <see cref="AuthEnvelopedData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AuthEnvelopedData"/>.</returns>
         public static AuthEnvelopedData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new AuthEnvelopedData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -28,6 +42,13 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly Asn1OctetString m_mac;
         private readonly Asn1Set m_unauthAttrs;
 
+        /// <summary>Create a new <see cref="AuthEnvelopedData"/>.</summary>
+        /// <param name="originatorInfo">The originator info.</param>
+        /// <param name="recipientInfos">The recipient infos.</param>
+        /// <param name="authEncryptedContentInfo">The auth encrypted content info.</param>
+        /// <param name="authAttrs">The auth attrs.</param>
+        /// <param name="mac">The MAC.</param>
+        /// <param name="unauthAttrs">The unauth attrs.</param>
         public AuthEnvelopedData(OriginatorInfo originatorInfo, Asn1Set recipientInfos,
             EncryptedContentInfo authEncryptedContentInfo, Asn1Set authAttrs, Asn1OctetString mac,
             Asn1Set unauthAttrs)
@@ -81,18 +102,24 @@ namespace Org.BouncyCastle.Asn1.Cms
             }
         }
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
         public OriginatorInfo OriginatorInfo => m_originatorInfo;
 
+        /// <summary>Gets the recipient infos.</summary>
         public Asn1Set RecipientInfos => m_recipientInfos;
 
+        /// <summary>Gets the auth encrypted content info.</summary>
         public EncryptedContentInfo AuthEncryptedContentInfo => m_authEncryptedContentInfo;
 
+        /// <summary>Gets the auth attrs.</summary>
         public Asn1Set AuthAttrs => m_authAttrs;
 
+        /// <summary>Gets the mac.</summary>
         public Asn1OctetString Mac => m_mac;
 
+        /// <summary>Gets the unauth attrs.</summary>
         public Asn1Set UnauthAttrs => m_unauthAttrs;
 
         /**

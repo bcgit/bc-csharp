@@ -4,11 +4,17 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>The GCMParameters structure of RFC 5084: the parameters of AES in GCM mode.</summary>
     public class GcmParameters
         : Asn1Encodable
     {
         private const int DefaultIcvLen = 12;
 
+        /// <summary>Return an <see cref="GcmParameters"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="GcmParameters"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="GcmParameters"/>, or null if <paramref name="obj"/> is null.</returns>
         public static GcmParameters GetInstance(object obj)
         {
             if (obj == null)
@@ -18,9 +24,17 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new GcmParameters(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="GcmParameters"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="GcmParameters"/>.</returns>
         public static GcmParameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new GcmParameters(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="GcmParameters"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="GcmParameters"/>.</returns>
         public static GcmParameters GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new GcmParameters(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -42,16 +56,22 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_icvLen = ValidateIcvLen(icvLen);
         }
 
+        /// <summary>Create a new <see cref="GcmParameters"/>.</summary>
+        /// <param name="nonce">The nonce.</param>
+        /// <param name="icvLen">The icv len.</param>
         public GcmParameters(byte[] nonce, int icvLen)
         {
             m_nonce = DerOctetString.FromContents(nonce);
             m_icvLen = ValidateIcvLenValue(icvLen);
         }
 
+        /// <summary>Return the nonce.</summary>
         public byte[] GetNonce() => Arrays.Clone(m_nonce.GetOctets());
 
+        /// <summary>Gets the icv len.</summary>
         public int IcvLen => m_icvLen;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             return m_icvLen == DefaultIcvLen

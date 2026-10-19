@@ -2,9 +2,17 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>
+    /// The KEKIdentifier structure of RFC 5652, identifying a previously distributed key encryption key.
+    /// </summary>
     public class KekIdentifier
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="KekIdentifier"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="KekIdentifier"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="KekIdentifier"/>, or null if <paramref name="obj"/> is null.</returns>
         public static KekIdentifier GetInstance(object obj)
         {
             if (obj == null)
@@ -16,6 +24,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="KekIdentifier"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="KekIdentifier"/>.</returns>
         public static KekIdentifier GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -23,6 +35,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="KekIdentifier"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="KekIdentifier"/>.</returns>
         public static KekIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -34,6 +50,10 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly Asn1GeneralizedTime m_date;
         private readonly OtherKeyAttribute m_other;
 
+        /// <summary>Create a new <see cref="KekIdentifier"/>.</summary>
+        /// <param name="keyIdentifier">The key identifier.</param>
+        /// <param name="date">The date.</param>
+        /// <param name="other">The other.</param>
         public KekIdentifier(byte[] keyIdentifier, Asn1GeneralizedTime date, OtherKeyAttribute other)
         {
             m_keyIdentifier = DerOctetString.FromContents(keyIdentifier);
@@ -41,6 +61,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_other = other;
         }
 
+        /// <summary>Create a new <see cref="KekIdentifier"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public KekIdentifier(Asn1Sequence seq)
         {
@@ -59,8 +81,10 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the key identifier.</summary>
         public Asn1OctetString KeyIdentifier => m_keyIdentifier;
 
+        /// <summary>Gets the date.</summary>
         public Asn1GeneralizedTime Date => m_date;
 
         public OtherKeyAttribute Other => m_other;

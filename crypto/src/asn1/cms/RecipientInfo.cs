@@ -3,15 +3,28 @@ using System.Diagnostics;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>The RecipientInfo choice of RFC 5652.</summary>
     public class RecipientInfo
         : Asn1Encodable, IAsn1Choice
     {
+        /// <summary>Return an <see cref="RecipientInfo"/> from the given object.</summary>
+        /// <param name="o">
+        /// An <see cref="RecipientInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="RecipientInfo"/>, or null if <paramref name="o"/> is null.</returns>
         // TODO[api] Rename 'o' to 'obj'
         public static RecipientInfo GetInstance(object o) => Asn1Utilities.GetInstanceChoice(o, GetOptional);
 
+        /// <summary>Return an <see cref="RecipientInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RecipientInfo"/>.</returns>
         public static RecipientInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
 
+        /// <summary>Return an <see cref="RecipientInfo"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="RecipientInfo"/>, or null if <paramref name="element"/> is null.</returns>
         public static RecipientInfo GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -43,42 +56,59 @@ namespace Org.BouncyCastle.Asn1.Cms
             return null;
         }
 
+        /// <summary>Return an <see cref="RecipientInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RecipientInfo"/>.</returns>
         public static RecipientInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private readonly Asn1Encodable m_info;
 
+        /// <summary>Create a new <see cref="RecipientInfo"/>.</summary>
+        /// <param name="info">The info.</param>
         public RecipientInfo(KeyTransRecipientInfo info)
         {
             m_info = info ?? throw new ArgumentNullException(nameof(info));
         }
 
+        /// <summary>Create a new <see cref="RecipientInfo"/>.</summary>
+        /// <param name="info">The info.</param>
         public RecipientInfo(KeyAgreeRecipientInfo info)
         {
             m_info = new DerTaggedObject(false, 1, info);
         }
 
+        /// <summary>Create a new <see cref="RecipientInfo"/>.</summary>
+        /// <param name="info">The info.</param>
         public RecipientInfo(KekRecipientInfo info)
         {
             m_info = new DerTaggedObject(false, 2, info);
         }
 
+        /// <summary>Create a new <see cref="RecipientInfo"/>.</summary>
+        /// <param name="info">The info.</param>
         public RecipientInfo(PasswordRecipientInfo info)
         {
             m_info = new DerTaggedObject(false, 3, info);
         }
 
+        /// <summary>Create a new <see cref="RecipientInfo"/>.</summary>
+        /// <param name="info">The info.</param>
         public RecipientInfo(OtherRecipientInfo info)
         {
             m_info = new DerTaggedObject(false, 4, info);
         }
 
+        /// <summary>Create a new <see cref="RecipientInfo"/>.</summary>
+        /// <param name="info">The info.</param>
         [Obsolete("Will be removed")]
         public RecipientInfo(Asn1Object info)
         {
             m_info = info ?? throw new ArgumentNullException(nameof(info));
         }
 
+        /// <summary>Gets the version.</summary>
         [Obsolete("Will be removed")]
         public DerInteger Version
         {
@@ -106,8 +136,10 @@ namespace Org.BouncyCastle.Asn1.Cms
             }
         }
 
+        /// <summary>Gets a value indicating whether this is tagged.</summary>
         public bool IsTagged => m_info is Asn1TaggedObject;
 
+        /// <summary>Gets the info.</summary>
         public Asn1Encodable Info
         {
             get

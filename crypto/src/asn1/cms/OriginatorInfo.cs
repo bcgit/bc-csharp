@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>The OriginatorInfo structure of RFC 5652: certificates and CRLs of the message originator.</summary>
     public class OriginatorInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="OriginatorInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="OriginatorInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="OriginatorInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static OriginatorInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -16,6 +22,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="OriginatorInfo"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="OriginatorInfo"/>.</returns>
         public static OriginatorInfo GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -23,6 +33,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="OriginatorInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="OriginatorInfo"/>.</returns>
         public static OriginatorInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -33,12 +47,17 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly Asn1Set m_certs;
         private readonly Asn1Set m_crls;
 
+        /// <summary>Create a new <see cref="OriginatorInfo"/>.</summary>
+        /// <param name="certs">The certs.</param>
+        /// <param name="crls">The crls.</param>
         public OriginatorInfo(Asn1Set certs, Asn1Set crls)
         {
             m_certs = certs;
             m_crls = crls;
         }
 
+        /// <summary>Create a new <see cref="OriginatorInfo"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public OriginatorInfo(Asn1Sequence seq)
         {
@@ -56,8 +75,10 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the certificates.</summary>
         public Asn1Set Certificates => m_certs;
 
+        /// <summary>Gets the crls.</summary>
         public Asn1Set Crls => m_crls;
 
         /**

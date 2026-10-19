@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>The EncryptedData structure of RFC 5652.</summary>
     public class EncryptedData
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="EncryptedData"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="EncryptedData"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="EncryptedData"/>, or null if <paramref name="obj"/> is null.</returns>
         public static EncryptedData GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +20,17 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new EncryptedData(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="EncryptedData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EncryptedData"/>.</returns>
         public static EncryptedData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new EncryptedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="EncryptedData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EncryptedData"/>.</returns>
         public static EncryptedData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new EncryptedData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -24,11 +38,16 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly EncryptedContentInfo m_encryptedContentInfo;
         private readonly Asn1Set m_unprotectedAttrs;
 
+        /// <summary>Create a new <see cref="EncryptedData"/>.</summary>
+        /// <param name="encInfo">The enc info.</param>
         public EncryptedData(EncryptedContentInfo encInfo)
             : this(encInfo, null)
         {
         }
 
+        /// <summary>Create a new <see cref="EncryptedData"/>.</summary>
+        /// <param name="encInfo">The enc info.</param>
+        /// <param name="unprotectedAttrs">The unprotected attrs.</param>
         public EncryptedData(EncryptedContentInfo encInfo, Asn1Set unprotectedAttrs)
         {
             m_version = unprotectedAttrs == null ? DerInteger.Zero : DerInteger.Two;
@@ -50,10 +69,12 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the version.</summary>
         public virtual DerInteger Version => m_version;
 
         public virtual EncryptedContentInfo EncryptedContentInfo => m_encryptedContentInfo;
 
+        /// <summary>Gets the unprotected attrs.</summary>
         public virtual Asn1Set UnprotectedAttrs => m_unprotectedAttrs;
 
         /**

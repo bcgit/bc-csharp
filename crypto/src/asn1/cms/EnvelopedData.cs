@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>The EnvelopedData structure of RFC 5652.</summary>
     public class EnvelopedData
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="EnvelopedData"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="EnvelopedData"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="EnvelopedData"/>, or null if <paramref name="obj"/> is null.</returns>
         public static EnvelopedData GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +20,17 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new EnvelopedData(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="EnvelopedData"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EnvelopedData"/>.</returns>
         public static EnvelopedData GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new EnvelopedData(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="EnvelopedData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EnvelopedData"/>.</returns>
         public static EnvelopedData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new EnvelopedData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -26,6 +40,11 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly EncryptedContentInfo m_encryptedContentInfo;
         private readonly Asn1Set m_unprotectedAttrs;
 
+        /// <summary>Create a new <see cref="EnvelopedData"/>.</summary>
+        /// <param name="originatorInfo">The originator info.</param>
+        /// <param name="recipientInfos">The recipient infos.</param>
+        /// <param name="encryptedContentInfo">The encrypted content info.</param>
+        /// <param name="unprotectedAttrs">The unprotected attrs.</param>
         public EnvelopedData(OriginatorInfo originatorInfo, Asn1Set recipientInfos,
             EncryptedContentInfo encryptedContentInfo, Asn1Set unprotectedAttrs)
         {
@@ -36,6 +55,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_unprotectedAttrs = unprotectedAttrs;
         }
 
+        /// <summary>Create a new <see cref="EnvelopedData"/>.</summary>
+        /// <param name="originatorInfo">The originator info.</param>
+        /// <param name="recipientInfos">The recipient infos.</param>
+        /// <param name="encryptedContentInfo">The encrypted content info.</param>
+        /// <param name="unprotectedAttrs">The unprotected attrs.</param>
         public EnvelopedData(OriginatorInfo originatorInfo, Asn1Set recipientInfos,
             EncryptedContentInfo encryptedContentInfo, Attributes unprotectedAttrs)
             : this(originatorInfo, recipientInfos, encryptedContentInfo, Asn1Set.GetInstance(unprotectedAttrs))
@@ -58,14 +82,17 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
         public OriginatorInfo OriginatorInfo => m_originatorInfo;
 
+        /// <summary>Gets the recipient infos.</summary>
         public Asn1Set RecipientInfos => m_recipientInfos;
 
         public EncryptedContentInfo EncryptedContentInfo => m_encryptedContentInfo;
 
+        /// <summary>Gets the unprotected attrs.</summary>
         public Asn1Set UnprotectedAttrs => m_unprotectedAttrs;
 
         /// <summary>Produce an object suitable for an <see cref="Asn1OutputStream"/>.</summary>

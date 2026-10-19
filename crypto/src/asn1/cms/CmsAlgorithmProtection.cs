@@ -23,6 +23,11 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class CmsAlgorithmProtection
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CmsAlgorithmProtection"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="CmsAlgorithmProtection"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="CmsAlgorithmProtection"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CmsAlgorithmProtection GetInstance(object obj)
         {
             if (obj == null)
@@ -32,9 +37,17 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new CmsAlgorithmProtection(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="CmsAlgorithmProtection"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CmsAlgorithmProtection"/>.</returns>
         public static CmsAlgorithmProtection GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CmsAlgorithmProtection(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="CmsAlgorithmProtection"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CmsAlgorithmProtection"/>.</returns>
         public static CmsAlgorithmProtection GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CmsAlgorithmProtection(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -45,6 +58,10 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly AlgorithmIdentifier m_signatureAlgorithm;
         private readonly AlgorithmIdentifier m_macAlgorithm;
 
+        /// <summary>Create a new <see cref="CmsAlgorithmProtection"/>.</summary>
+        /// <param name="digestAlgorithm">The digest algorithm.</param>
+        /// <param name="type">The type.</param>
+        /// <param name="algorithmIdentifier">The algorithm identifier.</param>
         public CmsAlgorithmProtection(AlgorithmIdentifier digestAlgorithm, int type, AlgorithmIdentifier algorithmIdentifier)
         {
             m_digestAlgorithm = digestAlgorithm ?? throw new ArgumentNullException(nameof(digestAlgorithm));
@@ -84,12 +101,16 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the digest algorithm.</summary>
         public AlgorithmIdentifier DigestAlgorithm => m_digestAlgorithm;
 
+        /// <summary>Gets the mac algorithm.</summary>
         public AlgorithmIdentifier MacAlgorithm => m_macAlgorithm;
 
+        /// <summary>Gets the signature algorithm.</summary>
         public AlgorithmIdentifier SignatureAlgorithm => m_signatureAlgorithm;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);

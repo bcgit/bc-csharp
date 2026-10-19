@@ -32,6 +32,8 @@ namespace Org.BouncyCastle.Asn1.Cms
         private IAsn1Convertible nextObject;
         private bool originatorInfoCalled;
 
+        /// <summary>Create a new <see cref="AuthenticatedDataParser"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         public AuthenticatedDataParser(
             Asn1SequenceParser seq)
         {
@@ -39,11 +41,13 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.version = (DerInteger)seq.ReadObject();
         }
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version
         {
             get { return version; }
         }
 
+        /// <summary>Return the originator info.</summary>
         public OriginatorInfo GetOriginatorInfo()
         {
             originatorInfoCalled = true;
@@ -66,6 +70,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return null;
         }
 
+        /// <summary>Return the recipient infos.</summary>
         public Asn1SetParser GetRecipientInfos()
         {
             if (!originatorInfoCalled)
@@ -83,6 +88,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return recipientInfos;
         }
 
+        /// <summary>Return the mac algorithm.</summary>
         public AlgorithmIdentifier GetMacAlgorithm()
         {
             if (nextObject == null)
@@ -100,6 +106,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return null;
         }
 
+        /// <summary>Return the digest algorithm.</summary>
         public AlgorithmIdentifier GetDigestAlgorithm()
         {
             if (nextObject == null)
@@ -118,6 +125,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return null;
         }
 
+        /// <summary>Return the enapsulated content info.</summary>
         public ContentInfoParser GetEnapsulatedContentInfo()
         {
             if (nextObject == null)
@@ -135,6 +143,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return null;
         }
 
+        /// <summary>Return the auth attrs.</summary>
         public Asn1SetParser GetAuthAttrs()
         {
             if (nextObject == null)
@@ -151,6 +160,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return null;
         }
 
+        /// <summary>Return the mac.</summary>
         public Asn1OctetString GetMac()
         {
             if (nextObject == null)
@@ -164,6 +174,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return Asn1OctetString.GetInstance(o.ToAsn1Object());
         }
 
+        /// <summary>Return the unauth attrs.</summary>
         public Asn1SetParser GetUnauthAttrs()
         {
             if (nextObject == null)

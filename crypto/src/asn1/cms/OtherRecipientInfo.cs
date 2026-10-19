@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>The OtherRecipientInfo structure of RFC 5652, for recipient types defined elsewhere.</summary>
     public class OtherRecipientInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="OtherRecipientInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="OtherRecipientInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="OtherRecipientInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static OtherRecipientInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -14,15 +20,26 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new OtherRecipientInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="OtherRecipientInfo"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="OtherRecipientInfo"/>.</returns>
         public static OtherRecipientInfo GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new OtherRecipientInfo(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="OtherRecipientInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="OtherRecipientInfo"/>.</returns>
         public static OtherRecipientInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new OtherRecipientInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerObjectIdentifier m_oriType;
         private readonly Asn1Encodable m_oriValue;
 
+        /// <summary>Create a new <see cref="OtherRecipientInfo"/>.</summary>
+        /// <param name="oriType">The ori type.</param>
+        /// <param name="oriValue">The ori value.</param>
         public OtherRecipientInfo(DerObjectIdentifier oriType, Asn1Encodable oriValue)
         {
             m_oriType = oriType ?? throw new ArgumentNullException(nameof(oriType));
@@ -43,8 +60,10 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the ori type.</summary>
         public virtual DerObjectIdentifier OriType => m_oriType;
 
+        /// <summary>Gets the ori value.</summary>
         public virtual Asn1Encodable OriValue => m_oriValue;
 
         /**

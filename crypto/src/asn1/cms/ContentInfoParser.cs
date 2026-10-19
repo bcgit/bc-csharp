@@ -16,12 +16,15 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly DerObjectIdentifier m_contentType;
         private readonly Asn1TaggedObjectParser m_content;
 
+        /// <summary>Create a new <see cref="ContentInfoParser"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         public ContentInfoParser(Asn1SequenceParser seq)
         {
             m_contentType = (DerObjectIdentifier)seq.ReadObject();
             m_content = (Asn1TaggedObjectParser)seq.ReadObject();
         }
 
+        /// <summary>Gets the content type.</summary>
         public DerObjectIdentifier ContentType => m_contentType;
 
         public IAsn1Convertible GetContent(int tag)

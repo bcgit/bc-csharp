@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>The RecipientEncryptedKey structure of RFC 5652.</summary>
     public class RecipientEncryptedKey
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="RecipientEncryptedKey"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="RecipientEncryptedKey"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="RecipientEncryptedKey"/>, or null if <paramref name="obj"/> is null.</returns>
         public static RecipientEncryptedKey GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +20,17 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new RecipientEncryptedKey(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="RecipientEncryptedKey"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RecipientEncryptedKey"/>.</returns>
         public static RecipientEncryptedKey GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
             new RecipientEncryptedKey(Asn1Sequence.GetInstance(obj, isExplicit));
 
+        /// <summary>Return an <see cref="RecipientEncryptedKey"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RecipientEncryptedKey"/>.</returns>
         public static RecipientEncryptedKey GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new RecipientEncryptedKey(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -36,6 +50,9 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="RecipientEncryptedKey"/>.</summary>
+        /// <param name="id">The id.</param>
+        /// <param name="encryptedKey">The encrypted key.</param>
         public RecipientEncryptedKey(KeyAgreeRecipientIdentifier id, Asn1OctetString encryptedKey)
         {
             m_identifier = id ?? throw new ArgumentNullException(nameof(id));
@@ -44,6 +61,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public KeyAgreeRecipientIdentifier Identifier => m_identifier;
 
+        /// <summary>Gets the encrypted key.</summary>
         public Asn1OctetString EncryptedKey => m_encryptedKey;
 
         /**

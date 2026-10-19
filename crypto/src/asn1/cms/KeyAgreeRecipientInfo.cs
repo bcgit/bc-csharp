@@ -4,9 +4,15 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>The KeyAgreeRecipientInfo structure of RFC 5652, for recipients using key agreement.</summary>
     public class KeyAgreeRecipientInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="KeyAgreeRecipientInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="KeyAgreeRecipientInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="KeyAgreeRecipientInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static KeyAgreeRecipientInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -18,6 +24,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="KeyAgreeRecipientInfo"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="KeyAgreeRecipientInfo"/>.</returns>
         public static KeyAgreeRecipientInfo GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -25,6 +35,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="KeyAgreeRecipientInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="KeyAgreeRecipientInfo"/>.</returns>
         public static KeyAgreeRecipientInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -38,6 +52,11 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly AlgorithmIdentifier m_keyEncryptionAlgorithm;
         private readonly Asn1Sequence m_recipientEncryptedKeys;
 
+        /// <summary>Create a new <see cref="KeyAgreeRecipientInfo"/>.</summary>
+        /// <param name="originator">The originator.</param>
+        /// <param name="ukm">The ukm.</param>
+        /// <param name="keyEncryptionAlgorithm">The key encryption algorithm.</param>
+        /// <param name="recipientEncryptedKeys">The recipient encrypted keys.</param>
         public KeyAgreeRecipientInfo(OriginatorIdentifierOrKey originator, Asn1OctetString ukm,
             AlgorithmIdentifier keyEncryptionAlgorithm, Asn1Sequence recipientEncryptedKeys)
         {
@@ -48,6 +67,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_recipientEncryptedKeys = recipientEncryptedKeys ?? throw new ArgumentNullException(nameof(recipientEncryptedKeys));
         }
 
+        /// <summary>Create a new <see cref="KeyAgreeRecipientInfo"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public KeyAgreeRecipientInfo(Asn1Sequence seq)
         {
@@ -68,14 +89,18 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
         public OriginatorIdentifierOrKey Originator => m_originator;
 
+        /// <summary>Gets the user keying material.</summary>
         public Asn1OctetString UserKeyingMaterial => m_ukm;
 
+        /// <summary>Gets the key encryption algorithm.</summary>
         public AlgorithmIdentifier KeyEncryptionAlgorithm => m_keyEncryptionAlgorithm;
 
+        /// <summary>Gets the recipient encrypted keys.</summary>
         public Asn1Sequence RecipientEncryptedKeys => m_recipientEncryptedKeys;
 
         /**

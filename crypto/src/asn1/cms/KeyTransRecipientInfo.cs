@@ -4,9 +4,15 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>The KeyTransRecipientInfo structure of RFC 5652, for recipients using key transport.</summary>
     public class KeyTransRecipientInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="KeyTransRecipientInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="KeyTransRecipientInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="KeyTransRecipientInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static KeyTransRecipientInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -18,6 +24,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="KeyTransRecipientInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="KeyTransRecipientInfo"/>.</returns>
         public static KeyTransRecipientInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -25,6 +35,9 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="KeyTransRecipientInfo"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="KeyTransRecipientInfo"/>, or null if <paramref name="element"/> is null.</returns>
         public static KeyTransRecipientInfo GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -44,6 +57,10 @@ namespace Org.BouncyCastle.Asn1.Cms
             return null;
         }
 
+        /// <summary>Return an <see cref="KeyTransRecipientInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="KeyTransRecipientInfo"/>.</returns>
         public static KeyTransRecipientInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -56,6 +73,10 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly AlgorithmIdentifier m_keyEncryptionAlgorithm;
         private readonly Asn1OctetString m_encryptedKey;
 
+        /// <summary>Create a new <see cref="KeyTransRecipientInfo"/>.</summary>
+        /// <param name="rid">The rid.</param>
+        /// <param name="keyEncryptionAlgorithm">The key encryption algorithm.</param>
+        /// <param name="encryptedKey">The encrypted key.</param>
         public KeyTransRecipientInfo(RecipientIdentifier rid, AlgorithmIdentifier keyEncryptionAlgorithm,
             Asn1OctetString encryptedKey)
         {
@@ -65,6 +86,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_version = rid.IsTagged ? DerInteger.Two : DerInteger.Zero;
         }
 
+        /// <summary>Create a new <see cref="KeyTransRecipientInfo"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public KeyTransRecipientInfo(Asn1Sequence seq)
         {
@@ -84,12 +107,15 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
         public RecipientIdentifier RecipientIdentifier => m_rid;
 
+        /// <summary>Gets the key encryption algorithm.</summary>
         public AlgorithmIdentifier KeyEncryptionAlgorithm => m_keyEncryptionAlgorithm;
 
+        /// <summary>Gets the encrypted key.</summary>
         public Asn1OctetString EncryptedKey => m_encryptedKey;
 
         /**
