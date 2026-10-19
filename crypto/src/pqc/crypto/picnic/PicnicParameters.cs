@@ -8,16 +8,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         private class L1Constants
         {
             internal static readonly LowmcConstants Instance = new LowmcConstantsL1();
-        } 
+        }
         private class L3Constants
         {
             internal static readonly LowmcConstants Instance = new LowmcConstantsL3();
-        } 
+        }
         private class L5Constants
         {
             internal static readonly LowmcConstants Instance = new LowmcConstantsL5();
-        } 
-        
+        }
+
         public static PicnicParameters picnicl1fs = new PicnicParameters("picnicl1fs", 1);
         public static PicnicParameters picnicl1ur = new PicnicParameters("picnicl1ur", 2);
         public static PicnicParameters picnicl3fs = new PicnicParameters("picnicl3fs", 3);
