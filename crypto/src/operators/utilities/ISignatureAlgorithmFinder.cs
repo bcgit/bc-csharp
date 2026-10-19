@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Operators.Utilities
 {
+    /// <summary>Interface for finding signature algorithm identifiers by name.</summary>
     public interface ISignatureAlgorithmFinder
     {
         /// <summary>
