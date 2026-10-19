@@ -42,6 +42,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
     public class RequestedCertificate
         : Asn1Encodable, IAsn1Choice
     {
+        /// <summary>A choice type, holding the alternative that was selected.</summary>
         public enum Choice
         {
             Certificate = -1,
@@ -49,11 +50,23 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
             AttributeCertificate = 1
         }
 
+        /// <summary>Return an <see cref="RequestedCertificate"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="RequestedCertificate"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="RequestedCertificate"/>, or null if <paramref name="obj"/> is null.</returns>
         public static RequestedCertificate GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
+        /// <summary>Return an <see cref="RequestedCertificate"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RequestedCertificate"/>.</returns>
         public static RequestedCertificate GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
             Asn1Utilities.GetInstanceChoice(obj, isExplicit, GetInstance);
 
+        /// <summary>Return an <see cref="RequestedCertificate"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="RequestedCertificate"/>, or null if <paramref name="element"/> is null.</returns>
         public static RequestedCertificate GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -79,6 +92,10 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
             return null;
         }
 
+        /// <summary>Return an <see cref="RequestedCertificate"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RequestedCertificate"/>.</returns>
         public static RequestedCertificate GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
@@ -115,11 +132,15 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
             m_cert = certificate;
         }
 
+        /// <summary>Create a new <see cref="RequestedCertificate"/>.</summary>
+        /// <param name="type">The type.</param>
+        /// <param name="certificateOctets">The certificate octets.</param>
         public RequestedCertificate(Choice type, byte[] certificateOctets)
             : this(new DerTaggedObject((int)type, DerOctetString.FromContents(certificateOctets)))
         {
         }
 
+        /// <summary>Gets the type.</summary>
         public Choice Type
         {
             get
@@ -134,6 +155,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
             }
         }
 
+        /// <summary>Return the certificate bytes.</summary>
         public byte[] GetCertificateBytes()
         {
             if (m_cert != null)

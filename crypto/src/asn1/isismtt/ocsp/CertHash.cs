@@ -28,6 +28,9 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
     public class CertHash
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CertHash"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="CertHash"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="CertHash"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CertHash GetInstance(object obj)
         {
             if (obj == null)
@@ -37,9 +40,17 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
             return new CertHash(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="CertHash"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertHash"/>.</returns>
         public static CertHash GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertHash(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="CertHash"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertHash"/>.</returns>
         public static CertHash GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertHash(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -85,8 +96,10 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
             m_certificateHash = DerOctetString.FromContents(certificateHash);
         }
 
+        /// <summary>Gets the hash algorithm.</summary>
         public AlgorithmIdentifier HashAlgorithm => m_hashAlgorithm;
 
+        /// <summary>Gets the certificate hash.</summary>
         public byte[] CertificateHash => Arrays.Clone(m_certificateHash.GetOctets());
 
         /**
