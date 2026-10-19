@@ -15,6 +15,7 @@ namespace Org.BouncyCastle.X509
 
         private V2AttributeCertificateInfoGenerator m_acInfoGen;
 
+        /// <summary>Create a generator.</summary>
         public X509V2AttributeCertificateGenerator()
         {
             m_acInfoGen = new V2AttributeCertificateInfoGenerator();
@@ -45,11 +46,15 @@ namespace Org.BouncyCastle.X509
             m_acInfoGen.SetSerialNumber(new DerInteger(serialNumber));
         }
 
+        /// <summary>Set the start of the validity period.</summary>
+        /// <param name="date">The start date.</param>
         public void SetNotBefore(DateTime date)
         {
             m_acInfoGen.SetStartDate(Rfc5280Asn1Utilities.CreateGeneralizedTime(date));
         }
 
+        /// <summary>Set the end of the validity period.</summary>
+        /// <param name="date">The end date.</param>
         public void SetNotAfter(DateTime date)
         {
             m_acInfoGen.SetEndDate(Rfc5280Asn1Utilities.CreateGeneralizedTime(date));
@@ -61,6 +66,8 @@ namespace Org.BouncyCastle.X509
             m_acInfoGen.AddAttribute(AttributeX509.GetInstance(attribute.ToAsn1Object()));
         }
 
+        /// <summary>Set the issuer unique ID.</summary>
+        /// <param name="iui">The unique ID as an array of bits.</param>
         public void SetIssuerUniqueId(bool[] iui)
         {
             m_acInfoGen.SetIssuerUniqueID(X509V3CertificateGenerator.BooleanToBitString(iui));
