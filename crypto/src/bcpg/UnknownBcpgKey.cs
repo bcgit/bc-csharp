@@ -6,7 +6,7 @@
     {
         /// <summary>Create a new <see cref="UnknownBcpgKey"/>.</summary>
         /// <param name="length">The length in bytes.</param>
-        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         public UnknownBcpgKey(int length, BcpgInputStream bcpgIn)
             : base(length, bcpgIn)
         {

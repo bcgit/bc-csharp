@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Bcpg
 
         /// <summary>Create a new <see cref="UnknownPacket"/>.</summary>
         /// <param name="tag">The tag.</param>
-        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         public UnknownPacket(PacketTag tag, BcpgInputStream bcpgIn)
             : this(tag, bcpgIn, newPacketFormat: false)
         {
@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Bcpg
 
         /// <summary>Create a new <see cref="UnknownPacket"/>.</summary>
         /// <param name="tag">The tag.</param>
-        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         /// <param name="newPacketFormat">true if new packet format, false otherwise.</param>
         public UnknownPacket(PacketTag tag, BcpgInputStream bcpgIn, bool newPacketFormat)
             : base(tag, newPacketFormat)

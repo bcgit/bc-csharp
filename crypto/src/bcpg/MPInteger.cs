@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Bcpg
         private readonly BigInteger m_value;
 
         /// <summary>Create a new <see cref="MPInteger"/>.</summary>
-        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         public MPInteger(BcpgInputStream bcpgIn)
         {
             if (bcpgIn == null)

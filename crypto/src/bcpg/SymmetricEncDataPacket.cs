@@ -5,14 +5,14 @@ namespace Org.BouncyCastle.Bcpg
         : InputStreamPacket
     {
         /// <summary>Create a new <see cref="SymmetricEncDataPacket"/>.</summary>
-        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         public SymmetricEncDataPacket(BcpgInputStream bcpgIn)
             : this(bcpgIn, newPacketFormat: false)
         {
         }
 
         /// <summary>Create a new <see cref="SymmetricEncDataPacket"/>.</summary>
-        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         /// <param name="newPacketFormat">true if new packet format, false otherwise.</param>
         public SymmetricEncDataPacket(BcpgInputStream bcpgIn, bool newPacketFormat)
             : base(bcpgIn, PacketTag.SymmetricKeyEncrypted, newPacketFormat)

@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Bcpg
         private readonly BcpgInputStream m_bcpgIn;
 
         /// <summary>Create a new <see cref="InputStreamPacket"/>.</summary>
-        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         [Obsolete("WIll be removed")]
         public InputStreamPacket(BcpgInputStream bcpgIn)
         {

@@ -20,7 +20,7 @@
         public static readonly int Length = 32;
 
         /// <summary>Create a new <see cref="X25519SecretBcpgKey"/>.</summary>
-        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         public X25519SecretBcpgKey(BcpgInputStream bcpgIn)
             : base(Length, bcpgIn)
         {

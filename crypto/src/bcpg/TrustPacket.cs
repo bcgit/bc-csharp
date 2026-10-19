@@ -9,14 +9,14 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte[] m_levelAndTrustAmount;
 
         /// <summary>Create a new <see cref="TrustPacket"/>.</summary>
-        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         public TrustPacket(BcpgInputStream bcpgIn)
             : this(bcpgIn, newPacketFormat: false)
         {
         }
 
         /// <summary>Create a new <see cref="TrustPacket"/>.</summary>
-        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         /// <param name="newPacketFormat">true if new packet format, false otherwise.</param>
         public TrustPacket(BcpgInputStream bcpgIn, bool newPacketFormat)
             : base(PacketTag.Trust, newPacketFormat)

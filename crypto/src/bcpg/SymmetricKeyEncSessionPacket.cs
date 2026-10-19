@@ -66,14 +66,14 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte[] m_authTag;                          // V5, V6
 
         /// <summary>Create a new <see cref="SymmetricKeyEncSessionPacket"/>.</summary>
-        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         public SymmetricKeyEncSessionPacket(BcpgInputStream bcpgIn)
             : this(bcpgIn, newPacketFormat: false)
         {
         }
 
         /// <summary>Create a new <see cref="SymmetricKeyEncSessionPacket"/>.</summary>
-        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         /// <param name="newPacketFormat">true if new packet format, false otherwise.</param>
         public SymmetricKeyEncSessionPacket(BcpgInputStream bcpgIn, bool newPacketFormat)
             : base(PacketTag.SymmetricKeyEncryptedSessionKey, newPacketFormat)

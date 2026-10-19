@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Create a new <see cref="SignatureSubpacket"/>.</summary>
         /// <param name="type">The type.</param>
         /// <param name="critical">Whether the extension is critical.</param>
-        /// <param name="isLongLength">true if is long length, false otherwise.</param>
+        /// <param name="isLongLength">true if the long length form is used, false otherwise.</param>
         /// <param name="data">The data.</param>
         protected internal SignatureSubpacket(SignatureSubpacketTag type, bool critical, bool isLongLength, byte[] data)
         {

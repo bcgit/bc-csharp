@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Bcpg
         private readonly MPInteger m_x;
 
         /// <summary>Create a new <see cref="ECSecretBcpgKey"/>.</summary>
-        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         public ECSecretBcpgKey(BcpgInputStream bcpgIn)
         {
             m_x = new MPInteger(bcpgIn);

@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Bcpg
     {
         /// <summary>Create a new <see cref="RevocationReason"/>.</summary>
         /// <param name="isCritical">true if is critical, false otherwise.</param>
-        /// <param name="isLongLength">true if is long length, false otherwise.</param>
+        /// <param name="isLongLength">true if the long length form is used, false otherwise.</param>
         /// <param name="data">The data.</param>
         public RevocationReason(bool isCritical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.RevocationReason, isCritical, isLongLength, VerifyData(data))

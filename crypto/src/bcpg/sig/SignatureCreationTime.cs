@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Bcpg.Sig
 
         /// <summary>Create a new <see cref="SignatureCreationTime"/>.</summary>
         /// <param name="critical">Whether the extension is critical.</param>
-        /// <param name="isLongLength">true if is long length, false otherwise.</param>
+        /// <param name="isLongLength">true if the long length form is used, false otherwise.</param>
         /// <param name="data">The data.</param>
         public SignatureCreationTime(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.CreationTime, critical, isLongLength, data)

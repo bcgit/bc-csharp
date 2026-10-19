@@ -9,14 +9,14 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte[] m_idData;
 
         /// <summary>Create a new <see cref="UserIdPacket"/>.</summary>
-        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         public UserIdPacket(BcpgInputStream bcpgIn)
             : this(bcpgIn, newPacketFormat: false)
         {
         }
 
         /// <summary>Create a new <see cref="UserIdPacket"/>.</summary>
-        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         /// <param name="newPacketFormat">true if new packet format, false otherwise.</param>
         public UserIdPacket(BcpgInputStream bcpgIn, bool newPacketFormat)
             : base(PacketTag.UserId, newPacketFormat)

@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Bcpg
         private readonly MPInteger m_p, m_g, m_y;
 
         /// <summary>Create a new <see cref="ElGamalPublicBcpgKey"/>.</summary>
-        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         public ElGamalPublicBcpgKey(BcpgInputStream bcpgIn)
         {
             m_p = new MPInteger(bcpgIn);
@@ -18,8 +18,8 @@ namespace Org.BouncyCastle.Bcpg
         }
 
         /// <summary>Create a new <see cref="ElGamalPublicBcpgKey"/>.</summary>
-        /// <param name="p">The p.</param>
-        /// <param name="g">The g.</param>
+        /// <param name="p">The prime modulus.</param>
+        /// <param name="g">The generator.</param>
         /// <param name="y">The second operand.</param>
         public ElGamalPublicBcpgKey(BigInteger p, BigInteger g, BigInteger y)
         {
