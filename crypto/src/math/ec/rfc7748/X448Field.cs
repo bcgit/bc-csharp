@@ -223,8 +223,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             {
                 uint ai = a[i], bi = b[i];
                 uint dummy = mask & (ai ^ bi);
-                a[i] = ai ^ dummy; 
-                b[i] = bi ^ dummy; 
+                a[i] = ai ^ dummy;
+                b[i] = bi ^ dummy;
             }
         }
 
@@ -1129,7 +1129,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             uint u4_2 = u4 * 2;
             uint u5_2 = u5 * 2;
             uint u6_2 = u6 * 2;
-        
+
             uint s0 = x0 + u0;
             uint s1 = x1 + u1;
             uint s2 = x2 + u2;
