@@ -46,9 +46,12 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public static CertificationRequest GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertificationRequest(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
+        /// <summary>The req info.</summary>
         // TODO[api] make these three private readonly and fix names to match ASN.1
         protected CertificationRequestInfo reqInfo;
+        /// <summary>The sig alg id.</summary>
         protected AlgorithmIdentifier sigAlgId;
+        /// <summary>The sig bits.</summary>
         protected DerBitString sigBits;
 
         /// <summary>Create a new <see cref="CertificationRequest"/>.</summary>
