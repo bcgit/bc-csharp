@@ -11,17 +11,26 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Ocsp
 {
+    /// <summary>Identifies a certificate in an OCSP request or response (the RFC 6960 CertID structure).</summary>
+    /// <remarks>
+    /// A CertificateID is made up of a hash of the issuer's name, a hash of the issuer's public key and the serial
+    /// number of the certificate in question.
+    /// </remarks>
     public class CertificateID
         : IEquatable<CertificateID>
     {
         [Obsolete("Use 'OiwObjectIdentifiers.IdSha1.Id' instead")]
         public const string HashSha1 = "1.3.14.3.2.26";
 
+        /// <summary>The SHA-1 digest algorithm identifier, the default hash for CertID.</summary>
         public static readonly AlgorithmIdentifier DigestSha1 = new AlgorithmIdentifier(
             OiwObjectIdentifiers.IdSha1, DerNull.Instance);
 
         private readonly CertID m_id;
 
+        /// <summary>Create from an existing ASN.1 CertID structure.</summary>
+        /// <param name="id">The ASN.1 structure.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="id"/> is null.</exception>
         public CertificateID(CertID id)
         {
             m_id = id ?? throw new ArgumentNullException(nameof(id));
@@ -37,30 +46,55 @@ namespace Org.BouncyCastle.Ocsp
             m_id = CreateCertID(digestAlgorithm, issuerCert, new DerInteger(serialNumber));
         }
 
+        /// <summary>Create from an issuer certificate and the serial number of the certificate it signed.</summary>
+        /// <param name="digestAlgorithm">The digest algorithm used to hash the issuer's name and key.</param>
+        /// <param name="issuerCert">The certificate of the issuer.</param>
+        /// <param name="serialNumber">The serial number of the certificate of interest.</param>
+        /// <exception cref="OcspException">The issuer hashes could not be calculated.</exception>
         public CertificateID(AlgorithmIdentifier digestAlgorithm, X509Certificate issuerCert, BigInteger serialNumber)
         {
             m_id = CreateCertID(digestAlgorithm, issuerCert, new DerInteger(serialNumber));
         }
 
+        /// <summary>Create from an issuer certificate and the serial number of the certificate it signed.</summary>
+        /// <param name="digestFactory">The factory for the digest used to hash the issuer's name and key.</param>
+        /// <param name="issuerCert">The certificate of the issuer.</param>
+        /// <param name="serialNumber">The serial number of the certificate of interest.</param>
+        /// <exception cref="OcspException">The issuer hashes could not be calculated.</exception>
         public CertificateID(IDigestFactory digestFactory, X509Certificate issuerCert, BigInteger serialNumber)
         {
             m_id = CreateCertID(digestFactory, issuerCert, new DerInteger(serialNumber));
         }
 
+        /// <summary>Gets the object identifier of the hash algorithm used to build this ID.</summary>
         public string HashAlgOid => m_id.HashAlgorithm.Algorithm.Id;
 
+        /// <summary>Return the hash of the issuer's distinguished name.</summary>
         public byte[] GetIssuerNameHash() => m_id.IssuerNameHash.GetOctets();
 
+        /// <summary>Return the hash of the issuer's public key.</summary>
         public byte[] GetIssuerKeyHash() => m_id.IssuerKeyHash.GetOctets();
 
         /// <summary>Return the serial number for the certificate associated with this request.</summary>
         public BigInteger SerialNumber => m_id.SerialNumber.Value;
 
+        /// <summary>Test whether this ID was generated for the given issuer certificate.</summary>
+        /// <param name="issuerCert">The candidate issuer certificate.</param>
+        /// <returns>true if the issuer name and key hashes match, false otherwise.</returns>
+        /// <exception cref="OcspException">The issuer hashes could not be calculated.</exception>
         public bool MatchesIssuer(X509Certificate issuerCert)
         {
             return CreateCertID(m_id.HashAlgorithm, issuerCert, m_id.SerialNumber).Equals(m_id);
         }
 
+        /// <summary>Test whether this ID was generated for the given issuer certificate.</summary>
+        /// <param name="digestFactory">A factory for the digest algorithm used by this ID.</param>
+        /// <param name="issuerCert">The candidate issuer certificate.</param>
+        /// <returns>true if the issuer name and key hashes match, false otherwise.</returns>
+        /// <exception cref="ArgumentException">
+        /// The factory's algorithm differs from the one used by this ID.
+        /// </exception>
+        /// <exception cref="OcspException">The issuer hashes could not be calculated.</exception>
         public bool MatchesIssuer(IDigestFactory digestFactory, X509Certificate issuerCert)
         {
             if (!m_id.HashAlgorithm.Equals(digestFactory.AlgorithmDetails))
@@ -69,6 +103,7 @@ namespace Org.BouncyCastle.Ocsp
             return CreateCertID(digestFactory, issuerCert, m_id.SerialNumber).Equals(m_id);
         }
 
+        /// <summary>Return the underlying ASN.1 structure.</summary>
         public CertID ToAsn1Object() => m_id;
 
         public bool Equals(CertificateID other) => this == other || m_id.Equals(other?.m_id);
