@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 Array.Clear(IV, 0, IV.Length);
                 Array.Copy(iv, 0, IV, diff, iv.Length);
-         
+
                 parameters = ivParam.Parameters;
             }
             else

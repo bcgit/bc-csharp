@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Modes
     * (blockSize + 2) bytes have been read.
     * <p>
     * For further info see <a href="http://www.ietf.org/rfc/rfc2440.html">RFC 2440</a>.
-	* </p>
+    * </p>
     */
     public class OpenPgpCfbBlockCipher
         : IBlockCipherMode
@@ -20,13 +20,13 @@ namespace Org.BouncyCastle.Crypto.Modes
         private byte[] FR;
         private byte[] FRE;
 
-		private readonly IBlockCipher cipher;
-		private readonly int blockSize;
+        private readonly IBlockCipher cipher;
+        private readonly int blockSize;
 
-		private int count;
+        private int count;
         private bool forEncryption;
 
-		/**
+        /**
         * Basic constructor.
         *
         * @param cipher the block cipher to be used as the basis of the
@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         */
         public IBlockCipher UnderlyingCipher => cipher;
 
-		/**
+        /**
         * return the algorithm name and mode.
         *
         * @return the name of the underlying algorithm followed by "/PGPCFB"
@@ -61,12 +61,12 @@ namespace Org.BouncyCastle.Crypto.Modes
             get { return cipher.AlgorithmName + "/OpenPGPCFB"; }
         }
 
-		public bool IsPartialBlockOkay
-		{
-			get { return true; }
-		}
+        public bool IsPartialBlockOkay
+        {
+            get { return true; }
+        }
 
-		/**
+        /**
         * return the block size we are operating at.
         *
         * @return the block size we are operating at (in bytes).
@@ -106,7 +106,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             count = 0;
 
-			Array.Copy(IV, 0, FR, 0, FR.Length);
+            Array.Copy(IV, 0, FR, 0, FR.Length);
         }
 
         /**
@@ -150,7 +150,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             cipher.Init(true, parameters);
         }
 
-		/**
+        /**
         * Encrypt one byte of data according to CFB mode.
         * @param data the byte to encrypt
         * @param blockOff offset in the current block
@@ -176,19 +176,19 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 for (int n = 2; n < blockSize; n++)
                 {
-					FR[n - 2] = output[n] = EncryptByte(input[n], n - 2);
+                    FR[n - 2] = output[n] = EncryptByte(input[n], n - 2);
                 }
             }
             else if (count == 0)
             {
                 cipher.ProcessBlock(FR, FRE);
 
-				for (int n = 0; n < blockSize; n++)
+                for (int n = 0; n < blockSize; n++)
                 {
-					FR[n] = output[n] = EncryptByte(input[n], n);
+                    FR[n] = output[n] = EncryptByte(input[n], n);
                 }
 
-				count += blockSize;
+                count += blockSize;
             }
             else if (count == blockSize)
             {
@@ -207,10 +207,10 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 for (int n = 2; n < blockSize; n++)
                 {
-					FR[n - 2] = output[n] = EncryptByte(input[n], n - 2);
+                    FR[n - 2] = output[n] = EncryptByte(input[n], n - 2);
                 }
 
-				count += blockSize;
+                count += blockSize;
             }
 
             return blockSize;
@@ -223,22 +223,22 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (count > blockSize)
             {
-				byte inVal = input[0];
-				FR[blockSize - 2] = inVal;
-				output[0] = EncryptByte(inVal, blockSize - 2);
+                byte inVal = input[0];
+                FR[blockSize - 2] = inVal;
+                output[0] = EncryptByte(inVal, blockSize - 2);
 
-				inVal = input[1];
-				FR[blockSize - 1] = inVal;
-				output[1] = EncryptByte(inVal, blockSize - 1);
+                inVal = input[1];
+                FR[blockSize - 1] = inVal;
+                output[1] = EncryptByte(inVal, blockSize - 1);
 
                 cipher.ProcessBlock(FR, FRE);
 
                 for (int n = 2; n < blockSize; n++)
                 {
-					inVal = input[n];
-					FR[n - 2] = inVal;
-					output[n] = EncryptByte(inVal, n - 2);
-				}
+                    inVal = input[n];
+                    FR[n - 2] = inVal;
+                    output[n] = EncryptByte(inVal, n - 2);
+                }
             }
             else if (count == 0)
             {
@@ -256,23 +256,23 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 cipher.ProcessBlock(FR, 0, FRE, 0);
 
-				byte inVal1 = input[0];
-				byte inVal2 = input[1];
-				output[0] = EncryptByte(inVal1, 0);
-				output[1] = EncryptByte(inVal2, 1);
+                byte inVal1 = input[0];
+                byte inVal2 = input[1];
+                output[0] = EncryptByte(inVal1, 0);
+                output[1] = EncryptByte(inVal2, 1);
 
                 Array.Copy(FR, 2, FR, 0, blockSize - 2);
 
-				FR[blockSize - 2] = inVal1;
-				FR[blockSize - 1] = inVal2;
+                FR[blockSize - 2] = inVal1;
+                FR[blockSize - 1] = inVal2;
 
                 cipher.ProcessBlock(FR, 0, FRE, 0);
 
                 for (int n = 2; n < blockSize; n++)
                 {
-					byte inVal = input[n];
-					FR[n - 2] = inVal;
-					output[n] = EncryptByte(inVal, n - 2);
+                    byte inVal = input[n];
+                    FR[n - 2] = inVal;
+                    output[n] = EncryptByte(inVal, n - 2);
                 }
 
                 count += blockSize;
@@ -281,7 +281,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return blockSize;
         }
 #else
-        private int EncryptBlock(byte[]	input, int inOff, byte[] outBytes, int outOff)
+        private int EncryptBlock(byte[] input, int inOff, byte[] outBytes, int outOff)
         {
             Check.DataLength(input, inOff, blockSize, "input buffer too short");
             Check.OutputLength(outBytes, outOff, blockSize, "output buffer too short");
@@ -295,19 +295,19 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 for (int n = 2; n < blockSize; n++)
                 {
-					FR[n - 2] = outBytes[outOff + n] = EncryptByte(input[inOff + n], n - 2);
+                    FR[n - 2] = outBytes[outOff + n] = EncryptByte(input[inOff + n], n - 2);
                 }
             }
             else if (count == 0)
             {
                 cipher.ProcessBlock(FR, 0, FRE, 0);
 
-				for (int n = 0; n < blockSize; n++)
+                for (int n = 0; n < blockSize; n++)
                 {
-					FR[n] = outBytes[outOff + n] = EncryptByte(input[inOff + n], n);
+                    FR[n] = outBytes[outOff + n] = EncryptByte(input[inOff + n], n);
                 }
 
-				count += blockSize;
+                count += blockSize;
             }
             else if (count == blockSize)
             {
@@ -326,10 +326,10 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 for (int n = 2; n < blockSize; n++)
                 {
-					FR[n - 2] = outBytes[outOff + n] = EncryptByte(input[inOff + n], n - 2);
+                    FR[n - 2] = outBytes[outOff + n] = EncryptByte(input[inOff + n], n - 2);
                 }
 
-				count += blockSize;
+                count += blockSize;
             }
 
             return blockSize;
@@ -342,22 +342,22 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (count > blockSize)
             {
-				byte inVal = input[inOff];
-				FR[blockSize - 2] = inVal;
-				outBytes[outOff] = EncryptByte(inVal, blockSize - 2);
+                byte inVal = input[inOff];
+                FR[blockSize - 2] = inVal;
+                outBytes[outOff] = EncryptByte(inVal, blockSize - 2);
 
-				inVal = input[inOff + 1];
-				FR[blockSize - 1] = inVal;
-				outBytes[outOff + 1] = EncryptByte(inVal, blockSize - 1);
+                inVal = input[inOff + 1];
+                FR[blockSize - 1] = inVal;
+                outBytes[outOff + 1] = EncryptByte(inVal, blockSize - 1);
 
                 cipher.ProcessBlock(FR, 0, FRE, 0);
 
                 for (int n = 2; n < blockSize; n++)
                 {
-					inVal = input[inOff + n];
-					FR[n - 2] = inVal;
-					outBytes[outOff + n] = EncryptByte(inVal, n - 2);
-				}
+                    inVal = input[inOff + n];
+                    FR[n - 2] = inVal;
+                    outBytes[outOff + n] = EncryptByte(inVal, n - 2);
+                }
             }
             else if (count == 0)
             {
@@ -375,23 +375,23 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 cipher.ProcessBlock(FR, 0, FRE, 0);
 
-				byte inVal1 = input[inOff];
-				byte inVal2 = input[inOff + 1];
-				outBytes[outOff    ] = EncryptByte(inVal1, 0);
-				outBytes[outOff + 1] = EncryptByte(inVal2, 1);
+                byte inVal1 = input[inOff];
+                byte inVal2 = input[inOff + 1];
+                outBytes[outOff    ] = EncryptByte(inVal1, 0);
+                outBytes[outOff + 1] = EncryptByte(inVal2, 1);
 
                 Array.Copy(FR, 2, FR, 0, blockSize - 2);
 
-				FR[blockSize - 2] = inVal1;
-				FR[blockSize - 1] = inVal2;
+                FR[blockSize - 2] = inVal1;
+                FR[blockSize - 1] = inVal2;
 
                 cipher.ProcessBlock(FR, 0, FRE, 0);
 
                 for (int n = 2; n < blockSize; n++)
                 {
-					byte inVal = input[inOff + n];
-					FR[n - 2] = inVal;
-					outBytes[outOff + n] = EncryptByte(inVal, n - 2);
+                    byte inVal = input[inOff + n];
+                    FR[n - 2] = inVal;
+                    outBytes[outOff + n] = EncryptByte(inVal, n - 2);
                 }
 
                 count += blockSize;

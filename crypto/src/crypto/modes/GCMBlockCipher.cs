@@ -24,12 +24,12 @@ namespace Org.BouncyCastle.Crypto.Modes
     /// </summary>
     /// <remarks>
     /// <para>
-    /// GCM provides both confidentiality and data origin authentication (AEAD). 
+    /// GCM provides both confidentiality and data origin authentication (AEAD).
     /// It requires a block cipher with a 128-bit block size, typically AES.
     /// </para>
     /// <para>
-    /// <b>CRITICAL SECURITY WARNING:</b> For encryption, a unique nonce (IV) MUST be used for every 
-    /// invocation with the same key. Reusing a nonce with the same key catastrophically compromises 
+    /// <b>CRITICAL SECURITY WARNING:</b> For encryption, a unique nonce (IV) MUST be used for every
+    /// invocation with the same key. Reusing a nonce with the same key catastrophically compromises
     /// the security of the cipher, allowing an attacker to recover the authentication key or plaintext.
     /// </para>
     /// </remarks>
@@ -56,8 +56,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         private const int BlockSize = 16;
 
-        private readonly IBlockCipher	cipher;
-        private readonly IGcmMultiplier	multiplier;
+        private readonly IBlockCipher cipher;
+        private readonly IGcmMultiplier multiplier;
         private BasicGcmExponentiator exp;
 
         // These fields are set by Init and not modified by processing
@@ -74,14 +74,14 @@ namespace Org.BouncyCastle.Crypto.Modes
         private byte[]      J0;
 
         // These fields are modified during processing
-        private byte[]		bufBlock;
-        private byte[]		macBlock;
+        private byte[] bufBlock;
+        private byte[] macBlock;
         private byte[]      S, S_at, S_atPre;
         private byte[]      counter;
         private uint        counter32;
         private uint        blocksRemaining;
         private int         bufOff;
-        private ulong		totalLength;
+        private ulong totalLength;
         private byte[]      atBlock;
         private int         atBlockPos;
         private ulong       atLength;
@@ -99,8 +99,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         [Obsolete("Will be removed")]
         public GcmBlockCipher(
-            IBlockCipher	c,
-            IGcmMultiplier	m)
+            IBlockCipher c,
+            IGcmMultiplier m)
         {
             if (c.GetBlockSize() != BlockSize)
                 throw new ArgumentException("cipher required with a block size of " + BlockSize + ".");
@@ -442,7 +442,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         /// <param name="outOff">The offset into the output buffer.</param>
         /// <returns>Number of bytes written to the output buffer.</returns>
         /// <exception cref="DataLengthException">If output buffer is too short.</exception>
-        public int ProcessByte(byte	input, byte[] output, int outOff)
+        public int ProcessByte(byte input, byte[] output, int outOff)
         {
             CheckStatus();
 
