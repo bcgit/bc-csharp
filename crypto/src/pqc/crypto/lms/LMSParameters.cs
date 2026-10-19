@@ -26,10 +26,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_otsParameters = lmOtsParameters ?? throw new ArgumentNullException(nameof(lmOtsParameters));
         }
 
-        // TODO[api] Rename to SigParameters
+        /// <summary>Gets the LM sig parameters.</summary>
         public LMSigParameters LMSigParameters => m_sigParameters;
 
-        // TODO[api] Rename to OtsParameters
+        /// <summary>Gets the LM ots parameters.</summary>
         public LMOtsParameters LMOtsParameters => m_otsParameters;
 
         /// <summary>A pairing of the two parameter sets, so equal by value.</summary>
