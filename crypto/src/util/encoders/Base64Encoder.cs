@@ -147,7 +147,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
         *
         * @return the number of bytes produced.
         */
-        public int Encode(byte[] buf, int off, int len, Stream outStream) 
+        public int Encode(byte[] buf, int off, int len, Stream outStream)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return Encode(buf.AsSpan(off, len), outStream);
@@ -357,12 +357,12 @@ namespace Org.BouncyCastle.Utilities.Encoders
         *
         * @return the number of bytes produced.
         */
-        public int DecodeString(string data, Stream	outStream)
+        public int DecodeString(string data, Stream outStream)
         {
             // Platform Implementation
-//			byte[] bytes = Convert.FromBase64String(data);
-//			outStream.Write(bytes, 0, bytes.Length);
-//			return bytes.Length;
+// byte[] bytes = Convert.FromBase64String(data);
+// outStream.Write(bytes, 0, bytes.Length);
+// return bytes.Length;
 
             byte b1, b2, b3, b4;
             int length = 0;
@@ -424,11 +424,11 @@ namespace Org.BouncyCastle.Utilities.Encoders
         }
 
         private int DecodeLastBlock(
-            Stream	outStream,
-            char	c1,
-            char	c2,
-            char	c3,
-            char	c4)
+            Stream outStream,
+            char c1,
+            char c2,
+            char c3,
+            char c4)
         {
             if (c3 == padding)
             {
