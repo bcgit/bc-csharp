@@ -422,7 +422,7 @@ namespace Org.BouncyCastle.Pkcs
         //        internal Pkcs10CertificationRequest(
         //        	Asn1InputStream seqStream)
         //        {
-        //			Asn1Sequence seq = (Asn1Sequence) seqStream.ReadObject();
+        // Asn1Sequence seq = (Asn1Sequence) seqStream.ReadObject();
         //            try
         //            {
         //                this.reqInfo = CertificationRequestInfo.GetInstance(seq[0]);
@@ -493,29 +493,29 @@ namespace Org.BouncyCastle.Pkcs
         {
             if (asn1Params != null && !(asn1Params is Asn1Null))
             {
-                //				AlgorithmParameters sigParams = AlgorithmParameters.GetInstance(signature.getAlgorithm());
+                // AlgorithmParameters sigParams = AlgorithmParameters.GetInstance(signature.getAlgorithm());
                 //
-                //				try
-                //				{
-                //					sigParams.init(asn1Params.ToAsn1Object().GetDerEncoded());
-                //				}
-                //				catch (IOException e)
-                //				{
-                //					throw new SignatureException("IOException decoding parameters: " + e.Message);
-                //				}
+                // try
+                // {
+                // sigParams.init(asn1Params.ToAsn1Object().GetDerEncoded());
+                // }
+                // catch (IOException e)
+                // {
+                // throw new SignatureException("IOException decoding parameters: " + e.Message);
+                // }
 
                 if (Platform.EndsWith(signature.AlgorithmName, "MGF1"))
                 {
                     throw new NotImplementedException("signature algorithm with MGF1");
 
-                    //					try
-                    //					{
-                    //						signature.setParameter(sigParams.getParameterSpec(PSSParameterSpec.class));
-                    //					}
-                    //					catch (GeneralSecurityException e)
-                    //					{
-                    //						throw new SignatureException("Exception extracting parameters: " + e.getMessage());
-                    //					}
+                    // try
+                    // {
+                    // signature.setParameter(sigParams.getParameterSpec(PSSParameterSpec.class));
+                    // }
+                    // catch (GeneralSecurityException e)
+                    // {
+                    // throw new SignatureException("Exception extracting parameters: " + e.getMessage());
+                    // }
                 }
             }
         }

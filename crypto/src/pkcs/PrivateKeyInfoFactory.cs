@@ -262,7 +262,7 @@ namespace Org.BouncyCastle.Pkcs
         /// <returns>A <see cref="PrivateKeyInfo"/> object.</returns>
         /// <exception cref="ArgumentException">If the encryption algorithm is unknown.</exception>
         public static PrivateKeyInfo CreatePrivateKeyInfo(char[] passPhrase, bool wrongPkcs12Zero,
-            EncryptedPrivateKeyInfo	encInfo)
+            EncryptedPrivateKeyInfo encInfo)
         {
             AlgorithmIdentifier algID = encInfo.EncryptionAlgorithm;
 

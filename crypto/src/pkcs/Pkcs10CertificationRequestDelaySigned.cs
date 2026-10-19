@@ -39,27 +39,27 @@ namespace Org.BouncyCastle.Pkcs
     /// </code>
     /// see <a href="http://www.rsasecurity.com/rsalabs/node.asp?id=2132"/>
     public class Pkcs10CertificationRequestDelaySigned
-		: Pkcs10CertificationRequest
-	{
-		protected Pkcs10CertificationRequestDelaySigned()
-			: base()
-		{
-		}
+        : Pkcs10CertificationRequest
+    {
+        protected Pkcs10CertificationRequestDelaySigned()
+            : base()
+        {
+        }
 
-		public Pkcs10CertificationRequestDelaySigned(byte[] encoded)
-			: base(encoded)
-		{
-		}
+        public Pkcs10CertificationRequestDelaySigned(byte[] encoded)
+            : base(encoded)
+        {
+        }
 
-		public Pkcs10CertificationRequestDelaySigned(Asn1Sequence seq)
-			: base(seq)
-		{
-		}
+        public Pkcs10CertificationRequestDelaySigned(Asn1Sequence seq)
+            : base(seq)
+        {
+        }
 
-		public Pkcs10CertificationRequestDelaySigned(Stream input)
-			: base(input)
-		{
-		}
+        public Pkcs10CertificationRequestDelaySigned(Stream input)
+            : base(input)
+        {
+        }
 
         public Pkcs10CertificationRequestDelaySigned(string signatureAlgorithm, X509Name subject,
             AsymmetricKeyParameter publicKey, Asn1Set attributes, AsymmetricKeyParameter signingKey)
@@ -85,10 +85,10 @@ namespace Org.BouncyCastle.Pkcs
         /// SignRequest methods to finalize the request.
         /// </remarks>
         public Pkcs10CertificationRequestDelaySigned(string signatureAlgorithm, X509Name subject,
-			AsymmetricKeyParameter publicKey, Asn1Set attributes)
-			: this(signatureAlgorithm, subject, GetPubInfo(publicKey), attributes)
-		{
-		}
+            AsymmetricKeyParameter publicKey, Asn1Set attributes)
+            : this(signatureAlgorithm, subject, GetPubInfo(publicKey), attributes)
+        {
+        }
 
         /// <summary>
         /// Instantiate a Pkcs10CertificationRequest object with the necessary credentials.
@@ -103,13 +103,13 @@ namespace Org.BouncyCastle.Pkcs
         /// </remarks>
         public Pkcs10CertificationRequestDelaySigned(string signatureAlgorithm, X509Name subject,
             SubjectPublicKeyInfo pubInfo, Asn1Set attributes)
-		{
-			if (signatureAlgorithm == null)
-				throw new ArgumentNullException(nameof(signatureAlgorithm));
-			if (subject == null)
-				throw new ArgumentNullException(nameof(subject));
-			if (pubInfo == null)
-				throw new ArgumentNullException(nameof(pubInfo));
+        {
+            if (signatureAlgorithm == null)
+                throw new ArgumentNullException(nameof(signatureAlgorithm));
+            if (subject == null)
+                throw new ArgumentNullException(nameof(subject));
+            if (pubInfo == null)
+                throw new ArgumentNullException(nameof(pubInfo));
 
             if (!m_algorithms.TryGetValue(signatureAlgorithm, out var sigOid) &&
                 !DerObjectIdentifier.TryFromID(signatureAlgorithm, out sigOid))
@@ -117,41 +117,41 @@ namespace Org.BouncyCastle.Pkcs
                 throw new ArgumentException("Unknown signature type requested");
             }
 
-			if (m_noParams.Contains(sigOid))
-			{
-				this.sigAlgId = new AlgorithmIdentifier(sigOid);
-			}
-			else if (m_exParams.TryGetValue(signatureAlgorithm, out var explicitParameters))
-			{
-				this.sigAlgId = new AlgorithmIdentifier(sigOid, explicitParameters);
-			}
-			else
-			{
-				this.sigAlgId = new AlgorithmIdentifier(sigOid, DerNull.Instance);
-			}
+            if (m_noParams.Contains(sigOid))
+            {
+                this.sigAlgId = new AlgorithmIdentifier(sigOid);
+            }
+            else if (m_exParams.TryGetValue(signatureAlgorithm, out var explicitParameters))
+            {
+                this.sigAlgId = new AlgorithmIdentifier(sigOid, explicitParameters);
+            }
+            else
+            {
+                this.sigAlgId = new AlgorithmIdentifier(sigOid, DerNull.Instance);
+            }
 
-			this.reqInfo = new CertificationRequestInfo(subject, pubInfo, attributes);
-		}
+            this.reqInfo = new CertificationRequestInfo(subject, pubInfo, attributes);
+        }
 
         public byte[] GetDataToSign()
-		{
-			return reqInfo.GetDerEncoded();
-		}
+        {
+            return reqInfo.GetDerEncoded();
+        }
 
-		public void SignRequest(byte[] signedData)
-		{
-			//build the signature from the signed data
-			sigBits = new DerBitString(signedData);
-		}
+        public void SignRequest(byte[] signedData)
+        {
+            //build the signature from the signed data
+            sigBits = new DerBitString(signedData);
+        }
 
-		public void SignRequest(DerBitString signedData)
-		{
-			//build the signature from the signed data
-			sigBits = signedData;
-		}
+        public void SignRequest(DerBitString signedData)
+        {
+            //build the signature from the signed data
+            sigBits = signedData;
+        }
 
-		private static SubjectPublicKeyInfo GetPubInfo(AsymmetricKeyParameter publicKey)
-		{
+        private static SubjectPublicKeyInfo GetPubInfo(AsymmetricKeyParameter publicKey)
+        {
             if (publicKey == null)
                 throw new ArgumentNullException(nameof(publicKey));
             if (publicKey.IsPrivate)

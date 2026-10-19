@@ -15,11 +15,11 @@ namespace Org.BouncyCastle.Pkcs
         }
 
         public static EncryptedPrivateKeyInfo CreateEncryptedPrivateKeyInfo(
-            DerObjectIdentifier		algorithm,
-            char[]					passPhrase,
-            byte[]					salt,
-            int						iterationCount,
-            AsymmetricKeyParameter	key)
+            DerObjectIdentifier algorithm,
+            char[] passPhrase,
+            byte[] salt,
+            int iterationCount,
+            AsymmetricKeyParameter key)
         {
             return CreateEncryptedPrivateKeyInfo(
                 algorithm.Id, passPhrase, salt, iterationCount,
@@ -27,11 +27,11 @@ namespace Org.BouncyCastle.Pkcs
         }
 
         public static EncryptedPrivateKeyInfo CreateEncryptedPrivateKeyInfo(
-            string					algorithm,
-            char[]					passPhrase,
-            byte[]					salt,
-            int						iterationCount,
-            AsymmetricKeyParameter	key)
+            string algorithm,
+            char[] passPhrase,
+            byte[] salt,
+            int iterationCount,
+            AsymmetricKeyParameter key)
         {
             return CreateEncryptedPrivateKeyInfo(
                 algorithm, passPhrase, salt, iterationCount,
@@ -39,11 +39,11 @@ namespace Org.BouncyCastle.Pkcs
         }
 
         public static EncryptedPrivateKeyInfo CreateEncryptedPrivateKeyInfo(
-            string			algorithm,
-            char[]			passPhrase,
-            byte[]			salt,
-            int				iterationCount,
-            PrivateKeyInfo	keyInfo)
+            string algorithm,
+            char[] passPhrase,
+            byte[] salt,
+            int iterationCount,
+            PrivateKeyInfo keyInfo)
         {
             if (!(PbeUtilities.CreateEngine(algorithm) is IBufferedCipher cipher))
                 throw new Exception("Unknown encryption algorithm: " + algorithm);
