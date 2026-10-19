@@ -1,6 +1,6 @@
 namespace Org.BouncyCastle.Bcpg
 {
-	/// <remarks>Basic type for a marker packet.</remarks>
+    /// <remarks>Basic type for a marker packet.</remarks>
     public class MarkerPacket
         : ContainedPacket
     {

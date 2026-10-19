@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Bcpg
 
         public int Value => m_crc & 0xFFFFFF;
 
-		public void Reset()
+        public void Reset()
         {
             m_crc = Crc24Init;
         }
