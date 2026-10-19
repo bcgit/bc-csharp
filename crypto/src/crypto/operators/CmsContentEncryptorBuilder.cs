@@ -46,6 +46,8 @@ namespace Org.BouncyCastle.Operators
             m_keySize = keySize;
         }
 
+        /// <summary>Build a cipher builder with a freshly generated key.</summary>
+        /// <returns>The cipher builder.</returns>
         public ICipherBuilderWithKey Build() => new Asn1CipherBuilderWithKey(m_encryptionOid, m_keySize, m_random);
     }
 }

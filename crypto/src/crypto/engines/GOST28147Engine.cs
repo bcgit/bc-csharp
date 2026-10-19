@@ -393,6 +393,10 @@ namespace Org.BouncyCastle.Crypto.Engines
             return Arrays.Clone(sBox);
         }
 
+        /// <summary>Get the name of a known S-box.</summary>
+        /// <param name="sBox">The S-box.</param>
+        /// <returns>The name of the S-box.</returns>
+        /// <exception cref="ArgumentException">The S-box is not a known one.</exception>
         public static string GetSBoxName(byte[] sBox)
         {
             foreach (var entry in m_sBoxes)

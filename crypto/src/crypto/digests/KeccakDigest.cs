@@ -32,10 +32,15 @@ namespace Org.BouncyCastle.Crypto.Digests
         };
 
         private readonly ulong[] state = new ulong[25];
+        /// <summary>The data queue holding input not yet absorbed.</summary>
         protected byte[] dataQueue = new byte[192];
+        /// <summary>The rate of the sponge, in bits.</summary>
         protected int rate;
+        /// <summary>The number of bits in the data queue.</summary>
         protected int bitsInQueue;
+        /// <summary>The length of the fixed output, in bits.</summary>
         protected internal int fixedOutputLength;
+        /// <summary>Whether the sponge is in the squeezing phase.</summary>
         protected bool squeezing;
 
         /// <summary>Create a new <see cref="KeccakDigest"/>.</summary>
@@ -190,6 +195,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             this.fixedOutputLength = (1600 - rate) >> 1;
         }
 
+        /// <summary>Absorb input into the sponge.</summary>
+        /// <param name="data">The input.</param>
         protected void Absorb(byte data)
         {
             if ((bitsInQueue & 7) != 0)
@@ -209,6 +216,10 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <summary>Absorb input into the sponge.</summary>
+        /// <param name="data">The input.</param>
+        /// <param name="off">The offset into <paramref name="data"/> at which the input starts.</param>
+        /// <param name="len">The number of bytes of input.</param>
         protected void Absorb(byte[] data, int off, int len)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -251,6 +262,8 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Absorb input into the sponge.</summary>
+        /// <param name="data">The input.</param>
         protected void Absorb(ReadOnlySpan<byte> data)
         {
             if ((bitsInQueue & 7) != 0)
@@ -290,6 +303,9 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <summary>Absorb a number of bits of input into the sponge.</summary>
+        /// <param name="data">The input bits, in the low bits of the value.</param>
+        /// <param name="bits">The number of bits.</param>
         protected void AbsorbBits(int data, int bits)
         {
             if (bits < 1 || bits > 7)
@@ -342,6 +358,10 @@ namespace Org.BouncyCastle.Crypto.Digests
             squeezing = true;
         }
 
+        /// <summary>Squeeze output from the sponge.</summary>
+        /// <param name="output">The buffer to receive the output.</param>
+        /// <param name="offset">The offset into <paramref name="output"/> at which to start writing.</param>
+        /// <param name="outputLength">The number of bits to squeeze.</param>
         // TODO[api] Not needed under NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         protected void Squeeze(byte[] output, int offset, long outputLength)
         {
@@ -387,6 +407,8 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Squeeze output from the sponge.</summary>
+        /// <param name="output">The buffer to receive the output.</param>
         protected void Squeeze(Span<byte> output)
         {
             int rateBytes = rate >> 3;

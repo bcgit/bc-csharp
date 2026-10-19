@@ -279,6 +279,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             return output;
         }
 
+        /// <summary>
+        /// Process a block of data, encrypting or decrypting depending on how the engine was initialised.
+        /// </summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="inOff">The offset into <paramref name="input"/> at which the data starts.</param>
+        /// <param name="inLen">The length of the data.</param>
+        /// <returns>The processed data.</returns>
         public virtual byte[] ProcessBlock(byte[] input, int inOff, int inLen)
         {
             m_agreement.Init(m_privParam);

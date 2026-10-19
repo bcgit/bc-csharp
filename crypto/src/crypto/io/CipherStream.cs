@@ -41,6 +41,7 @@ namespace Org.BouncyCastle.Crypto.IO
             }
         }
 
+        /// <summary>Gets the underlying stream.</summary>
         public Stream Stream => m_stream;
 
         /// <summary>Gets the read cipher.</summary>

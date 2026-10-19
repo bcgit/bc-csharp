@@ -15,11 +15,14 @@ namespace Org.BouncyCastle.Crypto.Generators
         private static readonly int SPECIAL_E_HIGHEST = SPECIAL_E_VALUES[SPECIAL_E_VALUES.Length - 1];
         private static readonly int SPECIAL_E_BITS = BigInteger.ValueOf(SPECIAL_E_HIGHEST).BitLength;
 
+        /// <summary>The value one.</summary>
         protected static readonly BigInteger One = BigInteger.One;
+        /// <summary>The default public exponent, 65537.</summary>
         protected static readonly BigInteger DefaultPublicExponent = BigInteger.ValueOf(0x10001);
         /// <summary>The <c>DefaultTests</c> constant, with the value <c>100</c>.</summary>
         protected const int DefaultTests = 100;
 
+        /// <summary>The key generation parameters in use.</summary>
         protected RsaKeyGenerationParameters parameters;
 
         /// <inheritdoc/>

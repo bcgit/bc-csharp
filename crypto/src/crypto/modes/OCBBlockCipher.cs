@@ -244,6 +244,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+        /// <summary>Process the nonce.</summary>
+        /// <param name="N">The nonce.</param>
+        /// <returns>The offset in bits into the stretched nonce of the start of the key stream.</returns>
         protected virtual int ProcessNonce(byte[] N)
         {
             byte[] nonce = new byte[16];
@@ -647,6 +650,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             Reset(true);
         }
 
+        /// <summary>Set all the bytes of a block to zero.</summary>
+        /// <param name="bs">The block.</param>
         protected virtual void Clear(byte[] bs)
         {
             if (bs != null)
@@ -655,6 +660,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+        /// <summary>Get the L value for the given index, extending the table of L values if necessary.</summary>
+        /// <param name="n">The index.</param>
+        /// <returns>The L value.</returns>
         protected virtual byte[] GetLSub(int n)
         {
             while (n >= L.Count)
@@ -664,6 +672,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return L[n];
         }
 
+        /// <summary>Process a full block of associated data.</summary>
         protected virtual void ProcessHashBlock()
         {
             /*
@@ -673,6 +682,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             hashBlockPos = 0;
         }
 
+        /// <summary>Process a full block of the main message.</summary>
+        /// <param name="output">The buffer to receive the output.</param>
+        /// <param name="outOff">The offset into <paramref name="output"/> at which to start writing.</param>
         protected virtual void ProcessMainBlock(byte[] output, int outOff)
         {
             Check.OutputLength(output, outOff, BLOCK_SIZE, "output buffer too short");
@@ -704,6 +716,8 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Process a full block of the main message.</summary>
+        /// <param name="output">The buffer to receive the output.</param>
         protected virtual void ProcessMainBlock(Span<byte> output)
         {
             Check.OutputLength(output, BLOCK_SIZE, "output buffer too short");
@@ -735,6 +749,8 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <summary>Reset the cipher.</summary>
+        /// <param name="clearMac">true to clear the MAC value as well.</param>
         protected virtual void Reset(bool clearMac)
         {
             Clear(hashBlock);
@@ -762,6 +778,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+        /// <summary>Update the hash of the associated data with an L value.</summary>
+        /// <param name="LSub">The L value to use.</param>
         protected virtual void UpdateHASH(byte[] LSub)
         {
             Xor(OffsetHASH, LSub);
@@ -770,6 +788,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             Xor(Sum, hashBlock);
         }
 
+        /// <summary>Double a block in GF(2^128).</summary>
+        /// <param name="block">The block.</param>
+        /// <returns>The doubled block.</returns>
         protected static byte[] OCB_double(byte[] block)
         {
             byte[] result = new byte[16];
@@ -783,6 +804,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             return result;
         }
 
+        /// <summary>Extend a block to twice its length by exclusive-oring it with a shifted copy of itself.</summary>
+        /// <param name="block">The block, whose first bytes hold the original value.</param>
+        /// <param name="pos">The position at which the extension starts.</param>
         protected static void OCB_extend(byte[] block, int pos)
         {
             block[pos] = (byte) 0x80;
@@ -792,11 +816,18 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+        /// <summary>Count the number of trailing zero bits of a value.</summary>
+        /// <param name="x">The value.</param>
+        /// <returns>The number of trailing zero bits.</returns>
         protected static int OCB_ntz(long x)
         {
             return Longs.NumberOfTrailingZeros(x);
         }
 
+        /// <summary>Shift a block one bit to the left.</summary>
+        /// <param name="block">The block to shift.</param>
+        /// <param name="output">The buffer to receive the shifted block.</param>
+        /// <returns>The bit shifted out of the top.</returns>
         protected static int ShiftLeft(byte[] block, byte[] output)
         {
             int i = 16;
@@ -810,6 +841,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             return (int)bit;
         }
 
+        /// <summary>Exclusive-or one block into another.</summary>
+        /// <param name="block">The block that is updated.</param>
+        /// <param name="val">The block to exclusive-or in.</param>
         protected static void Xor(byte[] block, byte[] val)
         {
             Bytes.XorTo(16, val, block);

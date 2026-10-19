@@ -10,8 +10,11 @@ namespace Org.BouncyCastle.Crypto
      */
     public abstract class PbeParametersGenerator
     {
+        /// <summary>The password bytes.</summary>
         protected byte[] mPassword;
+        /// <summary>The salt bytes.</summary>
         protected byte[] mSalt;
+        /// <summary>The iteration count.</summary>
         protected int mIterationCount;
 
         /**
@@ -42,6 +45,10 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Initialise the generator with the password, salt and iteration count.</summary>
+        /// <param name="password">The password, as bytes.</param>
+        /// <param name="salt">The salt.</param>
+        /// <param name="iterationCount">The number of iterations the derivation function is to be applied for.</param>
         public virtual void Init(ReadOnlySpan<byte> password, ReadOnlySpan<byte> salt, int iterationCount)
         {
             this.mPassword = password.ToArray();
@@ -63,7 +70,20 @@ namespace Org.BouncyCastle.Crypto
          */
         public virtual int IterationCount => mIterationCount;
 
+        /// <summary>
+        /// Generate derived parameters for a key of the given size (and, where given, an initialization vector).
+        /// </summary>
+        /// <param name="algorithm">The name of the algorithm the key is for.</param>
+        /// <param name="keySize">The size of the key, in bits.</param>
+        /// <returns>The derived parameters.</returns>
         public abstract ICipherParameters GenerateDerivedParameters(string algorithm, int keySize);
+        /// <summary>
+        /// Generate derived parameters for a key of the given size (and, where given, an initialization vector).
+        /// </summary>
+        /// <param name="algorithm">The name of the algorithm the key is for.</param>
+        /// <param name="keySize">The size of the key, in bits.</param>
+        /// <param name="ivSize">The size of the initialization vector, in bits.</param>
+        /// <returns>The derived parameters.</returns>
         public abstract ICipherParameters GenerateDerivedParameters(string algorithm, int keySize, int ivSize);
 
         /**
@@ -106,8 +126,16 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Convert a password to bytes according to the PKCS#5 scheme (one byte per character, no padding).
+        /// </summary>
+        /// <param name="password">The password.</param>
+        /// <returns>The password as bytes.</returns>
         public static byte[] Pkcs5PasswordToBytes(ReadOnlySpan<char> password) => Strings.ToByteArray(password);
 
+        /// <summary>Convert a password to bytes according to the PKCS#5 scheme using UTF-8.</summary>
+        /// <param name="password">The password.</param>
+        /// <returns>The password as UTF-8 bytes.</returns>
         public static byte[] Pkcs5PasswordToUtf8Bytes(ReadOnlySpan<char> password) => Strings.ToUtf8ByteArray(password);
 #endif
 
@@ -121,6 +149,15 @@ namespace Org.BouncyCastle.Crypto
         public static byte[] Pkcs12PasswordToBytes(char[] password) =>
             Pkcs12PasswordToBytes(password, wrongPkcs12Zero: false);
 
+        /// <summary>
+        /// Convert a password to bytes according to the PKCS#12 scheme (big-endian Unicode with two zero bytes of
+        /// padding at the end).
+        /// </summary>
+        /// <param name="password">The password.</param>
+        /// <param name="wrongPkcs12Zero">
+        /// true to produce two zero bytes for an empty password, as some historical implementations did.
+        /// </param>
+        /// <returns>The password as bytes.</returns>
         public static byte[] Pkcs12PasswordToBytes(char[] password, bool wrongPkcs12Zero)
         {
             if (password == null || password.Length < 1)
@@ -133,9 +170,24 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Convert a password to bytes according to the PKCS#12 scheme (big-endian Unicode with two zero bytes of
+        /// padding at the end).
+        /// </summary>
+        /// <param name="password">The password.</param>
+        /// <returns>The password as bytes.</returns>
         public static byte[] Pkcs12PasswordToBytes(ReadOnlySpan<char> password) =>
             Pkcs12PasswordToBytes(password, wrongPkcs12Zero: false);
 
+        /// <summary>
+        /// Convert a password to bytes according to the PKCS#12 scheme (big-endian Unicode with two zero bytes of
+        /// padding at the end).
+        /// </summary>
+        /// <param name="password">The password.</param>
+        /// <param name="wrongPkcs12Zero">
+        /// true to produce two zero bytes for an empty password, as some historical implementations did.
+        /// </param>
+        /// <returns>The password as bytes.</returns>
         public static byte[] Pkcs12PasswordToBytes(ReadOnlySpan<char> password, bool wrongPkcs12Zero)
         {
             if (password.IsEmpty)

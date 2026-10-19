@@ -67,6 +67,9 @@ namespace Org.BouncyCastle.Crypto.Generators
             base.Init(password, salt, 1);
         }
 
+        /// <summary>Initialise the generator with the password and salt.</summary>
+        /// <param name="password">The password, as bytes.</param>
+        /// <param name="salt">The salt.</param>
         public virtual void Init(ReadOnlySpan<byte> password, ReadOnlySpan<byte> salt)
         {
             base.Init(password, salt, 1);

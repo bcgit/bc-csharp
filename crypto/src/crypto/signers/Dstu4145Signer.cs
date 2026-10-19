@@ -119,6 +119,8 @@ namespace Org.BouncyCastle.Crypto.Signers
             return FieldElement2Integer(n, y).Equals(r);
         }
 
+        /// <summary>Create the multiplier used for multiplying the base point.</summary>
+        /// <returns>The multiplier.</returns>
         protected virtual ECMultiplier CreateBasePointMultiplier() => new FixedPointCombMultiplier();
 
         private static ECFieldElement Hash2FieldElement(ECCurve curve, byte[] hash)

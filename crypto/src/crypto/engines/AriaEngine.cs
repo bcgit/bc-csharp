@@ -191,6 +191,8 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <summary>Apply the diffusion layer A to a 16-byte block, in place.</summary>
+        /// <param name="z">The block.</param>
         protected static void A(byte[] z)
         {
             byte x0 = z[0], x1 = z[1], x2 = z[2], x3 = z[3], x4 = z[4], x5 = z[5], x6 = z[6], x7 = z[7], x8 = z[8],
@@ -214,6 +216,9 @@ namespace Org.BouncyCastle.Crypto.Engines
             z[15] = (byte)(x1 ^ x2 ^ x4 ^ x5 ^ x8 ^ x10 ^ x15);
         }
 
+        /// <summary>Apply the even round function FE to a block.</summary>
+        /// <param name="D">The block, which is updated in place.</param>
+        /// <param name="RK">The round key.</param>
         protected static void FE(byte[] D, byte[] RK)
         {
             Xor(D, RK);
@@ -221,6 +226,9 @@ namespace Org.BouncyCastle.Crypto.Engines
             A(D);
         }
 
+        /// <summary>Apply the odd round function FO to a block.</summary>
+        /// <param name="D">The block, which is updated in place.</param>
+        /// <param name="RK">The round key.</param>
         protected static void FO(byte[] D, byte[] RK)
         {
             Xor(D, RK);
@@ -228,6 +236,12 @@ namespace Org.BouncyCastle.Crypto.Engines
             A(D);
         }
 
+        /// <summary>Compute the round keys.</summary>
+        /// <param name="forEncryption">
+        /// true to compute the encryption round keys, false for the decryption round keys.
+        /// </param>
+        /// <param name="K">The master key.</param>
+        /// <returns>The round keys.</returns>
         // TODO[api] Make private and take a KeyParameter instead
         protected static byte[][] KeySchedule(bool forEncryption, byte[] K)
         {
@@ -306,6 +320,11 @@ namespace Org.BouncyCastle.Crypto.Engines
             return rks;
         }
 
+        /// <summary>Compute one round of the key schedule.</summary>
+        /// <param name="w">The working value for this round.</param>
+        /// <param name="wr">The working value to rotate and mix in.</param>
+        /// <param name="n">The rotation, in bits.</param>
+        /// <returns>The result of the round.</returns>
         protected static byte[] KeyScheduleRound(byte[] w, byte[] wr, int n)
         {
             byte[] rk = new byte[16];
@@ -324,16 +343,34 @@ namespace Org.BouncyCastle.Crypto.Engines
             return rk;
         }
 
+        /// <summary>
+        /// Reverse the order of the round keys, and apply the decryption key transform to the middle keys.
+        /// </summary>
+        /// <param name="keys">The round keys, which are updated in place.</param>
         protected static void ReverseKeys(byte[][] keys) => Array.Reverse(keys);
 
+        /// <summary>Substitute a byte using one of the ARIA S-boxes.</summary>
+        /// <param name="x">The byte to substitute.</param>
+        /// <returns>The substituted byte.</returns>
         protected static byte SB1(byte x) => SB1_sbox[x & 0xFF];
 
+        /// <summary>Substitute a byte using one of the ARIA S-boxes.</summary>
+        /// <param name="x">The byte to substitute.</param>
+        /// <returns>The substituted byte.</returns>
         protected static byte SB2(byte x) => SB2_sbox[x & 0xFF];
 
+        /// <summary>Substitute a byte using one of the ARIA S-boxes.</summary>
+        /// <param name="x">The byte to substitute.</param>
+        /// <returns>The substituted byte.</returns>
         protected static byte SB3(byte x) => SB3_sbox[x & 0xFF];
 
+        /// <summary>Substitute a byte using one of the ARIA S-boxes.</summary>
+        /// <param name="x">The byte to substitute.</param>
+        /// <returns>The substituted byte.</returns>
         protected static byte SB4(byte x) => SB4_sbox[x & 0xFF];
 
+        /// <summary>Apply a substitution layer to a block, in place.</summary>
+        /// <param name="z">The block.</param>
         protected static void SL1(byte[] z)
         {
             z[0] = SB1(z[0]);
@@ -354,6 +391,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             z[15] = SB4(z[15]);
         }
 
+        /// <summary>Apply a substitution layer to a block, in place.</summary>
+        /// <param name="z">The block.</param>
         protected static void SL2(byte[] z)
         {
             z[0] = SB3(z[0]);
@@ -374,6 +413,9 @@ namespace Org.BouncyCastle.Crypto.Engines
             z[15] = SB2(z[15]);
         }
 
+        /// <summary>Exclusive-or one block into another.</summary>
+        /// <param name="z">The block that is updated.</param>
+        /// <param name="x">The block to exclusive-or in.</param>
         protected static void Xor(byte[] z, byte[] x) => Bytes.XorTo(16, x, z);
     }
 }

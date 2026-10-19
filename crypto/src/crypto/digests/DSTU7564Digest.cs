@@ -303,6 +303,9 @@ namespace Org.BouncyCastle.Crypto.Digests
             bufOff = 0;
         }
 
+        /// <summary>Process a block of input.</summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="inOff">The offset into <paramref name="input"/> at which the block starts.</param>
         protected virtual void ProcessBlock(byte[] input, int inOff)
         {
             int pos = inOff;
@@ -325,6 +328,8 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Process a block of input.</summary>
+        /// <param name="input">The input data.</param>
         protected virtual void ProcessBlock(ReadOnlySpan<byte> input)
         {
             for (int col = 0; col < columns; ++col)

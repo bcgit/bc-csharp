@@ -1,5 +1,6 @@
 namespace Org.BouncyCastle.Crypto
 {
+    /// <summary>Base class for asymmetric (public or private) key parameters.</summary>
     public abstract class AsymmetricKeyParameter
         : ICipherParameters
     {
@@ -18,6 +19,9 @@ namespace Org.BouncyCastle.Crypto
         /// <inheritdoc/>
         public override bool Equals(object obj) => obj is AsymmetricKeyParameter that && Equals(that);
 
+        /// <summary>Determine whether these parameters are equal to another instance.</summary>
+        /// <param name="other">The instance to compare with.</param>
+        /// <returns>true if the parameters are equal, false otherwise.</returns>
         protected bool Equals(AsymmetricKeyParameter other) => m_privateKey == other.m_privateKey;
 
         /// <inheritdoc/>

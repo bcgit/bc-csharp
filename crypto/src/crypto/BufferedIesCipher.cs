@@ -6,6 +6,10 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto
 {
+    /// <summary>
+    /// A buffered cipher wrapper around <see cref="IesEngine"/>. It accumulates the input and processes it as a single
+    /// block when finished.
+    /// </summary>
     public class BufferedIesCipher
         : BufferedCipherBase
     {

@@ -452,6 +452,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Process a whole packet in one go.</summary>
+        /// <param name="input">The packet to process.</param>
+        /// <param name="output">The buffer to receive the processed packet.</param>
+        /// <returns>The number of bytes written.</returns>
         public virtual int ProcessPacket(ReadOnlySpan<byte> input, Span<byte> output)
         {
             int inLen = input.Length;

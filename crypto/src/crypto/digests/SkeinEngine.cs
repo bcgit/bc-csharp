@@ -761,12 +761,18 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <summary>Add a single byte of input to the hash.</summary>
+        /// <param name="inByte">The byte to add.</param>
         public void Update(byte inByte)
         {
             singleByte[0] = inByte;
             BlockUpdate(singleByte, 0, 1);
         }
 
+        /// <summary>Add input to the hash.</summary>
+        /// <param name="inBytes">The input data.</param>
+        /// <param name="inOff">The offset into <paramref name="inBytes"/> at which the data starts.</param>
+        /// <param name="len">The number of bytes to add.</param>
         public void BlockUpdate(byte[] inBytes, int inOff, int len)
         {
             CheckInitialised();
@@ -774,6 +780,8 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Add input to the hash.</summary>
+        /// <param name="input">The input data.</param>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             CheckInitialised();
@@ -781,6 +789,10 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <summary>Finish the hash and write the result to a buffer.</summary>
+        /// <param name="outBytes">The buffer to receive the hash.</param>
+        /// <param name="outOff">The offset into <paramref name="outBytes"/> at which to start writing.</param>
+        /// <returns>The number of bytes written.</returns>
         public int DoFinal(byte[] outBytes, int outOff)
         {
             CheckInitialised();
@@ -817,6 +829,9 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Finish the hash and write the result to a buffer.</summary>
+        /// <param name="output">The buffer to receive the hash.</param>
+        /// <returns>The number of bytes written.</returns>
         public int DoFinal(Span<byte> output)
         {
             CheckInitialised();

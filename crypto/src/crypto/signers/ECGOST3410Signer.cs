@@ -138,6 +138,8 @@ namespace Org.BouncyCastle.Crypto.Signers
             return R.Equals(r);
         }
 
+        /// <summary>Create the multiplier used for multiplying the base point.</summary>
+        /// <returns>The multiplier.</returns>
         protected virtual ECMultiplier CreateBasePointMultiplier()
         {
             return new FixedPointCombMultiplier();

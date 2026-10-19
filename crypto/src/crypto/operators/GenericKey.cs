@@ -36,6 +36,7 @@ namespace Org.BouncyCastle.Crypto.Operators
             this.representation = representation;
         }
 
+        /// <summary>Gets the algorithm identifier of the key, if there is one.</summary>
         public AlgorithmIdentifier AlgorithmIdentifier
         {
             get { return algorithmIdentifier; }

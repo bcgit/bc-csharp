@@ -209,6 +209,10 @@ namespace Org.BouncyCastle.Crypto.Engines
             return 16;
         }
 
+        /// <summary>Process four blocks of input in parallel using hardware instructions.</summary>
+        /// <param name="input">The 64 bytes of input.</param>
+        /// <param name="output">The buffer to receive the 64 bytes of output.</param>
+        /// <returns>The number of bytes processed.</returns>
         public int ProcessFourBlocks(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.DataLength(input, 64, "input buffer too short");

@@ -60,6 +60,9 @@ namespace Org.BouncyCastle.Crypto.Engines
             mMode = mode;
         }
 
+        /// <summary>Initialise the engine for encryption or decryption.</summary>
+        /// <param name="forEncryption">true for encryption, false for decryption.</param>
+        /// <param name="param">The key parameters, with a source of randomness for encryption.</param>
         public virtual void Init(bool forEncryption, ICipherParameters param)
         {
             this.mForEncryption = forEncryption;
@@ -85,6 +88,11 @@ namespace Org.BouncyCastle.Crypto.Engines
             mCurveLength = mECParams.Curve.FieldElementEncodingLength;
         }
 
+        /// <summary>Encrypt or decrypt a block of data, as the engine was initialised.</summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="inOff">The offset into <paramref name="input"/> at which the data starts.</param>
+        /// <param name="inLen">The length of the data.</param>
+        /// <returns>The processed data.</returns>
         public virtual byte[] ProcessBlock(byte[] input, int inOff, int inLen)
         {
             if ((inOff + inLen) > input.Length || inLen == 0)
@@ -105,6 +113,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Encrypt or decrypt a block of data, as the engine was initialised.</summary>
+        /// <param name="input">The input data.</param>
+        /// <returns>The processed data.</returns>
         public virtual byte[] ProcessBlock(ReadOnlySpan<byte> input)
         {
             if (input.Length == 0)
@@ -121,8 +132,13 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <summary>Get the maximum size of the output for an input of a given length.</summary>
+        /// <param name="inputLen">The length of the input.</param>
+        /// <returns>The maximum output length.</returns>
         public virtual int GetOutputSize(int inputLen) => (1 + 2 * mCurveLength) + inputLen + mDigest.GetDigestSize();
 
+        /// <summary>Create the multiplier used for multiplying the base point.</summary>
+        /// <returns>The multiplier.</returns>
         protected virtual ECMultiplier CreateBasePointMultiplier() => new FixedPointCombMultiplier();
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

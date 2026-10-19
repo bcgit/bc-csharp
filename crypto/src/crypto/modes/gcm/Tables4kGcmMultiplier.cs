@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
+    /// <summary>A GCM multiplier that uses a precomputed table of about 4 KiB.</summary>
     [Obsolete("Will be removed")]
     public class Tables4kGcmMultiplier
         : IGcmMultiplier

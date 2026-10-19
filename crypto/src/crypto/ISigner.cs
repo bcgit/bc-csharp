@@ -2,6 +2,9 @@ using System;
 
 namespace Org.BouncyCastle.Crypto
 {
+    /// <summary>
+    /// Interface for signature generation and verification, where the message is supplied incrementally.
+    /// </summary>
     public interface ISigner
     {
         /// <summary>The algorithm name.</summary>

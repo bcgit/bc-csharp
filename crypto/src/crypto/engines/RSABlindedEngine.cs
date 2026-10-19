@@ -96,6 +96,10 @@ namespace Org.BouncyCastle.Crypto.Engines
             return core.ConvertOutput(result);
         }
 
+        /// <summary>Obtain a source of randomness for blinding.</summary>
+        /// <param name="needed">true if blinding is required, so randomness must be supplied.</param>
+        /// <param name="provided">A source of randomness that was provided, or null.</param>
+        /// <returns>The source of randomness to use, or null if none is needed.</returns>
         protected virtual SecureRandom InitSecureRandom(bool needed, SecureRandom provided)
         {
             return needed ? CryptoServicesRegistrar.GetSecureRandom(provided) : null;

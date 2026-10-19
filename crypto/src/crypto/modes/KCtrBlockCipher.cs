@@ -146,6 +146,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <summary>Encrypt or decrypt a single byte.</summary>
+        /// <param name="b">The byte to process.</param>
+        /// <returns>The processed byte.</returns>
         protected byte CalculateByte(byte b)
         {
             if (byteCount == 0)

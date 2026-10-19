@@ -34,17 +34,39 @@ namespace Org.BouncyCastle.Crypto.Signers
         private byte[] block;
         private byte trailer;
 
+        /// <summary>
+        /// Create a signer that does not hash the message, so the caller supplies an already hashed message.
+        /// </summary>
+        /// <param name="cipher">The cipher to use for the RSA operation.</param>
+        /// <param name="digest">The digest used for the mask generation function and the salt.</param>
+        /// <returns>The new signer.</returns>
         public static PssSigner CreateRawSigner(IAsymmetricBlockCipher cipher, IDigest digest)
         {
             return new PssSigner(cipher, Prehash.ForDigest(digest), digest, digest, digest.GetDigestSize(), null,
                 TrailerImplicit);
         }
 
+        /// <summary>
+        /// Create a signer that does not hash the message, so the caller supplies an already hashed message.
+        /// </summary>
+        /// <param name="cipher">The cipher to use for the RSA operation.</param>
+        /// <param name="digest">The digest used for the mask generation function and the salt.</param>
+        /// <param name="saltLen">The length of the salt in bytes.</param>
+        /// <returns>The new signer.</returns>
         public static PssSigner CreateRawSigner(IAsymmetricBlockCipher cipher, IDigest digest, int saltLen)
         {
             return new PssSigner(cipher, Prehash.ForDigest(digest), digest, digest, saltLen, null, TrailerImplicit);
         }
 
+        /// <summary>
+        /// Create a signer that does not hash the message, so the caller supplies an already hashed message.
+        /// </summary>
+        /// <param name="cipher">The cipher to use for the RSA operation.</param>
+        /// <param name="contentDigest">The digest that was used to hash the content.</param>
+        /// <param name="mgfDigest">The digest used for the mask generation function.</param>
+        /// <param name="saltLen">The length of the salt in bytes.</param>
+        /// <param name="trailer">The trailer byte.</param>
+        /// <returns>The new signer.</returns>
         public static PssSigner CreateRawSigner(IAsymmetricBlockCipher cipher, IDigest contentDigest, IDigest mgfDigest,
             int saltLen, byte trailer)
         {
@@ -52,6 +74,15 @@ namespace Org.BouncyCastle.Crypto.Signers
                 trailer);
         }
 
+        /// <summary>
+        /// Create a signer that does not hash the message, so the caller supplies an already hashed message.
+        /// </summary>
+        /// <param name="cipher">The cipher to use for the RSA operation.</param>
+        /// <param name="contentDigest">The digest that was used to hash the content.</param>
+        /// <param name="mgfDigest">The digest used for the mask generation function.</param>
+        /// <param name="salt">The fixed salt to use.</param>
+        /// <param name="trailer">The trailer byte.</param>
+        /// <returns>The new signer.</returns>
         public static PssSigner CreateRawSigner(IAsymmetricBlockCipher cipher, IDigest contentDigest, IDigest mgfDigest,
             byte[] salt, byte trailer)
         {

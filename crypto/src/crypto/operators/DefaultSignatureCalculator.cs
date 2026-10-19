@@ -18,6 +18,7 @@ namespace Org.BouncyCastle.Crypto.Operators
             m_signerSink = new SignerSink(signer);
         }
 
+        /// <summary>Gets the underlying stream.</summary>
         public Stream Stream => m_signerSink;
 
         /// <inheritdoc/>

@@ -8,7 +8,9 @@ namespace Org.BouncyCastle.Crypto
     /// <summary>The base class for symmetric, or secret, cipher key generators.</summary>
     public class CipherKeyGenerator
     {
+        /// <summary>The source of randomness.</summary>
         protected internal SecureRandom random;
+        /// <summary>The strength of the key to generate, in bytes.</summary>
         protected internal int strength;
 
         private bool m_uninitialised = true;
@@ -42,6 +44,8 @@ namespace Org.BouncyCastle.Crypto
             EngineInit(parameters);
         }
 
+        /// <summary>Initialise the generator from the key generation parameters.</summary>
+        /// <param name="parameters">The key generation parameters.</param>
         protected virtual void EngineInit(KeyGenerationParameters parameters)
         {
             this.random = parameters.Random;
@@ -57,6 +61,8 @@ namespace Org.BouncyCastle.Crypto
             return EngineGenerateKey();
         }
 
+        /// <summary>Generate a secret key.</summary>
+        /// <returns>A <see cref="KeyParameter"/> holding the key.</returns>
         public KeyParameter GenerateKeyParameter()
         {
             EnsureInitialized();
@@ -64,8 +70,12 @@ namespace Org.BouncyCastle.Crypto
             return EngineGenerateKeyParameter();
         }
 
+        /// <summary>Generate the bytes of a secret key.</summary>
+        /// <returns>A byte array holding the key value.</returns>
         protected virtual byte[] EngineGenerateKey() => SecureRandom.GetNextBytes(random, strength);
 
+        /// <summary>Generate a secret key as key parameters.</summary>
+        /// <returns>A <see cref="KeyParameter"/> holding the key.</returns>
         protected virtual KeyParameter EngineGenerateKeyParameter()
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -80,6 +90,12 @@ namespace Org.BouncyCastle.Crypto
             return new KeyParameter(EngineGenerateKey());
         }
 
+        /// <summary>
+        /// Ensure that the generator has been initialised, using the default strength if it has not been explicitly.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// The generator has not been initialised and has no default strength.
+        /// </exception>
         protected virtual void EnsureInitialized()
         {
             if (m_uninitialised)

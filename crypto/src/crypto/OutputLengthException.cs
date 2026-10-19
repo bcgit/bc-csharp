@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto
 {
+    /// <summary>Exception thrown when an output buffer is too short to hold the result.</summary>
     [Serializable]
     public class OutputLengthException
         : DataLengthException

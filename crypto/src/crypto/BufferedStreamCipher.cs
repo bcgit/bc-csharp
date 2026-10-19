@@ -4,6 +4,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto
 {
+    /// <summary>A wrapper that exposes a stream cipher through the buffered cipher interface.</summary>
     public class BufferedStreamCipher
         : BufferedCipherBase
     {

@@ -56,6 +56,13 @@ namespace Org.BouncyCastle.Crypto.Signers
             return DerSequence.GetEncodingLength(DerInteger.GetEncodingLength(n) * 2);
         }
 
+        /// <summary>
+        /// Check that a value is in range: not negative, and below <paramref name="n"/> if that is given.
+        /// </summary>
+        /// <param name="n">The upper bound (exclusive), or null for no bound.</param>
+        /// <param name="x">The value to check.</param>
+        /// <returns>The value, if valid.</returns>
+        /// <exception cref="ArgumentException">The value is out of range.</exception>
         protected virtual BigInteger CheckValue(BigInteger n, BigInteger x)
         {
             if (x.SignValue < 0 || (null != n && x.CompareTo(n) >= 0))
@@ -64,11 +71,20 @@ namespace Org.BouncyCastle.Crypto.Signers
             return x;
         }
 
+        /// <summary>Decode a value from an element of an ASN.1 sequence.</summary>
+        /// <param name="n">The upper bound (exclusive) for the value.</param>
+        /// <param name="s">The sequence.</param>
+        /// <param name="pos">The position of the element in the sequence.</param>
+        /// <returns>The decoded value.</returns>
         protected virtual BigInteger DecodeValue(BigInteger n, Asn1Sequence s, int pos)
         {
             return CheckValue(n, ((DerInteger)s[pos]).Value);
         }
 
+        /// <summary>Encode a value as an ASN.1 INTEGER.</summary>
+        /// <param name="n">The upper bound (exclusive) for the value.</param>
+        /// <param name="x">The value to encode.</param>
+        /// <returns>The encoded value.</returns>
         protected virtual DerInteger EncodeValue(BigInteger n, BigInteger x)
         {
             return new DerInteger(CheckValue(n, x));

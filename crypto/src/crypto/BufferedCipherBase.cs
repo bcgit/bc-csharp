@@ -3,9 +3,13 @@ using System.Diagnostics;
 
 namespace Org.BouncyCastle.Crypto
 {
+    /// <summary>
+    /// Base class for buffered ciphers, providing default implementations for the convenience overloads.
+    /// </summary>
     public abstract class BufferedCipherBase
         : IBufferedCipher
     {
+        /// <summary>A shared empty buffer.</summary>
         // TODO[api] Hide/remove
         [Obsolete("Will be removed")]
         protected static readonly byte[] EmptyBuffer = new byte[0];

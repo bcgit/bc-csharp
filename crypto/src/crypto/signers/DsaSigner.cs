@@ -14,9 +14,12 @@ namespace Org.BouncyCastle.Crypto.Signers
     public class DsaSigner
         : IDsa
     {
+        /// <summary>The calculator for the per-signature value <c>k</c>.</summary>
         protected readonly IDsaKCalculator kCalculator;
 
+        /// <summary>The key in use.</summary>
         protected DsaKeyParameters key = null;
+        /// <summary>The source of randomness.</summary>
         protected SecureRandom random = null;
 
         /**
@@ -141,6 +144,10 @@ namespace Org.BouncyCastle.Crypto.Signers
             return v.Equals(r);
         }
 
+        /// <summary>Calculate the integer <c>e</c> to sign from a message.</summary>
+        /// <param name="n">The order of the group.</param>
+        /// <param name="message">The message hash.</param>
+        /// <returns>The integer <c>e</c>.</returns>
         protected virtual BigInteger CalculateE(BigInteger n, byte[] message)
         {
             int length = System.Math.Min(message.Length, n.BitLength / 8);
@@ -148,6 +155,10 @@ namespace Org.BouncyCastle.Crypto.Signers
             return new BigInteger(1, message, 0, length);
         }
 
+        /// <summary>Obtain a source of randomness for signing.</summary>
+        /// <param name="needed">true if randomness is needed, as for signing.</param>
+        /// <param name="provided">A source of randomness that was provided, or null.</param>
+        /// <returns>The source of randomness to use, or null if none is needed.</returns>
         protected virtual SecureRandom InitSecureRandom(bool needed, SecureRandom provided)
         {
             return !needed ? null : CryptoServicesRegistrar.GetSecureRandom(provided);

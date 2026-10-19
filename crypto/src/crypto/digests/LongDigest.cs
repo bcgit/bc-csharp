@@ -47,6 +47,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             CopyIn(t);
         }
 
+        /// <summary>Copy the state of another digest of this type into this one.</summary>
+        /// <param name="t">The digest to copy the state from.</param>
         protected void CopyIn(LongDigest t)
         {
             Array.Copy(t.xBuf, 0, xBuf, 0, t.xBuf.Length);
@@ -167,6 +169,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <summary>Add the padding and length to the data and process the final blocks.</summary>
         public void Finish()
         {
             AdjustByteCounts();

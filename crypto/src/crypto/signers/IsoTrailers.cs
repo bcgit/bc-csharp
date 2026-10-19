@@ -52,6 +52,10 @@ namespace Org.BouncyCastle.Crypto.Signers
         // IDictionary is (string -> Int32)
         private static readonly IDictionary<string, int> TrailerMap = CreateTrailerMap();
 
+        /// <summary>Get the ISO 9796-2 trailer for a digest.</summary>
+        /// <param name="digest">The digest.</param>
+        /// <returns>The trailer.</returns>
+        /// <exception cref="InvalidOperationException">There is no trailer for the digest.</exception>
         public static int GetTrailer(IDigest digest)
         {
             if (TrailerMap.TryGetValue(digest.AlgorithmName, out var trailer))
@@ -60,6 +64,9 @@ namespace Org.BouncyCastle.Crypto.Signers
             throw new InvalidOperationException("No trailer for digest");
         }
 
+        /// <summary>Determine whether there is no ISO 9796-2 trailer for a digest.</summary>
+        /// <param name="digest">The digest.</param>
+        /// <returns>true if no trailer is available, false otherwise.</returns>
         public static bool NoTrailerAvailable(IDigest digest)
         {
             return !TrailerMap.ContainsKey(digest.AlgorithmName);

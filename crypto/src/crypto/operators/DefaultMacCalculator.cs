@@ -17,6 +17,7 @@ namespace Org.BouncyCastle.Crypto.Operators
             m_macSink = new MacSink(mac);
         }
 
+        /// <summary>Gets the underlying stream.</summary>
         public Stream Stream => m_macSink;
 
         /// <inheritdoc/>

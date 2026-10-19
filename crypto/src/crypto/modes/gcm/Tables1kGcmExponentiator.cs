@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
+    /// <summary>A GCM exponentiator that uses a precomputed table of about 1 KiB.</summary>
     [Obsolete("Will be removed")]
     public class Tables1kGcmExponentiator
         : IGcmExponentiator

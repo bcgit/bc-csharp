@@ -9,14 +9,18 @@ namespace Org.BouncyCastle.Crypto.Engines
     public abstract class SerpentEngineBase
         :   IBlockCipher
     {
+        /// <summary>The block size in bytes.</summary>
         protected static readonly int BlockSize = 16;
 
         internal const int ROUNDS = 32;
         internal const int PHI = unchecked((int)0x9E3779B9);       // (sqrt(5) - 1) * 2**31
 
+        /// <summary>Whether the engine is encrypting.</summary>
         protected bool encrypting;
+        /// <summary>The expanded key.</summary>
         protected int[] wKey;
 
+        /// <summary>The four 32-bit words of the working state.</summary>
         protected int X0, X1, X2, X3;    // registers
 
         internal SerpentEngineBase()

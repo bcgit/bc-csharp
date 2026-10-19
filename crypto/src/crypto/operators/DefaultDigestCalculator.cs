@@ -17,6 +17,7 @@ namespace Org.BouncyCastle.Crypto.Operators
             m_digestSink = new DigestSink(digest);
         }
 
+        /// <summary>Gets the underlying stream.</summary>
         public Stream Stream => m_digestSink;
 
         /// <inheritdoc/>

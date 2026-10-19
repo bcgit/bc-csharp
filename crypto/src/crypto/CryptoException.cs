@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto
 {
+    /// <summary>General exception thrown for errors in cryptographic operations.</summary>
     [Serializable]
     public class CryptoException
         : Exception

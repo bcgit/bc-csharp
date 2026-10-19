@@ -14,6 +14,20 @@ namespace Org.BouncyCastle.Crypto.Tls
         /// <summary>The <c>PreMasterSecretLength</c> constant, with the value <c>48</c>.</summary>
         public const int PreMasterSecretLength = 48;
 
+        /// <summary>
+        /// Decrypt a TLS pre-master secret, using countermeasures against padding oracle attacks: if the encrypted
+        /// value is invalid, a random value is returned instead.
+        /// </summary>
+        /// <param name="buf">The buffer holding the encrypted pre-master secret.</param>
+        /// <param name="off">The offset into <paramref name="buf"/> at which the encrypted value starts.</param>
+        /// <param name="len">The length of the encrypted value.</param>
+        /// <param name="privateKey">The RSA private key.</param>
+        /// <param name="protocolVersion">
+        /// The protocol version, as a 16-bit value, that the pre-master secret is expected to carry.
+        /// </param>
+        /// <param name="secureRandom">The source of randomness for the fallback value.</param>
+        /// <returns>The pre-master secret.</returns>
+        /// <exception cref="ArgumentException"><paramref name="protocolVersion"/> is not a 16-bit value.</exception>
         public static byte[] DecryptPreMasterSecret(byte[] buf, int off, int len, RsaKeyParameters privateKey,
             int protocolVersion, SecureRandom secureRandom)
         {
@@ -27,6 +41,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                 secureRandom, protocolVersionCheck);
         }
 
+        /// <summary>Get the maximum length of the encrypted value that can be decrypted with the given key.</summary>
+        /// <param name="privateKey">The RSA private key.</param>
+        /// <returns>The maximum length in bytes.</returns>
         public static int GetInputLimit(RsaKeyParameters privateKey) => RsaPkcs1Utilities.GetInputLimit(privateKey);
     }
 }

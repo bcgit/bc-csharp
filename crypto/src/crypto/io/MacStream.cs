@@ -28,6 +28,7 @@ namespace Org.BouncyCastle.Crypto.IO
             m_writeMac = writeMac;
         }
 
+        /// <summary>Gets the underlying stream.</summary>
         public Stream Stream => m_stream;
 
         /// <summary>Gets the read mac.</summary>

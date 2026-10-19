@@ -8,9 +8,12 @@ namespace Org.BouncyCastle.Crypto.Fpe
     /// <summary>Base class for format-preserving encryption.</summary>
     public abstract class FpeEngine
     {
+        /// <summary>The underlying block cipher.</summary>
         protected readonly IBlockCipher baseCipher;
 
+        /// <summary>Whether the engine is initialised for encryption.</summary>
         protected bool forEncryption;
+        /// <summary>The FPE parameters in use.</summary>
         protected FpeParameters fpeParameters;
 
         /// <summary>Create a new <see cref="FpeEngine"/>.</summary>
@@ -53,6 +56,9 @@ namespace Org.BouncyCastle.Crypto.Fpe
             }
         }
 
+        /// <summary>Determine whether the given boolean property is set to true.</summary>
+        /// <param name="propName">The name of the property.</param>
+        /// <returns>true if the property is set to true, false otherwise.</returns>
         protected static bool IsOverrideSet(string propName) => Properties.GetBoolean(propName, false);
 
         /// <summary>
@@ -63,8 +69,22 @@ namespace Org.BouncyCastle.Crypto.Fpe
         /// <param name="parameters ">the key and other parameters to use to set the engine up.</param>
         public abstract void Init(bool forEncryption, ICipherParameters parameters);
 
+        /// <summary>Encrypt a block of data.</summary>
+        /// <param name="inBuf">The input buffer.</param>
+        /// <param name="inOff">The offset into <paramref name="inBuf"/> at which the data starts.</param>
+        /// <param name="length">The length of the data.</param>
+        /// <param name="outBuf">The output buffer.</param>
+        /// <param name="outOff">The offset into <paramref name="outBuf"/> at which to start writing.</param>
+        /// <returns>The number of bytes written.</returns>
         protected abstract int EncryptBlock(byte[] inBuf, int inOff, int length, byte[] outBuf, int outOff);
 
+        /// <summary>Decrypt a block of data.</summary>
+        /// <param name="inBuf">The input buffer.</param>
+        /// <param name="inOff">The offset into <paramref name="inBuf"/> at which the data starts.</param>
+        /// <param name="length">The length of the data.</param>
+        /// <param name="outBuf">The output buffer.</param>
+        /// <param name="outOff">The offset into <paramref name="outBuf"/> at which to start writing.</param>
+        /// <returns>The number of bytes written.</returns>
         protected abstract int DecryptBlock(byte[] inBuf, int inOff, int length, byte[] outBuf, int outOff);
     }
 }

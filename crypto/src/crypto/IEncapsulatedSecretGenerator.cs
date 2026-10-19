@@ -1,5 +1,8 @@
 namespace Org.BouncyCastle.Crypto
 {
+    /// <summary>
+    /// Implemented by classes that generate a secret together with its encapsulation for a recipient.
+    /// </summary>
     public interface IEncapsulatedSecretGenerator
     {
         /// <summary>

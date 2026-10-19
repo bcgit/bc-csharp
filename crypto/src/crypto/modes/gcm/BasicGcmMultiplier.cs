@@ -5,6 +5,7 @@ using System.Runtime.Intrinsics.X86;
 
 namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
+    /// <summary>A GCM multiplier that multiplies bit by bit, without precomputed tables.</summary>
     [Obsolete("Will be removed")]
     public class BasicGcmMultiplier
         : IGcmMultiplier

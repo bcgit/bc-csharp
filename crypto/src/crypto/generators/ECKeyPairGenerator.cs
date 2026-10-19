@@ -104,6 +104,8 @@ namespace Org.BouncyCastle.Crypto.Generators
             return new AsymmetricCipherKeyPair(publicKey, privateKey);
         }
 
+        /// <summary>Create the multiplier used for multiplying the base point.</summary>
+        /// <returns>The multiplier.</returns>
         protected virtual ECMultiplier CreateBasePointMultiplier() => new FixedPointCombMultiplier();
 
         private static BigInteger GeneratePrivateScalar(BigInteger n, SecureRandom random)

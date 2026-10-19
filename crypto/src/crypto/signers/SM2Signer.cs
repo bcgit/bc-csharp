@@ -328,12 +328,18 @@ namespace Org.BouncyCastle.Crypto.Signers
 #endif
         }
 
+        /// <summary>Calculate the integer <c>e</c> to sign from a message.</summary>
+        /// <param name="n">The order of the group.</param>
+        /// <param name="message">The message hash.</param>
+        /// <returns>The integer <c>e</c>.</returns>
         protected virtual BigInteger CalculateE(BigInteger n, byte[] message)
         {
             // TODO Should hashes larger than the order be truncated as with ECDSA?
             return new BigInteger(1, message);
         }
 
+        /// <summary>Create the multiplier used for multiplying the base point.</summary>
+        /// <returns>The multiplier.</returns>
         protected virtual ECMultiplier CreateBasePointMultiplier()
         {
             return new FixedPointCombMultiplier();

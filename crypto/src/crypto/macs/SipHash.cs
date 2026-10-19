@@ -18,13 +18,19 @@ namespace Org.BouncyCastle.Crypto.Macs
     public class SipHash
         : IMac
     {
+        /// <summary>The number of compression rounds (<c>c</c>) and finalization rounds (<c>d</c>).</summary>
         protected readonly int c, d;
 
+        /// <summary>The two halves of the key.</summary>
         protected long k0, k1;
+        /// <summary>The four words of the internal state.</summary>
         protected long v0, v1, v2, v3;
 
+        /// <summary>The current message word.</summary>
         protected long m = 0;
+        /// <summary>The number of bytes accumulated in the current message word.</summary>
         protected int wordPos = 0;
+        /// <summary>The number of whole words processed.</summary>
         protected int wordCount = 0;
 
         /// <summary>SipHash-2-4</summary>
@@ -169,6 +175,8 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
+        /// <summary>Finish the MAC and return the result as a 64-bit value.</summary>
+        /// <returns>The MAC value.</returns>
         public virtual long DoFinal()
         {
             // NOTE: 2 distinct shifts to avoid "64-bit shift" when wordPos == 0
@@ -220,6 +228,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             wordCount = 0;
         }
 
+        /// <summary>Process the current message word.</summary>
         protected virtual void ProcessMessageWord()
         {
             ++wordCount;
@@ -228,6 +237,8 @@ namespace Org.BouncyCastle.Crypto.Macs
             v0 ^= m;
         }
 
+        /// <summary>Apply a number of SipRounds to the state.</summary>
+        /// <param name="n">The number of rounds.</param>
         protected virtual void ApplySipRounds(int n)
         {
             long r0 = v0, r1 = v1, r2 = v2, r3 = v3;
@@ -253,6 +264,10 @@ namespace Org.BouncyCastle.Crypto.Macs
             v0 = r0; v1 = r1; v2 = r2; v3 = r3;
         }
 
+        /// <summary>Rotate a 64-bit value to the left.</summary>
+        /// <param name="x">The value.</param>
+        /// <param name="n">The number of bits to rotate by.</param>
+        /// <returns>The rotated value.</returns>
         protected static long RotateLeft(long x, int n)
         {
             ulong ux = (ulong)x;

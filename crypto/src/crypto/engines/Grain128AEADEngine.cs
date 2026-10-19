@@ -391,6 +391,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         /// <inheritdoc/>
         public void Reset() => Reset(true);
 
+        /// <summary>Process a single byte of input.</summary>
+        /// <param name="input">The byte to process.</param>
+        /// <returns>The output byte.</returns>
         // TODO[api] Remove ASAP
         [Obsolete("Incompatible with the AEAD API; throws NotImplementedException")]
         public byte ReturnByte(byte input) => throw new NotImplementedException();

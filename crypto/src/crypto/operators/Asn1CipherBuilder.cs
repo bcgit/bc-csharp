@@ -129,6 +129,7 @@ namespace Org.BouncyCastle.Crypto.Operators
         /// <inheritdoc/>
         public int GetUpdateOutputSize(int inputLen) => m_bufferedCipher.GetUpdateOutputSize(inputLen);
 
+        /// <summary>Gets the underlying stream.</summary>
         public Stream Stream => m_stream;
     }
 }

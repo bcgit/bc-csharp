@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.Crypto.Digests
     public class NonMemoableDigest
         :   IDigest
     {
+        /// <summary>The wrapped digest.</summary>
         protected readonly IDigest mBaseDigest;
 
         /**

@@ -89,6 +89,7 @@ namespace Org.BouncyCastle.Crypto.Prng
 
         #region IDisposable Members
 
+        /// <summary>Release the underlying random number generator.</summary>
         public void Dispose()
         {
             m_randomNumberGenerator.Dispose();

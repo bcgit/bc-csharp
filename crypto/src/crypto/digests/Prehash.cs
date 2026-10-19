@@ -11,8 +11,15 @@ namespace Org.BouncyCastle.Crypto.Digests
     public sealed class Prehash
         : IDigest
     {
+        /// <summary>Create a prehash stand-in with the name and size of a digest.</summary>
+        /// <param name="digest">The digest to take the name and output size from.</param>
+        /// <returns>The new instance.</returns>
         public static Prehash ForDigest(IDigest digest) => ForParameters(digest.AlgorithmName, digest.GetDigestSize());
 
+        /// <summary>Create a prehash stand-in with a given name and size.</summary>
+        /// <param name="digestName">The algorithm name to report.</param>
+        /// <param name="digestSize">The size in bytes of the prehashed value.</param>
+        /// <returns>The new instance.</returns>
         public static Prehash ForParameters(string digestName, int digestSize) => new Prehash(digestName, digestSize);
 
         private readonly string m_algorithmName;

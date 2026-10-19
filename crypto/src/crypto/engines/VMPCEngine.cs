@@ -8,11 +8,16 @@ namespace Org.BouncyCastle.Crypto.Engines
     public class VmpcEngine
         : IStreamCipher
     {
+        /// <summary>The VMPC state value <c>n</c>.</summary>
         protected byte n = 0;
+        /// <summary>The VMPC permutation <c>P</c>.</summary>
         protected byte[] P = null;
+        /// <summary>The VMPC state value <c>s</c>.</summary>
         protected byte s = 0;
 
+        /// <summary>The initialization vector in use.</summary>
         protected byte[] workingIV;
+        /// <summary>The key in use.</summary>
         protected byte[] workingKey;
 
         /// <inheritdoc/>
@@ -49,6 +54,9 @@ namespace Org.BouncyCastle.Crypto.Engines
             InitKey(this.workingKey, this.workingIV);
         }
 
+        /// <summary>Initialise the permutation and state from the key and initialization vector.</summary>
+        /// <param name="keyBytes">The key.</param>
+        /// <param name="ivBytes">The initialization vector.</param>
         protected virtual void InitKey(byte[] keyBytes, byte[] ivBytes)
         {
             n = 0;

@@ -56,6 +56,11 @@ namespace Org.BouncyCastle.Crypto.Signers
             return BigIntegers.GetUnsignedByteLength(n) * 2;
         }
 
+        /// <summary>Check that a value is in the range <c>[0, n)</c>.</summary>
+        /// <param name="n">The upper bound (exclusive).</param>
+        /// <param name="x">The value to check.</param>
+        /// <returns>The value, if valid.</returns>
+        /// <exception cref="ArgumentException">The value is out of range.</exception>
         protected virtual BigInteger CheckValue(BigInteger n, BigInteger x)
         {
             if (x.SignValue < 0 || x.CompareTo(n) >= 0)
@@ -64,11 +69,23 @@ namespace Org.BouncyCastle.Crypto.Signers
             return x;
         }
 
+        /// <summary>Decode a value from a fixed-size, unsigned big-endian encoding.</summary>
+        /// <param name="n">The upper bound (exclusive) for the value.</param>
+        /// <param name="buf">The buffer holding the encoding.</param>
+        /// <param name="off">The offset into <paramref name="buf"/> at which the encoding starts.</param>
+        /// <param name="len">The length of the encoding.</param>
+        /// <returns>The decoded value.</returns>
         protected virtual BigInteger DecodeValue(BigInteger n, byte[] buf, int off, int len)
         {
             return CheckValue(n, new BigInteger(1, buf, off, len));
         }
 
+        /// <summary>Encode a value as a fixed-size, unsigned big-endian encoding, left padded with zeros.</summary>
+        /// <param name="n">The upper bound (exclusive) for the value.</param>
+        /// <param name="x">The value to encode.</param>
+        /// <param name="buf">The buffer to write to.</param>
+        /// <param name="off">The offset into <paramref name="buf"/> at which to start writing.</param>
+        /// <param name="len">The size of the encoding.</param>
         protected virtual void EncodeValue(BigInteger n, BigInteger x, byte[] buf, int off, int len)
         {
             byte[] bs = CheckValue(n, x).ToByteArrayUnsigned();
@@ -81,6 +98,10 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Encode a value as a fixed-size, unsigned big-endian encoding, left padded with zeros.</summary>
+        /// <param name="n">The upper bound (exclusive) for the value.</param>
+        /// <param name="x">The value to encode.</param>
+        /// <param name="buffer">The buffer to write to.</param>
         protected virtual void EncodeValue(BigInteger n, BigInteger x, Span<byte> buffer)
         {
             byte[] bs = CheckValue(n, x).ToByteArrayUnsigned();

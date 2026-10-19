@@ -8,9 +8,15 @@ namespace Org.BouncyCastle.Crypto.Operators
     public class Asn1DigestFactory
         : IDigestFactory
     {
+        /// <summary>Get the digest factory for an algorithm.</summary>
+        /// <param name="oid">The object identifier of the digest algorithm.</param>
+        /// <returns>The digest factory.</returns>
         public static Asn1DigestFactory Get(DerObjectIdentifier oid) =>
             new Asn1DigestFactory(DigestUtilities.GetDigest(oid), oid);
 
+        /// <summary>Get the digest factory for an algorithm.</summary>
+        /// <param name="mechanism">The name of the digest algorithm.</param>
+        /// <returns>The digest factory.</returns>
         public static Asn1DigestFactory Get(string mechanism) => Get(DigestUtilities.GetObjectIdentifier(mechanism));
 
         private readonly IDigest m_digest;

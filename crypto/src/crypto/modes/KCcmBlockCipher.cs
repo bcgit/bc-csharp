@@ -331,6 +331,13 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <summary>Process a whole packet in one go.</summary>
+        /// <param name="input">The packet to process.</param>
+        /// <param name="inOff">The offset into <paramref name="input"/> at which the packet starts.</param>
+        /// <param name="len">The length of the packet.</param>
+        /// <param name="output">The buffer to receive the processed packet.</param>
+        /// <param name="outOff">The offset into <paramref name="output"/> at which to start writing.</param>
+        /// <returns>The number of bytes written.</returns>
         public int ProcessPacket(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, len, "input buffer too short");
@@ -410,6 +417,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Process a whole packet in one go.</summary>
+        /// <param name="input">The packet to process.</param>
+        /// <param name="output">The buffer to receive the processed packet.</param>
+        /// <returns>The number of bytes written.</returns>
         public int ProcessPacket(ReadOnlySpan<byte> input, Span<byte> output)
         {
             int len = input.Length;
