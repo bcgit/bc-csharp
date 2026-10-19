@@ -259,8 +259,10 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Return the IV.</summary>
         public byte[] GetIV() => Arrays.Clone(iv);
 
+        /// <summary>Gets the s 2 k.</summary>
         public S2k S2k => s2k;
 
+        /// <summary>Gets the public key packet.</summary>
         public PublicKeyPacket PublicKeyPacket => pubKeyPacket;
 
         /// <summary>Return the secret key data.</summary>

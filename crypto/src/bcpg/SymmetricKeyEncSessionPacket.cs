@@ -266,6 +266,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Return the sec key data.</summary>
         public byte[] GetSecKeyData() => m_secKeyData;
 
+        /// <summary>Gets the s 2 k.</summary>
         public S2k S2k => m_s2k;
 
         /// <summary>Gets the version.</summary>

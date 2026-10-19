@@ -38,6 +38,7 @@ namespace Org.BouncyCastle.Bcpg
         /// </remarks>
         public bool IsCritical => (int)m_packetTag <= 39;
 
+        /// <summary>Gets the packet tag.</summary>
         public PacketTag PacketTag => m_packetTag;
     }
 }
