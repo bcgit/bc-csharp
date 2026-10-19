@@ -54,9 +54,11 @@ namespace Org.BouncyCastle.Utilities.Zlib
         private const int BufferSize = 4096;
 
         protected ZStream z;
+        /// <summary>The flush level.</summary>
         protected int flushLevel = JZlib.Z_NO_FLUSH;
         // TODO Allow custom buf
         protected byte[] buf = new byte[BufferSize];
+        /// <summary>The buf 1.</summary>
         protected byte[] buf1 = new byte[1];
         protected bool compress;
 
