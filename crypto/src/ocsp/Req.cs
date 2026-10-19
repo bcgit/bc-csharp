@@ -26,6 +26,7 @@ namespace Org.BouncyCastle.Ocsp
         /// <summary>Gets the extensions specific to this request, or null if there are none.</summary>
         public X509Extensions SingleRequestExtensions => m_req.SingleRequestExtensions;
 
+        /// <inheritdoc/>
         protected override X509Extensions GetX509Extensions() => SingleRequestExtensions;
     }
 }

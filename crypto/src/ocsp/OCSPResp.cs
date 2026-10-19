@@ -97,6 +97,7 @@ namespace Org.BouncyCastle.Ocsp
         /// <summary>Return the ASN.1 encoded representation of this object.</summary>
         public byte[] GetEncoded() => m_ocspResponse.GetEncoded();
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             if (obj == this)
@@ -106,6 +107,7 @@ namespace Org.BouncyCastle.Ocsp
                 && m_ocspResponse.Equals(that.m_ocspResponse);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode() => m_ocspResponse.GetHashCode();
 
         /// <summary>Return the underlying ASN.1 structure.</summary>

@@ -53,6 +53,7 @@ namespace Org.BouncyCastle.Ocsp
         /// <summary>Gets the extensions specific to this response, or null if there are none.</summary>
         public X509Extensions SingleExtensions => m_resp.SingleExtensions;
 
+        /// <inheritdoc/>
         protected override X509Extensions GetX509Extensions() => SingleExtensions;
     }
 }

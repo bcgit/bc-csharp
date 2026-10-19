@@ -19,6 +19,7 @@ namespace Org.BouncyCastle.Ocsp
     public class CertificateID
         : IEquatable<CertificateID>
     {
+        /// <summary>The <c>HashSha1</c> constant, with the value <c>1.3.14.3.2.26</c>.</summary>
         [Obsolete("Use 'OiwObjectIdentifiers.IdSha1.Id' instead")]
         public const string HashSha1 = "1.3.14.3.2.26";
 
@@ -108,8 +109,10 @@ namespace Org.BouncyCastle.Ocsp
 
         public bool Equals(CertificateID other) => this == other || m_id.Equals(other?.m_id);
 
+        /// <inheritdoc/>
         public override bool Equals(object obj) => Equals(obj as CertificateID);
 
+        /// <inheritdoc/>
         public override int GetHashCode() => m_id.GetHashCode();
 
         /// <summary>

@@ -70,14 +70,17 @@ namespace Org.BouncyCastle.Ocsp
         /// <summary>Gets the extensions that apply to the response as a whole, or null if there are none.</summary>
         public X509Extensions ResponseExtensions => data.ResponseExtensions;
 
+        /// <inheritdoc/>
         protected override X509Extensions GetX509Extensions() => ResponseExtensions;
 
+        /// <summary>Gets the signature alg name.</summary>
         [Obsolete("Will be removed")]
         public string SignatureAlgName => X509SignatureUtilities.GetSignatureName(SignatureAlgorithm);
 
         /// <summary>Gets the algorithm identifier of the signature on this response.</summary>
         public AlgorithmIdentifier SignatureAlgorithm => resp.SignatureAlgorithm;
 
+        /// <summary>Gets the signature alg oid.</summary>
         [Obsolete("Will be removed")]
         public string SignatureAlgOid => resp.SignatureAlgorithm.Algorithm.GetID();
 
@@ -132,6 +135,7 @@ namespace Org.BouncyCastle.Ocsp
         /// <returns>The ASN.1 encoded representation of this object.</returns>
         public byte[] GetEncoded() => resp.GetEncoded();
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             if (obj == this)
@@ -141,6 +145,7 @@ namespace Org.BouncyCastle.Ocsp
                 && this.resp.Equals(that.resp);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode() => resp.GetHashCode();
     }
 }

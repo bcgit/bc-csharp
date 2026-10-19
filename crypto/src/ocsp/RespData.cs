@@ -36,6 +36,7 @@ namespace Org.BouncyCastle.Ocsp
         /// <summary>Gets the extensions that apply to the response as a whole, or null if there are none.</summary>
         public X509Extensions ResponseExtensions => m_data.ResponseExtensions;
 
+        /// <inheritdoc/>
         protected override X509Extensions GetX509Extensions() => ResponseExtensions;
     }
 }

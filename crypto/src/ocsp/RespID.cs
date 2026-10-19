@@ -54,8 +54,10 @@ namespace Org.BouncyCastle.Ocsp
 
         public bool Equals(RespID other) => this == other || m_id.Equals(other?.m_id);
 
+        /// <inheritdoc/>
         public override bool Equals(object obj) => Equals(obj as RespID);
 
+        /// <inheritdoc/>
         public override int GetHashCode() => m_id.GetHashCode();
     }
 }

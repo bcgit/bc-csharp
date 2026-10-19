@@ -115,6 +115,7 @@ namespace Org.BouncyCastle.Ocsp
         /// <summary>Gets the extensions that apply to the request as a whole, or null if there are none.</summary>
         public X509Extensions RequestExtensions => X509Extensions.GetInstance(req.TbsRequest.RequestExtensions);
 
+        /// <inheritdoc/>
         protected override X509Extensions GetX509Extensions() => RequestExtensions;
 
         /// <summary>Gets the signature algorithm, or null if the request is not signed.</summary>
