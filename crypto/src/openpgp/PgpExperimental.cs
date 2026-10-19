@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         private readonly ExperimentalPacket m_packet;
 
         /// <summary>Create a new <see cref="PgpExperimental"/>.</summary>
-        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         public PgpExperimental(BcpgInputStream bcpgIn)
         {
             Packet packet = bcpgIn.ReadPacket();
