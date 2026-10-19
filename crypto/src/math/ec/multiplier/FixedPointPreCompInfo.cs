@@ -30,9 +30,9 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
         public virtual ECPoint Offset
         {
-			get { return m_offset; }
-			set { this.m_offset = value; }
-		}
+            get { return m_offset; }
+            set { this.m_offset = value; }
+        }
 
         public virtual int Width
         {
