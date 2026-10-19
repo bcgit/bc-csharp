@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Crypto.Paddings
     /// <summary> A padder that adds Trailing-Bit-Compliment padding to a block.</summary>
     /// <remarks>This padding pads the block out compliment of the last bit of the plain text.</remarks>
     public class TbcPadding
-		: IBlockCipherPadding
+        : IBlockCipherPadding
     {
         public virtual void Init(SecureRandom random)
         {
