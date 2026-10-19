@@ -5,9 +5,12 @@ using System.Buffers.Binary;
 
 namespace Org.BouncyCastle.Utilities
 {
+    /// <summary>Utility methods and constants for working with 16-bit integers.</summary>
     public static class Shorts
     {
+        /// <summary>The <c>NumBits</c> constant, with the value <c>16</c>.</summary>
         public const int NumBits = 16;
+        /// <summary>The <c>NumBytes</c> constant, with the value <c>2</c>.</summary>
         public const int NumBytes = 2;
 
         public static short ReverseBytes(short i)

@@ -1226,8 +1226,10 @@ namespace Org.BouncyCastle.Utilities
         }
 
 #if NET6_0_OR_GREATER
+        /// <summary>Gets the max length.</summary>
         public static int MaxLength => Array.MaxLength;
 #else
+        /// <summary>Gets the max length.</summary>
         public static int MaxLength => 0X7FFFFFC7;
 #endif
 

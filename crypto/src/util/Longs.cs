@@ -11,9 +11,12 @@ using Org.BouncyCastle.Math.Raw;
 
 namespace Org.BouncyCastle.Utilities
 {
+    /// <summary>Utility methods and constants for working with 64-bit integers.</summary>
     public static class Longs
     {
+        /// <summary>The <c>NumBits</c> constant, with the value <c>64</c>.</summary>
         public const int NumBits = 64;
+        /// <summary>The <c>NumBytes</c> constant, with the value <c>8</c>.</summary>
         public const int NumBytes = 8;
 
 #if !NETCOREAPP3_0_OR_GREATER

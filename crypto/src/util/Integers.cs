@@ -11,9 +11,12 @@ using Org.BouncyCastle.Math.Raw;
 
 namespace Org.BouncyCastle.Utilities
 {
+    /// <summary>Utility methods and constants for working with 32-bit integers.</summary>
     public static class Integers
     {
+        /// <summary>The <c>NumBits</c> constant, with the value <c>32</c>.</summary>
         public const int NumBits = 32;
+        /// <summary>The <c>NumBytes</c> constant, with the value <c>4</c>.</summary>
         public const int NumBytes = 4;
 
 #if !NETCOREAPP3_0_OR_GREATER

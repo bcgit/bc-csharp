@@ -3,6 +3,7 @@ using System.Threading;
 
 namespace Org.BouncyCastle.Utilities
 {
+    /// <summary>Utility methods for working with objects.</summary>
     public static class Objects
     {
         public static int GetHashCode(object obj)

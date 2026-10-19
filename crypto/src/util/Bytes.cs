@@ -8,9 +8,12 @@ using Org.BouncyCastle.Math.Raw;
 
 namespace Org.BouncyCastle.Utilities
 {
+    /// <summary>Utility methods and constants for working with bytes.</summary>
     public static class Bytes
     {
+        /// <summary>The <c>NumBits</c> constant, with the value <c>8</c>.</summary>
         public const int NumBits = 8;
+        /// <summary>The <c>NumBytes</c> constant, with the value <c>1</c>.</summary>
         public const int NumBytes = 1;
 
         public static void CMov(int len, int cond, byte[] x, byte[] z)
