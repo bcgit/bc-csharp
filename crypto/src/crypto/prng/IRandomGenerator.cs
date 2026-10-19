@@ -10,6 +10,8 @@ namespace Org.BouncyCastle.Crypto.Prng
         void AddSeedMaterial(byte[] seed);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Add more seed material to the generator.</summary>
+        /// <param name="seed">The seed material to be mixed into the generator's state.</param>
         void AddSeedMaterial(ReadOnlySpan<byte> seed);
 #endif
 
@@ -28,6 +30,8 @@ namespace Org.BouncyCastle.Crypto.Prng
         void NextBytes(byte[] bytes, int start, int len);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Fill a span with random values.</summary>
+        /// <param name="bytes">The span to fill.</param>
         void NextBytes(Span<byte> bytes);
 #endif
     }

@@ -26,8 +26,17 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
         int Generate(byte[] output, int outputOff, int outputLen, byte[] additionalInput, bool predictionResistant);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Generate pseudo-random output.</summary>
+        /// <param name="output">The span to fill.</param>
+        /// <param name="predictionResistant">true if a reseed should be forced, false otherwise.</param>
+        /// <returns>The number of bits generated, or -1 if a reseed is required.</returns>
         int Generate(Span<byte> output, bool predictionResistant);
 
+        /// <summary>Generate pseudo-random output with additional input.</summary>
+        /// <param name="output">The span to fill.</param>
+        /// <param name="additionalInput">The additional input to be added to the DRBG in this step.</param>
+        /// <param name="predictionResistant">true if a reseed should be forced, false otherwise.</param>
+        /// <returns>The number of bits generated, or -1 if a reseed is required.</returns>
         int GenerateWithInput(Span<byte> output, ReadOnlySpan<byte> additionalInput, bool predictionResistant);
 #endif
 
@@ -39,6 +48,8 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
         void Reseed(byte[] additionalInput);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Reseed the DRBG.</summary>
+        /// <param name="additionalInput">The additional input to be added to the DRBG in this step.</param>
         void Reseed(ReadOnlySpan<byte> additionalInput);
 #endif
     }

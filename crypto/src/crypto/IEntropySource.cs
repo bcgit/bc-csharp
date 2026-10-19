@@ -20,6 +20,9 @@ namespace Org.BouncyCastle.Crypto
         byte[] GetEntropy();
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Fill a span with entropy.</summary>
+        /// <param name="output">The span to fill.</param>
+        /// <returns>The number of bytes written.</returns>
         int GetEntropy(Span<byte> output);
 #endif
 
