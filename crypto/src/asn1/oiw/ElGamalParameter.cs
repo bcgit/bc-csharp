@@ -44,8 +44,8 @@ namespace Org.BouncyCastle.Asn1.Oiw
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_p = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
-			m_g = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_p = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_g = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
@@ -59,8 +59,8 @@ namespace Org.BouncyCastle.Asn1.Oiw
 
         public BigInteger P => m_p.PositiveValue;
 
-		public BigInteger G => m_g.PositiveValue;
+        public BigInteger G => m_g.PositiveValue;
 
-		public override Asn1Object ToAsn1Object() => new DerSequence(m_p, m_g);
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_p, m_g);
     }
 }
