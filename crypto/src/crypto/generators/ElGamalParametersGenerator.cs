@@ -6,6 +6,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
+    /// <summary>Generator for ElGamal domain parameters.</summary>
     public class ElGamalParametersGenerator
     {
         private int m_size;

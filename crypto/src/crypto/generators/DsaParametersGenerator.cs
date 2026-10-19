@@ -21,11 +21,14 @@ namespace Org.BouncyCastle.Crypto.Generators
         private bool            use186_3;
         private int             usageIndex;
 
+        /// <summary>Create a new <see cref="DsaParametersGenerator"/>.</summary>
         public DsaParametersGenerator()
             : this(new Sha1Digest())
         {
         }
 
+        /// <summary>Create a new <see cref="DsaParametersGenerator"/>.</summary>
+        /// <param name="digest">The digest.</param>
         public DsaParametersGenerator(IDigest digest)
         {
             this.digest = digest;
@@ -53,7 +56,9 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         /// <summary>Initialise the generator for DSA 2</summary>
         /// <remarks>You must use this Init method if you need to generate parameters for DSA 2 keys</remarks>
-        /// <param name="parameters">An instance of <c>DsaParameterGenerationParameters</c> used to configure this generator</param>
+        /// <param name="parameters">
+        /// An instance of <c>DsaParameterGenerationParameters</c> used to configure this generator
+        /// </param>
         public virtual void Init(DsaParameterGenerationParameters parameters)
         {
             // TODO Should we enforce the minimum 'certainty' values as per C.3 Table C.1?

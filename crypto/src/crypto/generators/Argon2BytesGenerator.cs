@@ -17,6 +17,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
+    /// <summary>Generator for the Argon2 password hashing function (RFC 9106).</summary>
     public sealed class Argon2BytesGenerator
     {
         private const int Argon2BlockSize = 1024;
@@ -60,6 +61,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         private Block[] memory;
         private Block[] fillerBlocks;
 
+        /// <summary>Create a new <see cref="Argon2BytesGenerator"/>.</summary>
         public Argon2BytesGenerator()
             : this(taskFactory: null)
         {

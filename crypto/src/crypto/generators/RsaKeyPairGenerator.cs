@@ -17,10 +17,12 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         protected static readonly BigInteger One = BigInteger.One;
         protected static readonly BigInteger DefaultPublicExponent = BigInteger.ValueOf(0x10001);
+        /// <summary>The <c>DefaultTests</c> constant, with the value <c>100</c>.</summary>
         protected const int DefaultTests = 100;
 
         protected RsaKeyGenerationParameters parameters;
 
+        /// <inheritdoc/>
         public virtual void Init(
             KeyGenerationParameters parameters)
         {
@@ -35,6 +37,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
+        /// <inheritdoc/>
         public virtual AsymmetricCipherKeyPair GenerateKeyPair()
         {
             for (;;)

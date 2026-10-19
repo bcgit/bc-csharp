@@ -36,6 +36,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             this.digest = digest;
         }
 
+        /// <inheritdoc/>
         public override void Init(
             byte[] password,
             byte[] salt,
@@ -59,6 +60,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override void Init(ReadOnlySpan<byte> password, ReadOnlySpan<byte> salt, int iterationCount)
         {
             // Ignore the provided iterationCount
@@ -107,6 +109,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             return key;
         }
 
+        /// <inheritdoc/>
         public override ICipherParameters GenerateDerivedParameters(
             string algorithm,
             int keySize)
@@ -118,6 +121,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             return ParameterUtilities.CreateKeyParameter(algorithm, dKey, 0, keySize);
         }
 
+        /// <inheritdoc/>
         public override ICipherParameters GenerateDerivedParameters(
             string algorithm,
             int keySize,

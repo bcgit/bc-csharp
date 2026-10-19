@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
+    /// <summary>Key derivation function in counter mode (NIST SP 800-108).</summary>
     public sealed class KdfCounterBytesGenerator
         : IMacDerivationFunction
     {
@@ -23,6 +24,8 @@ namespace Org.BouncyCastle.Crypto.Generators
         // k is used as buffer for all K(i) values
         private byte[] k;
 
+        /// <summary>Create a new <see cref="KdfCounterBytesGenerator"/>.</summary>
+        /// <param name="prf">The prf.</param>
         public KdfCounterBytesGenerator(IMac prf)
         {
             this.prf = prf;
@@ -30,6 +33,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             this.k = new byte[h];
         }
 
+        /// <inheritdoc/>
         public void Init(IDerivationParameters param)
         {
             if (!(param is KdfCounterParameters kdfParams))
@@ -58,6 +62,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         public IDigest Digest => (prf as HMac)?.GetUnderlyingDigest();
 
+        /// <inheritdoc/>
         public int GenerateBytes(byte[] output, int outOff, int length)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -93,6 +98,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int GenerateBytes(Span<byte> output)
         {
             int length = output.Length;

@@ -34,6 +34,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             this.hashLen = hash.GetDigestSize();
         }
 
+        /// <inheritdoc/>
         public void Init(IDerivationParameters parameters)
         {
             if (!(parameters is HkdfParameters hkdfParameters))
@@ -110,6 +111,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         public IDigest Digest => hMacHash.GetUnderlyingDigest();
 
+        /// <inheritdoc/>
         public int GenerateBytes(byte[] output, int outOff, int length)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -145,6 +147,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int GenerateBytes(Span<byte> output)
         {
             int length = output.Length;

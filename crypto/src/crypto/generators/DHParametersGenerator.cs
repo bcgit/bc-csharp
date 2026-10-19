@@ -6,6 +6,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
+    /// <summary>Generator for Diffie-Hellman domain parameters.</summary>
     public class DHParametersGenerator
     {
         private int m_size;

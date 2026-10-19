@@ -17,11 +17,13 @@ namespace Org.BouncyCastle.Crypto.Generators
     {
         private ElGamalKeyGenerationParameters m_parameters;
 
+        /// <inheritdoc/>
         public void Init(KeyGenerationParameters parameters)
         {
             m_parameters = (ElGamalKeyGenerationParameters)parameters;
         }
 
+        /// <inheritdoc/>
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
             ElGamalParameters egp = m_parameters.Parameters;

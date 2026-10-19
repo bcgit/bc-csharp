@@ -18,6 +18,7 @@ namespace Org.BouncyCastle.Crypto.Generators
     {
         private Gost3410KeyGenerationParameters param;
 
+        /// <inheritdoc/>
         public void Init(
             KeyGenerationParameters parameters)
         {
@@ -40,6 +41,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
+        /// <inheritdoc/>
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
             SecureRandom random = param.Random;

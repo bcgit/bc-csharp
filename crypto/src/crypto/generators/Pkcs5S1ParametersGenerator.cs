@@ -54,6 +54,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             return digestBytes;
         }
 
+        /// <inheritdoc/>
         public override ICipherParameters GenerateDerivedParameters(
             string algorithm,
             int keySize)
@@ -71,6 +72,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             return ParameterUtilities.CreateKeyParameter(algorithm, dKey, 0, keySize);
         }
 
+        /// <inheritdoc/>
         public override ICipherParameters GenerateDerivedParameters(
             string algorithm,
             int keySize,

@@ -19,8 +19,11 @@ namespace Org.BouncyCastle.Crypto.Generators
     public class Pkcs12ParametersGenerator
         : PbeParametersGenerator
     {
+        /// <summary>The <c>KeyMaterial</c> constant, with the value <c>1</c>.</summary>
         public const int KeyMaterial = 1;
+        /// <summary>The <c>IVMaterial</c> constant, with the value <c>2</c>.</summary>
         public const int IVMaterial = 2;
+        /// <summary>The <c>MacMaterial</c> constant, with the value <c>3</c>.</summary>
         public const int MacMaterial = 3;
 
         private readonly IDigest digest;
@@ -140,6 +143,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
+        /// <inheritdoc/>
         public override ICipherParameters GenerateDerivedParameters(string algorithm, int keySize)
         {
             keySize /= 8;
@@ -149,6 +153,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             return ParameterUtilities.CreateKeyParameter(algorithm, dKey, 0, keySize);
         }
 
+        /// <inheritdoc/>
         public override ICipherParameters GenerateDerivedParameters(string algorithm, int keySize, int ivSize)
         {
             keySize /= 8;

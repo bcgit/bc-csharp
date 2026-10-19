@@ -51,6 +51,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         protected override KeyParameter EngineGenerateKeyParameter()
         {
             return KeyParameter.Create(strength, random, (bytes, random) =>

@@ -4,9 +4,11 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
+    /// <summary>Key generator for triple DES (DESede) keys.</summary>
     public class DesEdeKeyGenerator
         : DesKeyGenerator
     {
+        /// <summary>Create a new <see cref="DesEdeKeyGenerator"/>.</summary>
         public DesEdeKeyGenerator()
         {
         }
@@ -49,6 +51,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
+        /// <inheritdoc/>
         protected override byte[] EngineGenerateKey()
         {
             byte[] newKey = new byte[strength];
@@ -64,6 +67,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         protected override KeyParameter EngineGenerateKeyParameter()
         {
             return KeyParameter.Create(strength, random, (bytes, random) =>

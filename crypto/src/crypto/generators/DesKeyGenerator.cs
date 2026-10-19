@@ -4,9 +4,11 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
+    /// <summary>Key generator for single DES keys.</summary>
     public class DesKeyGenerator
         : CipherKeyGenerator
     {
+        /// <summary>Create a new <see cref="DesKeyGenerator"/>.</summary>
         public DesKeyGenerator()
         {
         }
@@ -39,6 +41,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
+        /// <inheritdoc/>
         protected override byte[] EngineGenerateKey()
         {
             byte[] newKey = new byte[DesParameters.DesKeyLength];
@@ -54,6 +57,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         protected override KeyParameter EngineGenerateKeyParameter()
         {
             return KeyParameter.Create(strength, random, (bytes, random) =>

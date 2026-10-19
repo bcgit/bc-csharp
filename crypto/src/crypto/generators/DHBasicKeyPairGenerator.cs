@@ -18,11 +18,13 @@ namespace Org.BouncyCastle.Crypto.Generators
     {
         private DHKeyGenerationParameters m_parameters;
 
+        /// <inheritdoc/>
         public virtual void Init(KeyGenerationParameters parameters)
         {
             m_parameters = (DHKeyGenerationParameters)parameters;
         }
 
+        /// <inheritdoc/>
         public virtual AsymmetricCipherKeyPair GenerateKeyPair()
         {
             DHParameters dhp = m_parameters.Parameters;

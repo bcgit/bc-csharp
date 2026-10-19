@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
+    /// <summary>Key derivation function in double-pipeline iteration mode (NIST SP 800-108).</summary>
     public sealed class KdfDoublePipelineIterationBytesGenerator
         : IMacDerivationFunction
     {
@@ -29,6 +30,8 @@ namespace Org.BouncyCastle.Crypto.Generators
         private byte[] a;
         private byte[] k;
 
+        /// <summary>Create a new <see cref="KdfDoublePipelineIterationBytesGenerator"/>.</summary>
+        /// <param name="prf">The prf.</param>
         public KdfDoublePipelineIterationBytesGenerator(IMac prf)
         {
             this.prf = prf;
@@ -37,6 +40,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             this.k = new byte[h];
         }
 
+        /// <inheritdoc/>
         public void Init(IDerivationParameters parameters)
         {
             if (!(parameters is KdfDoublePipelineIterationParameters dpiParams))
@@ -77,6 +81,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             get { return (prf as HMac)?.GetUnderlyingDigest(); }
         }
 
+        /// <inheritdoc/>
         public int GenerateBytes(byte[] output, int outOff, int length)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
