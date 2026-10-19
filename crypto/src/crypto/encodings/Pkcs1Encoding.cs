@@ -111,10 +111,13 @@ namespace Org.BouncyCastle.Crypto.Encodings
             this.pLen = fallback.Length;
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName => engine.AlgorithmName + "/PKCS1Padding";
 
+        /// <summary>Gets the underlying cipher.</summary>
         public IAsymmetricBlockCipher UnderlyingCipher => engine;
 
+        /// <inheritdoc/>
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
             engine.Init(forEncryption, parameters);
@@ -131,6 +134,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
             this.random = needsRandom ? CryptoServicesRegistrar.GetSecureRandom(providedRandom) : null;
         }
 
+        /// <inheritdoc/>
         public int GetInputBlockSize()
         {
             int blockSize = engine.GetInputBlockSize();
@@ -138,6 +142,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
             return forEncryption ? GetReducedBlockSize(blockSize) : blockSize;
         }
 
+        /// <inheritdoc/>
         public int GetOutputBlockSize()
         {
             int blockSize = engine.GetOutputBlockSize();
@@ -147,6 +152,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
 
         private static int GetReducedBlockSize(int blockSize) => blockSize - HeaderLength;
 
+        /// <inheritdoc/>
         public byte[] ProcessBlock(byte[] input, int inOff, int length)
         {
             return forEncryption

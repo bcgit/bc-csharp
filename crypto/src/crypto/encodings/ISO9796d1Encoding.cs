@@ -25,15 +25,20 @@ namespace Org.BouncyCastle.Crypto.Encodings
         private int padBits = 0;
         private BigInteger modulus;
 
+        /// <summary>Create a new <see cref="ISO9796d1Encoding"/>.</summary>
+        /// <param name="cipher">The cipher.</param>
         public ISO9796d1Encoding(IAsymmetricBlockCipher cipher)
         {
             m_cipher = cipher;
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName => m_cipher.AlgorithmName + "/ISO9796-1Padding";
 
+        /// <summary>Gets the underlying cipher.</summary>
         public IAsymmetricBlockCipher UnderlyingCipher => m_cipher;
 
+        /// <inheritdoc/>
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
             m_cipher.Init(forEncryption, parameters);
@@ -101,6 +106,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
         */
         public int GetPadBits() => padBits;
 
+        /// <inheritdoc/>
         public byte[] ProcessBlock(byte[] input, int inOff, int length)
         {
             return forEncryption
