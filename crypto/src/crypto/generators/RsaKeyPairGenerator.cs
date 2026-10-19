@@ -84,11 +84,11 @@ namespace Org.BouncyCastle.Crypto.Generators
                     }
 
                     /*
-	                 * Require a minimum weight of the NAF representation, since low-weight composites may
-	                 * be weak against a version of the number-field-sieve for factoring.
-	                 *
-	                 * See "The number field sieve for integers of low weight", Oliver Schirokauer.
-	                 */
+                     * Require a minimum weight of the NAF representation, since low-weight composites may
+                     * be weak against a version of the number-field-sieve for factoring.
+                     *
+                     * See "The number field sieve for integers of low weight", Oliver Schirokauer.
+                     */
                     if (WNafUtilities.GetNafWeight(n) < minWeight)
                     {
                         p = ChooseRandomPrime(pBitlength, e);

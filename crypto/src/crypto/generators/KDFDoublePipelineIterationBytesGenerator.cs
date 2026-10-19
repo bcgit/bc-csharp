@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         // please refer to the standard for the meaning of the variable names
         // all field lengths are in bytes, not in bits as specified by the standard
 
-        // fields set by the constructor       
+        // fields set by the constructor
         private readonly IMac prf;
         private readonly int h;
 

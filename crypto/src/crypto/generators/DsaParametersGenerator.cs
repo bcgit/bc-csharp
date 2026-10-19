@@ -15,9 +15,9 @@ namespace Org.BouncyCastle.Crypto.Generators
     public class DsaParametersGenerator
     {
         private IDigest         digest;
-        private int				L, N;
-        private int				certainty;
-        private SecureRandom	random;
+        private int L, N;
+        private int certainty;
+        private SecureRandom random;
         private bool            use186_3;
         private int             usageIndex;
 
@@ -82,8 +82,8 @@ namespace Org.BouncyCastle.Crypto.Generators
         public virtual DsaParameters GenerateParameters()
         {
             return use186_3
-                ?	GenerateParameters_FIPS186_3()
-                :	GenerateParameters_FIPS186_2();
+                ? GenerateParameters_FIPS186_3()
+                : GenerateParameters_FIPS186_2();
         }
 
         protected virtual DsaParameters GenerateParameters_FIPS186_2()
@@ -185,7 +185,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 // 1. Check that the (L, N) pair is in the list of acceptable (L, N pairs) (see Section 4.2). If
 //    the pair is not in the list, then return INVALID.
             // Note: checked at initialisation
-            
+
 // 2. If (seedlen < N), then return INVALID.
             // FIXME This should be configurable (must be >= N)
             int seedlen = N;
@@ -306,7 +306,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             byte[] U = new byte[seed.Length + ggen.Length + 1 + 2];
             Array.Copy(seed, 0, U, 0, seed.Length);
             Array.Copy(ggen, 0, U, seed.Length, ggen.Length);
-            U[U.Length - 3] = (byte)index; 
+            U[U.Length - 3] = (byte)index;
 
             byte[] w = new byte[d.GetDigestSize()];
             for (int count = 1; count < (1 << 16); ++count)
@@ -322,7 +322,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             return null;
         }
-        
+
         private static bool IsValidDsaStrength(
             int strength)
         {

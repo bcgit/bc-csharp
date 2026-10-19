@@ -97,8 +97,8 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
         public override ICipherParameters GenerateDerivedParameters(
-            string	algorithm,
-            int		keySize)
+            string algorithm,
+            int keySize)
         {
             keySize /= 8;
 
@@ -108,9 +108,9 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
         public override ICipherParameters GenerateDerivedParameters(
-            string	algorithm,
-            int		keySize,
-            int		ivSize)
+            string algorithm,
+            int keySize,
+            int ivSize)
         {
             keySize /= 8;
             ivSize /= 8;
