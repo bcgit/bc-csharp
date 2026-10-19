@@ -61,28 +61,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             this.engine = new FrodoEngine(n, d, b, cdf_table, digest, mGen);
         }
 
+        /// <summary>Gets the name.</summary>
         public string Name => name;
 
+        /// <summary>Gets the default key size.</summary>
         public int DefaultKeySize => defaultKeySize;
 
         [Obsolete("Will be removed")]
         public FrodoEngine Engine => engine;
 
+        /// <summary>Gets the n.</summary>
         [Obsolete("Will be removed")]
         public int N => n;
 
+        /// <summary>Gets the d.</summary>
         [Obsolete("Will be removed")]
         public int D => d;
 
+        /// <summary>Gets the b.</summary>
         [Obsolete("Will be removed")]
         public int B => b;
 
+        /// <summary>Gets the cdf table.</summary>
         [Obsolete("Will be removed")]
         public short[] CdfTable => Arrays.Clone(cdf_table);
 
         [Obsolete("Will be removed")]
         public IDigest Digest => new ShakeDigest(digest);
 
+        /// <summary>Gets the m gen.</summary>
         [Obsolete("Will be removed")]
         public FrodoMatrixGenerator MGen => mGen;
     }

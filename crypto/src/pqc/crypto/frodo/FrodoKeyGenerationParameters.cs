@@ -8,6 +8,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
     {
         private readonly FrodoParameters m_parameters;
 
+        /// <summary>Create a new <see cref="FrodoKeyGenerationParameters"/>.</summary>
+        /// <param name="random">The source of randomness.</param>
+        /// <param name="frodoParameters">The frodo parameters.</param>
         public FrodoKeyGenerationParameters(SecureRandom random, FrodoParameters frodoParameters)
             : base(random, 256)
         {

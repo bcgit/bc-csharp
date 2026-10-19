@@ -13,6 +13,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         internal readonly int m_n;
         internal readonly int m_q;
 
+        /// <summary>Create a new <see cref="FrodoMatrixGenerator"/>.</summary>
+        /// <param name="n">The n.</param>
+        /// <param name="q">The q.</param>
         public FrodoMatrixGenerator(int n, int q)
         {
             Debug.Assert((n & 7) == 0);

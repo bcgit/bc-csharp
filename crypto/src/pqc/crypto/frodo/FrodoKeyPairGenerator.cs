@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         private FrodoParameters m_parameters;
         private SecureRandom m_random;
 
+        /// <inheritdoc/>
         public void Init(KeyGenerationParameters param)
         {
             FrodoKeyGenerationParameters frodoParams = (FrodoKeyGenerationParameters)param;
@@ -17,6 +18,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             m_random = frodoParams.Random;
         }
 
+        /// <inheritdoc/>
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
 #pragma warning disable CS0618 // Type or member is obsolete

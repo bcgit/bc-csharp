@@ -54,13 +54,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         private IDigest digest;
         private FrodoMatrixGenerator gen;
 
+        /// <summary>Gets the cipher text size.</summary>
         public int CipherTextSize => len_ct_bytes;
 
+        /// <summary>Gets the session key size.</summary>
         public int SessionKeySize => len_ss_bytes;
 
+        /// <summary>Gets the private key size.</summary>
         public int PrivateKeySize => len_sk_bytes;
+        /// <summary>Gets the public key size.</summary>
         public int PublicKeySize => len_pk_bytes;
 
+        /// <summary>Create a new <see cref="FrodoEngine"/>.</summary>
+        /// <param name="n">The n.</param>
+        /// <param name="D">The d.</param>
+        /// <param name="B">The b.</param>
+        /// <param name="cdf_table">The cdf table.</param>
+        /// <param name="digest">The digest.</param>
+        /// <param name="mGen">The m gen.</param>
         // TODO[api] IDigest should be IXof?
         public FrodoEngine(int n, int D, int B, short[] cdf_table, IDigest digest, FrodoMatrixGenerator mGen)
         {

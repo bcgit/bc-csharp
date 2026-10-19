@@ -9,6 +9,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         private readonly FrodoKeyParameters m_key;
         private readonly FrodoEngine m_engine;
 
+        /// <summary>Create a new <see cref="FrodoKEMExtractor"/>.</summary>
+        /// <param name="privParams">The priv params.</param>
         public FrodoKEMExtractor(FrodoKeyParameters privParams)
         {
             m_key = privParams;
@@ -17,6 +19,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <inheritdoc/>
         public byte[] ExtractSecret(byte[] encapsulation)
         {
             byte[] session_key = new byte[m_engine.SessionKeySize];
@@ -24,6 +27,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             return session_key;
         }
 
+        /// <inheritdoc/>
         public int EncapsulationLength => m_engine.CipherTextSize;
     }
 }

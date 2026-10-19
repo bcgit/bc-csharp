@@ -11,11 +11,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         // the source of randomness
         private readonly SecureRandom m_random;
 
+        /// <summary>Create a new <see cref="FrodoKEMGenerator"/>.</summary>
+        /// <param name="random">The source of randomness.</param>
         public FrodoKEMGenerator(SecureRandom random)
         {
             m_random = random;
         }
 
+        /// <inheritdoc/>
         public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
         {
             FrodoPublicKeyParameters key = (FrodoPublicKeyParameters)recipientKey;
