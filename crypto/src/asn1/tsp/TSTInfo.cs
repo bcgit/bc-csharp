@@ -4,9 +4,13 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Tsp
 {
+    /// <summary>The TSTInfo structure of RFC 3161, the content of a time-stamp token.</summary>
     public class TstInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="TstInfo"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="TstInfo"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="TstInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static TstInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -16,9 +20,17 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new TstInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="TstInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="TstInfo"/>.</returns>
         public static TstInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new TstInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="TstInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="TstInfo"/>.</returns>
         public static TstInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new TstInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -54,6 +66,16 @@ namespace Org.BouncyCastle.Asn1.Tsp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="TstInfo"/>.</summary>
+        /// <param name="tsaPolicyId">The tsa policy id.</param>
+        /// <param name="messageImprint">The message imprint.</param>
+        /// <param name="serialNumber">The serial number.</param>
+        /// <param name="genTime">The gen time.</param>
+        /// <param name="accuracy">The accuracy.</param>
+        /// <param name="ordering">The ordering.</param>
+        /// <param name="nonce">The nonce.</param>
+        /// <param name="tsa">The tsa.</param>
+        /// <param name="extensions">The extensions.</param>
         // TODO[api] 'tsaPolicyId' => 'policy'
         public TstInfo(DerObjectIdentifier tsaPolicyId, MessageImprint messageImprint, DerInteger serialNumber,
             Asn1GeneralizedTime genTime, Accuracy accuracy, DerBoolean ordering, DerInteger nonce, GeneralName tsa,
@@ -71,22 +93,29 @@ namespace Org.BouncyCastle.Asn1.Tsp
             m_extensions = extensions;
         }
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
         public MessageImprint MessageImprint => m_messageImprint;
 
+        /// <summary>Gets the policy.</summary>
         public DerObjectIdentifier Policy => m_policy;
 
+        /// <summary>Gets the serial number.</summary>
         public DerInteger SerialNumber => m_serialNumber;
 
         public Accuracy Accuracy => m_accuracy;
 
+        /// <summary>Gets the gen time.</summary>
         public Asn1GeneralizedTime GenTime => m_genTime;
 
+        /// <summary>Gets the ordering.</summary>
         public DerBoolean Ordering => m_ordering;
 
+        /// <summary>Gets the nonce.</summary>
         public DerInteger Nonce => m_nonce;
 
+        /// <summary>Gets the tsa.</summary>
         public GeneralName Tsa => m_tsa;
 
         public X509Extensions Extensions => m_extensions;

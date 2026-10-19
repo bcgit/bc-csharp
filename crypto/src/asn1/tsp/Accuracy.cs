@@ -2,14 +2,22 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Tsp
 {
+    /// <summary>The Accuracy structure of RFC 3161.</summary>
     public class Accuracy
         : Asn1Encodable
     {
+        /// <summary>The <c>MinMillis</c> constant, with the value <c>1</c>.</summary>
         protected const int MinMillis = 1;
+        /// <summary>The <c>MaxMillis</c> constant, with the value <c>999</c>.</summary>
         protected const int MaxMillis = 999;
+        /// <summary>The <c>MinMicros</c> constant, with the value <c>1</c>.</summary>
         protected const int MinMicros = 1;
+        /// <summary>The <c>MaxMicros</c> constant, with the value <c>999</c>.</summary>
         protected const int MaxMicros = 999;
 
+        /// <summary>Return an <see cref="Accuracy"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="Accuracy"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="Accuracy"/>, or null if <paramref name="obj"/> is null.</returns>
         public static Accuracy GetInstance(object obj)
         {
             if (obj == null)
@@ -19,9 +27,16 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new Accuracy(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="Accuracy"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Accuracy"/>.</returns>
         public static Accuracy GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Accuracy(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="Accuracy"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="Accuracy"/>, or null if <paramref name="element"/> is null.</returns>
         public static Accuracy GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -37,6 +52,10 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return null;
         }
 
+        /// <summary>Return an <see cref="Accuracy"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Accuracy"/>.</returns>
         public static Accuracy GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Accuracy(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -60,6 +79,10 @@ namespace Org.BouncyCastle.Asn1.Tsp
             Validate();
         }
 
+        /// <summary>Create a new <see cref="Accuracy"/>.</summary>
+        /// <param name="seconds">The seconds.</param>
+        /// <param name="millis">The millis.</param>
+        /// <param name="micros">The micros.</param>
         public Accuracy(DerInteger seconds, DerInteger millis, DerInteger micros)
         {
             m_seconds = seconds;
@@ -69,10 +92,13 @@ namespace Org.BouncyCastle.Asn1.Tsp
             Validate();
         }
 
+        /// <summary>Gets the seconds.</summary>
         public DerInteger Seconds => m_seconds;
 
+        /// <summary>Gets the millis.</summary>
         public DerInteger Millis => m_millis;
 
+        /// <summary>Gets the micros.</summary>
         public DerInteger Micros => m_micros;
 
         /**

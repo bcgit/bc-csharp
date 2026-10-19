@@ -5,9 +5,15 @@ using Org.BouncyCastle.Asn1.Cms;
 
 namespace Org.BouncyCastle.Asn1.Tsp
 {
+    /// <summary>The TimeStampResp structure of RFC 3161.</summary>
     public class TimeStampResp
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="TimeStampResp"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="TimeStampResp"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="TimeStampResp"/>, or null if <paramref name="obj"/> is null.</returns>
         public static TimeStampResp GetInstance(object obj)
         {
             if (obj == null)
@@ -17,9 +23,17 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new TimeStampResp(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="TimeStampResp"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="TimeStampResp"/>.</returns>
         public static TimeStampResp GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new TimeStampResp(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="TimeStampResp"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="TimeStampResp"/>.</returns>
         public static TimeStampResp GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new TimeStampResp(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -39,6 +53,9 @@ namespace Org.BouncyCastle.Asn1.Tsp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="TimeStampResp"/>.</summary>
+        /// <param name="pkiStatusInfo">The pki status info.</param>
+        /// <param name="timeStampToken">The time stamp token.</param>
         public TimeStampResp(PkiStatusInfo pkiStatusInfo, ContentInfo timeStampToken)
         {
             m_pkiStatusInfo = pkiStatusInfo ?? throw new ArgumentNullException(nameof(pkiStatusInfo));
@@ -47,6 +64,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 
         public PkiStatusInfo Status => m_pkiStatusInfo;
 
+        /// <summary>Gets the time stamp token.</summary>
         public ContentInfo TimeStampToken => m_timeStampToken;
 
         /**

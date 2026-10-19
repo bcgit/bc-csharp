@@ -4,6 +4,7 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Tsp
 {
+    /// <summary>The TimeStampReq structure of RFC 3161.</summary>
     public class TimeStampReq
         : Asn1Encodable
     {
@@ -14,6 +15,11 @@ namespace Org.BouncyCastle.Asn1.Tsp
         private readonly DerBoolean m_certReq;
         private readonly X509Extensions m_extensions;
 
+        /// <summary>Return an <see cref="TimeStampReq"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="TimeStampReq"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="TimeStampReq"/>, or null if <paramref name="obj"/> is null.</returns>
         public static TimeStampReq GetInstance(object obj)
         {
             if (obj == null)
@@ -23,9 +29,17 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new TimeStampReq(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="TimeStampReq"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="TimeStampReq"/>.</returns>
         public static TimeStampReq GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new TimeStampReq(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="TimeStampReq"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="TimeStampReq"/>.</returns>
         public static TimeStampReq GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new TimeStampReq(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -46,6 +60,12 @@ namespace Org.BouncyCastle.Asn1.Tsp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="TimeStampReq"/>.</summary>
+        /// <param name="messageImprint">The message imprint.</param>
+        /// <param name="tsaPolicy">The tsa policy.</param>
+        /// <param name="nonce">The nonce.</param>
+        /// <param name="certReq">The cert req.</param>
+        /// <param name="extensions">The extensions.</param>
         // TODO[api] 'tsaPolicy' => 'reqPolicy'
         public TimeStampReq(MessageImprint messageImprint, DerObjectIdentifier tsaPolicy, DerInteger nonce,
             DerBoolean certReq, X509Extensions extensions)
@@ -60,14 +80,18 @@ namespace Org.BouncyCastle.Asn1.Tsp
             m_extensions = extensions;
         }
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
         public MessageImprint MessageImprint => m_messageImprint;
 
+        /// <summary>Gets the req policy.</summary>
         public DerObjectIdentifier ReqPolicy => m_reqPolicy;
 
+        /// <summary>Gets the nonce.</summary>
         public DerInteger Nonce => m_nonce;
 
+        /// <summary>Gets the cert req.</summary>
         public DerBoolean CertReq => m_certReq;
 
         public X509Extensions Extensions => m_extensions;

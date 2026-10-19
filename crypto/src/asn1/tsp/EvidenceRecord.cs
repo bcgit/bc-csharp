@@ -45,9 +45,17 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new EvidenceRecord(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="EvidenceRecord"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EvidenceRecord"/>.</returns>
         public static EvidenceRecord GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new EvidenceRecord(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="EvidenceRecord"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EvidenceRecord"/>.</returns>
         public static EvidenceRecord GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new EvidenceRecord(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -119,6 +127,11 @@ namespace Org.BouncyCastle.Asn1.Tsp
             m_archiveTimeStampSequence = new ArchiveTimeStampSequence(new ArchiveTimeStampChain(archiveTimeStamp));
         }
 
+        /// <summary>Create a new <see cref="EvidenceRecord"/>.</summary>
+        /// <param name="digestAlgorithms">The digest algorithms.</param>
+        /// <param name="cryptoInfos">The crypto infos.</param>
+        /// <param name="encryptionInfo">The encryption info.</param>
+        /// <param name="archiveTimeStampSequence">The archive time stamp sequence.</param>
         public EvidenceRecord(AlgorithmIdentifier[] digestAlgorithms, CryptoInfos cryptoInfos,
             EncryptionInfo encryptionInfo, ArchiveTimeStampSequence archiveTimeStampSequence)
         {
@@ -148,8 +161,10 @@ namespace Org.BouncyCastle.Asn1.Tsp
                 throw new ArgumentException("incompatible version");
         }
 
+        /// <summary>Gets the version.</summary>
         public virtual DerInteger Version => m_version;
 
+        /// <summary>Return the digest algorithms.</summary>
         public virtual AlgorithmIdentifier[] GetDigestAlgorithms() =>
             m_digestAlgorithms.MapElements(AlgorithmIdentifier.GetInstance);
 
@@ -190,6 +205,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
             }
         }
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector vector = new Asn1EncodableVector(5);

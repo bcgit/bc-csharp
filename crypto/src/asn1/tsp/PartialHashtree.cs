@@ -31,9 +31,17 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new PartialHashtree(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="PartialHashtree"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PartialHashtree"/>.</returns>
         public static PartialHashtree GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PartialHashtree(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="PartialHashtree"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PartialHashtree"/>.</returns>
         public static PartialHashtree GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PartialHashtree(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -52,13 +60,17 @@ namespace Org.BouncyCastle.Asn1.Tsp
             m_values = values;
         }
 
+        /// <summary>Create a new <see cref="PartialHashtree"/>.</summary>
+        /// <param name="values">The values.</param>
         public PartialHashtree(params byte[][] values)
         {
             m_values = DerSequence.Map(values, DerOctetString.FromContents);
         }
 
+        /// <summary>Gets the value count.</summary>
         public virtual int ValueCount => m_values.Count;
 
+        /// <summary>Return the values.</summary>
         public virtual byte[][] GetValues() => m_values.MapElements(
             element => Arrays.Clone(Asn1OctetString.GetInstance(element).GetOctets()));
 
@@ -75,6 +87,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return false;
         }
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => m_values;
     }
 }
