@@ -39,6 +39,7 @@ namespace Org.BouncyCastle.Pkix
         /// <summary>Return a copy of this result.</summary>
         public object Clone() => new PkixCertPathValidatorResult(TrustAnchor, PolicyTree, SubjectPublicKey);
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();

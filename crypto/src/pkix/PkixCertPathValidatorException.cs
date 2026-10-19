@@ -77,6 +77,9 @@ namespace Org.BouncyCastle.Pkix
             m_reason = reason;
         }
 
+        /// <summary>Create a new <see cref="PkixCertPathValidatorException"/>.</summary>
+        /// <param name="info">The info.</param>
+        /// <param name="context">The context.</param>
 #if NET8_0_OR_GREATER
         [Obsolete(Exceptions.SYSLIB0051_Message, DiagnosticId="SYSLIB0051", UrlFormat="https://aka.ms/dotnet-warnings/{0}")]
 #endif
@@ -96,6 +99,7 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
+        /// <inheritdoc/>
 #if NET8_0_OR_GREATER
         [Obsolete(Exceptions.SYSLIB0051_Message, DiagnosticId="SYSLIB0051", UrlFormat="https://aka.ms/dotnet-warnings/{0}")]
 #endif

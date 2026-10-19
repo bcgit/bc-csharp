@@ -465,6 +465,8 @@ namespace Org.BouncyCastle.Pkix
             return new List<IStore<X509Crl>>(m_storesCrl);
         }
 
+        /// <summary>Set the attr stores cert.</summary>
+        /// <param name="storesAttrCert">The stores attr cert.</param>
         [Obsolete("Use 'SetStoresAttrCert' instead")]
         public virtual void SetAttrStoresCert(IList<IStore<X509V2AttributeCertificate>> storesAttrCert)
         {

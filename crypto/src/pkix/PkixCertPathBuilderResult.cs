@@ -29,6 +29,7 @@ namespace Org.BouncyCastle.Pkix
         /// <summary>Gets the validated certification path.</summary>
         public PkixCertPath CertPath => m_certPath;
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
