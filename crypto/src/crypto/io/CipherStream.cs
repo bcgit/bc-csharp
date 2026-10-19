@@ -299,8 +299,8 @@ namespace Org.BouncyCastle.Crypto.IO
         {
             if (disposing)
             {
-			    if (m_writeCipher != null)
-			    {
+                if (m_writeCipher != null)
+                {
                     int outputSize = m_writeCipher.GetOutputSize(0);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
