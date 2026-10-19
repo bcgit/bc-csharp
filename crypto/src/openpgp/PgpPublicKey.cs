@@ -297,6 +297,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+        /// <summary>Create a new <see cref="PgpPublicKey"/>.</summary>
+        /// <param name="publicPk">The public pk.</param>
         public PgpPublicKey(PublicKeyPacket publicPk)
             : this(publicPk, new List<IUserDataPacket>(), new List<IList<PgpSignature>>())
         {
@@ -1000,6 +1002,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             get { return publicPk; }
         }
 
+        /// <summary>Return the encoded.</summary>
         public byte[] GetEncoded()
         {
             MemoryStream bOut = new MemoryStream();

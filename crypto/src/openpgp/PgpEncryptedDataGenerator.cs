@@ -289,12 +289,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         private readonly SymmetricKeyAlgorithmTag defAlgorithm;
         private readonly SecureRandom rand;
 
+        /// <summary>Create a new <see cref="PgpEncryptedDataGenerator"/>.</summary>
+        /// <param name="encAlgorithm">The enc algorithm.</param>
         public PgpEncryptedDataGenerator(SymmetricKeyAlgorithmTag encAlgorithm)
         {
             this.defAlgorithm = encAlgorithm;
             this.rand = CryptoServicesRegistrar.GetSecureRandom();
         }
 
+        /// <summary>Create a new <see cref="PgpEncryptedDataGenerator"/>.</summary>
+        /// <param name="encAlgorithm">The enc algorithm.</param>
+        /// <param name="withIntegrityPacket">true if with integrity packet, false otherwise.</param>
         public PgpEncryptedDataGenerator(SymmetricKeyAlgorithmTag encAlgorithm, bool withIntegrityPacket)
         {
             this.defAlgorithm = encAlgorithm;
@@ -609,6 +614,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// </summary>
         public Stream Open(Stream outStr, byte[] buffer) => Open(outStr, length: 0, buffer);
 
+        /// <inheritdoc/>
         [Obsolete("Dispose any opened Stream directly")]
         public void Close()
         {

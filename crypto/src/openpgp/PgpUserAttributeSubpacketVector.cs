@@ -30,6 +30,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return null;
         }
 
+        /// <summary>Return the image attribute.</summary>
         public ImageAttrib GetImageAttribute()
         {
             UserAttributeSubpacket p = GetSubpacket(UserAttributeSubpacketTag.ImageAttribute);
@@ -39,6 +40,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         internal UserAttributeSubpacket[] ToSubpacketArray() => m_packets;
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             if (obj == this)
@@ -59,6 +61,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return true;
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode() => Arrays.GetHashCode(m_packets);
     }
 }

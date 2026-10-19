@@ -153,12 +153,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// </remarks>
         public long KeyId => sigPack.KeyId;
 
+        /// <summary>Gets the signature type.</summary>
         public int SignatureType => sigPack.SignatureType;
 
         public HashAlgorithmTag HashAlgorithm => sigPack.HashAlgorithm;
 
         public PublicKeyAlgorithmTag KeyAlgorithm => sigPack.KeyAlgorithm;
 
+        /// <summary>Return the encoded.</summary>
         public byte[] GetEncoded()
         {
             var bOut = new MemoryStream();

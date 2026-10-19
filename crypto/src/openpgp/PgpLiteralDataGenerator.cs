@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         private BcpgOutputStream pkOut;
 
+        /// <summary>Create a new <see cref="PgpLiteralDataGenerator"/>.</summary>
         public PgpLiteralDataGenerator()
         {
         }
@@ -138,6 +139,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public Stream Open(Stream outStr, char format, FileInfo file) =>
             Open(outStr, format, file.Name, file.Length, file.LastWriteTime);
 
+        /// <inheritdoc/>
         [Obsolete("Dispose any opened Stream directly")]
         public void Close()
         {

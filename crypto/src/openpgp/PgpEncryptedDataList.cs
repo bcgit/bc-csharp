@@ -13,6 +13,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         private readonly List<PgpEncryptedData> m_list = new List<PgpEncryptedData>();
         private readonly InputStreamPacket m_data;
 
+        /// <summary>Create a new <see cref="PgpEncryptedDataList"/>.</summary>
+        /// <param name="bcpgInput">The bcpg input.</param>
         public PgpEncryptedDataList(BcpgInputStream bcpgInput)
         {
             var packets = new List<Packet>();
@@ -47,10 +49,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         public PgpEncryptedData this[int index] => m_list[index];
 
+        /// <summary>Gets the count.</summary>
         public int Count => m_list.Count;
 
+        /// <summary>Gets a value indicating whether this is empty.</summary>
         public bool IsEmpty => m_list.Count == 0;
 
+        /// <summary>Return the encrypted data objects.</summary>
         public IEnumerable<PgpEncryptedData> GetEncryptedDataObjects()
         {
             return CollectionUtilities.Proxy(m_list);

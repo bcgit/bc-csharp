@@ -22,8 +22,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         public SymmetricKeyAlgorithmTag Algorithm => m_keyData.EncAlgorithm;
 
+        /// <summary>Gets the version.</summary>
         public int Version => m_keyData.Version;
 
+        /// <summary>Gets the version byte.</summary>
         public byte VersionByte => m_keyData.VersionByte;
 
         /// <summary>Return the decrypted input stream, using the passed in passphrase.</summary>

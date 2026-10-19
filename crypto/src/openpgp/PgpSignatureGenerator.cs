@@ -170,6 +170,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 #endif
 
+        /// <summary>Set the hashed subpackets.</summary>
+        /// <param name="hashedPackets">The hashed packets.</param>
         public void SetHashedSubpackets(
             PgpSignatureSubpacketVector hashedPackets)
         {
@@ -178,6 +180,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 : hashedPackets.ToSubpacketArray();
         }
 
+        /// <summary>Set the unhashed subpackets.</summary>
+        /// <param name="unhashedPackets">The unhashed packets.</param>
         public void SetUnhashedSubpackets(
             PgpSignatureSubpacketVector unhashedPackets)
         {

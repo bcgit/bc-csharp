@@ -92,6 +92,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return new PgpSignatureList(l);
         }
 
+        /// <summary>Return the notation data occurrences.</summary>
         public NotationData[] GetNotationDataOccurrences()
         {
             SignatureSubpacket[] notations = GetSubpackets(SignatureSubpacketTag.NotationData);
@@ -120,6 +121,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return notationsWithName.ToArray();
         }
 
+        /// <summary>Return the issuer key id.</summary>
         public long GetIssuerKeyId()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.IssuerKeyId);
@@ -129,6 +131,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         public bool HasSignatureCreationTime() => GetSubpacket(SignatureSubpacketTag.CreationTime) != null;
 
+        /// <summary>Return the signature creation time.</summary>
         public DateTime GetSignatureCreationTime()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.CreationTime)
@@ -165,6 +168,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? 0 : ((KeyExpirationTime)p).Time;
         }
 
+        /// <summary>Return the preferred hash algorithms.</summary>
         public int[] GetPreferredHashAlgorithms()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.PreferredHashAlgorithms);
@@ -172,6 +176,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? null : ((PreferredAlgorithms)p).GetPreferences();
         }
 
+        /// <summary>Return the preferred symmetric algorithms.</summary>
         public int[] GetPreferredSymmetricAlgorithms()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.PreferredSymmetricAlgorithms);
@@ -179,6 +184,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? null : ((PreferredAlgorithms)p).GetPreferences();
         }
 
+        /// <summary>Return the preferred compression algorithms.</summary>
         public int[] GetPreferredCompressionAlgorithms()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.PreferredCompressionAlgorithms);
@@ -186,6 +192,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? null : ((PreferredAlgorithms)p).GetPreferences();
         }
 
+        /// <summary>Return the preferred aead algorithms.</summary>
         public int[] GetPreferredAeadAlgorithms()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.PreferredAeadAlgorithms);
@@ -193,6 +200,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? null : ((PreferredAlgorithms)p).GetPreferences();
         }
 
+        /// <summary>Return the key flags.</summary>
         public int GetKeyFlags()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.KeyFlags);
@@ -200,6 +208,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? 0 : ((KeyFlags)p).Flags;
         }
 
+        /// <summary>Return the signer user id.</summary>
         public string GetSignerUserId()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.SignerUserId);
@@ -214,6 +223,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return primaryId != null && primaryId.IsPrimaryUserId();
         }
 
+        /// <summary>Return the critical tags.</summary>
         public SignatureSubpacketTag[] GetCriticalTags()
         {
             int count = 0;
@@ -240,6 +250,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return list;
         }
 
+        /// <summary>Return the signature target.</summary>
         public SignatureTarget GetSignatureTarget()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.SignatureTarget);
@@ -247,6 +258,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? null : new SignatureTarget(p.IsCritical(), p.IsLongLength(), p.Data);
         }
 
+        /// <summary>Return the features.</summary>
         public Features GetFeatures()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.Features);
@@ -254,6 +266,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? null : new Features(p.IsCritical(), p.IsLongLength(), p.Data);
         }
 
+        /// <summary>Return the issuer fingerprint.</summary>
         public IssuerFingerprint GetIssuerFingerprint()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.IssuerFingerprint);
@@ -261,6 +274,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? null : new IssuerFingerprint(p.IsCritical(), p.IsLongLength(), p.Data);
         }
 
+        /// <summary>Return the intended recipient fingerprint.</summary>
         public IntendedRecipientFingerprint GetIntendedRecipientFingerprint()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.IntendedRecipientFingerprint);
@@ -268,6 +282,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? null : new IntendedRecipientFingerprint(p.IsCritical(), p.IsLongLength(), p.Data);
         }
 
+        /// <summary>Return the intended recipient fingerprints.</summary>
         public IntendedRecipientFingerprint[] GetIntendedRecipientFingerprints()
         {
             SignatureSubpacket[] subpackets = GetSubpackets(SignatureSubpacketTag.IntendedRecipientFingerprint);
@@ -280,6 +295,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return recipients;
         }
 
+        /// <summary>Return the exportable.</summary>
         public Exportable GetExportable()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.Exportable);
@@ -293,6 +309,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return exportable == null || exportable.IsExportable();
         }
 
+        /// <summary>Return the policy url.</summary>
         public PolicyUrl GetPolicyUrl()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.PolicyUrl);
@@ -300,6 +317,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? null : new PolicyUrl(p.IsCritical(), p.IsLongLength(), p.Data);
         }
 
+        /// <summary>Return the policy urls.</summary>
         public PolicyUrl[] GetPolicyUrls()
         {
             SignatureSubpacket[] subpackets = GetSubpackets(SignatureSubpacketTag.PolicyUrl);
@@ -312,6 +330,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return policyUrls;
         }
 
+        /// <summary>Return the regular expression.</summary>
         public RegularExpression GetRegularExpression()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.RegExp);
@@ -319,6 +338,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? null : new RegularExpression(p.IsCritical(), p.IsLongLength(), p.Data);
         }
 
+        /// <summary>Return the regular expressions.</summary>
         public RegularExpression[] GetRegularExpressions()
         {
             SignatureSubpacket[] subpackets = GetSubpackets(SignatureSubpacketTag.RegExp);
@@ -331,6 +351,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return regexes;
         }
 
+        /// <summary>Return the revocable.</summary>
         public Revocable GetRevocable()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.Revocable);
@@ -344,6 +365,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return revocable == null || revocable.IsRevocable();
         }
 
+        /// <summary>Return the revocation keys.</summary>
         public RevocationKey[] GetRevocationKeys()
         {
             SignatureSubpacket[] subpackets = GetSubpackets(SignatureSubpacketTag.RevocationKey);
@@ -356,6 +378,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return revocationKeys;
         }
 
+        /// <summary>Return the revocation reason.</summary>
         public RevocationReason GetRevocationReason()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.RevocationReason);
@@ -363,6 +386,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? null : new RevocationReason(p.IsCritical(), p.IsLongLength(), p.Data);
         }
 
+        /// <summary>Return the trust.</summary>
         public TrustSignature GetTrust()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.TrustSig);

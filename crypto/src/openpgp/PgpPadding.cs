@@ -9,11 +9,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     public sealed class PgpPadding
         : PgpObject
     {
+        /// <summary>The <c>MaxPaddingLength</c> constant, with the value <c>255</c>.</summary>
         public const int MaxPaddingLength = 255;
+        /// <summary>The <c>MinPaddingLength</c> constant, with the value <c>16</c>.</summary>
         public const int MinPaddingLength = 16;
 
         private readonly PaddingPacket m_packet;
 
+        /// <summary>Create a new <see cref="PgpPadding"/>.</summary>
+        /// <param name="bcpgInput">The bcpg input.</param>
         public PgpPadding(BcpgInputStream bcpgInput)
         {
             if (bcpgInput == null)
@@ -24,21 +28,29 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             m_packet = packet as PaddingPacket ?? throw new IOException("unexpected packet in stream: " + packet);
         }
 
+        /// <summary>Create a new <see cref="PgpPadding"/>.</summary>
         public PgpPadding()
             : this((SecureRandom)null)
         {
         }
 
+        /// <summary>Create a new <see cref="PgpPadding"/>.</summary>
+        /// <param name="random">The source of randomness.</param>
         public PgpPadding(SecureRandom random)
             : this(random.Next(MinPaddingLength, MaxPaddingLength), random)
         {
         }
 
+        /// <summary>Create a new <see cref="PgpPadding"/>.</summary>
+        /// <param name="paddingLength">The padding length.</param>
         public PgpPadding(int paddingLength)
             : this(paddingLength, CryptoServicesRegistrar.GetSecureRandom())
         {
         }
 
+        /// <summary>Create a new <see cref="PgpPadding"/>.</summary>
+        /// <param name="paddingLength">The padding length.</param>
+        /// <param name="random">The source of randomness.</param>
         public PgpPadding(int paddingLength, SecureRandom random)
         {
             // TODO Range checks on paddingLength?
@@ -50,8 +62,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         public void Encode(Stream outStr) => Encode(BcpgOutputStream.Wrap(outStr));
 
+        /// <summary>Return the padding.</summary>
         public byte[] GetPadding() => m_packet.GetPadding();
 
+        /// <summary>Return the encoded.</summary>
         public byte[] GetEncoded()
         {
             var bOut = new MemoryStream();

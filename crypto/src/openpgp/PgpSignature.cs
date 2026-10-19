@@ -23,22 +23,37 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             throw new IOException("unexpected packet in stream: " + packet);
         }
 
+        /// <summary>The <c>BinaryDocument</c> constant, with the value <c>0x00</c>.</summary>
         public const int BinaryDocument = 0x00;
+        /// <summary>The <c>CanonicalTextDocument</c> constant, with the value <c>0x01</c>.</summary>
         public const int CanonicalTextDocument = 0x01;
+        /// <summary>The <c>StandAlone</c> constant, with the value <c>0x02</c>.</summary>
         public const int StandAlone = 0x02;
 
+        /// <summary>The <c>DefaultCertification</c> constant, with the value <c>0x10</c>.</summary>
         public const int DefaultCertification = 0x10;
+        /// <summary>The <c>NoCertification</c> constant, with the value <c>0x11</c>.</summary>
         public const int NoCertification = 0x11;
+        /// <summary>The <c>CasualCertification</c> constant, with the value <c>0x12</c>.</summary>
         public const int CasualCertification = 0x12;
+        /// <summary>The <c>PositiveCertification</c> constant, with the value <c>0x13</c>.</summary>
         public const int PositiveCertification = 0x13;
 
+        /// <summary>The <c>SubkeyBinding</c> constant, with the value <c>0x18</c>.</summary>
         public const int SubkeyBinding = 0x18;
+        /// <summary>The <c>PrimaryKeyBinding</c> constant, with the value <c>0x19</c>.</summary>
         public const int PrimaryKeyBinding = 0x19;
+        /// <summary>The <c>DirectKey</c> constant, with the value <c>0x1f</c>.</summary>
         public const int DirectKey = 0x1f;
+        /// <summary>The <c>KeyRevocation</c> constant, with the value <c>0x20</c>.</summary>
         public const int KeyRevocation = 0x20;
+        /// <summary>The <c>SubkeyRevocation</c> constant, with the value <c>0x28</c>.</summary>
         public const int SubkeyRevocation = 0x28;
+        /// <summary>The <c>CertificationRevocation</c> constant, with the value <c>0x30</c>.</summary>
         public const int CertificationRevocation = 0x30;
+        /// <summary>The <c>Timestamp</c> constant, with the value <c>0x40</c>.</summary>
         public const int Timestamp = 0x40;
+        /// <summary>The <c>ThirdPartyConfirmation</c> constant, with the value <c>0x50</c>.</summary>
         public const int ThirdPartyConfirmation = 0x50;
 
         private readonly SignaturePacket sigPck;
@@ -310,6 +325,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return Verify();
         }
 
+        /// <summary>Gets the signature type.</summary>
         public int SignatureType
         {
             get { return sigPck.SignatureType; }
@@ -327,6 +343,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             get { return DateTimeUtilities.UnixMsToDateTime(sigPck.CreationTime); }
         }
 
+        /// <summary>Return the signature trailer.</summary>
         public byte[] GetSignatureTrailer()
         {
             return sigPck.GetSignatureTrailer();
@@ -344,11 +361,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+        /// <summary>Return the hashed sub packets.</summary>
         public PgpSignatureSubpacketVector GetHashedSubPackets()
         {
             return CreateSubpacketVector(sigPck.GetHashedSubPackets());
         }
 
+        /// <summary>Return the unhashed sub packets.</summary>
         public PgpSignatureSubpacketVector GetUnhashedSubPackets()
         {
             return CreateSubpacketVector(sigPck.GetUnhashedSubPackets());
@@ -362,6 +381,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>Return the salt of a v6 signature.</summary>
         internal byte[] GetSalt() => sigPck.GetSalt();
 
+        /// <summary>Return the signature.</summary>
         public byte[] GetSignature()
         {
             MPInteger[] sigValues = sigPck.GetSignature();
@@ -424,6 +444,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return signature;
         }
 
+        /// <summary>Return the encoded.</summary>
         // TODO Handle the encoding stuff by subclassing BcpgObject?
         public byte[] GetEncoded()
         {

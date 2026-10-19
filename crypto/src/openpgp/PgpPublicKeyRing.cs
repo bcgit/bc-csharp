@@ -18,6 +18,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     {
         private readonly IList<PgpPublicKey> keys;
 
+        /// <summary>Create a new <see cref="PgpPublicKeyRing"/>.</summary>
+        /// <param name="encoding">The encoding.</param>
         public PgpPublicKeyRing(
             byte[] encoding)
             : this(new MemoryStream(encoding, false))
@@ -29,6 +31,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             this.keys = pubKeys;
         }
 
+        /// <summary>Create a new <see cref="PgpPublicKeyRing"/>.</summary>
+        /// <param name="inputStream">The input stream.</param>
         public PgpPublicKeyRing(
             Stream inputStream)
         {
@@ -115,6 +119,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return pubKey.GetValidSeconds(GetPublicKey());
         }
 
+        /// <summary>Return the encoded.</summary>
         public virtual byte[] GetEncoded()
         {
             MemoryStream bOut = new MemoryStream();

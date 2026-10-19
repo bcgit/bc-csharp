@@ -19,6 +19,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         private readonly PgpPublicKey pub;
         private readonly PgpPrivateKey priv;
 
+        /// <summary>Create a new <see cref="PgpKeyPair"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="keyPair">The key pair.</param>
+        /// <param name="time">The time.</param>
         public PgpKeyPair(
             PublicKeyAlgorithmTag algorithm,
             AsymmetricCipherKeyPair keyPair,
@@ -27,6 +31,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
         }
 
+        /// <summary>Create a new <see cref="PgpKeyPair"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="pubKey">The public key.</param>
+        /// <param name="privKey">The private key.</param>
+        /// <param name="time">The time.</param>
         public PgpKeyPair(
             PublicKeyAlgorithmTag algorithm,
             AsymmetricKeyParameter pubKey,

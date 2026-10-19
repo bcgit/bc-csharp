@@ -23,6 +23,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             m_order = order;
         }
 
+        /// <summary>Create a new <see cref="PgpSecretKeyRingBundle"/>.</summary>
+        /// <param name="encoding">The encoding.</param>
         public PgpSecretKeyRingBundle(byte[] encoding)
             : this(new MemoryStream(encoding, false))
         {
@@ -37,6 +39,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
         }
 
+        /// <summary>Create a new <see cref="PgpSecretKeyRingBundle"/>.</summary>
+        /// <param name="e">The exception.</param>
         public PgpSecretKeyRingBundle(IEnumerable<PgpObject> e)
         {
             m_secretRings = new Dictionary<long, PgpSecretKeyRing>();
@@ -153,6 +157,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return GetSecretKey(keyID) != null;
         }
 
+        /// <summary>Return the encoded.</summary>
         public byte[] GetEncoded()
         {
             MemoryStream bOut = new MemoryStream();

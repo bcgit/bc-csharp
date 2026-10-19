@@ -8,12 +8,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     {
         private readonly PgpSignature[] sigs;
 
+        /// <summary>Create a new <see cref="PgpSignatureList"/>.</summary>
+        /// <param name="sigs">The sigs.</param>
         public PgpSignatureList(
             PgpSignature[] sigs)
         {
             this.sigs = (PgpSignature[]) sigs.Clone();
         }
 
+        /// <summary>Create a new <see cref="PgpSignatureList"/>.</summary>
+        /// <param name="sig">The signature.</param>
         public PgpSignatureList(
             PgpSignature sig)
         {
@@ -25,11 +29,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             get { return sigs[index]; }
         }
 
+        /// <summary>Gets the count.</summary>
         public int Count
         {
             get { return sigs.Length; }
         }
 
+        /// <summary>Gets a value indicating whether this is empty.</summary>
         public bool IsEmpty
         {
             get { return (sigs.Length == 0); }
