@@ -35,6 +35,9 @@ namespace Org.BouncyCastle.Asn1
         private const int MaxContentsLength = 4096;
         private const int MaxIdentifierLength = MaxContentsLength * 4 - 1;
 
+        /// <summary>Create a relative object identifier from the contents octets of its encoding.</summary>
+        /// <param name="contents">The contents.</param>
+        /// <returns>The relative object identifier.</returns>
         public static Asn1RelativeOid FromContents(byte[] contents) =>
             CreatePrimitive(contents ?? throw new ArgumentNullException(nameof(contents)), clone: true);
 
@@ -103,6 +106,10 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1RelativeOid)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Try to create a relative object identifier from its string form.</summary>
+        /// <param name="identifier">The dotted-decimal string.</param>
+        /// <param name="oid">On success, the relative object identifier.</param>
+        /// <returns>true if the string was valid, false otherwise.</returns>
         public static bool TryFromID(string identifier, out Asn1RelativeOid oid)
         {
             if (identifier == null)
@@ -147,6 +154,9 @@ namespace Org.BouncyCastle.Asn1
             m_identifier = identifier;
         }
 
+        /// <summary>Create a relative object identifier by appending a branch to this one.</summary>
+        /// <param name="branchID">The dotted-decimal branch to append.</param>
+        /// <returns>The new relative object identifier.</returns>
         public virtual Asn1RelativeOid Branch(string branchID)
         {
             CheckIdentifier(branchID);

@@ -8,17 +8,35 @@ namespace Org.BouncyCastle.Asn1
     public class DerOctetString
         : Asn1OctetString
     {
+        /// <summary>The empty DER octet string.</summary>
         public static readonly DerOctetString Empty = new DerOctetString(EmptyOctets);
 
+        /// <summary>Create a DER octet string from its contents, copying them.</summary>
+        /// <param name="contents">The contents.</param>
+        /// <returns>The new octet string.</returns>
         public static DerOctetString FromContents(byte[] contents) =>
             InternalFromContents(contents ?? throw new ArgumentNullException(nameof(contents)));
 
+        /// <summary>
+        /// Create a DER octet string from its contents, copying them, or return null if the contents are null.
+        /// </summary>
+        /// <param name="contents">The contents, or null.</param>
+        /// <returns>The new octet string, or null.</returns>
         public static DerOctetString FromContentsOptional(byte[] contents) =>
             contents == null ? null : InternalFromContents(contents);
 
+        /// <summary>Create a DER octet string that uses the given contents array without copying it.</summary>
+        /// <param name="contents">The contents, which must not be modified afterwards.</param>
+        /// <returns>The new octet string.</returns>
         public static DerOctetString WithContents(byte[] contents) =>
             InternalWithContents(contents ?? throw new ArgumentNullException(nameof(contents)));
 
+        /// <summary>
+        /// Create a DER octet string that uses the given contents array without copying it, or return null if the
+        /// contents are null.
+        /// </summary>
+        /// <param name="contents">The contents, or null; they must not be modified afterwards.</param>
+        /// <returns>The new octet string, or null.</returns>
         public static DerOctetString WithContentsOptional(byte[] contents) =>
             contents == null ? null : InternalWithContents(contents);
 

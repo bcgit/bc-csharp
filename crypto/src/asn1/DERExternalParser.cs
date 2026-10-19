@@ -14,6 +14,8 @@ namespace Org.BouncyCastle.Asn1
             m_parser = parser;
         }
 
+        /// <summary>Read the external object.</summary>
+        /// <returns>The object read.</returns>
         public IAsn1Convertible ReadObject() => m_parser.ReadObject();
 
         /// <inheritdoc/>

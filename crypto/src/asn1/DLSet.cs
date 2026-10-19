@@ -9,25 +9,43 @@ namespace Org.BouncyCastle.Asn1
     public class DLSet
         : DerSet
     {
+        /// <summary>The empty <see cref="DLSet"/>.</summary>
         public static new readonly DLSet Empty = new DLSet();
 
+        /// <summary>Create a <see cref="DLSet"/> from a collection of elements.</summary>
+        /// <param name="elements">The elements.</param>
+        /// <returns>The new <see cref="DLSet"/>.</returns>
         public static new DLSet FromCollection(IReadOnlyCollection<Asn1Encodable> elements)
         {
             return elements.Count < 1 ? Empty : new DLSet(elements);
         }
 
+        /// <summary>Create a <see cref="DLSet"/> holding a single element.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The new <see cref="DLSet"/>.</returns>
         public static new DLSet FromElement(Asn1Encodable element) => new DLSet(element);
 
+        /// <summary>Create a <see cref="DLSet"/> from the elements of a vector.</summary>
+        /// <param name="elementVector">The vector of elements.</param>
+        /// <returns>The new <see cref="DLSet"/>.</returns>
         public static new DLSet FromVector(Asn1EncodableVector elementVector)
         {
             return elementVector.Count < 1 ? Empty : new DLSet(elementVector);
         }
 
+        /// <summary>Create a <see cref="DLSet"/> by applying a function to each element of the source.</summary>
+        /// <param name="ts">The source array.</param>
+        /// <param name="func">The function to apply to each element.</param>
+        /// <returns>The new <see cref="DLSet"/>.</returns>
         public static new DLSet Map<T>(T[] ts, Func<T, Asn1Encodable> func)
         {
             return ts.Length < 1 ? Empty : new DLSet(isSorted: false, CollectionUtilities.Map(ts, func));
         }
 
+        /// <summary>Create a <see cref="DLSet"/> by applying a function to each element of the source.</summary>
+        /// <param name="c">The source collection.</param>
+        /// <param name="func">The function to apply to each element.</param>
+        /// <returns>The new <see cref="DLSet"/>.</returns>
         public static new DLSet Map<T>(IReadOnlyCollection<T> c, Func<T, Asn1Encodable> func)
         {
             return c.Count < 1 ? Empty : new DLSet(isSorted: false, CollectionUtilities.Map(c, func));

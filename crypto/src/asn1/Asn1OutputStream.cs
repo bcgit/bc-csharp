@@ -18,11 +18,23 @@ namespace Org.BouncyCastle.Asn1
         internal const int EncodingDL = 2;
         internal const int EncodingDer = 3;
 
+        /// <summary>Create an output stream that uses the default encoding.</summary>
+        /// <param name="output">The stream to write to.</param>
+        /// <returns>The new stream.</returns>
         public static Asn1OutputStream Create(Stream output) => new Asn1OutputStream(output, leaveOpen: false);
 
+        /// <summary>Create an output stream that uses the given encoding.</summary>
+        /// <param name="output">The stream to write to.</param>
+        /// <param name="encoding">The encoding to use, for example "DER" or "BER".</param>
+        /// <returns>The new stream.</returns>
         public static Asn1OutputStream Create(Stream output, string encoding) =>
             Create(output, encoding, leaveOpen: false);
 
+        /// <summary>Create an output stream that uses the given encoding.</summary>
+        /// <param name="output">The stream to write to.</param>
+        /// <param name="encoding">The encoding to use, for example "DER" or "BER".</param>
+        /// <param name="leaveOpen">true to leave the underlying stream open when this stream is disposed.</param>
+        /// <returns>The new stream.</returns>
         public static Asn1OutputStream Create(Stream output, string encoding, bool leaveOpen)
         {
             if (Asn1Encodable.Der.Equals(encoding))
@@ -76,6 +88,8 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Write an object to the stream.</summary>
+        /// <param name="asn1Encodable">The object to write.</param>
         public virtual void WriteObject(Asn1Encodable asn1Encodable)
         {
             if (null == asn1Encodable)
@@ -85,6 +99,8 @@ namespace Org.BouncyCastle.Asn1
             FlushInternal();
         }
 
+        /// <summary>Write an object to the stream.</summary>
+        /// <param name="asn1Object">The object to write.</param>
         public virtual void WriteObject(Asn1Object asn1Object)
         {
             if (null == asn1Object)

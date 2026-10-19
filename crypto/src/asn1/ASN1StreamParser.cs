@@ -52,6 +52,8 @@ namespace Org.BouncyCastle.Asn1
         /// <summary>Gets the limit.</summary>
         public int Limit => m_limit;
 
+        /// <summary>Read the next object from the stream.</summary>
+        /// <returns>The next object, or null if the end of the stream has been reached.</returns>
         public virtual IAsn1Convertible ReadObject()
         {
             int tagHdr = m_in.ReadByte();

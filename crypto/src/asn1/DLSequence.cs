@@ -9,8 +9,14 @@ namespace Org.BouncyCastle.Asn1
     public class DLSequence
         : DerSequence
     {
+        /// <summary>The empty <see cref="DLSequence"/>.</summary>
         public static new readonly DLSequence Empty = new DLSequence();
 
+        /// <summary>
+        /// Create a <see cref="DLSequence"/> holding the elements of all the given sequences, in order.
+        /// </summary>
+        /// <param name="sequences">The sequences to concatenate, or null.</param>
+        /// <returns>The concatenated <see cref="DLSequence"/>.</returns>
         public static new DLSequence Concatenate(params Asn1Sequence[] sequences)
         {
             if (sequences == null)
@@ -27,16 +33,29 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Create a <see cref="DLSequence"/> from a collection of elements.</summary>
+        /// <param name="elements">The elements.</param>
+        /// <returns>The new <see cref="DLSequence"/>.</returns>
         public static new DLSequence FromCollection(IReadOnlyCollection<Asn1Encodable> elements)
         {
             return elements.Count < 1 ? Empty : new DLSequence(elements);
         }
 
+        /// <summary>Create a <see cref="DLSequence"/> holding a single element.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The new <see cref="DLSequence"/>.</returns>
         public static new DLSequence FromElement(Asn1Encodable element) => new DLSequence(element);
 
+        /// <summary>Create a <see cref="DLSequence"/> holding two elements.</summary>
+        /// <param name="element1">The first element.</param>
+        /// <param name="element2">The second element.</param>
+        /// <returns>The new <see cref="DLSequence"/>.</returns>
         public static new DLSequence FromElements(Asn1Encodable element1, Asn1Encodable element2) =>
             new DLSequence(element1, element2);
 
+        /// <summary>Create a <see cref="DLSequence"/> from an array of elements.</summary>
+        /// <param name="elements">The elements.</param>
+        /// <returns>The new <see cref="DLSequence"/>.</returns>
         public static new DLSequence FromElements(Asn1Encodable[] elements)
         {
             if (elements == null)
@@ -45,6 +64,11 @@ namespace Org.BouncyCastle.Asn1
             return elements.Length < 1 ? Empty : new DLSequence(elements);
         }
 
+        /// <summary>
+        /// Create a <see cref="DLSequence"/> from an array of elements, or null if the array is null.
+        /// </summary>
+        /// <param name="elements">The elements, or null.</param>
+        /// <returns>The new <see cref="DLSequence"/>, or null if <paramref name="elements"/> is null.</returns>
         public static new DLSequence FromElementsOptional(Asn1Encodable[] elements)
         {
             if (elements == null)
@@ -53,6 +77,9 @@ namespace Org.BouncyCastle.Asn1
             return elements.Length < 1 ? Empty : new DLSequence(elements);
         }
 
+        /// <summary>Create a <see cref="DLSequence"/> with the elements of another sequence.</summary>
+        /// <param name="sequence">The sequence.</param>
+        /// <returns>The new <see cref="DLSequence"/>, or the argument itself if it is already of this type.</returns>
         public static new DLSequence FromSequence(Asn1Sequence sequence)
         {
             if (sequence is DLSequence dlSequence)
@@ -61,21 +88,36 @@ namespace Org.BouncyCastle.Asn1
             return WithElements(sequence.m_elements);
         }
 
+        /// <summary>Create a <see cref="DLSequence"/> from the elements of a vector.</summary>
+        /// <param name="elementVector">The vector of elements.</param>
+        /// <returns>The new <see cref="DLSequence"/>.</returns>
         public static new DLSequence FromVector(Asn1EncodableVector elementVector)
         {
             return elementVector.Count < 1 ? Empty : new DLSequence(elementVector);
         }
 
+        /// <summary>Create a <see cref="DLSequence"/> by applying a function to each element of the source.</summary>
+        /// <param name="sequence">The source sequence.</param>
+        /// <param name="func">The function to apply to each element.</param>
+        /// <returns>The new <see cref="DLSequence"/>.</returns>
         public static new DLSequence Map(Asn1Sequence sequence, Func<Asn1Encodable, Asn1Encodable> func)
         {
             return sequence.Count < 1 ? Empty : new DLSequence(sequence.MapElements(func), clone: false);
         }
 
+        /// <summary>Create a <see cref="DLSequence"/> by applying a function to each element of the source.</summary>
+        /// <param name="ts">The source array.</param>
+        /// <param name="func">The function to apply to each element.</param>
+        /// <returns>The new <see cref="DLSequence"/>.</returns>
         public static new DLSequence Map<T>(T[] ts, Func<T, Asn1Encodable> func)
         {
             return ts.Length < 1 ? Empty : new DLSequence(CollectionUtilities.Map(ts, func), clone: false);
         }
 
+        /// <summary>Create a <see cref="DLSequence"/> by applying a function to each element of the source.</summary>
+        /// <param name="c">The source collection.</param>
+        /// <param name="func">The function to apply to each element.</param>
+        /// <returns>The new <see cref="DLSequence"/>.</returns>
         public static new DLSequence Map<T>(IReadOnlyCollection<T> c, Func<T, Asn1Encodable> func)
         {
             return c.Count < 1 ? Empty : new DLSequence(CollectionUtilities.Map(c, func), clone: false);

@@ -168,12 +168,18 @@ namespace Org.BouncyCastle.Asn1
         // NB: The BigInteger constructor tolerates any redundant sign bytes (per 'AllowUnsafe')
         public BigInteger Value => new BigInteger(m_contents);
 
+        /// <summary>Determine whether the enumerated value equals the given value.</summary>
+        /// <param name="x">The value to compare with.</param>
+        /// <returns>true if the values are equal, false otherwise.</returns>
         public bool HasValue(int x)
         {
             return (m_contents.Length - m_start) <= 4
                 && DerInteger.IntValue(m_contents, m_start, DerInteger.SignExtSigned) == x;
         }
 
+        /// <summary>Determine whether the enumerated value equals the given value.</summary>
+        /// <param name="x">The value to compare with.</param>
+        /// <returns>true if the values are equal, false otherwise.</returns>
         public bool HasValue(BigInteger x)
         {
             return null != x

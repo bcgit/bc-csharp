@@ -204,6 +204,8 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Read the next object from the stream.</summary>
+        /// <returns>The object read, or null if the end of the stream was reached.</returns>
         public Asn1Object ReadObject()
         {
             int tagHdr = s.ReadByte();

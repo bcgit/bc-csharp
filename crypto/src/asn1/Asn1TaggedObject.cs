@@ -19,12 +19,23 @@ namespace Org.BouncyCastle.Asn1
         private const int ParsedExplicit = 3;
         private const int ParsedImplicit = 4;
 
+        /// <summary>Return a context-specific tagged object from the given object.</summary>
+        /// <param name="obj">A tagged object, or an object from which one can be constructed, or null.</param>
+        /// <returns>The tagged object, or null if <paramref name="obj"/> is null.</returns>
         public static Asn1TaggedObject GetContextInstance(object obj) =>
             Asn1Utilities.CheckContextTagClass(CheckInstance(obj));
 
+        /// <summary>Return a context-specific tagged object with a given tag number from the given object.</summary>
+        /// <param name="obj">A tagged object, or an object from which one can be constructed, or null.</param>
+        /// <param name="tagNo">The expected tag number.</param>
+        /// <returns>The tagged object, or null if <paramref name="obj"/> is null.</returns>
+        /// <exception cref="ArgumentException">The tag number does not match.</exception>
         public static Asn1TaggedObject GetContextInstance(object obj, int tagNo) =>
             Asn1Utilities.CheckContextTag(CheckInstance(obj), tagNo);
 
+        /// <summary>Return the element as a context-specific tagged object, if it is one.</summary>
+        /// <param name="element">The element, or null.</param>
+        /// <returns>The tagged object, or null if the element is not a context-specific tagged object.</returns>
         public static Asn1TaggedObject GetContextOptional(Asn1Encodable element)
         {
             var taggedObject = GetOptional(element);
@@ -33,6 +44,12 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>
+        /// Return the element as a context-specific tagged object with the given tag number, if it is one.
+        /// </summary>
+        /// <param name="element">The element, or null.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>The tagged object, or null if the element is not a matching tagged object.</returns>
         public static Asn1TaggedObject GetContextOptional(Asn1Encodable element, int tagNo)
         {
             var taggedObject = GetOptional(element);
@@ -268,6 +285,8 @@ namespace Org.BouncyCastle.Asn1
         /// <inheritdoc/>
         public int TagNo => m_tagNo;
 
+        /// <summary>Determine whether this object has the context-specific tag class.</summary>
+        /// <returns>true if the tag class is context-specific, false otherwise.</returns>
         public bool HasContextTag()
         {
             return m_tagClass == Asn1Tags.ContextSpecific;
@@ -285,11 +304,17 @@ namespace Org.BouncyCastle.Asn1
             return m_tagClass == tagClass && m_tagNo == tagNo;
         }
 
+        /// <summary>Determine whether this object has the given tag class.</summary>
+        /// <param name="tagClass">The tag class.</param>
+        /// <returns>true if the tag class matches, false otherwise.</returns>
         public bool HasTagClass(int tagClass)
         {
             return m_tagClass == tagClass;
         }
 
+        /// <summary>Determine whether this object has the given tag number.</summary>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>true if the tag number matches, false otherwise.</returns>
         public bool HasTagNo(int tagNo)
         {
             return m_tagNo == tagNo;
@@ -376,6 +401,10 @@ namespace Org.BouncyCastle.Asn1
             return FromExplicit(m_object.ToAsn1Object());
         }
 
+        /// <summary>Return the base object of an implicitly tagged object, tagged with the given tag.</summary>
+        /// <param name="baseTagClass">The tag class of the base object.</param>
+        /// <param name="baseTagNo">The tag number of the base object.</param>
+        /// <returns>The tagged base object.</returns>
         public Asn1TaggedObject GetImplicitBaseTagged(int baseTagClass, int baseTagNo)
         {
             if (Asn1Tags.Universal == baseTagClass || (baseTagClass & Asn1Tags.Private) != baseTagClass)
@@ -398,6 +427,10 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Return the base object of this tagged object as a universal object.</summary>
+        /// <param name="declaredExplicit">true if the tagging was declared as explicit, false if implicit.</param>
+        /// <param name="tagNo">The universal tag number of the base object.</param>
+        /// <returns>The base object.</returns>
         public Asn1Object GetBaseUniversal(bool declaredExplicit, int tagNo)
         {
             Asn1UniversalType universalType = Asn1UniversalTypes.Get(tagNo)

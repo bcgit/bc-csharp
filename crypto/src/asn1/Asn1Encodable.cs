@@ -13,14 +13,22 @@ namespace Org.BouncyCastle.Asn1
         /// <summary>The <c>DL</c> constant, with the value <c>DL</c>.</summary>
         public const string DL = "DL";
 
+        /// <summary>Write the encoding of this object to a stream, using the default encoding.</summary>
+        /// <param name="output">The stream to write to.</param>
         public virtual void EncodeTo(Stream output) => ToAsn1Object().EncodeTo(output);
 
+        /// <summary>Write the encoding of this object to a stream, using the given encoding.</summary>
+        /// <param name="output">The stream to write to.</param>
+        /// <param name="encoding">The encoding to use, for example "DER" or "BER".</param>
         public virtual void EncodeTo(Stream output, string encoding) => ToAsn1Object().EncodeTo(output, encoding);
 
         /// <summary>Return the encoded.</summary>
         // TODO[api] Make virtual and override in Asn1Object
         public byte[] GetEncoded() => GetEncoded(Ber, preAlloc: 0, postAlloc: 0);
 
+        /// <summary>Return the encoding of this object, using the given encoding.</summary>
+        /// <param name="encoding">The encoding to use, for example "DER" or "BER".</param>
+        /// <returns>The encoded object.</returns>
         // TODO[api] Make virtual and override in Asn1Object
         public byte[] GetEncoded(string encoding) => GetEncoded(encoding, preAlloc: 0, postAlloc: 0);
 

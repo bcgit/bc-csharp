@@ -4,6 +4,8 @@ namespace Org.BouncyCastle.Asn1
     public interface Asn1SequenceParser
         : IAsn1Convertible
     {
+        /// <summary>Read the next object from the sequence.</summary>
+        /// <returns>The next object, or null if the end of the sequence has been reached.</returns>
         IAsn1Convertible ReadObject();
     }
 }

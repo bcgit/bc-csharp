@@ -20,6 +20,8 @@ namespace Org.BouncyCastle.Asn1
         /// <summary>Gets a value indicating whether this has more tokens.</summary>
         public bool HasMoreTokens => m_index != -1;
 
+        /// <summary>Get the next token of the dotted-decimal string.</summary>
+        /// <returns>The next token, or null if there are no more.</returns>
         public string NextToken()
         {
             if (m_index == -1)

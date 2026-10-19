@@ -13,6 +13,9 @@ namespace Org.BouncyCastle.Asn1
 
         private const int DefaultCapacity = 10;
 
+        /// <summary>Create a vector holding the elements of a collection.</summary>
+        /// <param name="c">The c.</param>
+        /// <returns>The new vector.</returns>
         public static Asn1EncodableVector FromCollection(IReadOnlyCollection<Asn1Encodable> c)
         {
             Asn1EncodableVector v = new Asn1EncodableVector(c.Count);
@@ -20,8 +23,14 @@ namespace Org.BouncyCastle.Asn1
             return v;
         }
 
+        /// <summary>Create a vector holding a single element.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The new vector.</returns>
         public static Asn1EncodableVector FromElement(Asn1Encodable element) => new Asn1EncodableVector(1){ element };
 
+        /// <summary>Create a vector holding the elements of a sequence.</summary>
+        /// <param name="e">The exception.</param>
+        /// <returns>The new vector.</returns>
         public static Asn1EncodableVector FromEnumerable(IEnumerable<Asn1Encodable> e)
         {
             Asn1EncodableVector v = new Asn1EncodableVector();
@@ -77,6 +86,8 @@ namespace Org.BouncyCastle.Asn1
             Add(v);
         }
 
+        /// <summary>Add an element to the vector.</summary>
+        /// <param name="element">The element.</param>
         public void Add(Asn1Encodable element)
         {
             if (element == null)
@@ -87,12 +98,17 @@ namespace Org.BouncyCastle.Asn1
             m_elements[m_elementCount++] = element;
         }
 
+        /// <summary>Add two elements to the vector.</summary>
+        /// <param name="element1">The element 1.</param>
+        /// <param name="element2">The element 2.</param>
         public void Add(Asn1Encodable element1, Asn1Encodable element2)
         {
             Add(element1);
             Add(element2);
         }
 
+        /// <summary>Add elements to the vector.</summary>
+        /// <param name="objs">The elements to add.</param>
         public void Add(params Asn1Encodable[] objs)
         {
             foreach (Asn1Encodable obj in objs)
@@ -101,6 +117,8 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Add an element to the vector if it is not null.</summary>
+        /// <param name="element">The element, or null.</param>
         public void AddOptional(Asn1Encodable element)
         {
             if (element != null)
@@ -109,12 +127,17 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Add each of two elements to the vector if it is not null.</summary>
+        /// <param name="element1">The first element, or null.</param>
+        /// <param name="element2">The second element, or null.</param>
         public void AddOptional(Asn1Encodable element1, Asn1Encodable element2)
         {
             AddOptional(element1);
             AddOptional(element2);
         }
 
+        /// <summary>Add each of the elements to the vector if it is not null.</summary>
+        /// <param name="elements">The elements, any of which may be null.</param>
         public void AddOptional(params Asn1Encodable[] elements)
         {
             if (elements != null)
@@ -126,6 +149,10 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Add an element to the vector in a context-specific tagged object, if it is not null.</summary>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="obj">The element, or null.</param>
         // TODO[api] Rename 'isExplicit' to 'declaredExplicit', 'obj' to 'element'
         public void AddOptionalTagged(bool isExplicit, int tagNo, Asn1Encodable obj)
         {
@@ -135,6 +162,11 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Add an element to the vector in a tagged object, if it is not null.</summary>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="obj">The element, or null.</param>
         // TODO[api] Rename 'isExplicit' to 'declaredExplicit', 'obj' to 'element'
         public void AddOptionalTagged(bool isExplicit, int tagClass, int tagNo, Asn1Encodable obj)
         {
@@ -144,16 +176,27 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Add an element to the vector in a context-specific tagged object.</summary>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="element">The element.</param>
         public void AddTagged(bool declaredExplicit, int tagNo, Asn1Encodable element)
         {
             Add(new DerTaggedObject(declaredExplicit, tagNo, element));
         }
 
+        /// <summary>Add an element to the vector in a tagged object.</summary>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="element">The element.</param>
         public void AddTagged(bool declaredExplicit, int tagClass, int tagNo, Asn1Encodable element)
         {
             Add(new DerTaggedObject(declaredExplicit, tagClass, tagNo, element));
         }
 
+        /// <summary>Add all the elements of a sequence to the vector.</summary>
+        /// <param name="e">The elements to add.</param>
         public void AddAll(IEnumerable<Asn1Encodable> e)
         {
             if (e == null)
@@ -165,6 +208,8 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Add all the elements of a collection to the vector.</summary>
+        /// <param name="c">The elements to add.</param>
         public void AddAll(IReadOnlyCollection<Asn1Encodable> c)
         {
             if (c == null)
@@ -179,6 +224,8 @@ namespace Org.BouncyCastle.Asn1
             AddAll((IEnumerable<Asn1Encodable>)c);
         }
 
+        /// <summary>Add all the elements of another vector to this vector.</summary>
+        /// <param name="other">The vector whose elements are added.</param>
         public void AddAll(Asn1EncodableVector other)
         {
             if (other == null)
@@ -194,6 +241,8 @@ namespace Org.BouncyCastle.Asn1
             m_elementCount += otherElementCount;
         }
 
+        /// <summary>Gets the element at the given index.</summary>
+        /// <param name="index">The index.</param>
         public Asn1Encodable this[int index]
         {
             get

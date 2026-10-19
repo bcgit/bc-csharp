@@ -18,6 +18,7 @@ namespace Org.BouncyCastle.Asn1
             m_outStream = outStream ?? throw new ArgumentNullException(nameof(outStream));
         }
 
+        /// <summary>Finish writing the object, writing any trailer that is needed.</summary>
         protected abstract void Finish();
 
         /// <summary>Gets the out stream.</summary>
@@ -26,8 +27,12 @@ namespace Org.BouncyCastle.Asn1
             get { return m_outStream ?? throw new InvalidOperationException(); }
         }
 
+        /// <summary>Add an object to the one being generated.</summary>
+        /// <param name="obj">The object to add.</param>
         public abstract void AddObject(Asn1Encodable obj);
 
+        /// <summary>Add an object to the one being generated.</summary>
+        /// <param name="obj">The object to add.</param>
         public abstract void AddObject(Asn1Object obj);
 
         /// <summary>Return the raw output stream.</summary>
@@ -35,12 +40,15 @@ namespace Org.BouncyCastle.Asn1
 
         #region IDisposable
 
+        /// <summary>Release the resources held by this generator.</summary>
         public void Dispose()
         {
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>Release the resources held by this generator.</summary>
+        /// <param name="disposing">true when called from <c>Dispose</c>, false when called from a finalizer.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)

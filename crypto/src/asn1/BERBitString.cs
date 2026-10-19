@@ -6,6 +6,9 @@ namespace Org.BouncyCastle.Asn1
     public class BerBitString
         : DLBitString
     {
+        /// <summary>Create a BER bit string by concatenating the bit strings in a sequence.</summary>
+        /// <param name="seq">The sequence of bit strings.</param>
+        /// <returns>The new bit string.</returns>
         public static BerBitString FromSequence(Asn1Sequence seq)
         {
             return new BerBitString(seq.MapElements(GetInstance));

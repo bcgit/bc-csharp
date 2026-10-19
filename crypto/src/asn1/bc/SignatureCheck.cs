@@ -97,6 +97,8 @@ namespace Org.BouncyCastle.Asn1.BC
         public X509CertificateStructure[] GetCertificates() =>
             m_certificates?.MapElements(X509CertificateStructure.GetInstance);
 
+        /// <summary>Return the algorithm identifier of the signature.</summary>
+        /// <returns>The signature algorithm.</returns>
         public AlgorithmIdentifier SignatureAlgorithm() => m_signatureAlgorithm;
 
         /// <summary>Gets the signature value.</summary>

@@ -21,11 +21,19 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>The value false.</summary>
         public static readonly DerBoolean False = new DerBoolean(0x00);
+        /// <summary>The value true.</summary>
         public static readonly DerBoolean True = new DerBoolean(0xFF);
 
+        /// <summary>Create a boolean from the contents octets of its encoding.</summary>
+        /// <param name="contents">The contents octets.</param>
+        /// <returns>The boolean.</returns>
         public static DerBoolean FromContents(byte contents) => CreatePrimitive(contents);
 
+        /// <summary>Create a boolean from the contents octets of its encoding.</summary>
+        /// <param name="contents">The contents octets.</param>
+        /// <returns>The boolean.</returns>
         public static DerBoolean FromContents(byte[] contents) =>
             CreatePrimitive(contents ?? throw new ArgumentNullException(nameof(contents)));
 

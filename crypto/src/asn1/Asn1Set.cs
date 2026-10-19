@@ -219,8 +219,13 @@ namespace Org.BouncyCastle.Asn1
         /// <summary>Gets the count.</summary>
         public virtual int Count => m_elements.Length;
 
+        /// <summary>Apply a function to each element of the set.</summary>
+        /// <param name="func">The function to apply.</param>
+        /// <returns>An array of the results.</returns>
         public virtual T[] MapElements<T>(Func<Asn1Encodable, T> func) => CollectionUtilities.Map(m_elements, func);
 
+        /// <summary>Return the elements of the set as an array.</summary>
+        /// <returns>A copy of the elements.</returns>
         public virtual Asn1Encodable[] ToArray() => Asn1EncodableVector.CloneElements(m_elements);
 
         private class Asn1SetParserImpl

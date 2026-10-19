@@ -9,25 +9,43 @@ namespace Org.BouncyCastle.Asn1
     public class BerSet
         : DLSet
     {
+        /// <summary>The empty <see cref="BerSet"/>.</summary>
         public static new readonly BerSet Empty = new BerSet();
 
+        /// <summary>Create a <see cref="BerSet"/> from a collection of elements.</summary>
+        /// <param name="elements">The elements.</param>
+        /// <returns>The new <see cref="BerSet"/>.</returns>
         public static new BerSet FromCollection(IReadOnlyCollection<Asn1Encodable> elements)
         {
             return elements.Count < 1 ? Empty : new BerSet(elements);
         }
 
+        /// <summary>Create a <see cref="BerSet"/> holding a single element.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The new <see cref="BerSet"/>.</returns>
         public static new BerSet FromElement(Asn1Encodable element) => new BerSet(element);
 
+        /// <summary>Create a <see cref="BerSet"/> from the elements of a vector.</summary>
+        /// <param name="elementVector">The vector of elements.</param>
+        /// <returns>The new <see cref="BerSet"/>.</returns>
         public static new BerSet FromVector(Asn1EncodableVector elementVector)
         {
             return elementVector.Count < 1 ? Empty : new BerSet(elementVector);
         }
 
+        /// <summary>Create a <see cref="BerSet"/> by applying a function to each element of the source.</summary>
+        /// <param name="ts">The source array.</param>
+        /// <param name="func">The function to apply to each element.</param>
+        /// <returns>The new <see cref="BerSet"/>.</returns>
         public static new BerSet Map<T>(T[] ts, Func<T, Asn1Encodable> func)
         {
             return ts.Length < 1 ? Empty : new BerSet(isSorted: false, CollectionUtilities.Map(ts, func));
         }
 
+        /// <summary>Create a <see cref="BerSet"/> by applying a function to each element of the source.</summary>
+        /// <param name="c">The source collection.</param>
+        /// <param name="func">The function to apply to each element.</param>
+        /// <returns>The new <see cref="BerSet"/>.</returns>
         public static new BerSet Map<T>(IReadOnlyCollection<T> c, Func<T, Asn1Encodable> func)
         {
             return c.Count < 1 ? Empty : new BerSet(isSorted: false, CollectionUtilities.Map(c, func));

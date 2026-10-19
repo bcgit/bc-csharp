@@ -5,6 +5,8 @@ namespace Org.BouncyCastle.Asn1
     // TODO[api] Have a different interface that is only for custom ASN.1 types
     public interface IAsn1Convertible
     {
+        /// <summary>Convert this object to an ASN.1 object.</summary>
+        /// <returns>The ASN.1 object.</returns>
         Asn1Object ToAsn1Object();
     }
 }

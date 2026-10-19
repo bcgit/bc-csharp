@@ -35,6 +35,11 @@ namespace Org.BouncyCastle.Asn1
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
         };
 
+        /// <summary>
+        /// Create a DER bit string from its contents octets, or return null if the contents are null.
+        /// </summary>
+        /// <param name="contents">The contents octets (the first byte is the number of unused bits), or null.</param>
+        /// <returns>The new bit string, or null.</returns>
         public static DerBitString FromContentsOptional(byte[] contents)
         {
             if (contents == null)
@@ -282,6 +287,8 @@ namespace Org.BouncyCastle.Asn1
         /// <summary>Return the bytes length.</summary>
         public virtual int GetBytesLength() => m_contents.Length - 1;
 
+        /// <summary>Determine whether the bit string consists of a whole number of octets.</summary>
+        /// <returns>true if no bits are unused in the last octet, false otherwise.</returns>
         public virtual bool IsOctetAligned() => PadBits == 0;
 
         /// <inheritdoc/>

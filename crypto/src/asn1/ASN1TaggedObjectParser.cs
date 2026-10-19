@@ -15,8 +15,17 @@ namespace Org.BouncyCastle.Asn1
         // TODO[api]
         //bool HasContextTag();
 
+        /// <summary>
+        /// Determine whether the tagged object has the context-specific tag class and the given tag number.
+        /// </summary>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>true if the tag matches, false otherwise.</returns>
         bool HasContextTag(int tagNo);
 
+        /// <summary>Determine whether the tagged object has the given tag class and tag number.</summary>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>true if the tag matches, false otherwise.</returns>
         bool HasTag(int tagClass, int tagNo);
 
         // TODO[api]

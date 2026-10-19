@@ -130,6 +130,8 @@ namespace Org.BouncyCastle.Asn1
         /// <summary>Gets the time string.</summary>
         public string TimeString => m_timeString;
 
+        /// <summary>Return the time as a <see cref="DateTime"/>.</summary>
+        /// <returns>The time value.</returns>
         public DateTime ToDateTime() => m_dateTime;
 
         internal byte[] GetContents(int encoding)

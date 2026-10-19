@@ -30,11 +30,17 @@ namespace Org.BouncyCastle.Asn1
 
         private static readonly DerInteger[] SmallConstants = new DerInteger[64];
 
+        /// <summary>The value 0.</summary>
         public static readonly DerInteger Zero;
+        /// <summary>The value 1.</summary>
         public static readonly DerInteger One;
+        /// <summary>The value 2.</summary>
         public static readonly DerInteger Two;
+        /// <summary>The value 3.</summary>
         public static readonly DerInteger Three;
+        /// <summary>The value 4.</summary>
         public static readonly DerInteger Four;
+        /// <summary>The value 5.</summary>
         public static readonly DerInteger Five;
 
         internal static bool AllowUnsafe() => Properties.GetBoolean(Properties.Asn1AllowUnsafeInteger, false);
@@ -98,6 +104,9 @@ namespace Org.BouncyCastle.Asn1
             return (DerInteger)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Create an integer with the given value.</summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The integer.</returns>
         public static DerInteger ValueOf(int value)
         {
             if (value >= 0L && value < SmallConstants.Length)
@@ -108,6 +117,9 @@ namespace Org.BouncyCastle.Asn1
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Create an integer with the given value.</summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The integer.</returns>
         public static DerInteger ValueOf(long value)
         {
             if (value >= 0L && value < SmallConstants.Length)
@@ -194,18 +206,27 @@ namespace Org.BouncyCastle.Asn1
         // NB: The BigInteger constructor tolerates any redundant sign bytes (per 'AllowUnsafe')
         public BigInteger Value => new BigInteger(m_contents);
 
+        /// <summary>Determine whether the integer equals the given value.</summary>
+        /// <param name="x">The value to compare with.</param>
+        /// <returns>true if the values are equal, false otherwise.</returns>
         public bool HasValue(int x)
         {
             return (m_contents.Length - m_start) <= 4
                 && IntValue(m_contents, m_start, SignExtSigned) == x;
         }
 
+        /// <summary>Determine whether the integer equals the given value.</summary>
+        /// <param name="x">The value to compare with.</param>
+        /// <returns>true if the values are equal, false otherwise.</returns>
         public bool HasValue(long x)
         {
             return (m_contents.Length - m_start) <= 8
                 && LongValue(m_contents, m_start, SignExtSigned) == x;
         }
 
+        /// <summary>Determine whether the integer equals the given value.</summary>
+        /// <param name="x">The value to compare with.</param>
+        /// <returns>true if the values are equal, false otherwise.</returns>
         public bool HasValue(BigInteger x)
         {
             return null != x
@@ -253,6 +274,9 @@ namespace Org.BouncyCastle.Asn1
             return true;
         }
 
+        /// <summary>Try to get the value as an int.</summary>
+        /// <param name="value">On success, the value.</param>
+        /// <returns>true if the value fits in an int, false otherwise.</returns>
         public bool TryGetIntValueExact(out int value)
         {
             int count = m_contents.Length - m_start;
@@ -283,6 +307,9 @@ namespace Org.BouncyCastle.Asn1
             return true;
         }
 
+        /// <summary>Try to get the value as a long.</summary>
+        /// <param name="value">On success, the value.</param>
+        /// <returns>true if the value fits in a long, false otherwise.</returns>
         public bool TryGetLongValueExact(out long value)
         {
             int count = m_contents.Length - m_start;

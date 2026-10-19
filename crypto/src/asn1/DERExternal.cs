@@ -21,6 +21,9 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Create an external from a sequence.</summary>
+        /// <param name="seq">The sequence.</param>
+        /// <returns>The new object.</returns>
         public static DerExternal FromSequence(Asn1Sequence seq)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -28,6 +31,9 @@ namespace Org.BouncyCastle.Asn1
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Create an external from a vector of elements.</summary>
+        /// <param name="vector">The vector.</param>
+        /// <returns>The new object.</returns>
         public static DerExternal FromVector(Asn1EncodableVector vector)
         {
 #pragma warning disable CS0618 // Type or member is obsolete

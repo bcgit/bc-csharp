@@ -10,25 +10,43 @@ namespace Org.BouncyCastle.Asn1
     public class DerSet
         : Asn1Set
     {
+        /// <summary>The empty <see cref="DerSet"/>.</summary>
         public static readonly DerSet Empty = new DerSet();
 
+        /// <summary>Create a <see cref="DerSet"/> from a collection of elements.</summary>
+        /// <param name="elements">The elements.</param>
+        /// <returns>The new <see cref="DerSet"/>.</returns>
         public static DerSet FromCollection(IReadOnlyCollection<Asn1Encodable> elements)
         {
             return elements.Count < 1 ? Empty : new DerSet(elements);
         }
 
+        /// <summary>Create a <see cref="DerSet"/> holding a single element.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The new <see cref="DerSet"/>.</returns>
         public static DerSet FromElement(Asn1Encodable element) => new DerSet(element);
 
+        /// <summary>Create a <see cref="DerSet"/> from the elements of a vector.</summary>
+        /// <param name="elementVector">The vector of elements.</param>
+        /// <returns>The new <see cref="DerSet"/>.</returns>
         public static DerSet FromVector(Asn1EncodableVector elementVector)
         {
             return elementVector.Count < 1 ? Empty : new DerSet(elementVector);
         }
 
+        /// <summary>Create a <see cref="DerSet"/> by applying a function to each element of the source.</summary>
+        /// <param name="ts">The source array.</param>
+        /// <param name="func">The function to apply to each element.</param>
+        /// <returns>The new <see cref="DerSet"/>.</returns>
         public static DerSet Map<T>(T[] ts, Func<T, Asn1Encodable> func)
         {
             return ts.Length < 1 ? Empty : new DerSet(CollectionUtilities.Map(ts, func));
         }
 
+        /// <summary>Create a <see cref="DerSet"/> by applying a function to each element of the source.</summary>
+        /// <param name="c">The source collection.</param>
+        /// <param name="func">The function to apply to each element.</param>
+        /// <returns>The new <see cref="DerSet"/>.</returns>
         public static DerSet Map<T>(IReadOnlyCollection<T> c, Func<T, Asn1Encodable> func)
         {
             return c.Count < 1 ? Empty : new DerSet(CollectionUtilities.Map(c, func));

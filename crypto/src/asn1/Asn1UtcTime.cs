@@ -147,8 +147,15 @@ namespace Org.BouncyCastle.Asn1
         /// <summary>Gets the time string.</summary>
         public string TimeString => m_timeString;
 
+        /// <summary>Return the time as a <see cref="DateTime"/>.</summary>
+        /// <returns>The time value.</returns>
         public DateTime ToDateTime() => m_dateTime;
 
+        /// <summary>
+        /// Return the time as a <see cref="DateTime"/>, interpreting the two digit year using the given maximum year.
+        /// </summary>
+        /// <param name="twoDigitYearMax">The latest year that a two digit year may refer to.</param>
+        /// <returns>The time value.</returns>
         public DateTime ToDateTime(int twoDigitYearMax)
         {
             if (InRange(m_dateTime, twoDigitYearMax))
@@ -170,6 +177,11 @@ namespace Org.BouncyCastle.Asn1
             return m_dateTime.AddYears(newYear - m_dateTime.Year);
         }
 
+        /// <summary>
+        /// Return the time as a <see cref="DateTime"/>, interpreting the two digit year using the given calendar.
+        /// </summary>
+        /// <param name="calendar">The calendar whose two digit year maximum is used.</param>
+        /// <returns>The time value.</returns>
         public DateTime ToDateTime(Calendar calendar)
         {
             return ToDateTime(calendar.TwoDigitYearMax);

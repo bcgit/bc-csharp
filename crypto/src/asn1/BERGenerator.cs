@@ -68,6 +68,8 @@ namespace Org.BouncyCastle.Asn1
             OutStream.WriteByte(0x80);
         }
 
+        /// <summary>Write the header of a BER constructed object with indefinite length.</summary>
+        /// <param name="tag">The tag of the object.</param>
         protected void WriteBerHeader(int tag)
         {
             if (!_tagged)
@@ -94,12 +96,15 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Copy the body of a BER constructed object to the output.</summary>
+        /// <param name="contentStream">The stream holding the body.</param>
         // TODO[api] Remove unnecessary method
         protected void WriteBerBody(Stream contentStream)
         {
             Streams.PipeAll(contentStream, OutStream);
         }
 
+        /// <summary>Write the end-of-contents octets of a BER constructed object with indefinite length.</summary>
         protected void WriteBerEnd()
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

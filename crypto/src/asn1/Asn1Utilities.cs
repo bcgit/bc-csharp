@@ -9,26 +9,50 @@ namespace Org.BouncyCastle.Asn1
     // TODO[api] Make static
     public abstract class Asn1Utilities
     {
+        /// <summary>Check that a tagged object has the context-specific tag class and the given tag number.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>The tagged object, if the tag matches.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1TaggedObject CheckContextTag(Asn1TaggedObject taggedObject, int tagNo)
         {
             return CheckTag(taggedObject, Asn1Tags.ContextSpecific, tagNo);
         }
 
+        /// <summary>Check that a tagged object has the context-specific tag class and the given tag number.</summary>
+        /// <param name="taggedObjectParser">The tagged object parser.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>The tagged object, if the tag matches.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1TaggedObjectParser CheckContextTag(Asn1TaggedObjectParser taggedObjectParser, int tagNo)
         {
             return CheckTag(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo);
         }
 
+        /// <summary>Check that a tagged object has the context-specific tag class.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <returns>The tagged object, if the tag class matches.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1TaggedObject CheckContextTagClass(Asn1TaggedObject taggedObject)
         {
             return CheckTagClass(taggedObject, Asn1Tags.ContextSpecific);
         }
 
+        /// <summary>Check that a tagged object has the context-specific tag class.</summary>
+        /// <param name="taggedObjectParser">The tagged object parser.</param>
+        /// <returns>The tagged object, if the tag class matches.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1TaggedObjectParser CheckContextTagClass(Asn1TaggedObjectParser taggedObjectParser)
         {
             return CheckTagClass(taggedObjectParser, Asn1Tags.ContextSpecific);
         }
 
+        /// <summary>Check that a tagged object has the given tag class and tag number.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>The tagged object, if the tag matches.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1TaggedObject CheckTag(Asn1TaggedObject taggedObject, int tagClass, int tagNo)
         {
             if (!taggedObject.HasTag(tagClass, tagNo))
@@ -40,6 +64,12 @@ namespace Org.BouncyCastle.Asn1
             return taggedObject;
         }
 
+        /// <summary>Check that a tagged object has the given tag class and tag number.</summary>
+        /// <param name="taggedObjectParser">The tagged object parser.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>The tagged object, if the tag matches.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1TaggedObjectParser CheckTag(Asn1TaggedObjectParser taggedObjectParser, int tagClass,
             int tagNo)
         {
@@ -52,6 +82,11 @@ namespace Org.BouncyCastle.Asn1
             return taggedObjectParser;
         }
 
+        /// <summary>Check that a tagged object has the given tag class.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <returns>The tagged object, if the tag class matches.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1TaggedObject CheckTagClass(Asn1TaggedObject taggedObject, int tagClass)
         {
             if (!taggedObject.HasTagClass(tagClass))
@@ -63,6 +98,11 @@ namespace Org.BouncyCastle.Asn1
             return taggedObject;
         }
 
+        /// <summary>Check that a tagged object has the given tag class.</summary>
+        /// <param name="taggedObjectParser">The tagged object parser.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <returns>The tagged object, if the tag class matches.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1TaggedObjectParser CheckTagClass(Asn1TaggedObjectParser taggedObjectParser, int tagClass)
         {
             if (taggedObjectParser.TagClass != tagClass)
@@ -74,6 +114,13 @@ namespace Org.BouncyCastle.Asn1
             return taggedObjectParser;
         }
 
+        /// <summary>Get an instance of a CHOICE type from an object.</summary>
+        /// <param name="obj">An instance of the type, an object from which one can be constructed, or null.</param>
+        /// <param name="optionalConstructor">
+        /// A function that constructs the choice from an ASN.1 element, returning null if the element is not valid.
+        /// </param>
+        /// <returns>The instance, or null if <paramref name="obj"/> is null.</returns>
+        /// <exception cref="ArgumentException">The object is not valid.</exception>
         public static TChoice GetInstanceChoice<TChoice>(object obj, Func<Asn1Encodable, TChoice> optionalConstructor)
             where TChoice : Asn1Encodable, IAsn1Choice
         {
@@ -103,6 +150,17 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
+        /// <summary>
+        /// Get an instance of an untagged CHOICE type from a context-specific tagged object that wraps it explicitly.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">
+        /// true if the tagging was declared as explicit, which is required for a CHOICE type.
+        /// </param>
+        /// <param name="constructor">A function that constructs the choice from an ASN.1 element.</param>
+        /// <returns>The instance.</returns>
+        /// <exception cref="ArgumentException">The tagging was not declared as explicit.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="taggedObject"/> is null.</exception>
         public static TChoice GetInstanceChoice<TChoice>(Asn1TaggedObject taggedObject, bool declaredExplicit,
             Func<Asn1Encodable, TChoice> constructor)
             where TChoice : Asn1Encodable, IAsn1Choice
@@ -121,6 +179,15 @@ namespace Org.BouncyCastle.Asn1
             return constructor(GetExplicitContextBaseObject(taggedObject));
         }
 
+        /// <summary>Get an instance of an untagged CHOICE type from a tagged object that wraps it explicitly.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">
+        /// true if the tagging was declared as explicit, which is required for a CHOICE type.
+        /// </param>
+        /// <param name="constructor">A function that constructs the choice from an ASN.1 element.</param>
+        /// <returns>The instance.</returns>
+        /// <exception cref="ArgumentException">The tagging was not declared as explicit.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="taggedObject"/> is null.</exception>
         public static TChoice GetTaggedChoice<TChoice>(Asn1TaggedObject taggedObject, bool declaredExplicit,
             Func<Asn1Encodable, TChoice> constructor)
             where TChoice : Asn1Encodable, IAsn1Choice
@@ -149,16 +216,25 @@ namespace Org.BouncyCastle.Asn1
             return GetTagClassText(tag.TagClass);
         }
 
+        /// <summary>Get a textual description of the tag class of a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <returns>The description.</returns>
         public static string GetTagClassText(Asn1TaggedObject taggedObject)
         {
             return GetTagClassText(taggedObject.TagClass);
         }
 
+        /// <summary>Get a textual description of the tag class of a tagged object.</summary>
+        /// <param name="taggedObjectParser">The tagged object parser.</param>
+        /// <returns>The description.</returns>
         public static string GetTagClassText(Asn1TaggedObjectParser taggedObjectParser)
         {
             return GetTagClassText(taggedObjectParser.TagClass);
         }
 
+        /// <summary>Get a textual description of a tag class.</summary>
+        /// <param name="tagClass">The tag class.</param>
+        /// <returns>The description.</returns>
         public static string GetTagClassText(int tagClass)
         {
             switch (tagClass)
@@ -181,16 +257,26 @@ namespace Org.BouncyCastle.Asn1
             return GetTagText(tag.TagClass, tag.TagNo);
         }
 
+        /// <summary>Get a textual description of the tag of a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <returns>The description.</returns>
         public static string GetTagText(Asn1TaggedObject taggedObject)
         {
             return GetTagText(taggedObject.TagClass, taggedObject.TagNo);
         }
 
+        /// <summary>Get a textual description of the tag of a tagged object.</summary>
+        /// <param name="taggedObjectParser">The tagged object parser.</param>
+        /// <returns>The description.</returns>
         public static string GetTagText(Asn1TaggedObjectParser taggedObjectParser)
         {
             return GetTagText(taggedObjectParser.TagClass, taggedObjectParser.TagNo);
         }
 
+        /// <summary>Get a textual description of a tag.</summary>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>The description.</returns>
         public static string GetTagText(int tagClass, int tagNo)
         {
             switch (tagClass)
@@ -213,18 +299,43 @@ namespace Org.BouncyCastle.Asn1
          * Wrappers for Asn1TaggedObject.GetExplicitBaseObject
          */
 
+        /// <summary>Check the tag of an explicitly tagged object and return its base object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <returns>The base object.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1Encodable GetExplicitBaseObject(Asn1TaggedObject taggedObject, int tagClass) =>
             CheckTagClass(taggedObject, tagClass).GetExplicitBaseObject();
 
+        /// <summary>Check the tag of an explicitly tagged object and return its base object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>The base object.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1Encodable GetExplicitBaseObject(Asn1TaggedObject taggedObject, int tagClass, int tagNo) =>
             CheckTag(taggedObject, tagClass, tagNo).GetExplicitBaseObject();
 
+        /// <summary>Check the tag of an explicitly tagged object and return its base object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <returns>The base object.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1Encodable GetExplicitContextBaseObject(Asn1TaggedObject taggedObject) =>
             GetExplicitBaseObject(taggedObject, Asn1Tags.ContextSpecific);
 
+        /// <summary>Check the tag of an explicitly tagged object and return its base object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>The base object.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1Encodable GetExplicitContextBaseObject(Asn1TaggedObject taggedObject, int tagNo) =>
             GetExplicitBaseObject(taggedObject, Asn1Tags.ContextSpecific, tagNo);
 
+        /// <summary>Get the base object of an explicitly tagged object if it has the expected tag.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>The base object, or null if the tag does not match.</returns>
         [Obsolete("Will be removed")]
         public static Asn1Encodable TryGetExplicitBaseObject(Asn1TaggedObject taggedObject, int tagClass, int tagNo)
         {
@@ -234,6 +345,11 @@ namespace Org.BouncyCastle.Asn1
             return taggedObject.GetExplicitBaseObject();
         }
 
+        /// <summary>Try to get the base object of an explicitly tagged object with the expected tag.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="baseObject">On success, the base object.</param>
+        /// <returns>true if the tag matched and the base object was obtained, false otherwise.</returns>
         public static bool TryGetExplicitBaseObject(Asn1TaggedObject taggedObject, int tagClass,
             out Asn1Encodable baseObject)
         {
@@ -242,6 +358,12 @@ namespace Org.BouncyCastle.Asn1
             return result;
         }
 
+        /// <summary>Try to get the base object of an explicitly tagged object with the expected tag.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="baseObject">On success, the base object.</param>
+        /// <returns>true if the tag matched and the base object was obtained, false otherwise.</returns>
         public static bool TryGetExplicitBaseObject(Asn1TaggedObject taggedObject, int tagClass, int tagNo,
             out Asn1Encodable baseObject)
         {
@@ -250,17 +372,30 @@ namespace Org.BouncyCastle.Asn1
             return result;
         }
 
+        /// <summary>Get the base object of an explicitly tagged object if it has the expected tag.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>The base object, or null if the tag does not match.</returns>
         [Obsolete("Will be removed")]
         public static Asn1Encodable TryGetExplicitContextBaseObject(Asn1TaggedObject taggedObject, int tagNo)
         {
             return TryGetExplicitBaseObject(taggedObject, Asn1Tags.ContextSpecific, tagNo);
         }
 
+        /// <summary>Try to get the base object of an explicitly tagged object with the expected tag.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="baseObject">On success, the base object.</param>
+        /// <returns>true if the tag matched and the base object was obtained, false otherwise.</returns>
         public static bool TryGetExplicitContextBaseObject(Asn1TaggedObject taggedObject, out Asn1Encodable baseObject)
         {
             return TryGetExplicitBaseObject(taggedObject, Asn1Tags.ContextSpecific, out baseObject);
         }
 
+        /// <summary>Try to get the base object of an explicitly tagged object with the expected tag.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="baseObject">On success, the base object.</param>
+        /// <returns>true if the tag matched and the base object was obtained, false otherwise.</returns>
         public static bool TryGetExplicitContextBaseObject(Asn1TaggedObject taggedObject, int tagNo,
             out Asn1Encodable baseObject)
         {
@@ -272,6 +407,12 @@ namespace Org.BouncyCastle.Asn1
          * Wrappers for Asn1TaggedObject.GetOptional
          */
 
+        /// <summary>Get a value from an element, if the element is a tagged object with the expected tag.</summary>
+        /// <param name="element">The element.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="state">The state passed to the constructor.</param>
+        /// <param name="constructor">A function that constructs the result from the tagged object.</param>
+        /// <returns>The result, or null if the element is not a matching tagged object.</returns>
         public static TResult GetOptionalContextTagged<TState, TResult>(Asn1Encodable element, int tagNo, TState state,
             Func<Asn1TaggedObject, TState, TResult> constructor)
             where TResult : class
@@ -279,6 +420,13 @@ namespace Org.BouncyCastle.Asn1
             return GetOptionalTagged(element, Asn1Tags.ContextSpecific, tagNo, state, constructor);
         }
 
+        /// <summary>Get a value from an element, if the element is a tagged object with the expected tag.</summary>
+        /// <param name="element">The element.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="state">The state passed to the constructor.</param>
+        /// <param name="constructor">A function that constructs the result from the tagged object.</param>
+        /// <returns>The result, or null if the element is not a matching tagged object.</returns>
         public static TResult GetOptionalTagged<TState, TResult>(Asn1Encodable element, int tagClass, int tagNo,
             TState state, Func<Asn1TaggedObject, TState, TResult> constructor)
             where TResult : class
@@ -288,12 +436,31 @@ namespace Org.BouncyCastle.Asn1
             return taggedObject == null ? null : constructor(taggedObject, state);
         }
 
+        /// <summary>
+        /// Try to get a value from an element, if the element is a tagged object with the expected tag.
+        /// </summary>
+        /// <param name="element">The element.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="state">The state passed to the constructor.</param>
+        /// <param name="result">On success, the result.</param>
+        /// <param name="constructor">A function that constructs the result from the tagged object.</param>
+        /// <returns>true if the element is a matching tagged object, false otherwise.</returns>
         public static bool TryGetOptionalContextTagged<TState, TResult>(Asn1Encodable element, int tagNo, TState state,
             out TResult result, Func<Asn1TaggedObject, TState, TResult> constructor)
         {
             return TryGetOptionalTagged(element, Asn1Tags.ContextSpecific, tagNo, state, out result, constructor);
         }
 
+        /// <summary>
+        /// Try to get a value from an element, if the element is a tagged object with the expected tag.
+        /// </summary>
+        /// <param name="element">The element.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="state">The state passed to the constructor.</param>
+        /// <param name="result">On success, the result.</param>
+        /// <param name="constructor">A function that constructs the result from the tagged object.</param>
+        /// <returns>true if the element is a matching tagged object, false otherwise.</returns>
         public static bool TryGetOptionalTagged<TState, TResult>(Asn1Encodable element, int tagClass, int tagNo,
             TState state, out TResult result, Func<Asn1TaggedObject, TState, TResult> constructor)
         {
@@ -313,26 +480,60 @@ namespace Org.BouncyCastle.Asn1
          * Wrappers for Asn1TaggedObject.GetExplicitBaseTagged
          */
 
+        /// <summary>
+        /// Check the tag of an explicitly tagged object and return its base object as a tagged object.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <returns>The base tagged object.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1TaggedObject GetExplicitBaseTagged(Asn1TaggedObject taggedObject, int tagClass)
         {
             return CheckTagClass(taggedObject, tagClass).GetExplicitBaseTagged();
         }
 
+        /// <summary>
+        /// Check the tag of an explicitly tagged object and return its base object as a tagged object.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>The base tagged object.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1TaggedObject GetExplicitBaseTagged(Asn1TaggedObject taggedObject, int tagClass, int tagNo)
         {
             return CheckTag(taggedObject, tagClass, tagNo).GetExplicitBaseTagged();
         }
 
+        /// <summary>
+        /// Check the tag of an explicitly tagged object and return its base object as a tagged object.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <returns>The base tagged object.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1TaggedObject GetExplicitContextBaseTagged(Asn1TaggedObject taggedObject)
         {
             return GetExplicitBaseTagged(taggedObject, Asn1Tags.ContextSpecific);
         }
 
+        /// <summary>
+        /// Check the tag of an explicitly tagged object and return its base object as a tagged object.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>The base tagged object.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1TaggedObject GetExplicitContextBaseTagged(Asn1TaggedObject taggedObject, int tagNo)
         {
             return GetExplicitBaseTagged(taggedObject, Asn1Tags.ContextSpecific, tagNo);
         }
 
+        /// <summary>
+        /// Get the base object of an explicitly tagged object, as a tagged object, if it has the expected tag.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <returns>The base tagged object, or null if the tag does not match.</returns>
         [Obsolete("Will be removed")]
         public static Asn1TaggedObject TryGetExplicitBaseTagged(Asn1TaggedObject taggedObject, int tagClass)
         {
@@ -342,6 +543,13 @@ namespace Org.BouncyCastle.Asn1
             return taggedObject.GetExplicitBaseTagged();
         }
 
+        /// <summary>
+        /// Try to get the base object of an explicitly tagged object, as a tagged object, if it has the expected tag.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="baseTagged">On success, the base tagged object.</param>
+        /// <returns>true if the tag matched and the base object was obtained, false otherwise.</returns>
         public static bool TryGetExplicitBaseTagged(Asn1TaggedObject taggedObject, int tagClass,
             out Asn1TaggedObject baseTagged)
         {
@@ -350,6 +558,13 @@ namespace Org.BouncyCastle.Asn1
             return result;
         }
 
+        /// <summary>
+        /// Get the base object of an explicitly tagged object, as a tagged object, if it has the expected tag.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>The base tagged object, or null if the tag does not match.</returns>
         [Obsolete("Will be removed")]
         public static Asn1TaggedObject TryGetExplicitBaseTagged(Asn1TaggedObject taggedObject, int tagClass, int tagNo)
         {
@@ -359,6 +574,14 @@ namespace Org.BouncyCastle.Asn1
             return taggedObject.GetExplicitBaseTagged();
         }
 
+        /// <summary>
+        /// Try to get the base object of an explicitly tagged object, as a tagged object, if it has the expected tag.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="baseTagged">On success, the base tagged object.</param>
+        /// <returns>true if the tag matched and the base object was obtained, false otherwise.</returns>
         public static bool TryGetExplicitBaseTagged(Asn1TaggedObject taggedObject, int tagClass, int tagNo,
             out Asn1TaggedObject baseTagged)
         {
@@ -367,24 +590,48 @@ namespace Org.BouncyCastle.Asn1
             return result;
         }
 
+        /// <summary>
+        /// Get the base object of an explicitly tagged object, as a tagged object, if it has the expected tag.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <returns>The base tagged object, or null if the tag does not match.</returns>
         [Obsolete("Will be removed")]
         public static Asn1TaggedObject TryGetExplicitContextBaseTagged(Asn1TaggedObject taggedObject)
         {
             return TryGetExplicitBaseTagged(taggedObject, Asn1Tags.ContextSpecific);
         }
 
+        /// <summary>
+        /// Try to get the base object of an explicitly tagged object, as a tagged object, if it has the expected tag.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="baseTagged">On success, the base tagged object.</param>
+        /// <returns>true if the tag matched and the base object was obtained, false otherwise.</returns>
         public static bool TryGetExplicitContextBaseTagged(Asn1TaggedObject taggedObject,
             out Asn1TaggedObject baseTagged)
         {
             return TryGetExplicitBaseTagged(taggedObject, Asn1Tags.ContextSpecific, out baseTagged);
         }
 
+        /// <summary>
+        /// Get the base object of an explicitly tagged object, as a tagged object, if it has the expected tag.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>The base tagged object, or null if the tag does not match.</returns>
         [Obsolete("Will be removed")]
         public static Asn1TaggedObject TryGetExplicitContextBaseTagged(Asn1TaggedObject taggedObject, int tagNo)
         {
             return TryGetExplicitBaseTagged(taggedObject, Asn1Tags.ContextSpecific, tagNo);
         }
 
+        /// <summary>
+        /// Try to get the base object of an explicitly tagged object, as a tagged object, if it has the expected tag.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="baseTagged">On success, the base tagged object.</param>
+        /// <returns>true if the tag matched and the base object was obtained, false otherwise.</returns>
         public static bool TryGetExplicitContextBaseTagged(Asn1TaggedObject taggedObject, int tagNo,
             out Asn1TaggedObject baseTagged)
         {
@@ -396,18 +643,49 @@ namespace Org.BouncyCastle.Asn1
          * Wrappers for Asn1TaggedObject.GetImplicitBaseTagged
          */
 
+        /// <summary>
+        /// Check the tag of an implicitly tagged object and return its base object as a tagged object with the given
+        /// base tag.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="baseTagClass">The tag class of the base object.</param>
+        /// <param name="baseTagNo">The tag number of the base object.</param>
+        /// <returns>The base tagged object.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1TaggedObject GetImplicitBaseTagged(Asn1TaggedObject taggedObject, int tagClass, int tagNo,
             int baseTagClass, int baseTagNo)
         {
             return CheckTag(taggedObject, tagClass, tagNo).GetImplicitBaseTagged(baseTagClass, baseTagNo);
         }
 
+        /// <summary>
+        /// Check the tag of an implicitly tagged object and return its base object as a tagged object with the given
+        /// base tag.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="baseTagClass">The tag class of the base object.</param>
+        /// <param name="baseTagNo">The tag number of the base object.</param>
+        /// <returns>The base tagged object.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1TaggedObject GetImplicitContextBaseTagged(Asn1TaggedObject taggedObject, int tagNo,
             int baseTagClass, int baseTagNo)
         {
             return GetImplicitBaseTagged(taggedObject, Asn1Tags.ContextSpecific, tagNo, baseTagClass, baseTagNo);
         }
 
+        /// <summary>
+        /// Get the base object of an implicitly tagged object, as a tagged object with the given base tag, if it has
+        /// the expected tag.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="baseTagClass">The tag class of the base object.</param>
+        /// <param name="baseTagNo">The tag number of the base object.</param>
+        /// <returns>The base tagged object, or null if the tag does not match.</returns>
         [Obsolete("Will be removed")]
         public static Asn1TaggedObject TryGetImplicitBaseTagged(Asn1TaggedObject taggedObject, int tagClass, int tagNo,
             int baseTagClass, int baseTagNo)
@@ -418,6 +696,17 @@ namespace Org.BouncyCastle.Asn1
             return taggedObject.GetImplicitBaseTagged(baseTagClass, baseTagNo);
         }
 
+        /// <summary>
+        /// Try to get the base object of an implicitly tagged object, as a tagged object with the given base tag, if it
+        /// has the expected tag.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="baseTagClass">The tag class of the base object.</param>
+        /// <param name="baseTagNo">The tag number of the base object.</param>
+        /// <param name="baseTagged">On success, the base tagged object.</param>
+        /// <returns>true if the tag matched and the base object was obtained, false otherwise.</returns>
         public static bool TryGetImplicitBaseTagged(Asn1TaggedObject taggedObject, int tagClass, int tagNo,
             int baseTagClass, int baseTagNo, out Asn1TaggedObject baseTagged)
         {
@@ -426,6 +715,15 @@ namespace Org.BouncyCastle.Asn1
             return result;
         }
 
+        /// <summary>
+        /// Get the base object of an implicitly tagged object, as a tagged object with the given base tag, if it has
+        /// the expected tag.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="baseTagClass">The tag class of the base object.</param>
+        /// <param name="baseTagNo">The tag number of the base object.</param>
+        /// <returns>The base tagged object, or null if the tag does not match.</returns>
         [Obsolete("Will be removed")]
         public static Asn1TaggedObject TryGetImplicitContextBaseTagged(Asn1TaggedObject taggedObject, int tagNo,
             int baseTagClass, int baseTagNo)
@@ -433,6 +731,16 @@ namespace Org.BouncyCastle.Asn1
             return TryGetImplicitBaseTagged(taggedObject, Asn1Tags.ContextSpecific, tagNo, baseTagClass, baseTagNo);
         }
 
+        /// <summary>
+        /// Try to get the base object of an implicitly tagged object, as a tagged object with the given base tag, if it
+        /// has the expected tag.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="baseTagClass">The tag class of the base object.</param>
+        /// <param name="baseTagNo">The tag number of the base object.</param>
+        /// <param name="baseTagged">On success, the base tagged object.</param>
+        /// <returns>true if the tag matched and the base object was obtained, false otherwise.</returns>
         public static bool TryGetImplicitContextBaseTagged(Asn1TaggedObject taggedObject, int tagNo, int baseTagClass,
             int baseTagNo, out Asn1TaggedObject baseTagged)
         {
@@ -445,18 +753,40 @@ namespace Org.BouncyCastle.Asn1
          * Wrappers for Asn1TaggedObject.GetBaseUniversal
          */
 
+        /// <summary>Check the tag of a tagged object and return its base object as a universal object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="declaredExplicit">true if the tagging was declared as explicit, false if implicit.</param>
+        /// <param name="baseTagNo">The universal tag number of the base object.</param>
+        /// <returns>The base object.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1Object GetBaseUniversal(Asn1TaggedObject taggedObject, int tagClass, int tagNo,
             bool declaredExplicit, int baseTagNo)
         {
             return CheckTag(taggedObject, tagClass, tagNo).GetBaseUniversal(declaredExplicit, baseTagNo);
         }
 
+        /// <summary>Check the tag of a tagged object and return its base object as a universal object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="declaredExplicit">true if the tagging was declared as explicit, false if implicit.</param>
+        /// <param name="baseTagNo">The universal tag number of the base object.</param>
+        /// <returns>The base object.</returns>
+        /// <exception cref="InvalidOperationException">The tag does not match.</exception>
         public static Asn1Object GetContextBaseUniversal(Asn1TaggedObject taggedObject, int tagNo,
             bool declaredExplicit, int baseTagNo)
         {
             return GetBaseUniversal(taggedObject, Asn1Tags.ContextSpecific, tagNo, declaredExplicit, baseTagNo);
         }
 
+        /// <summary>Get the base object of a tagged object as a universal object, if it has the expected tag.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="declaredExplicit">true if the tagging was declared as explicit, false if implicit.</param>
+        /// <param name="baseTagNo">The universal tag number of the base object.</param>
+        /// <returns>The base object, or null if the tag does not match.</returns>
         [Obsolete("Will be removed")]
         public static Asn1Object TryGetBaseUniversal(Asn1TaggedObject taggedObject, int tagClass, int tagNo,
             bool declaredExplicit, int baseTagNo)
@@ -467,6 +797,16 @@ namespace Org.BouncyCastle.Asn1
             return taggedObject.GetBaseUniversal(declaredExplicit, baseTagNo);
         }
 
+        /// <summary>
+        /// Try to get the base object of a tagged object as a universal object, if it has the expected tag.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="declaredExplicit">true if the tagging was declared as explicit, false if implicit.</param>
+        /// <param name="baseTagNo">The universal tag number of the base object.</param>
+        /// <param name="baseUniversal">On success, the base object.</param>
+        /// <returns>true if the tag matched and the base object was obtained, false otherwise.</returns>
         public static bool TryGetBaseUniversal(Asn1TaggedObject taggedObject, int tagClass, int tagNo,
             bool declaredExplicit, int baseTagNo, out Asn1Object baseUniversal)
         {
@@ -475,6 +815,12 @@ namespace Org.BouncyCastle.Asn1
             return result;
         }
 
+        /// <summary>Get the base object of a tagged object as a universal object, if it has the expected tag.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="declaredExplicit">true if the tagging was declared as explicit, false if implicit.</param>
+        /// <param name="baseTagNo">The universal tag number of the base object.</param>
+        /// <returns>The base object, or null if the tag does not match.</returns>
         [Obsolete("Will be removed")]
         public static Asn1Object TryGetContextBaseUniversal(Asn1TaggedObject taggedObject, int tagNo,
             bool declaredExplicit, int baseTagNo)
@@ -482,6 +828,15 @@ namespace Org.BouncyCastle.Asn1
             return TryGetBaseUniversal(taggedObject, Asn1Tags.ContextSpecific, tagNo, declaredExplicit, baseTagNo);
         }
 
+        /// <summary>
+        /// Try to get the base object of a tagged object as a universal object, if it has the expected tag.
+        /// </summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="declaredExplicit">true if the tagging was declared as explicit, false if implicit.</param>
+        /// <param name="baseTagNo">The universal tag number of the base object.</param>
+        /// <param name="baseUniversal">On success, the base object.</param>
+        /// <returns>true if the tag matched and the base object was obtained, false otherwise.</returns>
         public static bool TryGetContextBaseUniversal(Asn1TaggedObject taggedObject, int tagNo, bool declaredExplicit,
             int baseTagNo, out Asn1Object baseUniversal)
         {
@@ -761,6 +1116,12 @@ namespace Org.BouncyCastle.Asn1
 
         #region Sequence cursor
 
+        /// <summary>Read the next element of a sequence, advancing the position.</summary>
+        /// <param name="sequence">The sequence.</param>
+        /// <param name="sequencePosition">The position in the sequence; advanced if an element is consumed.</param>
+        /// <param name="constructor">A function that constructs the result from the element.</param>
+        /// <returns>The result.</returns>
+        /// <exception cref="InvalidOperationException">There are no more elements in the sequence.</exception>
         public static TResult Read<TResult>(Asn1Sequence sequence, ref int sequencePosition,
             Func<Asn1Encodable, TResult> constructor)
             where TResult : class
@@ -769,12 +1130,33 @@ namespace Org.BouncyCastle.Asn1
             return constructor(element);
         }
 
+        /// <summary>
+        /// Read the next element of a sequence as a tagged object with the expected tag, advancing the position.
+        /// </summary>
+        /// <param name="sequence">The sequence.</param>
+        /// <param name="sequencePosition">The position in the sequence; advanced if an element is consumed.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="state">The state passed to the constructor.</param>
+        /// <param name="constructor">A function that constructs the result from the tagged object.</param>
+        /// <returns>The result.</returns>
+        /// <exception cref="InvalidOperationException">There are no more elements in the sequence.</exception>
         public static TResult ReadContextTagged<TState, TResult>(Asn1Sequence sequence, ref int sequencePosition,
             int tagNo, TState state, Func<Asn1TaggedObject, TState, TResult> constructor)
         {
             return ReadTagged(sequence, ref sequencePosition, Asn1Tags.ContextSpecific, tagNo, state, constructor);
         }
 
+        /// <summary>
+        /// Read the next element of a sequence as a tagged object with the expected tag, advancing the position.
+        /// </summary>
+        /// <param name="sequence">The sequence.</param>
+        /// <param name="sequencePosition">The position in the sequence; advanced if an element is consumed.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="state">The state passed to the constructor.</param>
+        /// <param name="constructor">A function that constructs the result from the tagged object.</param>
+        /// <returns>The result.</returns>
+        /// <exception cref="InvalidOperationException">There are no more elements in the sequence.</exception>
         public static TResult ReadTagged<TState, TResult>(Asn1Sequence sequence, ref int sequencePosition, int tagClass,
             int tagNo, TState state, Func<Asn1TaggedObject, TState, TResult> constructor)
         {
@@ -783,6 +1165,15 @@ namespace Org.BouncyCastle.Asn1
             return constructor(taggedObject, state);
         }
 
+        /// <summary>
+        /// Read the next element of a sequence if the constructor accepts it, advancing the position only in that case.
+        /// </summary>
+        /// <param name="sequence">The sequence.</param>
+        /// <param name="sequencePosition">The position in the sequence; advanced if an element is consumed.</param>
+        /// <param name="constructor">
+        /// A function that constructs the result from the element, returning null if the element does not match.
+        /// </param>
+        /// <returns>The result, or null if there is no next element or it was not accepted.</returns>
         public static TResult ReadOptional<TResult>(Asn1Sequence sequence, ref int sequencePosition,
             Func<Asn1Encodable, TResult> constructor)
             where TResult : class
@@ -800,6 +1191,16 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>
+        /// Read the next element of a sequence if it is a tagged object with the expected tag, advancing the position
+        /// only in that case.
+        /// </summary>
+        /// <param name="sequence">The sequence.</param>
+        /// <param name="sequencePosition">The position in the sequence; advanced if an element is consumed.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="state">The state passed to the constructor.</param>
+        /// <param name="constructor">A function that constructs the result from the tagged object.</param>
+        /// <returns>The result, or null if there is no next element or it does not have the expected tag.</returns>
         public static TResult ReadOptionalContextTagged<TState, TResult>(Asn1Sequence sequence,
             ref int sequencePosition, int tagNo, TState state, Func<Asn1TaggedObject, TState, TResult> constructor)
             where TResult : class
@@ -808,6 +1209,17 @@ namespace Org.BouncyCastle.Asn1
                 constructor);
         }
 
+        /// <summary>
+        /// Read the next element of a sequence if it is a tagged object with the expected tag, advancing the position
+        /// only in that case.
+        /// </summary>
+        /// <param name="sequence">The sequence.</param>
+        /// <param name="sequencePosition">The position in the sequence; advanced if an element is consumed.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="state">The state passed to the constructor.</param>
+        /// <param name="constructor">A function that constructs the result from the tagged object.</param>
+        /// <returns>The result, or null if there is no next element or it does not have the expected tag.</returns>
         public static TResult ReadOptionalTagged<TState, TResult>(Asn1Sequence sequence, ref int sequencePosition,
             int tagClass, int tagNo, TState state, Func<Asn1TaggedObject, TState, TResult> constructor)
             where TResult : class
@@ -822,6 +1234,17 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>
+        /// Try to read the next element of a sequence if it is a tagged object with the expected tag, advancing the
+        /// position only in that case.
+        /// </summary>
+        /// <param name="sequence">The sequence.</param>
+        /// <param name="sequencePosition">The position in the sequence; advanced if an element is consumed.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="state">The state passed to the constructor.</param>
+        /// <param name="result">On success, the result.</param>
+        /// <param name="constructor">A function that constructs the result from the tagged object.</param>
+        /// <returns>true if an element was read, false otherwise.</returns>
         public static bool TryReadOptionalContextTagged<TState, TResult>(Asn1Sequence sequence,
             ref int sequencePosition, int tagNo, TState state, out TResult result,
             Func<Asn1TaggedObject, TState, TResult> constructor)
@@ -830,6 +1253,18 @@ namespace Org.BouncyCastle.Asn1
                 state, out result, constructor);
         }
 
+        /// <summary>
+        /// Try to read the next element of a sequence if it is a tagged object with the expected tag, advancing the
+        /// position only in that case.
+        /// </summary>
+        /// <param name="sequence">The sequence.</param>
+        /// <param name="sequencePosition">The position in the sequence; advanced if an element is consumed.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="state">The state passed to the constructor.</param>
+        /// <param name="result">On success, the result.</param>
+        /// <param name="constructor">A function that constructs the result from the tagged object.</param>
+        /// <returns>true if an element was read, false otherwise.</returns>
         public static bool TryReadOptionalTagged<TState, TResult>(Asn1Sequence sequence, ref int sequencePosition,
             int tagClass, int tagNo, TState state, out TResult result,
             Func<Asn1TaggedObject, TState, TResult> constructor)
