@@ -13,8 +13,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly int l;
 
         /// <summary>Create a new <see cref="ElGamalParameters"/>.</summary>
-        /// <param name="p">The p.</param>
-        /// <param name="g">The g.</param>
+        /// <param name="p">The prime modulus.</param>
+        /// <param name="g">The generator.</param>
         public ElGamalParameters(
             BigInteger p,
             BigInteger g)
@@ -23,8 +23,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
         /// <summary>Create a new <see cref="ElGamalParameters"/>.</summary>
-        /// <param name="p">The p.</param>
-        /// <param name="g">The g.</param>
+        /// <param name="p">The prime modulus.</param>
+        /// <param name="g">The generator.</param>
         /// <param name="l">The l.</param>
         public ElGamalParameters(
             BigInteger p,

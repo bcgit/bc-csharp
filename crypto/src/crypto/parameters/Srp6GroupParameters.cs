@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         /// <summary>Create a new <see cref="Srp6GroupParameters"/>.</summary>
         /// <param name="N">The n.</param>
-        /// <param name="g">The g.</param>
+        /// <param name="g">The generator.</param>
         public Srp6GroupParameters(BigInteger N, BigInteger g)
         {
             this.n = N;
