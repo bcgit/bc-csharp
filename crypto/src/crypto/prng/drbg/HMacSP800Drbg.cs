@@ -5,14 +5,14 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Prng.Drbg
 {
-	/**
-	 * A SP800-90A HMAC DRBG.
-	 */
-	public sealed class HMacSP800Drbg
+    /**
+     * A SP800-90A HMAC DRBG.
+     */
+    public sealed class HMacSP800Drbg
         :   ISP80090Drbg
-	{
-	    private readonly static long RESEED_MAX = 1L << (48 - 1);
-		private readonly static int MAX_BITS_REQUEST = 1 << (19 - 1);
+    {
+        private readonly static long RESEED_MAX = 1L << (48 - 1);
+        private readonly static int MAX_BITS_REQUEST = 1 << (19 - 1);
 
         private readonly byte[]         mK;
         private readonly byte[]         mV;
@@ -23,39 +23,39 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
         private long mReseedCounter;
 
         /**
-	     * Construct a SP800-90A Hash DRBG.
-	     * <p>
-	     * Minimum entropy requirement is the security strength requested.
-	     * </p>
-	     * @param hMac Hash MAC to base the DRBG on.
-	     * @param securityStrength security strength required (in bits)
-	     * @param entropySource source of entropy to use for seeding/reseeding.
-	     * @param personalizationString personalization string to distinguish this DRBG (may be null).
-	     * @param nonce nonce to further distinguish this DRBG (may be null).
-	     */
-	    public HMacSP800Drbg(IMac hMac, int securityStrength, IEntropySource entropySource,
+         * Construct a SP800-90A Hash DRBG.
+         * <p>
+         * Minimum entropy requirement is the security strength requested.
+         * </p>
+         * @param hMac Hash MAC to base the DRBG on.
+         * @param securityStrength security strength required (in bits)
+         * @param entropySource source of entropy to use for seeding/reseeding.
+         * @param personalizationString personalization string to distinguish this DRBG (may be null).
+         * @param nonce nonce to further distinguish this DRBG (may be null).
+         */
+        public HMacSP800Drbg(IMac hMac, int securityStrength, IEntropySource entropySource,
             byte[] personalizationString, byte[] nonce)
-	    {
-	        if (securityStrength > DrbgUtilities.GetMaxSecurityStrength(hMac))
-	            throw new ArgumentException("Requested security strength is not supported by the derivation function");
-	        if (entropySource.EntropySize < securityStrength)
-	            throw new ArgumentException("Not enough entropy for security strength required");
+        {
+            if (securityStrength > DrbgUtilities.GetMaxSecurityStrength(hMac))
+                throw new ArgumentException("Requested security strength is not supported by the derivation function");
+            if (entropySource.EntropySize < securityStrength)
+                throw new ArgumentException("Not enough entropy for security strength required");
 
             mHMac = hMac;
             mSecurityStrength = securityStrength;
-	        mEntropySource = entropySource;
+            mEntropySource = entropySource;
 
             byte[] entropy = GetEntropy();
-	        byte[] seedMaterial = Arrays.ConcatenateAll(entropy, nonce, personalizationString);
+            byte[] seedMaterial = Arrays.ConcatenateAll(entropy, nonce, personalizationString);
 
             mK = new byte[hMac.GetMacSize()];
-	        mV = new byte[mK.Length];
-	        Arrays.Fill(mV, (byte)1);
+            mV = new byte[mK.Length];
+            Arrays.Fill(mV, (byte)1);
 
             hmac_DRBG_Update(seedMaterial);
 
             mReseedCounter = 1;
-	    }
+        }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private void hmac_DRBG_Update()
@@ -86,26 +86,26 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
             mHMac.DoFinal(mV);
         }
 #else
-		private void hmac_DRBG_Update(byte[] seedMaterial)
-	    {
-	        hmac_DRBG_Update_Func(seedMaterial, 0x00);
-	        if (seedMaterial != null)
-	        {
-	            hmac_DRBG_Update_Func(seedMaterial, 0x01);
-	        }
-	    }
+        private void hmac_DRBG_Update(byte[] seedMaterial)
+        {
+            hmac_DRBG_Update_Func(seedMaterial, 0x00);
+            if (seedMaterial != null)
+            {
+                hmac_DRBG_Update_Func(seedMaterial, 0x01);
+            }
+        }
 
-	    private void hmac_DRBG_Update_Func(byte[] seedMaterial, byte vValue)
-	    {
-	        mHMac.Init(new KeyParameter(mK));
+        private void hmac_DRBG_Update_Func(byte[] seedMaterial, byte vValue)
+        {
+            mHMac.Init(new KeyParameter(mK));
 
             mHMac.BlockUpdate(mV, 0, mV.Length);
             mHMac.Update(vValue);
 
-	        if (seedMaterial != null)
-	        {
+            if (seedMaterial != null)
+            {
                 mHMac.BlockUpdate(seedMaterial, 0, seedMaterial.Length);
-	        }
+            }
 
             mHMac.DoFinal(mK, 0);
 
@@ -113,89 +113,89 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
             mHMac.BlockUpdate(mV, 0, mV.Length);
 
             mHMac.DoFinal(mV, 0);
-	    }
+        }
 #endif
 
         /**
-	     * Return the block size (in bits) of the DRBG.
-	     *
-	     * @return the number of bits produced on each round of the DRBG.
-	     */
+         * Return the block size (in bits) of the DRBG.
+         *
+         * @return the number of bits produced on each round of the DRBG.
+         */
         public int BlockSize
-	    {
-			get { return mV.Length * 8; }
-	    }
+        {
+            get { return mV.Length * 8; }
+        }
 
-	    /**
-	     * Populate a passed in array with random data.
-	     *
-	     * @param output output array for generated bits.
-	     * @param additionalInput additional input to be added to the DRBG in this step.
-	     * @param predictionResistant true if a reseed should be forced, false otherwise.
-	     *
-	     * @return number of bits generated, -1 if a reseed required.
-	     */
-	    public int Generate(byte[] output, int outputOff, int outputLen, byte[] additionalInput,
-			bool predictionResistant)
-	    {
+        /**
+         * Populate a passed in array with random data.
+         *
+         * @param output output array for generated bits.
+         * @param additionalInput additional input to be added to the DRBG in this step.
+         * @param predictionResistant true if a reseed should be forced, false otherwise.
+         *
+         * @return number of bits generated, -1 if a reseed required.
+         */
+        public int Generate(byte[] output, int outputOff, int outputLen, byte[] additionalInput,
+            bool predictionResistant)
+        {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             var outputSpan = output.AsSpan(outputOff, outputLen);
             return additionalInput == null
-				? Generate(outputSpan, predictionResistant)
-				: GenerateWithInput(outputSpan, additionalInput.AsSpan(), predictionResistant);
+                ? Generate(outputSpan, predictionResistant)
+                : GenerateWithInput(outputSpan, additionalInput.AsSpan(), predictionResistant);
 #else
-			int numberOfBits = outputLen * 8;
+            int numberOfBits = outputLen * 8;
 
             if (numberOfBits > MAX_BITS_REQUEST)
-	            throw new ArgumentException("Number of bits per request limited to " + MAX_BITS_REQUEST, "output");
+                throw new ArgumentException("Number of bits per request limited to " + MAX_BITS_REQUEST, "output");
 
             if (mReseedCounter > RESEED_MAX)
-	            return -1;
+                return -1;
 
             if (predictionResistant)
-	        {
-	            Reseed(additionalInput);
-	            additionalInput = null;
-	        }
+            {
+                Reseed(additionalInput);
+                additionalInput = null;
+            }
 
-	        // 2.
-	        if (additionalInput != null)
-	        {
-	            hmac_DRBG_Update(additionalInput);
-	        }
+            // 2.
+            if (additionalInput != null)
+            {
+                hmac_DRBG_Update(additionalInput);
+            }
 
             // 3.
-	        byte[] rv = new byte[outputLen];
+            byte[] rv = new byte[outputLen];
 
             int m = outputLen / mV.Length;
 
             mHMac.Init(new KeyParameter(mK));
 
-	        for (int i = 0; i < m; i++)
-	        {
-	            mHMac.BlockUpdate(mV, 0, mV.Length);
-                mHMac.DoFinal(mV, 0);
-
-                Array.Copy(mV, 0, rv, i * mV.Length, mV.Length);
-	        }
-
-            if (m * mV.Length < rv.Length)
-	        {
+            for (int i = 0; i < m; i++)
+            {
                 mHMac.BlockUpdate(mV, 0, mV.Length);
                 mHMac.DoFinal(mV, 0);
 
-	            Array.Copy(mV, 0, rv, m * mV.Length, rv.Length - (m * mV.Length));
-	        }
+                Array.Copy(mV, 0, rv, i * mV.Length, mV.Length);
+            }
+
+            if (m * mV.Length < rv.Length)
+            {
+                mHMac.BlockUpdate(mV, 0, mV.Length);
+                mHMac.DoFinal(mV, 0);
+
+                Array.Copy(mV, 0, rv, m * mV.Length, rv.Length - (m * mV.Length));
+            }
 
             hmac_DRBG_Update(additionalInput);
 
-	        mReseedCounter++;
+            mReseedCounter++;
 
-	        Array.Copy(rv, 0, output, outputOff, outputLen);
+            Array.Copy(rv, 0, output, outputOff, outputLen);
 
             return numberOfBits;
 #endif
-	    }
+        }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int Generate(Span<byte> output, bool predictionResistant)
@@ -287,27 +287,27 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 #endif
 
         /**
-	      * Reseed the DRBG.
-	      *
-	      * @param additionalInput additional input to be added to the DRBG in this step.
-	      */
+          * Reseed the DRBG.
+          *
+          * @param additionalInput additional input to be added to the DRBG in this step.
+          */
         public void Reseed(byte[] additionalInput)
-	    {
+        {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-			Reseed(Spans.FromNullableReadOnly(additionalInput));
+            Reseed(Spans.FromNullableReadOnly(additionalInput));
 #else
-			byte[] entropy = GetEntropy();
-	        byte[] seedMaterial = Arrays.Concatenate(entropy, additionalInput);
+            byte[] entropy = GetEntropy();
+            byte[] seedMaterial = Arrays.Concatenate(entropy, additionalInput);
 
-	        hmac_DRBG_Update(seedMaterial);
+            hmac_DRBG_Update(seedMaterial);
 
-	        mReseedCounter = 1;
+            mReseedCounter = 1;
 #endif
-	    }
+        }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public void Reseed(ReadOnlySpan<byte> additionalInput)
-		{
+        {
             int entropyLength = GetEntropyLength();
             int seedMaterialLength = entropyLength + additionalInput.Length;
             Span<byte> seedMaterial = seedMaterialLength <= 256
@@ -323,12 +323,12 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 #endif
 
         private byte[] GetEntropy()
-	    {
-	        byte[] entropy = mEntropySource.GetEntropy();
-	        if (entropy.Length < (mSecurityStrength + 7) / 8)
-	            throw new InvalidOperationException("Insufficient entropy provided by entropy source");
-	        return entropy;
-	    }
+        {
+            byte[] entropy = mEntropySource.GetEntropy();
+            if (entropy.Length < (mSecurityStrength + 7) / 8)
+                throw new InvalidOperationException("Insufficient entropy provided by entropy source");
+            return entropy;
+        }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private int GetEntropy(Span<byte> output)
