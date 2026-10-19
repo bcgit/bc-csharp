@@ -254,6 +254,12 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        /// <summary>
+        /// Set the authentication info to use a password-based MAC (PKMAC) for the proof of possession.
+        /// </summary>
+        /// <param name="pkmacFactory">The factory of the PKMAC calculator.</param>
+        /// <param name="password">The password.</param>
+        /// <returns>This builder.</returns>
         [Obsolete("Use 'SetAuthInfoPKMacBuilder' instead")]
         public CertificateRequestMessageBuilder SetAuthInfoPKMAC(PKMacBuilder pkmacFactory, char[] password)
         {
