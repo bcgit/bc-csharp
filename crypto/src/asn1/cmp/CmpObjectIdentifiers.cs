@@ -6,8 +6,8 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
-	public static class CmpObjectIdentifiers
-	{
+    public static class CmpObjectIdentifiers
+    {
         // RFC 4210
 
         /**
