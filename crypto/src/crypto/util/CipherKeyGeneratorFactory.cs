@@ -12,6 +12,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
+    /// <summary>Factory for key generators created from algorithm identifiers.</summary>
     [Obsolete("Use 'GeneratorUtilities' instead")]
     public static class CipherKeyGeneratorFactory
     {

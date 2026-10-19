@@ -16,6 +16,7 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
+    /// <summary>Factory for ciphers created from algorithm identifiers.</summary>
     // TODO[api] Make static
     public class CipherFactory
     {
