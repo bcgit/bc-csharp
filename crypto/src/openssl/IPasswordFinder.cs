@@ -2,8 +2,8 @@ using System;
 
 namespace Org.BouncyCastle.OpenSsl
 {
-	public interface IPasswordFinder
-	{
-		char[] GetPassword();
-	}
+    public interface IPasswordFinder
+    {
+        char[] GetPassword();
+    }
 }

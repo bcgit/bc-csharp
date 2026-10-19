@@ -205,10 +205,10 @@ namespace Org.BouncyCastle.OpenSsl
         }
 #else
         private static PemObject CreatePemObject(
-            object			obj,
-            string			algorithm,
-            char[]			password,
-            SecureRandom	random)
+            object obj,
+            string algorithm,
+            char[] password,
+            SecureRandom random)
         {
             if (obj == null)
                 throw new ArgumentNullException("obj");
