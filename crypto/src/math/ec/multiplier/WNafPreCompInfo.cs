@@ -47,35 +47,41 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             set { this.m_promotionCountdown = value; }
         }
 
+        /// <summary>Gets a value indicating whether this is promoted.</summary>
         public virtual bool IsPromoted
         {
             get { return m_promotionCountdown <= 0; }
         }
 
+        /// <summary>Gets or sets the conf width.</summary>
         public virtual int ConfWidth
         {
             get { return m_confWidth; }
             set { this.m_confWidth = value; }
         }
 
+        /// <summary>Gets or sets the pre comp.</summary>
         public virtual ECPoint[] PreComp
         {
             get { return m_preComp; }
             set { this.m_preComp = value; }
         }
 
+        /// <summary>Gets or sets the pre comp neg.</summary>
         public virtual ECPoint[] PreCompNeg
         {
             get { return m_preCompNeg; }
             set { this.m_preCompNeg = value; }
         }
 
+        /// <summary>Gets or sets the twice.</summary>
         public virtual ECPoint Twice
         {
             get { return m_twice; }
             set { this.m_twice = value; }
         }
 
+        /// <summary>Gets or sets the width.</summary>
         public virtual int Width
         {
             get { return m_width; }

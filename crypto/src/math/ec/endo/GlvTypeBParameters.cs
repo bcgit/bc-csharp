@@ -7,6 +7,10 @@ namespace Org.BouncyCastle.Math.EC.Endo
         protected readonly BigInteger m_beta, m_lambda;
         protected readonly ScalarSplitParameters m_splitParams;
 
+        /// <summary>Create a new <see cref="GlvTypeBParameters"/>.</summary>
+        /// <param name="beta">The beta.</param>
+        /// <param name="lambda">The lambda.</param>
+        /// <param name="splitParams">The split params.</param>
         public GlvTypeBParameters(BigInteger beta, BigInteger lambda, ScalarSplitParameters splitParams)
         {
             this.m_beta = beta;
@@ -14,16 +18,19 @@ namespace Org.BouncyCastle.Math.EC.Endo
             this.m_splitParams = splitParams;
         }
 
+        /// <summary>Gets the beta.</summary>
         public virtual BigInteger Beta
         {
             get { return m_beta; }
         }
 
+        /// <summary>Gets the lambda.</summary>
         public virtual BigInteger Lambda
         {
             get { return m_lambda; }
         }
 
+        /// <summary>Gets the split params.</summary>
         public virtual ScalarSplitParameters SplitParams
         {
             get { return m_splitParams; }

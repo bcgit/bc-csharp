@@ -28,12 +28,14 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             set { this.m_lookupTable = value; }
         }
 
+        /// <summary>Gets or sets the offset.</summary>
         public virtual ECPoint Offset
         {
             get { return m_offset; }
             set { this.m_offset = value; }
         }
 
+        /// <summary>Gets or sets the width.</summary>
         public virtual int Width
         {
             get { return m_width; }

@@ -8,6 +8,9 @@ namespace Org.BouncyCastle.Math.EC.Endo
         protected readonly GlvTypeBParameters m_parameters;
         protected readonly ECPointMap m_pointMap;
 
+        /// <summary>Create a new <see cref="GlvTypeBEndomorphism"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="parameters">The parameters.</param>
         public GlvTypeBEndomorphism(ECCurve curve, GlvTypeBParameters parameters)
         {
             /*
@@ -20,6 +23,7 @@ namespace Org.BouncyCastle.Math.EC.Endo
             this.m_pointMap = new ScaleXPointMap(curve.FromBigInteger(parameters.Beta));
         }
 
+        /// <inheritdoc/>
         public virtual BigInteger[] DecomposeScalar(BigInteger k)
         {
             return EndoUtilities.DecomposeScalar(m_parameters.SplitParams, k);
@@ -30,6 +34,7 @@ namespace Org.BouncyCastle.Math.EC.Endo
             get { return m_pointMap; }
         }
 
+        /// <inheritdoc/>
         public virtual bool HasEfficientPointMap
         {
             get { return true; }

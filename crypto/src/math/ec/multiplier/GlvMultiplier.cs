@@ -10,6 +10,9 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
         protected readonly ECCurve curve;
         protected readonly GlvEndomorphism glvEndomorphism;
 
+        /// <summary>Create a new <see cref="GlvMultiplier"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="glvEndomorphism">The glv endomorphism.</param>
         public GlvMultiplier(ECCurve curve, GlvEndomorphism glvEndomorphism)
         {
             if (curve == null || curve.Order == null)
@@ -19,6 +22,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             this.glvEndomorphism = glvEndomorphism;
         }
 
+        /// <inheritdoc/>
         protected override ECPoint MultiplyPositive(ECPoint p, BigInteger k)
         {
             if (!curve.Equals(p.Curve))

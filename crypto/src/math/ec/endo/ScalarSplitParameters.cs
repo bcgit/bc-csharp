@@ -16,6 +16,12 @@ namespace Org.BouncyCastle.Math.EC.Endo
         protected readonly BigInteger m_g1, m_g2;
         protected readonly int m_bits;
 
+        /// <summary>Create a new <see cref="ScalarSplitParameters"/>.</summary>
+        /// <param name="v1">The v 1.</param>
+        /// <param name="v2">The v 2.</param>
+        /// <param name="g1">The g 1.</param>
+        /// <param name="g2">The g 2.</param>
+        /// <param name="bits">The bits.</param>
         public ScalarSplitParameters(BigInteger[] v1, BigInteger[] v2, BigInteger g1,
             BigInteger g2, int bits)
         {
@@ -31,36 +37,43 @@ namespace Org.BouncyCastle.Math.EC.Endo
             this.m_bits = bits;
         }
 
+        /// <summary>Gets the v 1 a.</summary>
         public virtual BigInteger V1A
         {
             get { return m_v1A; }
         }
 
+        /// <summary>Gets the v 1 b.</summary>
         public virtual BigInteger V1B
         {
             get { return m_v1B; }
         }
 
+        /// <summary>Gets the v 2 a.</summary>
         public virtual BigInteger V2A
         {
             get { return m_v2A; }
         }
 
+        /// <summary>Gets the v 2 b.</summary>
         public virtual BigInteger V2B
         {
             get { return m_v2B; }
         }
 
+        /// <summary>Gets the g 1.</summary>
         public virtual BigInteger G1
         {
             get { return m_g1; }
         }
 
+        /// <summary>Gets the g 2.</summary>
         public virtual BigInteger G2
         {
             get { return m_g2; }
         }
 
+        /// <summary>Gets the bits.</summary>
         public virtual int Bits
         {
             get { return m_bits; }

@@ -17,6 +17,7 @@ namespace Org.BouncyCastle.Math.EC.Endo
             set { this.m_endomorphism = value; }
         }
 
+        /// <summary>Gets or sets the mapped point.</summary>
         public virtual ECPoint MappedPoint
         {
             get { return m_mappedPoint; }

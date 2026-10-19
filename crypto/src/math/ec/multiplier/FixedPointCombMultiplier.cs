@@ -7,6 +7,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
     public class FixedPointCombMultiplier
         : AbstractECMultiplier
     {
+        /// <inheritdoc/>
         protected override ECPoint MultiplyPositive(ECPoint p, BigInteger k)
         {
             ECCurve c = p.Curve;
