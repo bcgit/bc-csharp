@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Eac
 {
+    /// <summary>Object identifiers for BSI TR-03110 extended access control.</summary>
     // TODO[api] Make static
     public abstract class EacObjectIdentifiers
     {
