@@ -30,6 +30,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
          */
         protected ECPoint m_twice = null;
 
+        /// <summary>The width.</summary>
         protected int m_width = -1;
 
         internal int DecrementPromotionCountdown()

@@ -7,6 +7,7 @@ namespace Org.BouncyCastle.Math.EC.Endo
     public class EndoPreCompInfo
         : PreCompInfo
     {
+        /// <summary>The endomorphism.</summary>
         protected ECEndomorphism m_endomorphism;
 
         /// <summary>The mapped point.</summary>

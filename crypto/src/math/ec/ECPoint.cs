@@ -44,8 +44,11 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <summary>The curve.</summary>
         protected internal readonly ECCurve m_curve;
+        /// <summary>The y.</summary>
         protected internal readonly ECFieldElement m_x, m_y;
+        /// <summary>The zs.</summary>
         protected internal readonly ECFieldElement[] m_zs;
 
         /// <summary>The pre comp table.</summary>

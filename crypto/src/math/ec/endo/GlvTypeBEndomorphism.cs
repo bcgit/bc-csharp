@@ -5,6 +5,7 @@ namespace Org.BouncyCastle.Math.EC.Endo
     public class GlvTypeBEndomorphism
         :   GlvEndomorphism
     {
+        /// <summary>The parameters.</summary>
         protected readonly GlvTypeBParameters m_parameters;
         /// <summary>The point map.</summary>
         protected readonly ECPointMap m_pointMap;

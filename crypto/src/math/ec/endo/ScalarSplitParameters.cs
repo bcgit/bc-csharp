@@ -16,6 +16,7 @@ namespace Org.BouncyCastle.Math.EC.Endo
         protected readonly BigInteger m_v1A, m_v1B, m_v2A, m_v2B;
         /// <summary>The g 2.</summary>
         protected readonly BigInteger m_g1, m_g2;
+        /// <summary>The bits.</summary>
         protected readonly int m_bits;
 
         /// <summary>Create a new <see cref="ScalarSplitParameters"/>.</summary>

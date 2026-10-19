@@ -89,12 +89,18 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <summary>The field.</summary>
         protected readonly IFiniteField m_field;
+        /// <summary>The b.</summary>
         protected ECFieldElement m_a, m_b;
+        /// <summary>The cofactor.</summary>
         protected BigInteger m_order, m_cofactor;
 
+        /// <summary>The coord.</summary>
         protected int m_coord = COORD_AFFINE;
+        /// <summary>The endomorphism.</summary>
         protected ECEndomorphism m_endomorphism = null;
+        /// <summary>The multiplier.</summary>
         protected ECMultiplier m_multiplier = null;
 
         private IDictionary<string, PreCompInfo> m_preCompTable = null;
@@ -818,7 +824,9 @@ namespace Org.BouncyCastle.Math.EC
     {
         private const int FP_DEFAULT_COORDS = COORD_JACOBIAN_MODIFIED;
 
+        /// <summary>The r.</summary>
         protected readonly BigInteger m_q, m_r;
+        /// <summary>The infinity.</summary>
         protected readonly FpPoint m_infinity;
 
         /// <summary>Create a new <see cref="FpCurve"/>.</summary>

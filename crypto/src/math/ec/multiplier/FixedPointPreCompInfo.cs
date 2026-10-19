@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
     public class FixedPointPreCompInfo
         : PreCompInfo
     {
+        /// <summary>The offset.</summary>
         protected ECPoint m_offset = null;
 
         /**
