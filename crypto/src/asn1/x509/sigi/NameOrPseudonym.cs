@@ -23,11 +23,23 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
     public class NameOrPseudonym
         : Asn1Encodable, IAsn1Choice
     {
+        /// <summary>Return an <see cref="NameOrPseudonym"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="NameOrPseudonym"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="NameOrPseudonym"/>, or null if <paramref name="obj"/> is null.</returns>
         public static NameOrPseudonym GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
+        /// <summary>Return an <see cref="NameOrPseudonym"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="NameOrPseudonym"/>.</returns>
         public static NameOrPseudonym GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
 
+        /// <summary>Return an <see cref="NameOrPseudonym"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="NameOrPseudonym"/>, or null if <paramref name="element"/> is null.</returns>
         public static NameOrPseudonym GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -48,6 +60,10 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
             return null;
         }
 
+        /// <summary>Return an <see cref="NameOrPseudonym"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="NameOrPseudonym"/>.</returns>
         public static NameOrPseudonym GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
@@ -128,10 +144,13 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
             m_givenName = givenName ?? throw new ArgumentNullException(nameof(givenName));
         }
 
+        /// <summary>Gets the pseudonym.</summary>
         public DirectoryString Pseudonym => m_pseudonym;
 
+        /// <summary>Gets the surname.</summary>
         public DirectoryString Surname => m_surname;
 
+        /// <summary>Return the given name.</summary>
         public DirectoryString[] GetGivenName() => m_givenName?.MapElements(DirectoryString.GetInstance);
 
         /**

@@ -26,6 +26,11 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
     public class PersonalData
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="PersonalData"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="PersonalData"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="PersonalData"/>, or null if <paramref name="obj"/> is null.</returns>
         public static PersonalData GetInstance(object obj)
         {
             if (obj == null)
@@ -35,9 +40,17 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
             return new PersonalData(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="PersonalData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PersonalData"/>.</returns>
         public static PersonalData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PersonalData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="PersonalData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PersonalData"/>.</returns>
         public static PersonalData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PersonalData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -107,14 +120,19 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
 
         public NameOrPseudonym NameOrPseudonym => m_nameOrPseudonym;
 
+        /// <summary>Gets the name distinguisher.</summary>
         public BigInteger NameDistinguisher => m_nameDistinguisher?.Value;
 
+        /// <summary>Gets the date of birth.</summary>
         public Asn1GeneralizedTime DateOfBirth => m_dateOfBirth;
 
+        /// <summary>Gets the place of birth.</summary>
         public DirectoryString PlaceOfBirth => m_placeOfBirth;
 
+        /// <summary>Gets the gender.</summary>
         public string Gender => m_gender?.GetString();
 
+        /// <summary>Gets the postal address.</summary>
         public DirectoryString PostalAddress => m_postalAddress;
 
         /**
