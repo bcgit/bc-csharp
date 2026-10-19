@@ -15,6 +15,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
      */
     public abstract class PqcOtherInfoGenerator
     {
+        /// <summary>The other info builder.</summary>
         protected readonly DerOtherInfo.Builder m_otherInfoBuilder;
         protected readonly SecureRandom m_random;
 
