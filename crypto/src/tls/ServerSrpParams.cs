@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Tls
 
         /// <summary>Create a new <see cref="ServerSrpParams"/>.</summary>
         /// <param name="N">The n.</param>
-        /// <param name="g">The g.</param>
+        /// <param name="g">The generator.</param>
         /// <param name="s">The s.</param>
         /// <param name="B">The b.</param>
         public ServerSrpParams(BigInteger N, BigInteger g, byte[] s, BigInteger B)
