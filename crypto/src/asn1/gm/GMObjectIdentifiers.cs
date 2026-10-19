@@ -4,7 +4,7 @@ namespace Org.BouncyCastle.Asn1.GM
 {
     // TODO[api] Make static
     public abstract class GMObjectIdentifiers
-	{
+    {
         public static readonly DerObjectIdentifier sm_scheme = new DerObjectIdentifier("1.2.156.10197.1");
 
         public static readonly DerObjectIdentifier sm6_ecb = sm_scheme.Branch("101.1");
@@ -96,5 +96,5 @@ namespace Org.BouncyCastle.Asn1.GM
         public static readonly DerObjectIdentifier sm2sign_with_whirlpool = sm_scheme.Branch("520");
         public static readonly DerObjectIdentifier sm2sign_with_blake2b512 = sm_scheme.Branch("521");
         public static readonly DerObjectIdentifier sm2sign_with_blake2s256 = sm_scheme.Branch("522");
-	}
+    }
 }
