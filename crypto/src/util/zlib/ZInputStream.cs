@@ -71,16 +71,24 @@ namespace Org.BouncyCastle.Utilities.Zlib
         private byte[] spanBuf;
 #endif
 
+        /// <summary>Create a new <see cref="ZInputStream"/>.</summary>
+        /// <param name="input">The input data.</param>
         public ZInputStream(Stream input)
             : this(input, false)
         {
         }
 
+        /// <summary>Create a new <see cref="ZInputStream"/>.</summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="nowrap">true if nowrap, false otherwise.</param>
         public ZInputStream(Stream input, bool nowrap)
             : this(input, GetDefaultZStream(nowrap))
         {
         }
 
+        /// <summary>Create a new <see cref="ZInputStream"/>.</summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="z">The result.</param>
         public ZInputStream(Stream input, ZStream z)
             : base()
         {
@@ -104,11 +112,18 @@ namespace Org.BouncyCastle.Utilities.Zlib
             this.z.avail_in = 0;
         }
 
+        /// <summary>Create a new <see cref="ZInputStream"/>.</summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="level">The level.</param>
         public ZInputStream(Stream input, int level)
             : this(input, level, false)
         {
         }
 
+        /// <summary>Create a new <see cref="ZInputStream"/>.</summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="level">The level.</param>
+        /// <param name="nowrap">true if nowrap, false otherwise.</param>
         public ZInputStream(Stream input, int level, bool nowrap)
         {
             Debug.Assert(input.CanRead);
@@ -131,6 +146,7 @@ namespace Org.BouncyCastle.Utilities.Zlib
             base.Dispose(disposing);
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -152,12 +168,14 @@ namespace Org.BouncyCastle.Utilities.Zlib
             }
         }
 
+        /// <summary>Gets or sets the flush mode.</summary>
         public virtual int FlushMode
         {
             get { return flushLevel; }
             set { this.flushLevel = value; }
         }
 
+        /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
             Streams.ValidateBufferArguments(buffer, offset, count);
@@ -222,6 +240,7 @@ namespace Org.BouncyCastle.Utilities.Zlib
         }
 #endif
 
+        /// <inheritdoc/>
         public override int ReadByte()
         {
             if (Read(buf1, 0, 1) <= 0)
@@ -237,11 +256,13 @@ namespace Org.BouncyCastle.Utilities.Zlib
         //    return((long)read(tmp));
         //  }
 
+        /// <summary>Gets the total in.</summary>
         public virtual long TotalIn
         {
             get { return z.total_in; }
         }
 
+        /// <summary>Gets the total out.</summary>
         public virtual long TotalOut
         {
             get { return z.total_out; }
@@ -251,31 +272,47 @@ namespace Org.BouncyCastle.Utilities.Zlib
     public class ZInputStreamLeaveOpen
         : ZInputStream
     {
+        /// <summary>Create a new <see cref="ZInputStreamLeaveOpen"/>.</summary>
+        /// <param name="input">The input data.</param>
         public ZInputStreamLeaveOpen(Stream input)
             : base(input)
         {
         }
 
+        /// <summary>Create a new <see cref="ZInputStreamLeaveOpen"/>.</summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="nowrap">true if nowrap, false otherwise.</param>
         public ZInputStreamLeaveOpen(Stream input, bool nowrap)
             : base(input, nowrap)
         {
         }
 
+        /// <summary>Create a new <see cref="ZInputStreamLeaveOpen"/>.</summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="z">The result.</param>
         public ZInputStreamLeaveOpen(Stream input, ZStream z)
             : base(input, z)
         {
         }
 
+        /// <summary>Create a new <see cref="ZInputStreamLeaveOpen"/>.</summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="level">The level.</param>
         public ZInputStreamLeaveOpen(Stream input, int level)
             : base(input, level)
         {
         }
 
+        /// <summary>Create a new <see cref="ZInputStreamLeaveOpen"/>.</summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="level">The level.</param>
+        /// <param name="nowrap">true if nowrap, false otherwise.</param>
         public ZInputStreamLeaveOpen(Stream input, int level, bool nowrap)
             : base(input, level, nowrap)
         {
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             Detach(disposing);

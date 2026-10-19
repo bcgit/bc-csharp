@@ -44,31 +44,52 @@ namespace Org.BouncyCastle.Utilities.Zlib
             return _version;
         }
 
+        /// <summary>The <c>Z_NO_COMPRESSION</c> constant, with the value <c>0</c>.</summary>
         // compression levels
         public const int Z_NO_COMPRESSION=0;
+        /// <summary>The <c>Z_BEST_SPEED</c> constant, with the value <c>1</c>.</summary>
         public const int Z_BEST_SPEED=1;
+        /// <summary>The <c>Z_BEST_COMPRESSION</c> constant, with the value <c>9</c>.</summary>
         public const int Z_BEST_COMPRESSION=9;
+        /// <summary>The <c>Z_DEFAULT_COMPRESSION</c> constant, with the value <c>-1</c>.</summary>
         public const int Z_DEFAULT_COMPRESSION=-1;
 
+        /// <summary>The <c>Z_FILTERED</c> constant, with the value <c>1</c>.</summary>
         // compression strategy
         public const int Z_FILTERED=1;
+        /// <summary>The <c>Z_HUFFMAN_ONLY</c> constant, with the value <c>2</c>.</summary>
         public const int Z_HUFFMAN_ONLY=2;
+        /// <summary>The <c>Z_DEFAULT_STRATEGY</c> constant, with the value <c>0</c>.</summary>
         public const int Z_DEFAULT_STRATEGY=0;
 
+        /// <summary>The <c>Z_NO_FLUSH</c> constant, with the value <c>0</c>.</summary>
         public const int Z_NO_FLUSH=0;
+        /// <summary>The <c>Z_PARTIAL_FLUSH</c> constant, with the value <c>1</c>.</summary>
         public const int Z_PARTIAL_FLUSH=1;
+        /// <summary>The <c>Z_SYNC_FLUSH</c> constant, with the value <c>2</c>.</summary>
         public const int Z_SYNC_FLUSH=2;
+        /// <summary>The <c>Z_FULL_FLUSH</c> constant, with the value <c>3</c>.</summary>
         public const int Z_FULL_FLUSH=3;
+        /// <summary>The <c>Z_FINISH</c> constant, with the value <c>4</c>.</summary>
         public const int Z_FINISH=4;
 
+        /// <summary>The <c>Z_OK</c> constant, with the value <c>0</c>.</summary>
         public const int Z_OK=0;
+        /// <summary>The <c>Z_STREAM_END</c> constant, with the value <c>1</c>.</summary>
         public const int Z_STREAM_END=1;
+        /// <summary>The <c>Z_NEED_DICT</c> constant, with the value <c>2</c>.</summary>
         public const int Z_NEED_DICT=2;
+        /// <summary>The <c>Z_ERRNO</c> constant, with the value <c>-1</c>.</summary>
         public const int Z_ERRNO=-1;
+        /// <summary>The <c>Z_STREAM_ERROR</c> constant, with the value <c>-2</c>.</summary>
         public const int Z_STREAM_ERROR=-2;
+        /// <summary>The <c>Z_DATA_ERROR</c> constant, with the value <c>-3</c>.</summary>
         public const int Z_DATA_ERROR=-3;
+        /// <summary>The <c>Z_MEM_ERROR</c> constant, with the value <c>-4</c>.</summary>
         public const int Z_MEM_ERROR=-4;
+        /// <summary>The <c>Z_BUF_ERROR</c> constant, with the value <c>-5</c>.</summary>
         public const int Z_BUF_ERROR=-5;
+        /// <summary>The <c>Z_VERSION_ERROR</c> constant, with the value <c>-6</c>.</summary>
         public const int Z_VERSION_ERROR=-6;
     }
 }

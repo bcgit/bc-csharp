@@ -46,9 +46,13 @@ namespace Org.BouncyCastle.Utilities.Bzip2
     {
         protected const int SETMASK = 1 << 21;
         protected const int CLEARMASK = ~SETMASK;
+        /// <summary>The <c>GREATER_ICOST</c> constant, with the value <c>15</c>.</summary>
         protected const int GREATER_ICOST = 15;
+        /// <summary>The <c>LESSER_ICOST</c> constant, with the value <c>0</c>.</summary>
         protected const int LESSER_ICOST = 0;
+        /// <summary>The <c>SMALL_THRESH</c> constant, with the value <c>20</c>.</summary>
         protected const int SMALL_THRESH = 20;
+        /// <summary>The <c>DEPTH_THRESH</c> constant, with the value <c>10</c>.</summary>
         protected const int DEPTH_THRESH = 10;
 
         internal static readonly ushort[] RNums = {
@@ -288,11 +292,16 @@ namespace Org.BouncyCastle.Utilities.Bzip2
         private int runLength = 0;
         private int m_streamCrc;
 
+        /// <summary>Create a new <see cref="CBZip2OutputStream"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
         public CBZip2OutputStream(Stream outStream)
             : this(outStream, 9)
         {
         }
 
+        /// <summary>Create a new <see cref="CBZip2OutputStream"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
+        /// <param name="blockSize">The block size in bytes.</param>
         public CBZip2OutputStream(Stream outStream, int blockSize)
         {
             blockBytes = null;
@@ -429,6 +438,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
             base.Dispose(disposing);
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -470,6 +480,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
             Flush();
         }
 
+        /// <inheritdoc/>
         public override void Flush()
         {
             bsStream.Flush();
@@ -1605,16 +1616,22 @@ namespace Org.BouncyCastle.Utilities.Bzip2
     public class CBZip2OutputStreamLeaveOpen
         : CBZip2OutputStream
     {
+        /// <summary>Create a new <see cref="CBZip2OutputStreamLeaveOpen"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
         public CBZip2OutputStreamLeaveOpen(Stream outStream)
             : base(outStream)
         {
         }
 
+        /// <summary>Create a new <see cref="CBZip2OutputStreamLeaveOpen"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
+        /// <param name="blockSize">The block size in bytes.</param>
         public CBZip2OutputStreamLeaveOpen(Stream outStream, int blockSize)
             : base(outStream, blockSize)
         {
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             Detach(disposing);
