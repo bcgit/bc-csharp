@@ -3,16 +3,16 @@ using Org.BouncyCastle.Asn1.X500;
 namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 {
     /**
-	* Some other information of non-restrictive nature regarding the usage of this
-	* certificate.
-	* 
-	* <pre>
-	*    AdditionalInformationSyntax ::= DirectoryString (SIZE(1..2048))
-	* </pre>
-	*/
+    * Some other information of non-restrictive nature regarding the usage of this
+    * certificate.
+    *
+    * <pre>
+    *    AdditionalInformationSyntax ::= DirectoryString (SIZE(1..2048))
+    * </pre>
+    */
     public class AdditionalInformationSyntax
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         public static AdditionalInformationSyntax GetInstance(object obj)
         {
             if (obj == null)
@@ -31,35 +31,35 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
         private readonly DirectoryString m_information;
 
         private AdditionalInformationSyntax(DirectoryString information)
-		{
+        {
             // TODO Length constraint?
             m_information = information;
-		}
+        }
 
-		/**
-		* Constructor from a given details.
-		*
-		* @param information The description of the information.
-		*/
-		public AdditionalInformationSyntax(string information)
-		{
+        /**
+        * Constructor from a given details.
+        *
+        * @param information The description of the information.
+        */
+        public AdditionalInformationSyntax(string information)
+        {
             // TODO Length constraint?
             m_information = new DirectoryString(information);
-		}
+        }
 
-		public virtual DirectoryString Information => m_information;
+        public virtual DirectoryString Information => m_information;
 
-		/**
-		* Produce an object suitable for an Asn1OutputStream.
-		* <p/>
-		* Returns:
-		* <p/>
-		* <pre>
-		*   AdditionalInformationSyntax ::= DirectoryString (SIZE(1..2048))
-		* </pre>
-		*
-		* @return an Asn1Object
-		*/
-		public override Asn1Object ToAsn1Object() => m_information.ToAsn1Object();
-	}
+        /**
+        * Produce an object suitable for an Asn1OutputStream.
+        * <p/>
+        * Returns:
+        * <p/>
+        * <pre>
+        *   AdditionalInformationSyntax ::= DirectoryString (SIZE(1..2048))
+        * </pre>
+        *
+        * @return an Asn1Object
+        */
+        public override Asn1Object ToAsn1Object() => m_information.ToAsn1Object();
+    }
 }
