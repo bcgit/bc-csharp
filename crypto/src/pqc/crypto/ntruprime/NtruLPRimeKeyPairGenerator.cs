@@ -35,12 +35,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             NtruLPRimePrivateKeyParameters privKey = new NtruLPRimePrivateKeyParameters(_ntruPrimeParams.Parameters, sk);
             return new AsymmetricCipherKeyPair(pubKey, privKey);
         }
-        
+
         public void Init(KeyGenerationParameters param)
         {
             this.Initialize(param);
         }
-        
+
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
             return GenKeyPair();

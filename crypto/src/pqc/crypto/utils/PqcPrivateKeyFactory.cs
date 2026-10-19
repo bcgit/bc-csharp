@@ -88,10 +88,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 Asn1Encodable obj = keyInfo.ParsePrivateKey();
                 SphincsPlusParameters spParams = PqcUtilities.SphincsPlusParamsLookup(algOid);
 
-                if (obj is Asn1Sequence keySeq) 
-                { 
+                if (obj is Asn1Sequence keySeq)
+                {
                     SphincsPlusPrivateKey spKey = SphincsPlusPrivateKey.GetInstance(keySeq);
-                    
+
                     SphincsPlusPublicKey publicKey = spKey.PublicKey;
 
                     return new SphincsPlusPrivateKeyParameters(spParams, spKey.GetSkseed(), spKey.GetSkprf(),

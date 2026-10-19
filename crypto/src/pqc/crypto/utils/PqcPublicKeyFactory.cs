@@ -71,7 +71,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.ulightsaberkem90sr3] = SaberConverter;
             Converters[BCObjectIdentifiers.usaberkem90sr3] = SaberConverter;
             Converters[BCObjectIdentifiers.ufiresaberkem90sr3] = SaberConverter;
-            
+
             Converters[BCObjectIdentifiers.picnic] = PicnicConverter;
             Converters[BCObjectIdentifiers.picnicl1fs] = PicnicConverter;
             Converters[BCObjectIdentifiers.picnicl1ur] = PicnicConverter;
