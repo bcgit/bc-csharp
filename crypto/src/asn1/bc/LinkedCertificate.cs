@@ -19,6 +19,11 @@ namespace Org.BouncyCastle.Asn1.BC
     public class LinkedCertificate
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="LinkedCertificate"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="LinkedCertificate"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="LinkedCertificate"/>, or null if <paramref name="obj"/> is null.</returns>
         public static LinkedCertificate GetInstance(object obj)
         {
             if (obj == null)
@@ -28,9 +33,17 @@ namespace Org.BouncyCastle.Asn1.BC
             return new LinkedCertificate(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="LinkedCertificate"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="LinkedCertificate"/>.</returns>
         public static LinkedCertificate GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new LinkedCertificate(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="LinkedCertificate"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="LinkedCertificate"/>.</returns>
         public static LinkedCertificate GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new LinkedCertificate(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -39,11 +52,19 @@ namespace Org.BouncyCastle.Asn1.BC
         private readonly X509Name m_certIssuer;
         private readonly GeneralNames m_cACerts;
 
+        /// <summary>Create a new <see cref="LinkedCertificate"/>.</summary>
+        /// <param name="digest">The digest.</param>
+        /// <param name="certLocation">The cert location.</param>
         public LinkedCertificate(DigestInfo digest, GeneralName certLocation)
             : this(digest, certLocation, null, null)
         {
         }
 
+        /// <summary>Create a new <see cref="LinkedCertificate"/>.</summary>
+        /// <param name="digest">The digest.</param>
+        /// <param name="certLocation">The cert location.</param>
+        /// <param name="certIssuer">The cert issuer.</param>
+        /// <param name="caCerts">The ca certs.</param>
         public LinkedCertificate(DigestInfo digest, GeneralName certLocation, X509Name certIssuer, GeneralNames caCerts)
         {
             m_digest = digest ?? throw new ArgumentNullException(nameof(digest));
@@ -69,12 +90,16 @@ namespace Org.BouncyCastle.Asn1.BC
 
         public virtual DigestInfo Digest => m_digest;
 
+        /// <summary>Gets the cert location.</summary>
         public virtual GeneralName CertLocation => m_certLocation;
 
+        /// <summary>Gets the cert issuer.</summary>
         public virtual X509Name CertIssuer => m_certIssuer;
 
+        /// <summary>Gets the CA certs.</summary>
         public virtual GeneralNames CACerts => m_cACerts;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(4);

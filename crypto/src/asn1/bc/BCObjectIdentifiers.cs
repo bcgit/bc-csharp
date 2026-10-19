@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.BC
 {
+    /// <summary>Object identifiers for the Bouncy Castle project.</summary>
     // TODO[api] Make static
     public abstract class BCObjectIdentifiers
     {
@@ -72,10 +73,13 @@ namespace Org.BouncyCastle.Asn1.BC
          */
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincs256                      = bc_sig.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.1.1</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincs256_with_BLAKE512        = sphincs256.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.1.2</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincs256_with_SHA512          = sphincs256.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.1.3</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincs256_with_SHA3_512        = sphincs256.Branch("3");
 
@@ -83,47 +87,75 @@ namespace Org.BouncyCastle.Asn1.BC
          * XMSS
          */
         public static readonly DerObjectIdentifier xmss = bc_sig.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.2.1</c>.</summary>
         public static readonly DerObjectIdentifier xmss_SHA256ph = xmss.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.2.2</c>.</summary>
         public static readonly DerObjectIdentifier xmss_SHA512ph = xmss.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.2.3</c>.</summary>
         public static readonly DerObjectIdentifier xmss_SHAKE128_512ph = xmss.Branch("3");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.2.4</c>.</summary>
         public static readonly DerObjectIdentifier xmss_SHAKE256_1024ph = xmss.Branch("4");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.2.5</c>.</summary>
         public static readonly DerObjectIdentifier xmss_SHA256 = xmss.Branch("5");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.2.6</c>.</summary>
         public static readonly DerObjectIdentifier xmss_SHA512 = xmss.Branch("6");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.2.7</c>.</summary>
         public static readonly DerObjectIdentifier xmss_SHAKE128 = xmss.Branch("7");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.2.8</c>.</summary>
         public static readonly DerObjectIdentifier xmss_SHAKE256 = xmss.Branch("8");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.2.9</c>.</summary>
         public static readonly DerObjectIdentifier xmss_SHAKE128ph = xmss.Branch("9");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.2.10</c>.</summary>
         public static readonly DerObjectIdentifier xmss_SHAKE256ph = xmss.Branch("10");
 
         /**
          * XMSS^MT
          */
         public static readonly DerObjectIdentifier xmss_mt = bc_sig.Branch("3");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.3.1</c>.</summary>
         public static readonly DerObjectIdentifier xmss_mt_SHA256ph = xmss_mt.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.3.2</c>.</summary>
         public static readonly DerObjectIdentifier xmss_mt_SHA512ph = xmss_mt.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.3.3</c>.</summary>
         public static readonly DerObjectIdentifier xmss_mt_SHAKE128_512ph = xmss_mt.Branch("3");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.3.4</c>.</summary>
         public static readonly DerObjectIdentifier xmss_mt_SHAKE256_1024ph = xmss_mt.Branch("4");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.3.5</c>.</summary>
         public static readonly DerObjectIdentifier xmss_mt_SHA256 = xmss_mt.Branch("5");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.3.6</c>.</summary>
         public static readonly DerObjectIdentifier xmss_mt_SHA512 = xmss_mt.Branch("6");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.3.7</c>.</summary>
         public static readonly DerObjectIdentifier xmss_mt_SHAKE128 = xmss_mt.Branch("7");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.3.8</c>.</summary>
         public static readonly DerObjectIdentifier xmss_mt_SHAKE256 = xmss_mt.Branch("8");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.3.9</c>.</summary>
         public static readonly DerObjectIdentifier xmss_mt_SHAKE128ph = xmss_mt.Branch("9");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.3.10</c>.</summary>
         public static readonly DerObjectIdentifier xmss_mt_SHAKE256ph = xmss_mt.Branch("10");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.2.1</c>.</summary>
         [Obsolete("Use 'xmss_SHA256ph' instead")]
         public static readonly DerObjectIdentifier xmss_with_SHA256 = xmss_SHA256ph;
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.2.2</c>.</summary>
         [Obsolete("Use 'xmss_SHA512ph' instead")]
         public static readonly DerObjectIdentifier xmss_with_SHA512 = xmss_SHA512ph;
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.2.9</c>.</summary>
         [Obsolete("Use 'xmss_SHAKE128ph' instead")]
         public static readonly DerObjectIdentifier xmss_with_SHAKE128 = xmss_SHAKE128ph;
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.2.10</c>.</summary>
         [Obsolete("Use 'xmss_SHAKE256ph' instead")]
         public static readonly DerObjectIdentifier xmss_with_SHAKE256 = xmss_SHAKE256ph;
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.3.1</c>.</summary>
         [Obsolete("Use 'xmss_mt_SHA256ph' instead")]
         public static readonly DerObjectIdentifier xmss_mt_with_SHA256 = xmss_mt_SHA256ph;
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.3.2</c>.</summary>
         [Obsolete("Use 'xmss_mt_SHA512ph' instead")]
         public static readonly DerObjectIdentifier xmss_mt_with_SHA512 = xmss_mt_SHA512ph;
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.3.9</c>.</summary>
         [Obsolete("Use 'xmss_mt_SHAKE128ph' instead")]
         public static readonly DerObjectIdentifier xmss_mt_with_SHAKE128 = xmss_mt_SHAKE128ph;
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.3.10</c>.</summary>
         [Obsolete("Use 'xmss_mt_SHAKE256ph' instead")]
         public static readonly DerObjectIdentifier xmss_mt_with_SHAKE256 = xmss_mt_SHAKE256ph;
 
@@ -132,13 +164,20 @@ namespace Org.BouncyCastle.Asn1.BC
          */
         public static readonly DerObjectIdentifier qTESLA = bc_sig.Branch("4");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.4.1</c>.</summary>
         public static readonly DerObjectIdentifier qTESLA_Rnd1_I = qTESLA.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.4.2</c>.</summary>
         public static readonly DerObjectIdentifier qTESLA_Rnd1_III_size = qTESLA.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.4.3</c>.</summary>
         public static readonly DerObjectIdentifier qTESLA_Rnd1_III_speed = qTESLA.Branch("3");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.4.4</c>.</summary>
         public static readonly DerObjectIdentifier qTESLA_Rnd1_p_I = qTESLA.Branch("4");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.4.5</c>.</summary>
         public static readonly DerObjectIdentifier qTESLA_Rnd1_p_III = qTESLA.Branch("5");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.4.11</c>.</summary>
         public static readonly DerObjectIdentifier qTESLA_p_I = qTESLA.Branch("11");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.4.12</c>.</summary>
         public static readonly DerObjectIdentifier qTESLA_p_III = qTESLA.Branch("12");
 
         /**
@@ -146,118 +185,170 @@ namespace Org.BouncyCastle.Asn1.BC
          */
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus = bc_sig.Branch("5");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.1</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_128s_r3 = sphincsPlus.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.2</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_128f_r3 = sphincsPlus.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.3</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_128s_r3 = sphincsPlus.Branch("3");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.4</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_128f_r3 = sphincsPlus.Branch("4");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.5</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_haraka_128s_r3 = sphincsPlus.Branch("5");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.6</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_haraka_128f_r3 = sphincsPlus.Branch("6");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.7</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_192s_r3 = sphincsPlus.Branch("7");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.8</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_192f_r3 = sphincsPlus.Branch("8");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.9</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_192s_r3 = sphincsPlus.Branch("9");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.10</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_192f_r3 = sphincsPlus.Branch("10");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.11</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_haraka_192s_r3 = sphincsPlus.Branch("11");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.12</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_haraka_192f_r3 = sphincsPlus.Branch("12");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.13</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_256s_r3 = sphincsPlus.Branch("13");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.14</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_256f_r3 = sphincsPlus.Branch("14");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.15</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_256s_r3 = sphincsPlus.Branch("15");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.16</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_256f_r3 = sphincsPlus.Branch("16");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.17</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_haraka_256s_r3 = sphincsPlus.Branch("17");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.18</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_haraka_256f_r3 = sphincsPlus.Branch("18");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.19</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_128s_r3_simple = sphincsPlus.Branch("19");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.20</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_128f_r3_simple = sphincsPlus.Branch("20");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.21</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_128s_r3_simple = sphincsPlus.Branch("21");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.22</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_128f_r3_simple = sphincsPlus.Branch("22");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.23</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_haraka_128s_r3_simple = sphincsPlus.Branch("23");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.24</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_haraka_128f_r3_simple = sphincsPlus.Branch("24");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.25</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_192s_r3_simple = sphincsPlus.Branch("25");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.26</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_192f_r3_simple = sphincsPlus.Branch("26");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.27</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_192s_r3_simple = sphincsPlus.Branch("27");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.28</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_192f_r3_simple = sphincsPlus.Branch("28");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.29</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_haraka_192s_r3_simple = sphincsPlus.Branch("29");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.30</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_haraka_192f_r3_simple = sphincsPlus.Branch("30");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.31</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_256s_r3_simple = sphincsPlus.Branch("31");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.32</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_256f_r3_simple = sphincsPlus.Branch("32");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.33</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_256s_r3_simple = sphincsPlus.Branch("33");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.34</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_256f_r3_simple = sphincsPlus.Branch("34");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.35</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_haraka_256s_r3_simple = sphincsPlus.Branch("35");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.36</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_haraka_256f_r3_simple = sphincsPlus.Branch("36");
 
+        /// <summary>The object identifier <c>1.3.9999.6</c>.</summary>
         // Interop OIDs.
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_interop = new DerObjectIdentifier("1.3.9999.6");
 
+        /// <summary>The object identifier <c>1.3.9999.6.4.13</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_128f = new DerObjectIdentifier("1.3.9999.6.4.13");
+        /// <summary>The object identifier <c>1.3.9999.6.4.16</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_128s = new DerObjectIdentifier("1.3.9999.6.4.16");
+        /// <summary>The object identifier <c>1.3.9999.6.5.10</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_192f = new DerObjectIdentifier("1.3.9999.6.5.10");
+        /// <summary>The object identifier <c>1.3.9999.6.5.12</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_192s = new DerObjectIdentifier("1.3.9999.6.5.12");
+        /// <summary>The object identifier <c>1.3.9999.6.6.10</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_256f = new DerObjectIdentifier("1.3.9999.6.6.10");
+        /// <summary>The object identifier <c>1.3.9999.6.6.12</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_sha2_256s = new DerObjectIdentifier("1.3.9999.6.6.12");
 
+        /// <summary>The object identifier <c>1.3.9999.6.7.13</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_128f = new DerObjectIdentifier("1.3.9999.6.7.13");
+        /// <summary>The object identifier <c>1.3.9999.6.7.16</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_128s = new DerObjectIdentifier("1.3.9999.6.7.16");
+        /// <summary>The object identifier <c>1.3.9999.6.8.10</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_192f = new DerObjectIdentifier("1.3.9999.6.8.10");
+        /// <summary>The object identifier <c>1.3.9999.6.8.12</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_192s = new DerObjectIdentifier("1.3.9999.6.8.12");
+        /// <summary>The object identifier <c>1.3.9999.6.9.10</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_256f = new DerObjectIdentifier("1.3.9999.6.9.10");
+        /// <summary>The object identifier <c>1.3.9999.6.9.12</c>.</summary>
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_256s = new DerObjectIdentifier("1.3.9999.6.9.12");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.1</c>.</summary>
         [Obsolete("Will be removed - name is erroneous")]
         public static readonly DerObjectIdentifier sphincsPlus_shake_256 = sphincsPlus.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.2</c>.</summary>
         [Obsolete("Will be removed - name is erroneous")]
         public static readonly DerObjectIdentifier sphincsPlus_sha_256 = sphincsPlus.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.5.3</c>.</summary>
         [Obsolete("Will be removed - name is erroneous")]
         public static readonly DerObjectIdentifier sphincsPlus_sha_512 = sphincsPlus.Branch("3");
 
@@ -266,25 +357,42 @@ namespace Org.BouncyCastle.Asn1.BC
          */
         public static readonly DerObjectIdentifier picnic = bc_sig.Branch("6");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.6.1</c>.</summary>
         public static readonly DerObjectIdentifier picnic_key = picnic.Branch("1");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.6.1.1</c>.</summary>
         public static readonly DerObjectIdentifier picnicl1fs = picnic_key.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.6.1.2</c>.</summary>
         public static readonly DerObjectIdentifier picnicl1ur = picnic_key.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.6.1.3</c>.</summary>
         public static readonly DerObjectIdentifier picnicl3fs = picnic_key.Branch("3");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.6.1.4</c>.</summary>
         public static readonly DerObjectIdentifier picnicl3ur = picnic_key.Branch("4");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.6.1.5</c>.</summary>
         public static readonly DerObjectIdentifier picnicl5fs = picnic_key.Branch("5");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.6.1.6</c>.</summary>
         public static readonly DerObjectIdentifier picnicl5ur = picnic_key.Branch("6");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.6.1.7</c>.</summary>
         public static readonly DerObjectIdentifier picnic3l1 = picnic_key.Branch("7");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.6.1.8</c>.</summary>
         public static readonly DerObjectIdentifier picnic3l3 = picnic_key.Branch("8");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.6.1.9</c>.</summary>
         public static readonly DerObjectIdentifier picnic3l5 = picnic_key.Branch("9");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.6.1.10</c>.</summary>
         public static readonly DerObjectIdentifier picnicl1full = picnic_key.Branch("10");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.6.1.11</c>.</summary>
         public static readonly DerObjectIdentifier picnicl3full = picnic_key.Branch("11");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.6.1.12</c>.</summary>
         public static readonly DerObjectIdentifier picnicl5full = picnic_key.Branch("12");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.6.2</c>.</summary>
         public static readonly DerObjectIdentifier picnic_signature = picnic.Branch("2");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.6.2.1</c>.</summary>
         public static readonly DerObjectIdentifier picnic_with_sha512 = picnic_signature.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.6.2.2</c>.</summary>
         public static readonly DerObjectIdentifier picnic_with_shake256 = picnic_signature.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.6.2.3</c>.</summary>
         public static readonly DerObjectIdentifier picnic_with_sha3_512 = picnic_signature.Branch("3");
 
         /*
@@ -378,11 +486,17 @@ namespace Org.BouncyCastle.Asn1.BC
          */
         public static readonly DerObjectIdentifier rainbow = bc_sig.Branch("9");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.9.1</c>.</summary>
         public static readonly DerObjectIdentifier rainbow_III_classic = rainbow.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.9.2</c>.</summary>
         public static readonly DerObjectIdentifier rainbow_III_circumzenithal = rainbow.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.9.3</c>.</summary>
         public static readonly DerObjectIdentifier rainbow_III_compressed = rainbow.Branch("3");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.9.4</c>.</summary>
         public static readonly DerObjectIdentifier rainbow_V_classic = rainbow.Branch("4");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.9.5</c>.</summary>
         public static readonly DerObjectIdentifier rainbow_V_circumzenithal = rainbow.Branch("5");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.9.6</c>.</summary>
         public static readonly DerObjectIdentifier rainbow_V_compressed = rainbow.Branch("6");
 
         /**
@@ -402,7 +516,9 @@ namespace Org.BouncyCastle.Asn1.BC
          */
         public static readonly DerObjectIdentifier bc_ext = bc.Branch("4");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.4.1</c>.</summary>
         public static readonly DerObjectIdentifier linkedCertificate = bc_ext.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.4.2</c>.</summary>
         public static readonly DerObjectIdentifier external_value = bc_ext.Branch("2");
 
         /**
@@ -415,15 +531,25 @@ namespace Org.BouncyCastle.Asn1.BC
          */
         public static readonly DerObjectIdentifier pqc_kem_mceliece = bc_kem.Branch("1");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.1.1</c>.</summary>
         public static readonly DerObjectIdentifier mceliece348864_r3 = pqc_kem_mceliece.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.1.2</c>.</summary>
         public static readonly DerObjectIdentifier mceliece348864f_r3 = pqc_kem_mceliece.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.1.3</c>.</summary>
         public static readonly DerObjectIdentifier mceliece460896_r3 = pqc_kem_mceliece.Branch("3");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.1.4</c>.</summary>
         public static readonly DerObjectIdentifier mceliece460896f_r3 = pqc_kem_mceliece.Branch("4");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.1.5</c>.</summary>
         public static readonly DerObjectIdentifier mceliece6688128_r3 = pqc_kem_mceliece.Branch("5");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.1.6</c>.</summary>
         public static readonly DerObjectIdentifier mceliece6688128f_r3 = pqc_kem_mceliece.Branch("6");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.1.7</c>.</summary>
         public static readonly DerObjectIdentifier mceliece6960119_r3 = pqc_kem_mceliece.Branch("7");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.1.8</c>.</summary>
         public static readonly DerObjectIdentifier mceliece6960119f_r3 = pqc_kem_mceliece.Branch("8");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.1.9</c>.</summary>
         public static readonly DerObjectIdentifier mceliece8192128_r3 = pqc_kem_mceliece.Branch("9");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.1.10</c>.</summary>
         public static readonly DerObjectIdentifier mceliece8192128f_r3 = pqc_kem_mceliece.Branch("10");
 
         /**
@@ -431,11 +557,17 @@ namespace Org.BouncyCastle.Asn1.BC
          */
         public static readonly DerObjectIdentifier pqc_kem_frodo = bc_kem.Branch("2");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.2.1</c>.</summary>
         public static readonly DerObjectIdentifier frodokem640aes = pqc_kem_frodo.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.2.2</c>.</summary>
         public static readonly DerObjectIdentifier frodokem640shake = pqc_kem_frodo.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.2.3</c>.</summary>
         public static readonly DerObjectIdentifier frodokem976aes = pqc_kem_frodo.Branch("3");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.2.4</c>.</summary>
         public static readonly DerObjectIdentifier frodokem976shake = pqc_kem_frodo.Branch("4");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.2.5</c>.</summary>
         public static readonly DerObjectIdentifier frodokem1344aes = pqc_kem_frodo.Branch("5");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.2.6</c>.</summary>
         public static readonly DerObjectIdentifier frodokem1344shake = pqc_kem_frodo.Branch("6");
 
         /**
@@ -443,23 +575,41 @@ namespace Org.BouncyCastle.Asn1.BC
          */
         public static readonly DerObjectIdentifier pqc_kem_saber = bc_kem.Branch("3");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.1</c>.</summary>
         public static readonly DerObjectIdentifier lightsaberkem128r3 = pqc_kem_saber.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.2</c>.</summary>
         public static readonly DerObjectIdentifier saberkem128r3 = pqc_kem_saber.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.3</c>.</summary>
         public static readonly DerObjectIdentifier firesaberkem128r3 = pqc_kem_saber.Branch("3");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.4</c>.</summary>
         public static readonly DerObjectIdentifier lightsaberkem192r3 = pqc_kem_saber.Branch("4");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.5</c>.</summary>
         public static readonly DerObjectIdentifier saberkem192r3 = pqc_kem_saber.Branch("5");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.6</c>.</summary>
         public static readonly DerObjectIdentifier firesaberkem192r3 = pqc_kem_saber.Branch("6");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.7</c>.</summary>
         public static readonly DerObjectIdentifier lightsaberkem256r3 = pqc_kem_saber.Branch("7");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.8</c>.</summary>
         public static readonly DerObjectIdentifier saberkem256r3 = pqc_kem_saber.Branch("8");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.9</c>.</summary>
         public static readonly DerObjectIdentifier firesaberkem256r3 = pqc_kem_saber.Branch("9");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.10</c>.</summary>
         public static readonly DerObjectIdentifier ulightsaberkemr3 = pqc_kem_saber.Branch("10");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.11</c>.</summary>
         public static readonly DerObjectIdentifier usaberkemr3 = pqc_kem_saber.Branch("11");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.12</c>.</summary>
         public static readonly DerObjectIdentifier ufiresaberkemr3 = pqc_kem_saber.Branch("12");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.13</c>.</summary>
         public static readonly DerObjectIdentifier lightsaberkem90sr3 = pqc_kem_saber.Branch("13");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.14</c>.</summary>
         public static readonly DerObjectIdentifier saberkem90sr3 = pqc_kem_saber.Branch("14");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.15</c>.</summary>
         public static readonly DerObjectIdentifier firesaberkem90sr3 = pqc_kem_saber.Branch("15");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.16</c>.</summary>
         public static readonly DerObjectIdentifier ulightsaberkem90sr3 = pqc_kem_saber.Branch("16");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.17</c>.</summary>
         public static readonly DerObjectIdentifier usaberkem90sr3 = pqc_kem_saber.Branch("17");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.3.18</c>.</summary>
         public static readonly DerObjectIdentifier ufiresaberkem90sr3 = pqc_kem_saber.Branch("18");
 
         /**
@@ -467,11 +617,17 @@ namespace Org.BouncyCastle.Asn1.BC
          */
         public static readonly DerObjectIdentifier pqc_kem_ntru = bc_kem.Branch("5");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.5.1</c>.</summary>
         public static readonly DerObjectIdentifier ntruhps2048509 = pqc_kem_ntru.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.5.2</c>.</summary>
         public static readonly DerObjectIdentifier ntruhps2048677 = pqc_kem_ntru.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.5.3</c>.</summary>
         public static readonly DerObjectIdentifier ntruhps4096821 = pqc_kem_ntru.Branch("3");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.5.4</c>.</summary>
         public static readonly DerObjectIdentifier ntruhrss701 = pqc_kem_ntru.Branch("4");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.5.5</c>.</summary>
         public static readonly DerObjectIdentifier ntruhps40961229 = pqc_kem_ntru.Branch("5");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.5.6</c>.</summary>
         public static readonly DerObjectIdentifier ntruhrss1373 = pqc_kem_ntru.Branch("6");
 
         /**
@@ -479,20 +635,34 @@ namespace Org.BouncyCastle.Asn1.BC
          */
         public static readonly DerObjectIdentifier pqc_kem_ntruprime = bc_kem.Branch("7");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.7.1</c>.</summary>
         public static readonly DerObjectIdentifier pqc_kem_ntrulprime = pqc_kem_ntruprime.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.7.1.1</c>.</summary>
         public static readonly DerObjectIdentifier ntrulpr653 = pqc_kem_ntrulprime.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.7.1.2</c>.</summary>
         public static readonly DerObjectIdentifier ntrulpr761 = pqc_kem_ntrulprime.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.7.1.3</c>.</summary>
         public static readonly DerObjectIdentifier ntrulpr857 = pqc_kem_ntrulprime.Branch("3");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.7.1.4</c>.</summary>
         public static readonly DerObjectIdentifier ntrulpr953 = pqc_kem_ntrulprime.Branch("4");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.7.1.5</c>.</summary>
         public static readonly DerObjectIdentifier ntrulpr1013 = pqc_kem_ntrulprime.Branch("5");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.7.1.6</c>.</summary>
         public static readonly DerObjectIdentifier ntrulpr1277 = pqc_kem_ntrulprime.Branch("6");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.7.2</c>.</summary>
         public static readonly DerObjectIdentifier pqc_kem_sntruprime = pqc_kem_ntruprime.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.7.2.1</c>.</summary>
         public static readonly DerObjectIdentifier sntrup653 = pqc_kem_sntruprime.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.7.2.2</c>.</summary>
         public static readonly DerObjectIdentifier sntrup761 = pqc_kem_sntruprime.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.7.2.3</c>.</summary>
         public static readonly DerObjectIdentifier sntrup857 = pqc_kem_sntruprime.Branch("3");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.7.2.4</c>.</summary>
         public static readonly DerObjectIdentifier sntrup953 = pqc_kem_sntruprime.Branch("4");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.7.2.5</c>.</summary>
         public static readonly DerObjectIdentifier sntrup1013 = pqc_kem_sntruprime.Branch("5");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.7.2.6</c>.</summary>
         public static readonly DerObjectIdentifier sntrup1277 = pqc_kem_sntruprime.Branch("6");
 
         /**
@@ -500,8 +670,11 @@ namespace Org.BouncyCastle.Asn1.BC
          */
         public static readonly DerObjectIdentifier pqc_kem_bike = bc_kem.Branch("8");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.8.1</c>.</summary>
         public static readonly DerObjectIdentifier bike128 = pqc_kem_bike.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.8.2</c>.</summary>
         public static readonly DerObjectIdentifier bike192 = pqc_kem_bike.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.8.3</c>.</summary>
         public static readonly DerObjectIdentifier bike256 = pqc_kem_bike.Branch("3");
 
         /**
@@ -509,17 +682,24 @@ namespace Org.BouncyCastle.Asn1.BC
          */
         public static readonly DerObjectIdentifier pqc_kem_hqc = bc_kem.Branch("9");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.9.1</c>.</summary>
         public static readonly DerObjectIdentifier hqc128 = pqc_kem_hqc.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.9.2</c>.</summary>
         public static readonly DerObjectIdentifier hqc192 = pqc_kem_hqc.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.9.3</c>.</summary>
         public static readonly DerObjectIdentifier hqc256 = pqc_kem_hqc.Branch("3");
 
         /**
          * Mayo
          */
         public static readonly DerObjectIdentifier mayo = bc_sig.Branch("10");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.10.1</c>.</summary>
         public static readonly DerObjectIdentifier mayo1 = mayo.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.10.2</c>.</summary>
         public static readonly DerObjectIdentifier mayo2 = mayo.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.10.3</c>.</summary>
         public static readonly DerObjectIdentifier mayo3 = mayo.Branch("3");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.10.4</c>.</summary>
         public static readonly DerObjectIdentifier mayo5 = mayo.Branch("4");
         /** 1.3.9999.8.1.3 OQS_OID_MAYO1 */
         public static readonly DerObjectIdentifier mayo_1 = new DerObjectIdentifier("1.3.9999.8.1.3");
@@ -542,49 +722,93 @@ namespace Org.BouncyCastle.Asn1.BC
          * Snova
          */
         public static readonly DerObjectIdentifier snova = bc_sig.Branch("11");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.1</c>.</summary>
         public static readonly DerObjectIdentifier snova_24_5_4_ssk = snova.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.2</c>.</summary>
         public static readonly DerObjectIdentifier snova_24_5_4_esk = snova.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.3</c>.</summary>
         public static readonly DerObjectIdentifier snova_24_5_4_shake_ssk = snova.Branch("3");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.4</c>.</summary>
         public static readonly DerObjectIdentifier snova_24_5_4_shake_esk = snova.Branch("4");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.5</c>.</summary>
         public static readonly DerObjectIdentifier snova_24_5_5_ssk = snova.Branch("5");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.6</c>.</summary>
         public static readonly DerObjectIdentifier snova_24_5_5_esk = snova.Branch("6");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.7</c>.</summary>
         public static readonly DerObjectIdentifier snova_24_5_5_shake_ssk = snova.Branch("7");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.8</c>.</summary>
         public static readonly DerObjectIdentifier snova_24_5_5_shake_esk = snova.Branch("8");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.9</c>.</summary>
         public static readonly DerObjectIdentifier snova_25_8_3_ssk = snova.Branch("9");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.10</c>.</summary>
         public static readonly DerObjectIdentifier snova_25_8_3_esk = snova.Branch("10");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.11</c>.</summary>
         public static readonly DerObjectIdentifier snova_25_8_3_shake_ssk = snova.Branch("11");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.12</c>.</summary>
         public static readonly DerObjectIdentifier snova_25_8_3_shake_esk = snova.Branch("12");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.13</c>.</summary>
         public static readonly DerObjectIdentifier snova_29_6_5_ssk = snova.Branch("13");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.14</c>.</summary>
         public static readonly DerObjectIdentifier snova_29_6_5_esk = snova.Branch("14");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.15</c>.</summary>
         public static readonly DerObjectIdentifier snova_29_6_5_shake_ssk = snova.Branch("15");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.16</c>.</summary>
         public static readonly DerObjectIdentifier snova_29_6_5_shake_esk = snova.Branch("16");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.17</c>.</summary>
         public static readonly DerObjectIdentifier snova_37_8_4_ssk = snova.Branch("17");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.18</c>.</summary>
         public static readonly DerObjectIdentifier snova_37_8_4_esk = snova.Branch("18");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.19</c>.</summary>
         public static readonly DerObjectIdentifier snova_37_8_4_shake_ssk = snova.Branch("19");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.20</c>.</summary>
         public static readonly DerObjectIdentifier snova_37_8_4_shake_esk = snova.Branch("20");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.21</c>.</summary>
         public static readonly DerObjectIdentifier snova_37_17_2_ssk = snova.Branch("21");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.22</c>.</summary>
         public static readonly DerObjectIdentifier snova_37_17_2_esk = snova.Branch("22");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.23</c>.</summary>
         public static readonly DerObjectIdentifier snova_37_17_2_shake_ssk = snova.Branch("23");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.24</c>.</summary>
         public static readonly DerObjectIdentifier snova_37_17_2_shake_esk = snova.Branch("24");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.25</c>.</summary>
         public static readonly DerObjectIdentifier snova_49_11_3_ssk = snova.Branch("25");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.26</c>.</summary>
         public static readonly DerObjectIdentifier snova_49_11_3_esk = snova.Branch("26");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.27</c>.</summary>
         public static readonly DerObjectIdentifier snova_49_11_3_shake_ssk = snova.Branch("27");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.28</c>.</summary>
         public static readonly DerObjectIdentifier snova_49_11_3_shake_esk = snova.Branch("28");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.29</c>.</summary>
         public static readonly DerObjectIdentifier snova_56_25_2_ssk = snova.Branch("29");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.30</c>.</summary>
         public static readonly DerObjectIdentifier snova_56_25_2_esk = snova.Branch("30");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.31</c>.</summary>
         public static readonly DerObjectIdentifier snova_56_25_2_shake_ssk = snova.Branch("31");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.32</c>.</summary>
         public static readonly DerObjectIdentifier snova_56_25_2_shake_esk = snova.Branch("32");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.33</c>.</summary>
         public static readonly DerObjectIdentifier snova_60_10_4_ssk = snova.Branch("33");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.34</c>.</summary>
         public static readonly DerObjectIdentifier snova_60_10_4_esk = snova.Branch("34");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.35</c>.</summary>
         public static readonly DerObjectIdentifier snova_60_10_4_shake_ssk = snova.Branch("35");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.36</c>.</summary>
         public static readonly DerObjectIdentifier snova_60_10_4_shake_esk = snova.Branch("36");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.37</c>.</summary>
         public static readonly DerObjectIdentifier snova_66_15_3_ssk = snova.Branch("37");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.38</c>.</summary>
         public static readonly DerObjectIdentifier snova_66_15_3_esk = snova.Branch("38");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.39</c>.</summary>
         public static readonly DerObjectIdentifier snova_66_15_3_shake_ssk = snova.Branch("39");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.40</c>.</summary>
         public static readonly DerObjectIdentifier snova_66_15_3_shake_esk = snova.Branch("40");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.41</c>.</summary>
         public static readonly DerObjectIdentifier snova_75_33_2_ssk = snova.Branch("41");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.42</c>.</summary>
         public static readonly DerObjectIdentifier snova_75_33_2_esk = snova.Branch("42");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.43</c>.</summary>
         public static readonly DerObjectIdentifier snova_75_33_2_shake_ssk = snova.Branch("43");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.44</c>.</summary>
         public static readonly DerObjectIdentifier snova_75_33_2_shake_esk = snova.Branch("44");
 
         /**
@@ -592,8 +816,11 @@ namespace Org.BouncyCastle.Asn1.BC
          * */
         public static readonly DerObjectIdentifier pqc_kem_ntruplus = bc_kem.Branch("10");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.10.1</c>.</summary>
         public static readonly DerObjectIdentifier ntruplus768 = pqc_kem_ntruplus.Branch("1");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.10.2</c>.</summary>
         public static readonly DerObjectIdentifier ntruplus864 = pqc_kem_ntruplus.Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.5.10.3</c>.</summary>
         public static readonly DerObjectIdentifier ntruplus1152 = pqc_kem_ntruplus.Branch("3");
     }
 }
