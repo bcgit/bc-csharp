@@ -279,7 +279,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             {
                 wnaf = Trim(wnaf, length);
             }
-        
+
             return wnaf;
         }
 
@@ -306,7 +306,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
         /**
          * Determine window width to use for a scalar multiplication of the given size.
-         * 
+         *
          * @param bits the bit-length of the scalar to multiply by
          * @return the window size to use
          */
@@ -317,9 +317,9 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
         /**
          * Determine window width to use for a scalar multiplication of the given size.
-         * 
+         *
          * @param bits the bit-length of the scalar to multiply by
-         * @param maxWidth the maximum window width to return 
+         * @param maxWidth the maximum window width to return
          * @return the window size to use
          */
         public static int GetWindowSize(int bits, int maxWidth)
@@ -329,7 +329,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
         /**
          * Determine window width to use for a scalar multiplication of the given size.
-         * 
+         *
          * @param bits the bit-length of the scalar to multiply by
          * @param windowSizeCutoffs a monotonically increasing list of bit sizes at which to increment the window width
          * @return the window size to use
@@ -341,10 +341,10 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
         /**
          * Determine window width to use for a scalar multiplication of the given size.
-         * 
+         *
          * @param bits the bit-length of the scalar to multiply by
          * @param windowSizeCutoffs a monotonically increasing list of bit sizes at which to increment the window width
-         * @param maxWidth the maximum window width to return 
+         * @param maxWidth the maximum window width to return
          * @return the window size to use
          */
         public static int GetWindowSize(int bits, int[] windowSizeCutoffs, int maxWidth)
@@ -579,7 +579,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                                  * where 'twiceP' is "affine", so that the subsequent additions are cheaper. This
                                  * also requires scaling the initial point's X, Y coordinates, and reversing the
                                  * isomorphism as part of the subsequent normalization.
-                                 * 
+                                 *
                                  *  NOTE: The correctness of this optimization depends on:
                                  *      1) additions do not use the curve's A, B coefficients.
                                  *      2) no special cases (i.e. Q +/- Q) when calculating 1P, 3P, 5P, ...
@@ -633,7 +633,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                     if (null == preCompNeg)
                     {
                         pos = 0;
-                        preCompNeg = new ECPoint[reqPreCompLen]; 
+                        preCompNeg = new ECPoint[reqPreCompLen];
                     }
                     else
                     {
@@ -661,7 +661,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             private bool CheckExisting(WNafPreCompInfo existingWNaf, int width, int reqPreCompLen, bool includeNegated)
             {
                 return null != existingWNaf
-                    && existingWNaf.Width >= System.Math.Max(existingWNaf.ConfWidth, width) 
+                    && existingWNaf.Width >= System.Math.Max(existingWNaf.ConfWidth, width)
                     && CheckTable(existingWNaf.PreComp, reqPreCompLen)
                     && (!includeNegated || CheckTable(existingWNaf.PreCompNeg, reqPreCompLen));
             }

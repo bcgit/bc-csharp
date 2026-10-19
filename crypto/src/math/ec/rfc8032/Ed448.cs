@@ -1749,7 +1749,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #else
             sbyte[] ws_p = new sbyte[447];
 #endif
-            // NOTE: WnafWidth225 because of the special structure of the order 
+            // NOTE: WnafWidth225 because of the special structure of the order
             Scalar448.GetOrderWnafVar(WnafWidth225, ws_p);
 
             int count = 1 << (WnafWidth225 - 2);
