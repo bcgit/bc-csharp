@@ -9,8 +9,10 @@ namespace Org.BouncyCastle.Tls
 
         void NotifyIdentityHint(byte[] psk_identity_hint);
 
+        /// <summary>Return the psk identity.</summary>
         byte[] GetPskIdentity();
 
+        /// <summary>Return the psk.</summary>
         byte[] GetPsk();
     }
 }

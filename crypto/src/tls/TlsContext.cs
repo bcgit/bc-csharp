@@ -7,8 +7,10 @@ namespace Org.BouncyCastle.Tls
     /// <summary>Base interface for a TLS context implementation.</summary>
     public interface TlsContext
     {
+        /// <summary>Gets the crypto.</summary>
         TlsCrypto Crypto { get; }
 
+        /// <summary>Gets the nonce generator.</summary>
         TlsNonceGenerator NonceGenerator { get; }
 
         SecurityParameters SecurityParameters { get; }
@@ -17,12 +19,16 @@ namespace Org.BouncyCastle.Tls
         /// <returns>true for a server based context, false for a client based one.</returns>
         bool IsServer { get; }
 
+        /// <summary>Gets the client supported versions.</summary>
         ProtocolVersion[] ClientSupportedVersions { get; }
 
+        /// <summary>Gets the client version.</summary>
         ProtocolVersion ClientVersion { get; }
 
+        /// <summary>Gets the rsa pre master secret version.</summary>
         ProtocolVersion RsaPreMasterSecretVersion { get; }
 
+        /// <summary>Gets the server version.</summary>
         ProtocolVersion ServerVersion { get; }
 
         /// <summary>Used to get the resumable session, if any, used by this connection.</summary>
@@ -43,6 +49,7 @@ namespace Org.BouncyCastle.Tls
         /// <seealso cref="TlsPeer.NotifyHandshakeComplete"/>
         TlsSession Session { get; }
 
+        /// <summary>Gets or sets the user object.</summary>
         object UserObject { get; set; }
 
         /// <summary>Export the value of the specified channel binding.</summary>

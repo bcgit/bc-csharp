@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.Tls
     /// <summary>Base interface for a (D)TLS endpoint.</summary>
     public interface TlsPeer
     {
+        /// <summary>Gets the crypto.</summary>
         TlsCrypto Crypto { get; }
 
         void NotifyCloseHandle(TlsCloseable closehandle);
@@ -15,8 +16,10 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         void Cancel();
 
+        /// <summary>Return the protocol versions.</summary>
         ProtocolVersion[] GetProtocolVersions();
 
+        /// <summary>Return the cipher suites.</summary>
         int[] GetCipherSuites();
 
         /// <summary>Notifies the peer that a new handshake is about to begin.</summary>
@@ -46,10 +49,13 @@ namespace Org.BouncyCastle.Tls
 
         bool AllowLegacyResumption();
 
+        /// <summary>Return the max certificate chain length.</summary>
         int GetMaxCertificateChainLength();
 
+        /// <summary>Return the max handshake message size.</summary>
         int GetMaxHandshakeMessageSize();
 
+        /// <summary>Return the psk key exchange modes.</summary>
         short[] GetPskKeyExchangeModes();
 
         /// <remarks>

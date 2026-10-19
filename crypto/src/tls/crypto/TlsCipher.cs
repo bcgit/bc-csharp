@@ -65,6 +65,7 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <exception cref="IOException"/>
         void RekeyEncoder();
 
+        /// <summary>Gets the uses opaque record type.</summary>
         // TODO[api] Separate methods for decode, encode
         bool UsesOpaqueRecordType { get; }
     }

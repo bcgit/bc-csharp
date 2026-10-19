@@ -19,6 +19,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         void ProcessServerCertificate(Certificate serverCertificate);
 
+        /// <summary>Gets the requires server key exchange.</summary>
         bool RequiresServerKeyExchange { get; }
 
         /// <exception cref="IOException"/>
@@ -30,6 +31,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         void ProcessServerKeyExchange(Stream input);
 
+        /// <summary>Return the client certificate types.</summary>
         short[] GetClientCertificateTypes();
 
         /// <exception cref="IOException"/>
@@ -47,6 +49,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         void ProcessClientKeyExchange(Stream input);
 
+        /// <summary>Gets the requires certificate verify.</summary>
         bool RequiresCertificateVerify { get; }
 
         /// <exception cref="IOException"/>

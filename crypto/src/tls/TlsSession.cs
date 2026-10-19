@@ -7,10 +7,12 @@ namespace Org.BouncyCastle.Tls
     {
         SessionParameters ExportSessionParameters();
 
+        /// <summary>Gets the session ID.</summary>
         byte[] SessionID { get; }
 
         void Invalidate();
 
+        /// <summary>Gets a value indicating whether this is resumable.</summary>
         bool IsResumable { get; }
     }
 }

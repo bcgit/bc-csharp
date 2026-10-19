@@ -77,6 +77,7 @@ namespace Org.BouncyCastle.Tls.Crypto
 
         bool IsAlive();
 
+        /// <summary>Gets the length.</summary>
         int Length { get; }
     }
 }

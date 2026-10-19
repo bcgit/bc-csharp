@@ -6,8 +6,10 @@ namespace Org.BouncyCastle.Tls
     {
         byte[] GeneratePayload();
 
+        /// <summary>Gets the idle millis.</summary>
         int IdleMillis { get; }
 
+        /// <summary>Gets the timeout millis.</summary>
         int TimeoutMillis { get; }
     }
 }

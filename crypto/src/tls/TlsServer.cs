@@ -24,6 +24,7 @@ namespace Org.BouncyCastle.Tls
         /// <seealso cref="SessionParameters.PeerCertificate"/>
         TlsSession GetSessionToResume(byte[] sessionID);
 
+        /// <summary>Return the new session ID.</summary>
         byte[] GetNewSessionID();
 
         /// <summary>Return the <see cref="TlsPskExternal">external PSK</see> to select from the ClientHello.</summary>
