@@ -1,5 +1,6 @@
 namespace Org.BouncyCastle.Asn1.IsisMtt
 {
+    /// <summary>Object identifiers for ISIS-MTT.</summary>
     // TODO[api] Make static
     public abstract class IsisMttObjectIdentifiers
     {
