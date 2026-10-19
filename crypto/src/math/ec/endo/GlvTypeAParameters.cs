@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Math.EC.Endo
 {
+    /// <summary>The parameters of the GLV endomorphism for curves of type A.</summary>
     public class GlvTypeAParameters
     {
         /// <summary>The lambda.</summary>

@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Math.EC.Endo
 {
+    /// <summary>The GLV endomorphism for curves of type B.</summary>
     public class GlvTypeBEndomorphism
         :   GlvEndomorphism
     {

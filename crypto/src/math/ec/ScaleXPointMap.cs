@@ -2,9 +2,11 @@
 
 namespace Org.BouncyCastle.Math.EC
 {
+    /// <summary>A point map that multiplies the x-coordinate by a scale factor.</summary>
     public class ScaleXPointMap
         : ECPointMap
     {
+        /// <summary>The scale factor.</summary>
         protected readonly ECFieldElement scale;
 
         /// <summary>Create a new <see cref="ScaleXPointMap"/>.</summary>

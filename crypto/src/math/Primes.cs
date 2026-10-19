@@ -10,6 +10,7 @@ namespace Org.BouncyCastle.Math
     /// <summary>Utility methods for generating primes and testing for primality.</summary>
     public static class Primes
     {
+        /// <summary>The limit below which the small prime factors are tested for.</summary>
         public static readonly int SmallFactorLimit = 211;
 
         private static readonly BigInteger One = BigInteger.One;

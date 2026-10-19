@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Math.Field
 {
+    /// <summary>Interface for an extension field.</summary>
     public interface IExtensionField
         : IFiniteField
     {

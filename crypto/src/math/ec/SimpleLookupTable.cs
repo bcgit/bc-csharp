@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Math.EC
 {
+    /// <summary>A lookup table over an array of points.</summary>
     public class SimpleLookupTable
         : AbstractECLookupTable
     {

@@ -2,21 +2,32 @@
 
 namespace Org.BouncyCastle.Math.EC.Multiplier
 {
+    /// <summary>Utility methods for fixed-point comb multiplication.</summary>
     public class FixedPointUtilities
     {
+        /// <summary>The name under which fixed-point precomputation data is stored.</summary>
         public static readonly string PRECOMP_NAME = "bc_fixed_point";
 
+        /// <summary>Get the number of columns of the comb for a curve.</summary>
+        /// <param name="c">The curve.</param>
+        /// <returns>The comb size.</returns>
         public static int GetCombSize(ECCurve c)
         {
             BigInteger order = c.Order;
             return order == null ? c.FieldSize + 1 : order.BitLength;
         }
 
+        /// <summary>Get fixed-point precomputation data from generic precomputation data.</summary>
+        /// <param name="preCompInfo">The data, or null.</param>
+        /// <returns>The fixed-point data, or a new empty instance if there is none.</returns>
         public static FixedPointPreCompInfo GetFixedPointPreCompInfo(PreCompInfo preCompInfo)
         {
             return preCompInfo as FixedPointPreCompInfo;
         }
 
+        /// <summary>Precompute the data for fixed-point multiplication of a point.</summary>
+        /// <param name="p">The point.</param>
+        /// <returns>The precomputation data.</returns>
         public static FixedPointPreCompInfo Precompute(ECPoint p)
         {
             return (FixedPointPreCompInfo)p.Curve.Precompute(p, PRECOMP_NAME, new FixedPointCallback(p));

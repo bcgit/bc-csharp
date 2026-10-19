@@ -4,6 +4,7 @@ using Org.BouncyCastle.Math.EC.Multiplier;
 
 namespace Org.BouncyCastle.Math.EC.Endo
 {
+    /// <summary>Precomputation data for an endomorphism: the endomorphism and the mapped point.</summary>
     public class EndoPreCompInfo
         : PreCompInfo
     {

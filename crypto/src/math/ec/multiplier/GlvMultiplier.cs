@@ -4,9 +4,11 @@ using Org.BouncyCastle.Math.EC.Endo;
 
 namespace Org.BouncyCastle.Math.EC.Multiplier
 {
+    /// <summary>A multiplier using the GLV method for curves with an efficiently computable endomorphism.</summary>
     public class GlvMultiplier
         :   AbstractECMultiplier
     {
+        /// <summary>The curve.</summary>
         protected readonly ECCurve curve;
         /// <summary>The glv endomorphism.</summary>
         protected readonly GlvEndomorphism glvEndomorphism;

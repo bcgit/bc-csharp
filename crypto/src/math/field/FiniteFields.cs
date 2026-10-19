@@ -2,11 +2,15 @@
 
 namespace Org.BouncyCastle.Math.Field
 {
+    /// <summary>Factory methods for finite fields.</summary>
     public abstract class FiniteFields
     {
         internal static readonly IFiniteField GF_2 = new PrimeField(BigInteger.Two);
         internal static readonly IFiniteField GF_3 = new PrimeField(BigInteger.Three);
 
+        /// <summary>Get the binary extension field GF(2^m) for a reduction polynomial.</summary>
+        /// <param name="exponents">The exponents of the polynomial, in increasing order, starting with 0.</param>
+        /// <returns>The field.</returns>
         public static IPolynomialExtensionField GetBinaryExtensionField(int[] exponents)
         {
             if (exponents[0] != 0)
@@ -29,6 +33,9 @@ namespace Org.BouncyCastle.Math.Field
     //        return new GenericPolynomialExtensionField(GF_3, new GF3Polynomial(terms));
     //    }
 
+        /// <summary>Get the prime field with the given characteristic.</summary>
+        /// <param name="characteristic">The characteristic, which must be prime.</param>
+        /// <returns>The field.</returns>
         public static IFiniteField GetPrimeField(BigInteger characteristic)
         {
             int bitLength = characteristic.BitLength;

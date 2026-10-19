@@ -23,6 +23,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         //private static readonly int[] SqrtNeg486664 = { 0x03457E06, 0x03812ABF, 0x01A82CC6, 0x028A5BE8, 0x018B43A7,
         //    0x03FC4F7E, 0x02C23700, 0x006BBD27, 0x03A30500, 0x001E4DDB };
 
+        /// <summary>Calculate the shared secret from a private key and the public value of the other party.</summary>
+        /// <param name="k">The private key (scalar).</param>
+        /// <param name="kOff">The offset into <paramref name="k"/> at which the key starts.</param>
+        /// <param name="u">The u-coordinate of the input point.</param>
+        /// <param name="uOff">The offset into <paramref name="u"/> at which the coordinate starts.</param>
+        /// <param name="r">The buffer to receive the result.</param>
+        /// <param name="rOff">The offset into <paramref name="r"/> at which to start writing.</param>
+        /// <returns>true if the result is not the all-zero value, false otherwise.</returns>
         public static bool CalculateAgreement(byte[] k, int kOff, byte[] u, int uOff, byte[] r, int rOff)
         {
             ScalarMult(k, kOff, u, uOff, r, rOff);
@@ -30,6 +38,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Calculate the shared secret from a private key and the public value of the other party.</summary>
+        /// <param name="k">The private key (scalar).</param>
+        /// <param name="u">The u-coordinate of the input point.</param>
+        /// <param name="r">The buffer to receive the result.</param>
+        /// <returns>true if the result is not the all-zero value, false otherwise.</returns>
         public static bool CalculateAgreement(ReadOnlySpan<byte> k, ReadOnlySpan<byte> u, Span<byte> r)
         {
             r = r[..PointSize];
@@ -38,6 +51,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
+        /// <summary>Clamp a private key in place, as required by the algorithm.</summary>
+        /// <param name="k">The private key to clamp.</param>
         public static void ClampPrivateKey(byte[] k)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -55,6 +70,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Clamp a private key in place, as required by the algorithm.</summary>
+        /// <param name="k">The private key to clamp.</param>
         public static void ClampPrivateKey(Span<byte> k)
         {
             if (k.Length != ScalarSize)
@@ -92,6 +109,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
+        /// <summary>Generate a random private key.</summary>
+        /// <param name="random">The source of randomness.</param>
+        /// <param name="k">The buffer to receive the private key.</param>
         public static void GeneratePrivateKey(SecureRandom random, byte[] k)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -111,6 +131,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Generate a random private key.</summary>
+        /// <param name="random">The source of randomness.</param>
+        /// <param name="k">The buffer to receive the private key.</param>
         public static void GeneratePrivateKey(SecureRandom random, Span<byte> k)
         {
             if (random == null)
@@ -124,10 +147,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
+        /// <summary>Generate the public key for a private key.</summary>
+        /// <param name="k">The private key (scalar).</param>
+        /// <param name="kOff">The offset into <paramref name="k"/> at which the key starts.</param>
+        /// <param name="r">The buffer to receive the public key.</param>
+        /// <param name="rOff">The offset into <paramref name="r"/> at which to start writing.</param>
         public static void GeneratePublicKey(byte[] k, int kOff, byte[] r, int rOff) =>
             ScalarMultBase(k, kOff, r, rOff);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Generate the public key for a private key.</summary>
+        /// <param name="k">The private key (scalar).</param>
+        /// <param name="r">The buffer to receive the public key.</param>
         public static void GeneratePublicKey(ReadOnlySpan<byte> k, Span<byte> r) => ScalarMultBase(k, r);
 #endif
 
@@ -146,8 +177,19 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             F.Mul(z, a, z);
         }
 
+        /// <summary>
+        /// Perform the precomputation needed for fast scalar multiplication of the base point, which is otherwise done
+        /// on first use.
+        /// </summary>
         public static void Precompute() => Ed25519.Precompute();
 
+        /// <summary>Multiply a point by a scalar.</summary>
+        /// <param name="k">The scalar.</param>
+        /// <param name="kOff">The offset into <paramref name="k"/> at which the key starts.</param>
+        /// <param name="u">The u-coordinate of the point.</param>
+        /// <param name="uOff">The offset into <paramref name="u"/> at which the coordinate starts.</param>
+        /// <param name="r">The buffer to receive the result.</param>
+        /// <param name="rOff">The offset into <paramref name="r"/> at which to start writing.</param>
         public static void ScalarMult(byte[] k, int kOff, byte[] u, int uOff, byte[] r, int rOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -218,6 +260,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Multiply a point by a scalar.</summary>
+        /// <param name="k">The scalar.</param>
+        /// <param name="u">The u-coordinate of the point.</param>
+        /// <param name="r">The buffer to receive the result.</param>
         public static void ScalarMult(ReadOnlySpan<byte> k, ReadOnlySpan<byte> u, Span<byte> r)
         {
             // TODO[api] Exact length check
@@ -290,6 +336,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
+        /// <summary>Multiply the base point by a scalar.</summary>
+        /// <param name="k">The scalar.</param>
+        /// <param name="kOff">The offset into <paramref name="k"/> at which the key starts.</param>
+        /// <param name="r">The buffer to receive the result.</param>
+        /// <param name="rOff">The offset into <paramref name="r"/> at which to start writing.</param>
         public static void ScalarMultBase(byte[] k, int kOff, byte[] r, int rOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -320,6 +371,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Multiply the base point by a scalar.</summary>
+        /// <param name="k">The scalar.</param>
+        /// <param name="r">The buffer to receive the result.</param>
         public static void ScalarMultBase(ReadOnlySpan<byte> k, Span<byte> r)
         {
             // Equivalent (but much slower)

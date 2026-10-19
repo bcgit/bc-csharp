@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Math.Field
 {
+    /// <summary>Interface for a finite field.</summary>
     public interface IFiniteField
     {
         /// <summary>Gets the characteristic.</summary>

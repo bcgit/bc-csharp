@@ -2,9 +2,11 @@
 
 namespace Org.BouncyCastle.Math.EC
 {
+    /// <summary>A point map that multiplies the x-coordinate by a scale factor and negates the y-coordinate.</summary>
     public class ScaleXNegateYPointMap
         : ECPointMap
     {
+        /// <summary>The scale factor.</summary>
         protected readonly ECFieldElement scale;
 
         /// <summary>Create a new <see cref="ScaleXNegateYPointMap"/>.</summary>

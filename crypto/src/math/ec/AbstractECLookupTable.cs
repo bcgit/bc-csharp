@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Math.EC
 {
+    /// <summary>Base class for elliptic curve lookup tables.</summary>
     public abstract class AbstractECLookupTable
         : ECLookupTable
     {

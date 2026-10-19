@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Math.EC.Endo
 {
+    /// <summary>Interface for an endomorphism of an elliptic curve.</summary>
     public interface ECEndomorphism
     {
         /// <summary>Gets the point map.</summary>

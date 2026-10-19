@@ -4,6 +4,7 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Math.EC.Endo
 {
+    /// <summary>The parameters used to split a scalar for use with an endomorphism.</summary>
     public class ScalarSplitParameters
     {
         private static void CheckVector(BigInteger[] v, string name)

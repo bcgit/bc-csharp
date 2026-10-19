@@ -16,6 +16,9 @@ using Org.BouncyCastle.Math.Raw;
 
 namespace Org.BouncyCastle.Math.EC.Rfc7748
 {
+    /// <summary>
+    /// Arithmetic in the field used by X25519 (RFC 7748); elements are represented as arrays of limbs.
+    /// </summary>
     public static class X25519Field
     {
         /// <summary>The <c>Size</c> constant, with the value <c>10</c>.</summary>
@@ -33,6 +36,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
+        /// <summary>Calculate z = x + y.</summary>
+        /// <param name="x">The first operand.</param>
+        /// <param name="y">The second operand.</param>
+        /// <param name="z">The result.</param>
         public static void Add(int[] x, int[] y, int[] z)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -104,11 +111,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             }
         }
 
+        /// <summary>Add one to the value, in place.</summary>
+        /// <param name="z">The value, which is updated.</param>
         public static void AddOne(int[] z)
         {
             z[0] += 1;
         }
 
+        /// <summary>Add one to the value, in place.</summary>
+        /// <param name="z">The value, which is updated.</param>
+        /// <param name="zOff">The offset into <paramref name="z"/> at which the result starts.</param>
         public static void AddOne(int[] z, int zOff)
         {
             z[zOff] += 1;
@@ -117,6 +129,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
+        /// <summary>Calculate both the sum and the difference of two values.</summary>
+        /// <param name="x">The first operand.</param>
+        /// <param name="y">The second operand.</param>
+        /// <param name="zp">The result x + y.</param>
+        /// <param name="zm">The result x - y.</param>
         public static void Apm(int[] x, int[] y, int[] zp, int[] zm)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -211,6 +228,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             }
         }
 
+        /// <summary>Compare two values, in constant time.</summary>
+        /// <param name="x">The first operand.</param>
+        /// <param name="y">The second operand.</param>
+        /// <returns>Non-zero (all bits set) if they are equal, zero otherwise.</returns>
         public static int AreEqual(int[] x, int[] y)
         {
             int d = 0;
@@ -221,11 +242,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             return ((d - 1) & ~d) >> 31;
         }
 
+        /// <summary>Compare two values, in variable time.</summary>
+        /// <param name="x">The first operand.</param>
+        /// <param name="y">The second operand.</param>
+        /// <returns>true if they are equal, false otherwise.</returns>
         public static bool AreEqualVar(int[] x, int[] y)
         {
             return 0 != AreEqual(x, y);
         }
 
+        /// <summary>Propagate the carries, bringing the limbs into range.</summary>
+        /// <param name="z">The value, which is updated.</param>
         public static void Carry(int[] z)
         {
             int z0 = z[0], z1 = z[1], z2 = z[2], z3 = z[3], z4 = z[4];
@@ -254,6 +281,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[5] = z5; z[6] = z6; z[7] = z7; z[8] = z8; z[9] = z9;
         }
 
+        /// <summary>
+        /// Conditionally copy a value: copy x to z if the condition is non-zero, otherwise leave z unchanged.
+        /// </summary>
+        /// <param name="cond">Zero to leave z unchanged, otherwise to copy.</param>
+        /// <param name="x">The source.</param>
+        /// <param name="xOff">The offset into the source.</param>
+        /// <param name="z">The destination.</param>
+        /// <param name="zOff">The offset into the destination.</param>
         public static void CMov(int cond, int[] x, int xOff, int[] z, int zOff)
         {
             Debug.Assert(0 == cond || -1 == cond);
@@ -267,6 +302,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Conditionally copy a value: copy x to z if the condition is non-zero, otherwise leave z unchanged.
+        /// </summary>
+        /// <param name="cond">Zero to leave z unchanged, otherwise to copy.</param>
+        /// <param name="x">The source.</param>
+        /// <param name="z">The destination.</param>
         public static void CMov(int cond, ReadOnlySpan<int> x, Span<int> z)
         {
             Debug.Assert(0 == cond || -1 == cond);
@@ -280,6 +321,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
+        /// <summary>Conditionally negate a value, in place.</summary>
+        /// <param name="negate">Zero to leave the value unchanged, otherwise to negate it.</param>
+        /// <param name="z">The value, which is updated.</param>
         public static void CNegate(int negate, int[] z)
         {
             Debug.Assert(negate >> 1 == 0);
@@ -291,6 +335,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             }
         }
 
+        /// <summary>Copy a value.</summary>
+        /// <param name="x">The source.</param>
+        /// <param name="xOff">The offset into the source.</param>
+        /// <param name="z">The destination.</param>
+        /// <param name="zOff">The offset into the destination.</param>
         public static void Copy(int[] x, int xOff, int[] z, int zOff)
         {
             for (int i = 0; i < Size; ++i)
@@ -300,22 +349,34 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Copy a value.</summary>
+        /// <param name="x">The source.</param>
+        /// <param name="z">The destination.</param>
         public static void Copy(ReadOnlySpan<int> x, Span<int> z)
         {
             x[..Size].CopyTo(z);
         }
 #endif
 
+        /// <summary>Create a new field element, set to zero.</summary>
+        /// <returns>The new element.</returns>
         public static int[] Create()
         {
             return new int[Size];
         }
 
+        /// <summary>Create a table of field elements.</summary>
+        /// <param name="n">The number of elements.</param>
+        /// <returns>The table.</returns>
         public static int[] CreateTable(int n)
         {
             return new int[Size * n];
         }
 
+        /// <summary>Conditionally swap two values.</summary>
+        /// <param name="swap">Zero to leave the values unchanged, otherwise to swap them.</param>
+        /// <param name="a">The first value.</param>
+        /// <param name="b">The second value.</param>
         public static void CSwap(int swap, int[] a, int[] b)
         {
             Debug.Assert(swap >> 1 == 0);
@@ -331,23 +392,45 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             }
         }
 
+        /// <summary>Decode a field element from its encoding.</summary>
+        /// <param name="x">The encoding.</param>
+        /// <param name="z">The field element.</param>
         [Obsolete("Use 'Decode255' instead")]
         public static void Decode(byte[] x, int[] z) => Decode255(x, 0, z, 0);
 
+        /// <summary>Decode a field element from its encoding.</summary>
+        /// <param name="x">The encoding.</param>
+        /// <param name="xOff">The offset into <paramref name="x"/> at which the value starts.</param>
+        /// <param name="z">The field element.</param>
         [Obsolete("Use 'Decode255' instead")]
         public static void Decode(byte[] x, int xOff, int[] z) => Decode255(x, xOff, z, 0);
 
+        /// <summary>Decode a field element from its encoding.</summary>
+        /// <param name="x">The encoding.</param>
+        /// <param name="xOff">The offset into <paramref name="x"/> at which the value starts.</param>
+        /// <param name="z">The field element.</param>
+        /// <param name="zOff">The offset into <paramref name="z"/> at which the result starts.</param>
         [Obsolete("Use 'Decode255' instead")]
         public static void Decode(byte[] x, int xOff, int[] z, int zOff) => Decode255(x, xOff, z, zOff);
 
+        /// <summary>Decode a field element from its encoding.</summary>
+        /// <param name="x">The encoding.</param>
+        /// <param name="xOff">The offset into <paramref name="x"/> at which the value starts.</param>
+        /// <param name="z">The field element.</param>
         [CLSCompliant(false)]
         [Obsolete("Use 'Decode255' instead")]
         public static void Decode(uint[] x, int xOff, int[] z) => Decode255(x, xOff, z, 0);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Decode a field element from its encoding.</summary>
+        /// <param name="x">The encoding.</param>
+        /// <param name="z">The field element.</param>
         [Obsolete("Use 'Decode255' instead")]
         public static void Decode(ReadOnlySpan<byte> x, Span<int> z) => Decode255(x, z);
 
+        /// <summary>Decode a field element from its encoding.</summary>
+        /// <param name="x">The encoding.</param>
+        /// <param name="z">The field element.</param>
         [CLSCompliant(false)]
         [Obsolete("Use 'Decode255' instead")]
         public static void Decode(ReadOnlySpan<uint> x, Span<int> z) => Decode255(x, z);
@@ -407,8 +490,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
+        /// <summary>Decode a field element from its encoding, ignoring the top bit.</summary>
+        /// <param name="x">The encoding.</param>
+        /// <param name="z">The field element.</param>
         public static void Decode255(byte[] x, int[] z) => Decode255(x, 0, z, 0);
 
+        /// <summary>Decode a field element from its encoding, ignoring the top bit.</summary>
+        /// <param name="x">The encoding.</param>
+        /// <param name="xOff">The offset into <paramref name="x"/> at which the value starts.</param>
+        /// <param name="z">The field element.</param>
+        /// <param name="zOff">The offset into <paramref name="z"/> at which the result starts.</param>
         public static void Decode255(byte[] x, int xOff, int[] z, int zOff)
         {
             Decode128(x, xOff, z, zOff);
@@ -416,9 +507,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[zOff + 9] &= M24;
         }
 
+        /// <summary>Decode a field element from its encoding, ignoring the top bit.</summary>
+        /// <param name="x">The encoding.</param>
+        /// <param name="z">The field element.</param>
         [CLSCompliant(false)]
         public static void Decode255(uint[] x, int[] z) => Decode255(x, 0, z, 0);
 
+        /// <summary>Decode a field element from its encoding, ignoring the top bit.</summary>
+        /// <param name="x">The encoding.</param>
+        /// <param name="xOff">The offset into <paramref name="x"/> at which the value starts.</param>
+        /// <param name="z">The field element.</param>
+        /// <param name="zOff">The offset into <paramref name="z"/> at which the result starts.</param>
         [CLSCompliant(false)]
         public static void Decode255(uint[] x, int xOff, int[] z, int zOff)
         {
@@ -428,6 +527,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Decode a field element from its encoding, ignoring the top bit.</summary>
+        /// <param name="x">The encoding.</param>
+        /// <param name="z">The field element.</param>
         public static void Decode255(ReadOnlySpan<byte> x, Span<int> z)
         {
             Decode128(x, z);
@@ -435,6 +537,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[9] &= M24;
         }
 
+        /// <summary>Decode a field element from its encoding, ignoring the top bit.</summary>
+        /// <param name="x">The encoding.</param>
+        /// <param name="z">The field element.</param>
         [CLSCompliant(false)]
         public static void Decode255(ReadOnlySpan<uint> x, Span<int> z)
         {
@@ -461,6 +566,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         internal static uint Decode32(ReadOnlySpan<byte> bs) => BinaryPrimitives.ReadUInt32LittleEndian(bs);
 #endif
 
+        /// <summary>Encode a field element.</summary>
+        /// <param name="x">The field element.</param>
+        /// <param name="z">The buffer to receive the encoding.</param>
+        /// <param name="zOff">The offset into <paramref name="z"/> at which the result starts.</param>
         [CLSCompliant(false)]
         public static void Encode(int[] x, uint[] z, int zOff)
         {
@@ -469,6 +578,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Encode a field element.</summary>
+        /// <param name="x">The field element.</param>
+        /// <param name="z">The buffer to receive the encoding.</param>
         [CLSCompliant(false)]
         public static void Encode(ReadOnlySpan<int> x, Span<uint> z)
         {
@@ -477,18 +589,30 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
+        /// <summary>Encode a field element.</summary>
+        /// <param name="x">The field element.</param>
+        /// <param name="z">The buffer to receive the encoding.</param>
         public static void Encode(int[] x, byte[] z)
         {
             Encode128(x, 0, z, 0);
             Encode128(x, 5, z, 16);
         }
 
+        /// <summary>Encode a field element.</summary>
+        /// <param name="x">The field element.</param>
+        /// <param name="z">The buffer to receive the encoding.</param>
+        /// <param name="zOff">The offset into <paramref name="z"/> at which the result starts.</param>
         public static void Encode(int[] x, byte[] z, int zOff)
         {
             Encode128(x, 0, z, zOff);
             Encode128(x, 5, z, zOff + 16);
         }
 
+        /// <summary>Encode a field element.</summary>
+        /// <param name="x">The field element.</param>
+        /// <param name="xOff">The offset into <paramref name="x"/> at which the value starts.</param>
+        /// <param name="z">The buffer to receive the encoding.</param>
+        /// <param name="zOff">The offset into <paramref name="z"/> at which the result starts.</param>
         public static void Encode(int[] x, int xOff, byte[] z, int zOff)
         {
             Encode128(x, xOff, z, zOff);
@@ -496,6 +620,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Encode a field element.</summary>
+        /// <param name="x">The field element.</param>
+        /// <param name="z">The buffer to receive the encoding.</param>
         public static void Encode(ReadOnlySpan<int> x, Span<byte> z)
         {
             Encode128(x, z);
@@ -569,6 +696,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
+        /// <summary>Calculate the multiplicative inverse, in constant time.</summary>
+        /// <param name="x">The value.</param>
+        /// <param name="z">The inverse.</param>
         public static void Inv(int[] x, int[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -594,6 +724,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Calculate the multiplicative inverse, in constant time.</summary>
+        /// <param name="x">The value.</param>
+        /// <param name="z">The inverse.</param>
         public static void Inv(ReadOnlySpan<int> x, Span<int> z)
         {
             Span<int> t = stackalloc int[Size];
@@ -609,6 +742,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
+        /// <summary>Calculate the multiplicative inverse, in variable time.</summary>
+        /// <param name="x">The value.</param>
+        /// <param name="z">The inverse.</param>
         public static void InvVar(int[] x, int[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -628,6 +764,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Calculate the multiplicative inverse, in variable time.</summary>
+        /// <param name="x">The value.</param>
+        /// <param name="z">The inverse.</param>
         public static void InvVar(ReadOnlySpan<int> x, Span<int> z)
         {
             Span<int> t = stackalloc int[Size];
@@ -643,6 +782,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
+        /// <summary>Determine whether a value is one, in constant time.</summary>
+        /// <param name="x">The value.</param>
+        /// <returns>Non-zero (all bits set) if the value is one, zero otherwise.</returns>
         public static int IsOne(int[] x)
         {
             int d = x[0] ^ 1;
@@ -653,11 +795,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             return ((d - 1) & ~d) >> 31;
         }
 
+        /// <summary>Determine whether a value is one, in variable time.</summary>
+        /// <param name="x">The value.</param>
+        /// <returns>true if the value is one, false otherwise.</returns>
         public static bool IsOneVar(int[] x)
         {
             return 0 != IsOne(x);
         }
 
+        /// <summary>Determine whether a value is zero, in constant time.</summary>
+        /// <param name="x">The value.</param>
+        /// <returns>Non-zero (all bits set) if the value is zero, zero otherwise.</returns>
         public static int IsZero(int[] x)
         {
             int d = 0;
@@ -668,11 +816,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             return ((d - 1) & ~d) >> 31;
         }
 
+        /// <summary>Determine whether a value is zero, in variable time.</summary>
+        /// <param name="x">The value.</param>
+        /// <returns>true if the value is zero, false otherwise.</returns>
         public static bool IsZeroVar(int[] x)
         {
             return 0 != IsZero(x);
         }
 
+        /// <summary>Multiply two values, or a value by a small constant.</summary>
+        /// <param name="x">The first operand.</param>
+        /// <param name="y">The second operand.</param>
+        /// <param name="z">The product.</param>
         public static void Mul(int[] x, int y, int[] z)
         {
             int x0 = x[0], x1 = x[1], x2 = x[2], x3 = x[3], x4 = x[4];
@@ -701,6 +856,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[9] = x9 + (int)c2;
         }
 
+        /// <summary>Multiply two values, or a value by a small constant.</summary>
+        /// <param name="x">The first operand.</param>
+        /// <param name="y">The second operand.</param>
+        /// <param name="z">The product.</param>
         public static void Mul(int[] x, int[] y, int[] z)
         {
             int x0 = x[0], y0 = y[0];
@@ -857,6 +1016,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[9]     = z9 + (int)t;
         }
 
+        /// <summary>Negate a value.</summary>
+        /// <param name="x">The value.</param>
+        /// <param name="z">The negated value.</param>
         public static void Negate(int[] x, int[] z)
         {
             for (int i = 0; i < Size; ++i)
@@ -865,6 +1027,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             }
         }
 
+        /// <summary>Reduce a value to its canonical form, in place.</summary>
+        /// <param name="z">The value, which is updated.</param>
         public static void Normalize(int[] z)
         {
             int x = (z[9] >> (24 - 1)) & 1;
@@ -874,6 +1038,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Reduce a value to its canonical form, in place.</summary>
+        /// <param name="z">The value, which is updated.</param>
         public static void Normalize(Span<int> z)
         {
             int x = (z[9] >> (24 - 1)) & 1;
@@ -883,6 +1049,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
+        /// <summary>Set a value to one.</summary>
+        /// <param name="z">The value to set.</param>
         public static void One(int[] z)
         {
             z[0] = 1;
@@ -952,6 +1120,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
+        /// <summary>Square a value, or raise it to the power 2^n.</summary>
+        /// <param name="x">The value.</param>
+        /// <param name="z">The result.</param>
         public static void Sqr(int[] x, int[] z)
         {
             int x0 = x[0];
@@ -1078,6 +1249,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[9]     = z9 + (int)t;
         }
 
+        /// <summary>Square a value, or raise it to the power 2^n.</summary>
+        /// <param name="x">The value.</param>
+        /// <param name="n">The number of squarings.</param>
+        /// <param name="z">The result.</param>
         public static void Sqr(int[] x, int n, int[] z)
         {
             Debug.Assert(n > 0);
@@ -1090,6 +1265,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             }
         }
 
+        /// <summary>Calculate the square root of u/v, if it exists, in variable time.</summary>
+        /// <param name="u">The numerator.</param>
+        /// <param name="v">The denominator.</param>
+        /// <param name="z">The result.</param>
+        /// <returns>true if the square root exists, false otherwise.</returns>
         public static bool SqrtRatioVar(int[] u, int[] v, int[] z)
         {
             int[] uv3 = Create();
@@ -1132,6 +1312,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
+        /// <summary>Calculate z = x - y.</summary>
+        /// <param name="x">The first operand.</param>
+        /// <param name="y">The second operand.</param>
+        /// <param name="z">The difference.</param>
         public static void Sub(int[] x, int[] y, int[] z)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -1203,11 +1387,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             }
         }
 
+        /// <summary>Subtract one from the value, in place.</summary>
+        /// <param name="z">The value, which is updated.</param>
         public static void SubOne(int[] z)
         {
             z[0] -= 1;
         }
 
+        /// <summary>Set a value to zero.</summary>
+        /// <param name="z">The value to set.</param>
         public static void Zero(int[] z)
         {
             for (int i = 0; i < Size; ++i)

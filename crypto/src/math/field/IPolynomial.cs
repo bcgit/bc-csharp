@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Math.Field
 {
+    /// <summary>Interface for a polynomial over a finite field.</summary>
     public interface IPolynomial
     {
         /// <summary>Gets the degree.</summary>

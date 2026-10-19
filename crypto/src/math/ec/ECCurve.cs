@@ -39,6 +39,9 @@ namespace Org.BouncyCastle.Math.EC
                 COORD_JACOBIAN_MODIFIED, COORD_LAMBDA_AFFINE, COORD_LAMBDA_PROJECTIVE, COORD_SKEWED };
         }
 
+        /// <summary>
+        /// A configuration for creating a curve with chosen coordinate system, endomorphism and multiplier.
+        /// </summary>
         public class Config
         {
             private readonly ECCurve m_outer;
@@ -54,24 +57,35 @@ namespace Org.BouncyCastle.Math.EC
                 m_multiplier = multiplier;
             }
 
+            /// <summary>Set the coordinate system.</summary>
+            /// <param name="coord">The coordinate system.</param>
+            /// <returns>This configuration.</returns>
             public Config SetCoordinateSystem(int coord)
             {
                 m_coord = coord;
                 return this;
             }
 
+            /// <summary>Set the endomorphism.</summary>
+            /// <param name="endomorphism">The endomorphism.</param>
+            /// <returns>This configuration.</returns>
             public Config SetEndomorphism(ECEndomorphism endomorphism)
             {
                 m_endomorphism = endomorphism;
                 return this;
             }
 
+            /// <summary>Set the multiplier.</summary>
+            /// <param name="multiplier">The multiplier.</param>
+            /// <returns>This configuration.</returns>
             public Config SetMultiplier(ECMultiplier multiplier)
             {
                 m_multiplier = multiplier;
                 return this;
             }
 
+            /// <summary>Create the curve with the chosen configuration.</summary>
+            /// <returns>The curve.</returns>
             public ECCurve Create()
             {
                 if (!m_outer.SupportsCoordinateSystem(m_coord))
@@ -114,18 +128,35 @@ namespace Org.BouncyCastle.Math.EC
 
         /// <summary>Gets the field size.</summary>
         public abstract int FieldSize { get; }
+        /// <summary>Create a field element of this curve from a value.</summary>
+        /// <param name="x">The value.</param>
+        /// <returns>The field element.</returns>
         public abstract ECFieldElement FromBigInteger(BigInteger x);
+        /// <summary>Determine whether a value is a valid field element of this curve.</summary>
+        /// <param name="x">The value.</param>
+        /// <returns>true if the value is valid, false otherwise.</returns>
         public abstract bool IsValidFieldElement(BigInteger x);
 
+        /// <summary>Generate a random field element.</summary>
+        /// <param name="r">The source of randomness.</param>
+        /// <returns>The field element.</returns>
         public abstract ECFieldElement RandomFieldElement(SecureRandom r);
 
+        /// <summary>Generate a random non-zero field element.</summary>
+        /// <param name="r">The source of randomness.</param>
+        /// <returns>The field element.</returns>
         public abstract ECFieldElement RandomFieldElementMult(SecureRandom r);
 
+        /// <summary>Start configuring a copy of this curve.</summary>
+        /// <returns>A configuration for the new curve.</returns>
         public virtual Config Configure() => new Config(this, m_coord, m_endomorphism, m_multiplier);
 
         /// <summary>Gets the field element encoding length.</summary>
         public virtual int FieldElementEncodingLength => (FieldSize + 7) / 8;
 
+        /// <summary>Get the length in bytes of the encoding of an affine point.</summary>
+        /// <param name="compressed">true for the compressed encoding, false for the uncompressed encoding.</param>
+        /// <returns>The length in bytes.</returns>
         public virtual int GetAffinePointEncodingLength(bool compressed)
         {
             int fieldLength = FieldElementEncodingLength;
@@ -134,6 +165,11 @@ namespace Org.BouncyCastle.Math.EC
                 :  1 + fieldLength * 2;
         }
 
+        /// <summary>Create a point from affine coordinates and check that it is valid.</summary>
+        /// <param name="x">The affine x-coordinate.</param>
+        /// <param name="y">The affine y-coordinate.</param>
+        /// <returns>The point.</returns>
+        /// <exception cref="ArgumentException">The point is not valid.</exception>
         public virtual ECPoint ValidatePoint(BigInteger x, BigInteger y)
         {
             ECPoint p = CreatePoint(x, y);
@@ -143,15 +179,32 @@ namespace Org.BouncyCastle.Math.EC
             return p;
         }
 
+        /// <summary>Create a point from affine coordinates.</summary>
+        /// <param name="x">The affine x-coordinate.</param>
+        /// <param name="y">The affine y-coordinate.</param>
+        /// <returns>The point.</returns>
         public virtual ECPoint CreatePoint(BigInteger x, BigInteger y) =>
             CreateRawPoint(FromBigInteger(x), FromBigInteger(y));
 
+        /// <summary>Create a copy of this curve.</summary>
+        /// <returns>The copy.</returns>
         protected abstract ECCurve CloneCurve();
 
+        /// <summary>Create a point from field elements, without validation.</summary>
+        /// <param name="x">The x-coordinate.</param>
+        /// <param name="y">The y-coordinate.</param>
+        /// <returns>The point.</returns>
         protected internal abstract ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y);
 
+        /// <summary>Create a point from field elements, without validation.</summary>
+        /// <param name="x">The x-coordinate.</param>
+        /// <param name="y">The y-coordinate.</param>
+        /// <param name="zs">The additional coordinates.</param>
+        /// <returns>The point.</returns>
         protected internal abstract ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, ECFieldElement[] zs);
 
+        /// <summary>Create the multiplier used by default for this curve.</summary>
+        /// <returns>The multiplier.</returns>
         protected virtual ECMultiplier CreateDefaultMultiplier()
         {
             if (m_endomorphism is GlvEndomorphism glvEndomorphism)
@@ -160,8 +213,15 @@ namespace Org.BouncyCastle.Math.EC
             return new WNafL2RMultiplier();
         }
 
+        /// <summary>Determine whether a coordinate system is supported by this curve.</summary>
+        /// <param name="coord">The coordinate system.</param>
+        /// <returns>true if the coordinate system is supported, false otherwise.</returns>
         public virtual bool SupportsCoordinateSystem(int coord) => coord == COORD_AFFINE;
 
+        /// <summary>Get the precomputation data stored with a point under the given name.</summary>
+        /// <param name="point">The point.</param>
+        /// <param name="name">The name of the precomputation.</param>
+        /// <returns>The precomputation data, or null if there is none.</returns>
         public virtual PreCompInfo GetPreCompInfo(ECPoint point, string name)
         {
             CheckPoint(point);
@@ -243,6 +303,9 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <summary>Import a point from another curve into this one.</summary>
+        /// <param name="p">The point.</param>
+        /// <returns>The point on this curve.</returns>
         public virtual ECPoint ImportPoint(ECPoint p)
         {
             if (this == p.Curve)
@@ -379,14 +442,25 @@ namespace Org.BouncyCastle.Math.EC
             return new DefaultLookupTable(this, table, len);
         }
 
+        /// <summary>Check that a point belongs to this curve.</summary>
+        /// <param name="point">The point.</param>
+        /// <exception cref="ArgumentException">The point belongs to another curve.</exception>
         protected virtual void CheckPoint(ECPoint point)
         {
             if (null == point || (this != point.Curve))
                 throw new ArgumentException("must be non-null and on this curve", nameof(point));
         }
 
+        /// <summary>Check that points belong to this curve.</summary>
+        /// <param name="points">The points.</param>
+        /// <exception cref="ArgumentException">A point belongs to another curve.</exception>
         protected virtual void CheckPoints(ECPoint[] points) => CheckPoints(points, 0, points.Length);
 
+        /// <summary>Check that points belong to this curve.</summary>
+        /// <param name="points">The points.</param>
+        /// <param name="off">The offset of the range to check.</param>
+        /// <param name="len">The length of the range.</param>
+        /// <exception cref="ArgumentException">A point belongs to another curve.</exception>
         protected virtual void CheckPoints(ECPoint[] points, int off, int len)
         {
             Arrays.ValidateSegment(points, off, len);
@@ -399,6 +473,9 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <summary>Determine whether this curve is equal to another.</summary>
+        /// <param name="other">The curve to compare with.</param>
+        /// <returns>true if the curves are equal, false otherwise.</returns>
         public virtual bool Equals(ECCurve other)
         {
             if (this == other)
@@ -425,6 +502,10 @@ namespace Org.BouncyCastle.Math.EC
 #endif
         }
 
+        /// <summary>Decompress a point from its x-coordinate and the sign of its y-coordinate.</summary>
+        /// <param name="yTilde">The least significant bit of the y-coordinate.</param>
+        /// <param name="X1">The x-coordinate.</param>
+        /// <returns>The point.</returns>
         protected abstract ECPoint DecompressPoint(int yTilde, BigInteger X1);
 
         /// <summary>Return the endomorphism.</summary>
@@ -441,6 +522,10 @@ namespace Org.BouncyCastle.Math.EC
             return m_multiplier;
         }
 
+        /// <summary>Decode a point from its encoding.</summary>
+        /// <param name="encoded">The encoding.</param>
+        /// <returns>The point.</returns>
+        /// <exception cref="ArgumentException">The encoding is not valid.</exception>
         public virtual ECPoint DecodePoint(byte[] encoded)
         {
             if (encoded == null)
@@ -523,6 +608,10 @@ namespace Org.BouncyCastle.Math.EC
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Decode a point from its encoding.</summary>
+        /// <param name="encoded">The encoding.</param>
+        /// <returns>The point.</returns>
+        /// <exception cref="ArgumentException">The encoding is not valid.</exception>
         public virtual ECPoint DecodePoint(ReadOnlySpan<byte> encoded)
         {
             if (encoded.Length < 1)
@@ -660,6 +749,7 @@ namespace Org.BouncyCastle.Math.EC
         }
     }
 
+    /// <summary>Base class for curves over a prime field.</summary>
     public abstract class AbstractFpCurve
         : ECCurve
     {
@@ -945,9 +1035,15 @@ namespace Org.BouncyCastle.Math.EC
         }
     }
 
+    /// <summary>Base class for curves over a binary field.</summary>
     public abstract class AbstractF2mCurve
         : ECCurve
     {
+        /// <summary>Calculate the inverse of an element of a binary field.</summary>
+        /// <param name="m">The degree of the field.</param>
+        /// <param name="ks">The exponents of the reduction polynomial.</param>
+        /// <param name="x">The element.</param>
+        /// <returns>The inverse.</returns>
         [Obsolete("Will be removed")]
         public static BigInteger Inverse(int m, int[] ks, BigInteger x)
         {
