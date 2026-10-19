@@ -85,16 +85,19 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
             this.g = g;
         }
 
+        /// <summary>Gets the p.</summary>
         public virtual BigInteger P
         {
             get { return p; }
         }
 
+        /// <summary>Gets the q.</summary>
         public virtual BigInteger Q
         {
             get { return q; }
         }
 
+        /// <summary>Gets the g.</summary>
         public virtual BigInteger G
         {
             get { return g; }

@@ -45,6 +45,12 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         /// </summary>
         private readonly BigInteger[] knowledgeProofForX2;
 
+        /// <summary>Create a new <see cref="JPakeRound1Payload"/>.</summary>
+        /// <param name="participantId">The participant id.</param>
+        /// <param name="gx1">The gx 1.</param>
+        /// <param name="gx2">The gx 2.</param>
+        /// <param name="knowledgeProofForX1">The knowledge proof for x 1.</param>
+        /// <param name="knowledgeProofForX2">The knowledge proof for x 2.</param>
         public JPakeRound1Payload(string participantId, BigInteger gx1, BigInteger gx2,
             BigInteger[] knowledgeProofForX1, BigInteger[] knowledgeProofForX2)
         {
@@ -61,14 +67,19 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
             this.knowledgeProofForX2 = Copy(knowledgeProofForX2);
         }
 
+        /// <summary>Gets the participant id.</summary>
         public virtual string ParticipantId => participantId;
 
+        /// <summary>Gets the gx 1.</summary>
         public virtual BigInteger Gx1 => gx1;
 
+        /// <summary>Gets the gx 2.</summary>
         public virtual BigInteger Gx2 => gx2;
 
+        /// <summary>Gets the knowledge proof for x 1.</summary>
         public virtual BigInteger[] KnowledgeProofForX1 => Copy(knowledgeProofForX1);
 
+        /// <summary>Gets the knowledge proof for x 2.</summary>
         public virtual BigInteger[] KnowledgeProofForX2 => Copy(knowledgeProofForX2);
 
         private static BigInteger[] Copy(BigInteger[] bis) => Arrays.CopyOf(bis, bis.Length);
