@@ -55,6 +55,9 @@ namespace Org.BouncyCastle.Crmf
         public CertificateRequestMessageBuilder SetPublicKey(AsymmetricKeyParameter publicKey) =>
             SetSubjectPublicKeyInfo(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey));
 
+        /// <summary>Set the public key of the certificate template.</summary>
+        /// <param name="publicKeyInfo">The public key info.</param>
+        /// <returns>This builder.</returns>
         [Obsolete("Use 'SetSubjectPublicKeyInfo' instead")]
         public CertificateRequestMessageBuilder SetPublicKey(SubjectPublicKeyInfo publicKeyInfo) =>
             SetSubjectPublicKeyInfo(spki: publicKeyInfo);
