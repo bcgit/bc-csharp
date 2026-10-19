@@ -8,6 +8,9 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes
 {
+    /// <summary>
+    /// Implementation of the KCCM counter with CBC-MAC authenticated encryption mode (DSTU 7624:2014).
+    /// </summary>
     public class KCcmBlockCipher
         : IAeadBlockCipher
     {
@@ -92,6 +95,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             SetNb(Nb);
         }
 
+        /// <inheritdoc/>
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
             KeyParameter keyParameter = null;
@@ -189,23 +193,29 @@ namespace Org.BouncyCastle.Crypto.Modes
             Reset();
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => engine.AlgorithmName + "/KCCM";
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize() => engine.GetBlockSize();
 
+        /// <inheritdoc/>
         public virtual IBlockCipher UnderlyingCipher => engine;
 
+        /// <inheritdoc/>
         public virtual void ProcessAadByte(byte input)
         {
             associatedText.WriteByte(input);
         }
 
+        /// <inheritdoc/>
         public virtual void ProcessAadBytes(byte[] input, int inOff, int len)
         {
             associatedText.Write(input, inOff, len);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
         {
             associatedText.Write(input);
@@ -283,6 +293,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+        /// <inheritdoc/>
         public virtual int ProcessByte(byte input, byte[] output, int outOff)
         {
             data.WriteByte(input);
@@ -291,6 +302,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessByte(byte input, Span<byte> output)
         {
             data.WriteByte(input);
@@ -299,6 +311,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int ProcessBytes(byte[] input, int inOff, int inLen, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, inLen, "input buffer too short");
@@ -309,6 +322,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             data.Write(input);
@@ -556,6 +570,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int DoFinal(byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -573,6 +588,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int DoFinal(Span<byte> output)
         {
             byte[] buf = data.GetBuffer();
@@ -586,16 +602,19 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual byte[] GetMac()
         {
             return Arrays.Clone(mac);
         }
 
+        /// <inheritdoc/>
         public virtual int GetUpdateOutputSize(int len)
         {
             return 0;
         }
 
+        /// <inheritdoc/>
         public virtual int GetOutputSize(int len)
         {
             int totalData = Convert.ToInt32(data.Length) + len;
@@ -608,6 +627,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return totalData < macSize ? 0 : totalData - macSize;
         }
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             Arrays.Fill(G1, (byte)0);

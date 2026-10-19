@@ -95,6 +95,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             get { return cipher.AlgorithmName + "/KCTR"; }
         }
 
+        /// <inheritdoc/>
         public bool IsPartialBlockOkay
         {
             get { return true; }
@@ -110,11 +111,13 @@ namespace Org.BouncyCastle.Crypto.Modes
             return cipher.GetBlockSize();
         }
 
+        /// <inheritdoc/>
         public byte ReturnByte(byte input)
         {
             return CalculateByte(input);
         }
 
+        /// <inheritdoc/>
         public void ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, len, "input buffer too short");
@@ -131,6 +134,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.OutputLength(output, input.Length, "output buffer too short");
@@ -190,6 +194,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             int blockSize = GetBlockSize();

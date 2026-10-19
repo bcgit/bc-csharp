@@ -61,6 +61,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             get { return cipher.AlgorithmName + "/OpenPGPCFB"; }
         }
 
+        /// <inheritdoc/>
         public bool IsPartialBlockOkay
         {
             get { return true; }
@@ -76,6 +77,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return cipher.GetBlockSize();
         }
 
+        /// <inheritdoc/>
         public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -90,6 +92,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             return forEncryption

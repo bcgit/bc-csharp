@@ -97,6 +97,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
         }
 
+        /// <summary>Create a new <see cref="GcmBlockCipher"/>.</summary>
+        /// <param name="c">The c.</param>
+        /// <param name="m">The m.</param>
         [Obsolete("Will be removed")]
         public GcmBlockCipher(
             IBlockCipher c,
@@ -130,7 +133,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         /// Initialise the GCM cipher.
         /// </summary>
         /// <param name="forEncryption">True if initializing for encryption, false for decryption.</param>
-        /// <param name="parameters">The parameters required (typically <see cref="AeadParameters"/> or <see cref="ParametersWithIV"/>).</param>
+        /// <param name="parameters">
+        /// The parameters required (typically <see cref="AeadParameters"/> or <see cref="ParametersWithIV"/>).
+        /// </param>
         /// <exception cref="ArgumentException">If parameters are invalid or nonce is reused for encryption.</exception>
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
@@ -291,7 +296,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             return macBlock == null ? new byte[macSize] : (byte[])macBlock.Clone();
         }
 
-        /// <summary>Return the size of the output buffer required for an input of <paramref name="len"/> bytes.</summary>
+        /// <summary>
+        /// Return the size of the output buffer required for an input of <paramref name="len"/> bytes.
+        /// </summary>
         /// <param name="len">Input length.</param>
         /// <returns>Required output buffer size.</returns>
         public int GetOutputSize(int len)
@@ -304,7 +311,10 @@ namespace Org.BouncyCastle.Crypto.Modes
             return totalData < macSize ? 0 : totalData - macSize;
         }
 
-        /// <summary>Return the size of the output buffer required for a <c>ProcessBytes</c> call with <paramref name="len"/> bytes.</summary>
+        /// <summary>
+        /// Return the size of the output buffer required for a <c>ProcessBytes</c> call with <paramref name="len"/>
+        /// bytes.
+        /// </summary>
         /// <param name="len">Input length.</param>
         /// <returns>Update output size.</returns>
         public int GetUpdateOutputSize(int len)
@@ -1113,7 +1123,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
-        /// <summary>Reset the cipher to its initial state (ready for a new message with the same key but DIFFERENT nonce).</summary>
+        /// <summary>
+        /// Reset the cipher to its initial state (ready for a new message with the same key but DIFFERENT nonce).
+        /// </summary>
         public void Reset()
         {
             Reset(true);

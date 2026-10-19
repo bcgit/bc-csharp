@@ -113,6 +113,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             get { return cipher.AlgorithmName + "/GCTR"; }
         }
 
+        /// <inheritdoc/>
         public bool IsPartialBlockOkay
         {
             get { return true; }
@@ -128,6 +129,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return blockSize;
         }
 
+        /// <inheritdoc/>
         public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, blockSize, "input buffer too short");
@@ -173,6 +175,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.DataLength(input, blockSize, "input buffer too short");

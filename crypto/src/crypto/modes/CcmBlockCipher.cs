@@ -52,6 +52,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         */
         public virtual IBlockCipher UnderlyingCipher => cipher;
 
+        /// <inheritdoc/>
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
             this.forEncryption = forEncryption;
@@ -136,18 +137,22 @@ namespace Org.BouncyCastle.Crypto.Modes
             Reset();
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => cipher.AlgorithmName + "/CCM";
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize()
         {
             return cipher.GetBlockSize();
         }
 
+        /// <inheritdoc/>
         public virtual void ProcessAadByte(byte input)
         {
             associatedText.WriteByte(input);
         }
 
+        /// <inheritdoc/>
         public virtual void ProcessAadBytes(byte[] inBytes, int inOff, int len)
         {
             // TODO: Process AAD online
@@ -155,6 +160,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
         {
             // TODO: Process AAD online
@@ -162,6 +168,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int ProcessByte(byte input, byte[] outBytes, int outOff)
         {
             data.WriteByte(input);
@@ -170,6 +177,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessByte(byte input, Span<byte> output)
         {
             data.WriteByte(input);
@@ -178,6 +186,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int ProcessBytes(byte[] inBytes, int inOff, int inLen, byte[] outBytes, int outOff)
         {
             Check.DataLength(inBytes, inOff, inLen, "input buffer too short");
@@ -188,6 +197,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             data.Write(input);
@@ -196,6 +206,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int DoFinal(byte[] outBytes, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -213,6 +224,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int DoFinal(Span<byte> output)
         {
             if (!data.TryGetBuffer(out var buffer))
@@ -226,6 +238,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             associatedText.SetLength(0);
@@ -243,11 +256,13 @@ namespace Org.BouncyCastle.Crypto.Modes
             return Arrays.CopyOfRange(macBlock, 0, macSize);
         }
 
+        /// <inheritdoc/>
         public virtual int GetUpdateOutputSize(int len)
         {
             return 0;
         }
 
+        /// <inheritdoc/>
         public virtual int GetOutputSize(int len)
         {
             int totalData = Convert.ToInt32(data.Length) + len;

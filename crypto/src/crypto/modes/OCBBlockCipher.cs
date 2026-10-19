@@ -67,6 +67,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         // NOTE: The MAC value is preserved after doFinal
         private byte[] macBlock;
 
+        /// <summary>Create a new <see cref="OcbBlockCipher"/>.</summary>
+        /// <param name="hashCipher">The hash cipher.</param>
+        /// <param name="mainCipher">The main cipher.</param>
         public OcbBlockCipher(IBlockCipher hashCipher, IBlockCipher mainCipher)
         {
             if (hashCipher == null)
@@ -85,10 +88,13 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.mainCipher = mainCipher;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => mainCipher.AlgorithmName + "/OCB";
 
+        /// <inheritdoc/>
         public virtual IBlockCipher UnderlyingCipher => mainCipher;
 
+        /// <inheritdoc/>
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
             bool oldForEncryption = this.forEncryption;
@@ -302,11 +308,13 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize()
         {
             return BLOCK_SIZE;
         }
 
+        /// <inheritdoc/>
         public virtual byte[] GetMac()
         {
             return macBlock == null
@@ -314,6 +322,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 : Arrays.Clone(macBlock);
         }
 
+        /// <inheritdoc/>
         public virtual int GetOutputSize(int len)
         {
             int totalData = len + mainBlockPos;
@@ -324,6 +333,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return totalData < macSize ? 0 : totalData - macSize;
         }
 
+        /// <inheritdoc/>
         public virtual int GetUpdateOutputSize(int len)
         {
             int totalData = len + mainBlockPos;
@@ -338,6 +348,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return totalData - totalData % BLOCK_SIZE;
         }
 
+        /// <inheritdoc/>
         public virtual void ProcessAadByte(byte input)
         {
             hashBlock[hashBlockPos] = input;
@@ -347,6 +358,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+        /// <inheritdoc/>
         public virtual void ProcessAadBytes(byte[] input, int off, int len)
         {
             for (int i = 0; i < len; ++i)
@@ -360,6 +372,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
         {
             for (int i = 0; i < input.Length; ++i)
@@ -373,6 +386,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int ProcessByte(byte input, byte[] output, int outOff)
         {
             mainBlock[mainBlockPos] = input;
@@ -385,6 +399,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessByte(byte input, Span<byte> output)
         {
             mainBlock[mainBlockPos] = input;
@@ -397,6 +412,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, len, "input buffer too short");
@@ -421,6 +437,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             int len = input.Length;
@@ -440,6 +457,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int DoFinal(byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -533,6 +551,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int DoFinal(Span<byte> output)
         {
             /*
@@ -622,6 +641,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             Reset(true);

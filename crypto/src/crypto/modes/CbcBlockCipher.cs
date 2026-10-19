@@ -33,7 +33,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         /// <summary>Initialise the cipher and, possibly, the initialisation vector (IV).</summary>
         /// <remarks>If an IV isn't passed as part of the parameter, the IV will be all zeros.</remarks>
-        /// <param name="forEncryption">If true the cipher is initialised for encryption, if false for decryption.</param>
+        /// <param name="forEncryption">
+        /// If true the cipher is initialised for encryption, if false for decryption.
+        /// </param>
         /// <param name="parameters">The key and other data required by the cipher.</param>
         /// <exception cref="ArgumentException">If the parameters argument is inappropriate.</exception>
         public void Init(bool forEncryption, ICipherParameters parameters)
@@ -89,6 +91,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return cipher.GetBlockSize();
         }
 
+        /// <inheritdoc/>
         public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -103,6 +106,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             return encrypting
