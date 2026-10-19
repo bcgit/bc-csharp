@@ -4,9 +4,17 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.CryptoPro
 {
+    /// <summary>The parameters of a GOST R 34.10 elliptic curve parameter set.</summary>
     public class ECGost3410ParamSetParameters
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="ECGost3410ParamSetParameters"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="ECGost3410ParamSetParameters"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ECGost3410ParamSetParameters"/>, or null if <paramref name="obj"/> is null.
+        /// </returns>
         public static ECGost3410ParamSetParameters GetInstance(object obj)
         {
             if (obj == null)
@@ -18,6 +26,10 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="ECGost3410ParamSetParameters"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ECGost3410ParamSetParameters"/>.</returns>
         public static ECGost3410ParamSetParameters GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -25,6 +37,10 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="ECGost3410ParamSetParameters"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ECGost3410ParamSetParameters"/>.</returns>
         public static ECGost3410ParamSetParameters GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -34,6 +50,8 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
 
         private readonly DerInteger m_a, m_b, m_p, m_q, m_x, m_y;
 
+        /// <summary>Create a new <see cref="ECGost3410ParamSetParameters"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public ECGost3410ParamSetParameters(Asn1Sequence seq)
         {
@@ -55,6 +73,13 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="ECGost3410ParamSetParameters"/>.</summary>
+        /// <param name="a">The first operand.</param>
+        /// <param name="b">The second operand.</param>
+        /// <param name="p">The p.</param>
+        /// <param name="q">The q.</param>
+        /// <param name="x">The first operand.</param>
+        /// <param name="y">The second operand.</param>
         public ECGost3410ParamSetParameters(BigInteger a, BigInteger b, BigInteger p, BigInteger q, int x,
             BigInteger y)
         {
@@ -66,18 +91,23 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             m_y = new DerInteger(y);
         }
 
+        /// <summary>Gets the a.</summary>
         public BigInteger A => m_a.PositiveValue;
 
         public BigInteger B => m_b.PositiveValue;
 
+        /// <summary>Gets the p.</summary>
         public BigInteger P => m_p.PositiveValue;
 
+        /// <summary>Gets the q.</summary>
         public BigInteger Q => m_q.PositiveValue;
 
         int X => m_x.IntPositiveValueExact;
 
+        /// <summary>Gets the y.</summary>
         public BigInteger Y => m_y.PositiveValue;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => new DerSequence(m_a, m_b, m_p, m_q, m_x, m_y);
     }
 }

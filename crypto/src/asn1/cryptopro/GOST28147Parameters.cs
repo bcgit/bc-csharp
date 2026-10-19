@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.CryptoPro
 {
+    /// <summary>The parameters of the GOST 28147-89 cipher: an initialization vector and a parameter set.</summary>
     public class Gost28147Parameters
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="Gost28147Parameters"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="Gost28147Parameters"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="Gost28147Parameters"/>, or null if <paramref name="obj"/> is null.</returns>
         public static Gost28147Parameters GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +20,17 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             return new Gost28147Parameters(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="Gost28147Parameters"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Gost28147Parameters"/>.</returns>
         public static Gost28147Parameters GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new Gost28147Parameters(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="Gost28147Parameters"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Gost28147Parameters"/>.</returns>
         public static Gost28147Parameters GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Gost28147Parameters(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -37,14 +51,19 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="Gost28147Parameters"/>.</summary>
+        /// <param name="iv">The initialization vector.</param>
+        /// <param name="encryptionParamSet">The encryption param set.</param>
         public Gost28147Parameters(Asn1OctetString iv, DerObjectIdentifier encryptionParamSet)
         {
             m_iv = iv ?? throw new ArgumentNullException(nameof(iv));
             m_encryptionParamSet = encryptionParamSet ?? throw new ArgumentNullException(nameof(encryptionParamSet));
         }
 
+        /// <summary>Gets the IV.</summary>
         public Asn1OctetString IV => m_iv;
 
+        /// <summary>Gets the encryption param set.</summary>
         public DerObjectIdentifier EncryptionParamSet => m_encryptionParamSet;
 
         /**
