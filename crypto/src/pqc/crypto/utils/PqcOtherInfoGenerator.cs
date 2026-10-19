@@ -17,8 +17,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
     {
         /// <summary>The other info builder.</summary>
         protected readonly DerOtherInfo.Builder m_otherInfoBuilder;
+        /// <summary>The random.</summary>
         protected readonly SecureRandom m_random;
 
+        /// <summary>The used.</summary>
         protected bool m_used = false;
 
         /**
