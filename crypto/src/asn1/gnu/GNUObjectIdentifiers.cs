@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Gnu
 {
+    /// <summary>Object identifiers for the GNU project.</summary>
     // TODO[api] Make static
     public abstract class GnuObjectIdentifiers
     {
@@ -32,6 +33,7 @@ namespace Org.BouncyCastle.Asn1.Gnu
         /** 1.3.6.1.4.1.11591.15 - ellipticCurve */
         public static readonly DerObjectIdentifier EllipticCurve = new DerObjectIdentifier("1.3.6.1.4.1.11591.15");
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.11591.15.1</c>.</summary>
         public static readonly DerObjectIdentifier Ed25519   = EllipticCurve.Branch("1");
     }
 }
