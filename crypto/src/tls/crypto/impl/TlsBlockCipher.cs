@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             /*
              * Don't use variable-length padding with truncated MACs.
-             * 
+             *
              * See "Tag Size Does Matter: Attacks and Proofs for the TLS Record Protocol", Paterson,
              * Ristenpart, Shrimpton.
              *
