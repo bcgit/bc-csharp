@@ -68,6 +68,9 @@ namespace Org.BouncyCastle.Asn1
             return (DerT61String)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Return an <see cref="DerT61String"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="DerT61String"/>, or null if <paramref name="element"/> is null.</returns>
         public static DerT61String GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -79,6 +82,10 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="DerT61String"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DerT61String"/>.</returns>
         public static DerT61String GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (DerT61String)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
@@ -86,6 +93,8 @@ namespace Org.BouncyCastle.Asn1
 
         private readonly byte[] m_contents;
 
+        /// <summary>Create a new <see cref="DerT61String"/>.</summary>
+        /// <param name="str">The str.</param>
         public DerT61String(string str)
         {
             if (str == null)
@@ -94,6 +103,8 @@ namespace Org.BouncyCastle.Asn1
             m_contents = Strings.ToByteArray(str);
         }
 
+        /// <summary>Create a new <see cref="DerT61String"/>.</summary>
+        /// <param name="contents">The contents.</param>
         public DerT61String(byte[] contents)
             : this(contents, true)
         {
@@ -107,6 +118,7 @@ namespace Org.BouncyCastle.Asn1
             m_contents = clone ? Arrays.Clone(contents) : contents;
         }
 
+        /// <inheritdoc/>
         public override string GetString()
         {
             return Strings.FromByteArray(m_contents);
@@ -132,11 +144,13 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
         }
 
+        /// <summary>Return the octets.</summary>
         public byte[] GetOctets()
         {
             return Arrays.Clone(m_contents);
         }
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             DerT61String that = asn1Object as DerT61String;
@@ -144,6 +158,7 @@ namespace Org.BouncyCastle.Asn1
                 && Arrays.AreEqual(this.m_contents, that.m_contents);
         }
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode()
         {
             return Arrays.GetHashCode(m_contents);

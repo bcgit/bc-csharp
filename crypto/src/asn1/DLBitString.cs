@@ -6,38 +6,55 @@ namespace Org.BouncyCastle.Asn1
     public class DLBitString
         : DerBitString
     {
+        /// <summary>Create a new <see cref="DLBitString"/>.</summary>
+        /// <param name="data">The data.</param>
+        /// <param name="padBits">The pad bits.</param>
         public DLBitString(byte data, int padBits)
             : base(data, padBits)
         {
         }
 
+        /// <summary>Create a new <see cref="DLBitString"/>.</summary>
+        /// <param name="data">The data.</param>
         public DLBitString(byte[] data)
             : this(data, 0)
         {
         }
 
+        /// <summary>Create a new <see cref="DLBitString"/>.</summary>
+        /// <param name="data">The data.</param>
+        /// <param name="padBits">The pad bits.</param>
         public DLBitString(byte[] data, int padBits)
             : base(data, padBits)
         {
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Create a new <see cref="DLBitString"/>.</summary>
+        /// <param name="data">The data.</param>
         public DLBitString(ReadOnlySpan<byte> data)
             : this(data, 0)
         {
         }
 
+        /// <summary>Create a new <see cref="DLBitString"/>.</summary>
+        /// <param name="data">The data.</param>
+        /// <param name="padBits">The pad bits.</param>
         public DLBitString(ReadOnlySpan<byte> data, int padBits)
             : base(data, padBits)
         {
         }
 #endif
 
+        /// <summary>Create a new <see cref="DLBitString"/>.</summary>
+        /// <param name="namedBits">The named bits.</param>
         public DLBitString(int namedBits)
             : base(namedBits)
         {
         }
 
+        /// <summary>Create a new <see cref="DLBitString"/>.</summary>
+        /// <param name="obj">The object.</param>
         public DLBitString(Asn1Encodable obj)
             : this(obj.GetDerEncoded(), 0)
         {

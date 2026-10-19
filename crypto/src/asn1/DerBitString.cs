@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 BIT STRING with DER encoding.</summary>
     public class DerBitString
         : DerStringBase, Asn1BitStringParser
     {
@@ -42,6 +43,11 @@ namespace Org.BouncyCastle.Asn1
             return new DerBitString(contents);
         }
 
+        /// <summary>Return an <see cref="DerBitString"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="DerBitString"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="DerBitString"/>, or null if <paramref name="obj"/> is null.</returns>
         public static DerBitString GetInstance(object obj)
         {
             if (obj == null)
@@ -70,11 +76,18 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
+        /// <summary>Return an <see cref="DerBitString"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DerBitString"/>.</returns>
         public static DerBitString GetInstance(Asn1TaggedObject obj, bool isExplicit)
         {
             return (DerBitString)Meta.Instance.GetContextTagged(obj, isExplicit);
         }
 
+        /// <summary>Return an <see cref="DerBitString"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="DerBitString"/>, or null if <paramref name="element"/> is null.</returns>
         public static DerBitString GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -86,6 +99,10 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="DerBitString"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DerBitString"/>.</returns>
         public static DerBitString GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (DerBitString)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
@@ -93,6 +110,9 @@ namespace Org.BouncyCastle.Asn1
 
         internal readonly byte[] m_contents;
 
+        /// <summary>Create a new <see cref="DerBitString"/>.</summary>
+        /// <param name="data">The data.</param>
+        /// <param name="padBits">The pad bits.</param>
         public DerBitString(byte data, int padBits)
         {
             if (padBits > 7 || padBits < 0)
@@ -101,6 +121,8 @@ namespace Org.BouncyCastle.Asn1
             m_contents = new byte[]{ (byte)padBits, data };
         }
 
+        /// <summary>Create a new <see cref="DerBitString"/>.</summary>
+        /// <param name="data">The data.</param>
         public DerBitString(byte[] data)
             : this(data, 0)
         {
@@ -123,11 +145,16 @@ namespace Org.BouncyCastle.Asn1
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Create a new <see cref="DerBitString"/>.</summary>
+        /// <param name="data">The data.</param>
         public DerBitString(ReadOnlySpan<byte> data)
             : this(data, 0)
         {
         }
 
+        /// <summary>Create a new <see cref="DerBitString"/>.</summary>
+        /// <param name="data">The data.</param>
+        /// <param name="padBits">The pad bits.</param>
         public DerBitString(ReadOnlySpan<byte> data, int padBits)
         {
             if (padBits < 0 || padBits > 7)
@@ -139,6 +166,8 @@ namespace Org.BouncyCastle.Asn1
         }
 #endif
 
+        /// <summary>Create a new <see cref="DerBitString"/>.</summary>
+        /// <param name="namedBits">The named bits.</param>
         public DerBitString(int namedBits)
         {
             if (namedBits == 0)
@@ -169,11 +198,15 @@ namespace Org.BouncyCastle.Asn1
             m_contents = data;
         }
 
+        /// <summary>Create a new <see cref="DerBitString"/>.</summary>
+        /// <param name="obj">The object.</param>
         public DerBitString(IAsn1Convertible obj)
             : this(obj.ToAsn1Object())
         {
         }
 
+        /// <summary>Create a new <see cref="DerBitString"/>.</summary>
+        /// <param name="obj">The object.</param>
         public DerBitString(Asn1Encodable obj)
             : this(contents: GetDerContents(obj), check: false)
         {
@@ -233,6 +266,7 @@ namespace Org.BouncyCastle.Asn1
         }
 #endif
 
+        /// <summary>Return the bytes.</summary>
         public virtual byte[] GetBytes()
         {
             if (m_contents.Length == 1)
@@ -245,10 +279,12 @@ namespace Org.BouncyCastle.Asn1
             return rv;
         }
 
+        /// <summary>Return the bytes length.</summary>
         public virtual int GetBytesLength() => m_contents.Length - 1;
 
         public virtual bool IsOctetAligned() => PadBits == 0;
 
+        /// <inheritdoc/>
         public virtual int PadBits => m_contents[0];
 
         /**
@@ -337,6 +373,7 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
         }
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode()
         {
             if (m_contents.Length < 2)
@@ -353,6 +390,7 @@ namespace Org.BouncyCastle.Asn1
             return hc;
         }
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             DerBitString that = asn1Object as DerBitString;
@@ -381,8 +419,10 @@ namespace Org.BouncyCastle.Asn1
             return thisLastDer == thatLastDer;
         }
 
+        /// <inheritdoc/>
         public Stream GetBitStream() => GetMemoryStream();
 
+        /// <inheritdoc/>
         public Stream GetOctetStream() => GetOctetMemoryStream();
 
         internal MemoryStream GetOctetMemoryStream()
@@ -395,6 +435,7 @@ namespace Org.BouncyCastle.Asn1
 
         public Asn1BitStringParser Parser => this;
 
+        /// <inheritdoc/>
         public override string GetString()
         {
             byte[] str;

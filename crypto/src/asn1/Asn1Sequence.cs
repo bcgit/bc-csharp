@@ -8,6 +8,7 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Base class for the ASN.1 SEQUENCE type.</summary>
     public abstract class Asn1Sequence
         : Asn1Object, IReadOnlyCollection<Asn1Encodable>
     {
@@ -76,6 +77,9 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1Sequence)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Return an <see cref="Asn1Sequence"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="Asn1Sequence"/>, or null if <paramref name="element"/> is null.</returns>
         public static Asn1Sequence GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -87,6 +91,10 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="Asn1Sequence"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Asn1Sequence"/>.</returns>
         public static Asn1Sequence GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (Asn1Sequence)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
@@ -116,12 +124,15 @@ namespace Org.BouncyCastle.Asn1
 
         internal readonly Asn1Encodable[] m_elements;
 
+        /// <summary>Create a new <see cref="Asn1Sequence"/>.</summary>
         // TODO[api] Remove 'protected'
         protected internal Asn1Sequence()
         {
             m_elements = Asn1EncodableVector.EmptyElements;
         }
 
+        /// <summary>Create a new <see cref="Asn1Sequence"/>.</summary>
+        /// <param name="element">The element.</param>
         // TODO[api] Remove 'protected'
         protected internal Asn1Sequence(Asn1Encodable element)
         {
@@ -131,6 +142,9 @@ namespace Org.BouncyCastle.Asn1
             m_elements = new Asn1Encodable[]{ element };
         }
 
+        /// <summary>Create a new <see cref="Asn1Sequence"/>.</summary>
+        /// <param name="element1">The element 1.</param>
+        /// <param name="element2">The element 2.</param>
         // TODO[api] Remove 'protected'
         protected internal Asn1Sequence(Asn1Encodable element1, Asn1Encodable element2)
         {
@@ -142,6 +156,8 @@ namespace Org.BouncyCastle.Asn1
             m_elements = new Asn1Encodable[]{ element1, element2 };
         }
 
+        /// <summary>Create a new <see cref="Asn1Sequence"/>.</summary>
+        /// <param name="elements">The elements.</param>
         // TODO[api] Remove 'protected'
         protected internal Asn1Sequence(params Asn1Encodable[] elements)
         {
@@ -156,6 +172,8 @@ namespace Org.BouncyCastle.Asn1
             m_elements = clone ? Asn1EncodableVector.CloneElements(elements) : elements;
         }
 
+        /// <summary>Create a new <see cref="Asn1Sequence"/>.</summary>
+        /// <param name="elementVector">The element vector.</param>
         // TODO[api] Remove 'protected'
         protected internal Asn1Sequence(Asn1EncodableVector elementVector)
         {
@@ -175,6 +193,7 @@ namespace Org.BouncyCastle.Asn1
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 
+        /// <summary>Return the enumerator.</summary>
         public virtual IEnumerator<Asn1Encodable> GetEnumerator()
         {
             IEnumerable<Asn1Encodable> e = m_elements;
@@ -225,12 +244,14 @@ namespace Org.BouncyCastle.Asn1
          */
         public virtual Asn1Encodable this[int index] => m_elements[index];
 
+        /// <summary>Gets the count.</summary>
         public virtual int Count => m_elements.Length;
 
         public virtual T[] MapElements<T>(Func<Asn1Encodable, T> func) => CollectionUtilities.Map(m_elements, func);
 
         public virtual Asn1Encodable[] ToArray() => Asn1EncodableVector.CloneElements(m_elements);
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode()
         {
             int i = Count;
@@ -245,6 +266,7 @@ namespace Org.BouncyCastle.Asn1
             return hc;
         }
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             if (!(asn1Object is Asn1Sequence that))
@@ -266,6 +288,7 @@ namespace Org.BouncyCastle.Asn1
             return true;
         }
 
+        /// <inheritdoc/>
         public override string ToString() => CollectionUtilities.ToString(m_elements);
 
         // TODO[asn1] Preferably return an Asn1BitString[] (doesn't exist yet)

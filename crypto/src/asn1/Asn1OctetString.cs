@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Base class for the ASN.1 OCTET STRING type.</summary>
     public abstract class Asn1OctetString
         : Asn1Object, Asn1OctetStringParser
     {
@@ -74,6 +75,9 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1OctetString)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Return an <see cref="Asn1OctetString"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="Asn1OctetString"/>, or null if <paramref name="element"/> is null.</returns>
         public static Asn1OctetString GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -85,6 +89,10 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="Asn1OctetString"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Asn1OctetString"/>.</returns>
         public static Asn1OctetString GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (Asn1OctetString)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
@@ -107,6 +115,7 @@ namespace Org.BouncyCastle.Asn1
         }
 #endif
 
+        /// <inheritdoc/>
         public Stream GetOctetStream()
         {
             return new MemoryStream(contents, false);
@@ -117,11 +126,13 @@ namespace Org.BouncyCastle.Asn1
             get { return this; }
         }
 
+        /// <summary>Return the octets.</summary>
         public virtual byte[] GetOctets()
         {
             return contents;
         }
 
+        /// <summary>Return the octets length.</summary>
         public virtual int GetOctetsLength() => GetOctets().Length;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -136,17 +147,20 @@ namespace Org.BouncyCastle.Asn1
         }
 #endif
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode()
         {
             return Arrays.GetHashCode(GetOctets());
         }
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             return asn1Object is Asn1OctetString that
                 && Arrays.AreEqual(this.GetOctets(), that.GetOctets());
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return "#" + Hex.ToHexString(contents);

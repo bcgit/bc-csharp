@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 SEQUENCE with BER encoding.</summary>
     public class BerSequence
         : DLSequence
     {
@@ -85,41 +86,57 @@ namespace Org.BouncyCastle.Asn1
             return elements.Length < 1 ? Empty : new BerSequence(elements, clone: false);
         }
 
+        /// <summary>Create a new <see cref="BerSequence"/>.</summary>
         public BerSequence()
             : base()
         {
         }
 
+        /// <summary>Create a new <see cref="BerSequence"/>.</summary>
+        /// <param name="element">The element.</param>
         public BerSequence(Asn1Encodable element)
             : base(element)
         {
         }
 
+        /// <summary>Create a new <see cref="BerSequence"/>.</summary>
+        /// <param name="element1">The element 1.</param>
+        /// <param name="element2">The element 2.</param>
         public BerSequence(Asn1Encodable element1, Asn1Encodable element2)
             : base(element1, element2)
         {
         }
 
+        /// <summary>Create a new <see cref="BerSequence"/>.</summary>
+        /// <param name="elements">The elements.</param>
         public BerSequence(params Asn1Encodable[] elements)
             : base(elements)
         {
         }
 
+        /// <summary>Create a new <see cref="BerSequence"/>.</summary>
+        /// <param name="elementVector">The element vector.</param>
         public BerSequence(Asn1EncodableVector elementVector)
             : base(elementVector)
         {
         }
 
+        /// <summary>Create a new <see cref="BerSequence"/>.</summary>
+        /// <param name="elements">The elements.</param>
         public BerSequence(IReadOnlyCollection<Asn1Encodable> elements)
             : base(elements)
         {
         }
 
+        /// <summary>Create a new <see cref="BerSequence"/>.</summary>
+        /// <param name="sequence">The sequence.</param>
         public BerSequence(Asn1Sequence sequence)
             : base(sequence)
         {
         }
 
+        /// <summary>Create a new <see cref="BerSequence"/>.</summary>
+        /// <param name="asn1Set">The asn 1 set.</param>
         public BerSequence(Asn1Set asn1Set)
             : base(asn1Set)
         {

@@ -3,6 +3,9 @@ using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>
+    /// Parser that reads ASN.1 objects from a stream, returning constructed objects in a streaming form.
+    /// </summary>
     public class Asn1StreamParser
     {
         internal static Asn1StreamParser CreateSubParser(Stream sub, int parentDepth, int limit, byte[] tmp) =>
@@ -13,16 +16,23 @@ namespace Org.BouncyCastle.Asn1
         private readonly int m_limit;
         private readonly byte[] m_tmp;
 
+        /// <summary>Create a new <see cref="Asn1StreamParser"/>.</summary>
+        /// <param name="input">The input data.</param>
         public Asn1StreamParser(Stream input)
             : this(input, Asn1InputStream.FindLimit(input))
         {
         }
 
+        /// <summary>Create a new <see cref="Asn1StreamParser"/>.</summary>
+        /// <param name="encoding">The encoding.</param>
         public Asn1StreamParser(byte[] encoding)
             : this(new MemoryStream(encoding, false), encoding.Length)
         {
         }
 
+        /// <summary>Create a new <see cref="Asn1StreamParser"/>.</summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="limit">The limit.</param>
         public Asn1StreamParser(Stream input, int limit)
             : this(input, Asn1InputStream.FindDepth(), limit, tmp: new byte[16])
         {
@@ -39,6 +49,7 @@ namespace Org.BouncyCastle.Asn1
             m_tmp = tmp;
         }
 
+        /// <summary>Gets the limit.</summary>
         public int Limit => m_limit;
 
         public virtual IAsn1Convertible ReadObject()

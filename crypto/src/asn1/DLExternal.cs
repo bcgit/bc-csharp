@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 EXTERNAL with definite-length encoding.</summary>
     public class DLExternal
         : DerExternal
     {
@@ -19,12 +20,16 @@ namespace Org.BouncyCastle.Asn1
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Create a new <see cref="DLExternal"/>.</summary>
+        /// <param name="vector">The vector.</param>
         [Obsolete("Use 'FromVector' instead")]
         public DLExternal(Asn1EncodableVector vector)
             : base(vector)
         {
         }
 
+        /// <summary>Create a new <see cref="DLExternal"/>.</summary>
+        /// <param name="sequence">The sequence.</param>
         [Obsolete("Use 'FromSequence' instead")]
         public DLExternal(Asn1Sequence sequence)
             : base(sequence)

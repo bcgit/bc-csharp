@@ -33,11 +33,14 @@ namespace Org.BouncyCastle.Asn1
         private int m_elementCount;
         private bool m_copyOnWrite;
 
+        /// <summary>Create a new <see cref="Asn1EncodableVector"/>.</summary>
         public Asn1EncodableVector()
             : this(DefaultCapacity)
         {
         }
 
+        /// <summary>Create a new <see cref="Asn1EncodableVector"/>.</summary>
+        /// <param name="initialCapacity">The initial capacity.</param>
         public Asn1EncodableVector(int initialCapacity)
         {
             if (initialCapacity < 0)
@@ -48,12 +51,17 @@ namespace Org.BouncyCastle.Asn1
             m_copyOnWrite = false;
         }
 
+        /// <summary>Create a new <see cref="Asn1EncodableVector"/>.</summary>
+        /// <param name="element">The element.</param>
         public Asn1EncodableVector(Asn1Encodable element)
             : this()
         {
             Add(element);
         }
 
+        /// <summary>Create a new <see cref="Asn1EncodableVector"/>.</summary>
+        /// <param name="element1">The element 1.</param>
+        /// <param name="element2">The element 2.</param>
         public Asn1EncodableVector(Asn1Encodable element1, Asn1Encodable element2)
             : this()
         {
@@ -61,6 +69,8 @@ namespace Org.BouncyCastle.Asn1
             Add(element2);
         }
 
+        /// <summary>Create a new <see cref="Asn1EncodableVector"/>.</summary>
+        /// <param name="v">The v.</param>
         public Asn1EncodableVector(params Asn1Encodable[] v)
             : this()
         {
@@ -195,6 +205,7 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Gets the count.</summary>
         public int Count => m_elementCount;
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
@@ -202,6 +213,7 @@ namespace Org.BouncyCastle.Asn1
             return GetEnumerator();
         }
 
+        /// <summary>Return the enumerator.</summary>
         public IEnumerator<Asn1Encodable> GetEnumerator()
         {
             IEnumerable<Asn1Encodable> e = EnumerateElements(m_elements, m_elementCount);

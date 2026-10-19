@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Utility methods for working with ASN.1 objects.</summary>
     // TODO[api] Make static
     public abstract class Asn1Utilities
     {

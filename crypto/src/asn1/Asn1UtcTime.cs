@@ -57,11 +57,18 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
+        /// <summary>Return an <see cref="Asn1UtcTime"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Asn1UtcTime"/>.</returns>
         public static Asn1UtcTime GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (Asn1UtcTime)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Return an <see cref="Asn1UtcTime"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="Asn1UtcTime"/>, or null if <paramref name="element"/> is null.</returns>
         public static Asn1UtcTime GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -73,6 +80,10 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="Asn1UtcTime"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Asn1UtcTime"/>.</returns>
         public static Asn1UtcTime GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (Asn1UtcTime)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
@@ -83,6 +94,8 @@ namespace Org.BouncyCastle.Asn1
         private readonly bool m_dateTimeLocked;
         private readonly int m_twoDigitYearMax;
 
+        /// <summary>Create a new <see cref="Asn1UtcTime"/>.</summary>
+        /// <param name="timeString">The time string.</param>
         public Asn1UtcTime(string timeString)
         {
             m_timeString = timeString ?? throw new ArgumentNullException(nameof(timeString));
@@ -98,6 +111,8 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Create a new <see cref="Asn1UtcTime"/>.</summary>
+        /// <param name="dateTime">The date time.</param>
         [Obsolete("Use `Asn1UtcTime(DateTime, int)' instead")]
         public Asn1UtcTime(DateTime dateTime)
         {
@@ -108,6 +123,9 @@ namespace Org.BouncyCastle.Asn1
             m_timeString = ToStringCanonical(dateTime, out m_twoDigitYearMax);
         }
 
+        /// <summary>Create a new <see cref="Asn1UtcTime"/>.</summary>
+        /// <param name="dateTime">The date time.</param>
+        /// <param name="twoDigitYearMax">The two digit year max.</param>
         public Asn1UtcTime(DateTime dateTime, int twoDigitYearMax)
         {
             dateTime = DateTimeUtilities.WithPrecisionSecond(dateTime.ToUniversalTime());
@@ -126,6 +144,7 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        /// <summary>Gets the time string.</summary>
         public string TimeString => m_timeString;
 
         public DateTime ToDateTime() => m_dateTime;
@@ -163,6 +182,7 @@ namespace Org.BouncyCastle.Asn1
             return ToDateTime(2049);
         }
 
+        /// <summary>Gets the two digit year max.</summary>
         public int TwoDigitYearMax => m_twoDigitYearMax;
 
         internal byte[] GetContents(int encoding)
@@ -197,6 +217,7 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveDerEncoding(tagClass, tagNo, GetContents(Asn1OutputStream.EncodingDer));
         }
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             if (!(asn1Object is Asn1UtcTime that))
@@ -208,6 +229,7 @@ namespace Org.BouncyCastle.Asn1
                 that.GetContents(Asn1OutputStream.EncodingDer));
         }
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode()
         {
             // TODO Performance
@@ -215,6 +237,7 @@ namespace Org.BouncyCastle.Asn1
                 this.GetContents(Asn1OutputStream.EncodingDer));
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return m_timeString;

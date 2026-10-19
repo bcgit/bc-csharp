@@ -35,6 +35,11 @@ namespace Org.BouncyCastle.Asn1
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="DerExternal"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="DerExternal"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="DerExternal"/>, or null if <paramref name="obj"/> is null.</returns>
         public static DerExternal GetInstance(object obj)
         {
             if (obj == null)
@@ -63,11 +68,18 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
+        /// <summary>Return an <see cref="DerExternal"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DerExternal"/>.</returns>
         public static DerExternal GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (DerExternal)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Return an <see cref="DerExternal"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="DerExternal"/>, or null if <paramref name="element"/> is null.</returns>
         public static DerExternal GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -79,6 +91,10 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="DerExternal"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DerExternal"/>.</returns>
         public static DerExternal GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (DerExternal)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
@@ -90,12 +106,16 @@ namespace Org.BouncyCastle.Asn1
         internal readonly int m_encoding;
         internal readonly Asn1Object m_externalContent;
 
+        /// <summary>Create a new <see cref="DerExternal"/>.</summary>
+        /// <param name="vector">The vector.</param>
         [Obsolete("Use 'FromVector' instead")]
         public DerExternal(Asn1EncodableVector vector)
             : this(new BerSequence(vector))
         {
         }
 
+        /// <summary>Create a new <see cref="DerExternal"/>.</summary>
+        /// <param name="sequence">The sequence.</param>
         [Obsolete("Use 'FromSequence' instead")]
         public DerExternal(Asn1Sequence sequence)
         {
@@ -202,6 +222,7 @@ namespace Org.BouncyCastle.Asn1
         internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo) =>
             BuildSequence().GetEncodingDerImplicit(tagClass, tagNo);
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode()
         {
             return Objects.GetHashCode(m_directReference)
@@ -211,6 +232,7 @@ namespace Org.BouncyCastle.Asn1
                 ^  m_externalContent.GetHashCode();
         }
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             return asn1Object is DerExternal that
@@ -221,8 +243,10 @@ namespace Org.BouncyCastle.Asn1
                 && this.m_externalContent.Equals(that.m_externalContent);
         }
 
+        /// <summary>Gets the data value descriptor.</summary>
         public Asn1ObjectDescriptor DataValueDescriptor => m_dataValueDescriptor;
 
+        /// <summary>Gets the direct reference.</summary>
         public DerObjectIdentifier DirectReference => m_directReference;
 
         /// <summary>The encoding of the content.</summary>
@@ -236,8 +260,10 @@ namespace Org.BouncyCastle.Asn1
         /// </remarks>
         public int Encoding => m_encoding;
 
+        /// <summary>Gets the external content.</summary>
         public Asn1Object ExternalContent => m_externalContent;
 
+        /// <summary>Gets the indirect reference.</summary>
         public DerInteger IndirectReference => m_indirectReference;
 
         private static int CheckEncoding(int encoding)

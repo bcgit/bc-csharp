@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 GraphicString type.</summary>
     public class DerGraphicString
         : DerStringBase
     {
@@ -68,6 +69,9 @@ namespace Org.BouncyCastle.Asn1
             return (DerGraphicString)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Return an <see cref="DerGraphicString"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="DerGraphicString"/>, or null if <paramref name="element"/> is null.</returns>
         public static DerGraphicString GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -79,6 +83,10 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="DerGraphicString"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DerGraphicString"/>.</returns>
         public static DerGraphicString GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (DerGraphicString)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
@@ -86,6 +94,8 @@ namespace Org.BouncyCastle.Asn1
 
         private readonly byte[] m_contents;
 
+        /// <summary>Create a new <see cref="DerGraphicString"/>.</summary>
+        /// <param name="contents">The contents.</param>
         public DerGraphicString(byte[] contents)
             : this(contents, true)
         {
@@ -99,11 +109,13 @@ namespace Org.BouncyCastle.Asn1
             this.m_contents = clone ? Arrays.Clone(contents) : contents;
         }
 
+        /// <inheritdoc/>
         public override string GetString()
         {
             return Strings.FromByteArray(m_contents);
         }
 
+        /// <summary>Return the octets.</summary>
         public byte[] GetOctets()
         {
             return Arrays.Clone(m_contents);
@@ -129,11 +141,13 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
         }
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode()
         {
             return Arrays.GetHashCode(m_contents);
         }
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             DerGraphicString that = asn1Object as DerGraphicString;

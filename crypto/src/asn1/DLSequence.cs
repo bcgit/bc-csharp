@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 SEQUENCE with definite-length (DL) encoding.</summary>
     public class DLSequence
         : DerSequence
     {
@@ -85,41 +86,57 @@ namespace Org.BouncyCastle.Asn1
             return elements.Length < 1 ? Empty : new DLSequence(elements, clone: false);
         }
 
+        /// <summary>Create a new <see cref="DLSequence"/>.</summary>
         public DLSequence()
             : base()
         {
         }
 
+        /// <summary>Create a new <see cref="DLSequence"/>.</summary>
+        /// <param name="element">The element.</param>
         public DLSequence(Asn1Encodable element)
             : base(element)
         {
         }
 
+        /// <summary>Create a new <see cref="DLSequence"/>.</summary>
+        /// <param name="element1">The element 1.</param>
+        /// <param name="element2">The element 2.</param>
         public DLSequence(Asn1Encodable element1, Asn1Encodable element2)
             : base(element1, element2)
         {
         }
 
+        /// <summary>Create a new <see cref="DLSequence"/>.</summary>
+        /// <param name="elements">The elements.</param>
         public DLSequence(params Asn1Encodable[] elements)
             : base(elements)
         {
         }
 
+        /// <summary>Create a new <see cref="DLSequence"/>.</summary>
+        /// <param name="elementVector">The element vector.</param>
         public DLSequence(Asn1EncodableVector elementVector)
             : base(elementVector)
         {
         }
 
+        /// <summary>Create a new <see cref="DLSequence"/>.</summary>
+        /// <param name="elements">The elements.</param>
         public DLSequence(IReadOnlyCollection<Asn1Encodable> elements)
             : base(elements)
         {
         }
 
+        /// <summary>Create a new <see cref="DLSequence"/>.</summary>
+        /// <param name="sequence">The sequence.</param>
         public DLSequence(Asn1Sequence sequence)
             : base(sequence)
         {
         }
 
+        /// <summary>Create a new <see cref="DLSequence"/>.</summary>
+        /// <param name="asn1Set">The asn 1 set.</param>
         public DLSequence(Asn1Set asn1Set)
             : base(asn1Set)
         {

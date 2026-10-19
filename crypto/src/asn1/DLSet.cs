@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 SET with definite-length (DL) encoding.</summary>
     public class DLSet
         : DerSet
     {
@@ -32,36 +33,49 @@ namespace Org.BouncyCastle.Asn1
             return c.Count < 1 ? Empty : new DLSet(isSorted: false, CollectionUtilities.Map(c, func));
         }
 
+        /// <summary>Create a new <see cref="DLSet"/>.</summary>
         public DLSet()
             : base()
         {
         }
 
+        /// <summary>Create a new <see cref="DLSet"/>.</summary>
+        /// <param name="element">The element.</param>
         public DLSet(Asn1Encodable element)
             : base(element)
         {
         }
 
+        /// <summary>Create a new <see cref="DLSet"/>.</summary>
+        /// <param name="elements">The elements.</param>
         public DLSet(params Asn1Encodable[] elements)
             : base(elements, doSort: false)
         {
         }
 
+        /// <summary>Create a new <see cref="DLSet"/>.</summary>
+        /// <param name="elementVector">The element vector.</param>
         public DLSet(Asn1EncodableVector elementVector)
             : base(elementVector, doSort: false)
         {
         }
 
+        /// <summary>Create a new <see cref="DLSet"/>.</summary>
+        /// <param name="elements">The elements.</param>
         public DLSet(IReadOnlyCollection<Asn1Encodable> elements)
             : base(elements, doSort: false)
         {
         }
 
+        /// <summary>Create a new <see cref="DLSet"/>.</summary>
+        /// <param name="sequence">The sequence.</param>
         public DLSet(Asn1Sequence sequence)
             : base(sequence)
         {
         }
 
+        /// <summary>Create a new <see cref="DLSet"/>.</summary>
+        /// <param name="asn1Set">The asn 1 set.</param>
         public DLSet(Asn1Set asn1Set)
             : base(asn1Set)
         {

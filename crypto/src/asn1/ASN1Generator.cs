@@ -3,11 +3,16 @@ using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>
+    /// Base class for the generators that write constructed ASN.1 objects to a stream piece by piece.
+    /// </summary>
     public abstract class Asn1Generator
         : IDisposable
     {
         private Stream m_outStream;
 
+        /// <summary>Create a new <see cref="Asn1Generator"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
         protected Asn1Generator(Stream outStream)
         {
             m_outStream = outStream ?? throw new ArgumentNullException(nameof(outStream));
@@ -15,6 +20,7 @@ namespace Org.BouncyCastle.Asn1
 
         protected abstract void Finish();
 
+        /// <summary>Gets the out stream.</summary>
         protected Stream OutStream
         {
             get { return m_outStream ?? throw new InvalidOperationException(); }
@@ -24,6 +30,7 @@ namespace Org.BouncyCastle.Asn1
 
         public abstract void AddObject(Asn1Object obj);
 
+        /// <summary>Return the raw output stream.</summary>
         public abstract Stream GetRawOutputStream();
 
         #region IDisposable

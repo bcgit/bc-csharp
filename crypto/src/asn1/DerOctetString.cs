@@ -4,6 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 OCTET STRING with DER encoding.</summary>
     public class DerOctetString
         : Asn1OctetString
     {
@@ -33,11 +34,15 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        /// <summary>Create a new <see cref="DerOctetString"/>.</summary>
+        /// <param name="obj">The object.</param>
         public DerOctetString(IAsn1Convertible obj)
             : this(obj.ToAsn1Object())
         {
         }
 
+        /// <summary>Create a new <see cref="DerOctetString"/>.</summary>
+        /// <param name="obj">The object.</param>
         public DerOctetString(Asn1Encodable obj)
             : base(obj.GetEncoded(Der))
         {

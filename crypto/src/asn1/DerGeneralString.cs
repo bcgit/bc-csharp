@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 GeneralString type.</summary>
     public class DerGeneralString
         : DerStringBase
     {
@@ -20,6 +21,11 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Return an <see cref="DerGeneralString"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="DerGeneralString"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="DerGeneralString"/>, or null if <paramref name="obj"/> is null.</returns>
         public static DerGeneralString GetInstance(object obj)
         {
             if (obj == null)
@@ -48,11 +54,18 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
+        /// <summary>Return an <see cref="DerGeneralString"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DerGeneralString"/>.</returns>
         public static DerGeneralString GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (DerGeneralString)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Return an <see cref="DerGeneralString"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="DerGeneralString"/>, or null if <paramref name="element"/> is null.</returns>
         public static DerGeneralString GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -64,6 +77,10 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="DerGeneralString"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DerGeneralString"/>.</returns>
         public static DerGeneralString GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (DerGeneralString)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
@@ -71,6 +88,8 @@ namespace Org.BouncyCastle.Asn1
 
         private readonly byte[] m_contents;
 
+        /// <summary>Create a new <see cref="DerGeneralString"/>.</summary>
+        /// <param name="str">The str.</param>
         public DerGeneralString(string str)
         {
             if (str == null)
@@ -79,6 +98,8 @@ namespace Org.BouncyCastle.Asn1
             m_contents = Strings.ToAsciiByteArray(str);
         }
 
+        /// <summary>Create a new <see cref="DerGeneralString"/>.</summary>
+        /// <param name="contents">The contents.</param>
         public DerGeneralString(byte[] contents)
             : this(contents, true)
         {
@@ -92,11 +113,13 @@ namespace Org.BouncyCastle.Asn1
             m_contents = clone ? Arrays.Clone(contents) : contents;
         }
 
+        /// <inheritdoc/>
         public override string GetString()
         {
             return Strings.FromAsciiByteArray(m_contents);
         }
 
+        /// <summary>Return the octets.</summary>
         public byte[] GetOctets()
         {
             return Arrays.Clone(m_contents);
@@ -122,6 +145,7 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
         }
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             DerGeneralString that = asn1Object as DerGeneralString;
@@ -129,6 +153,7 @@ namespace Org.BouncyCastle.Asn1
                 && Arrays.AreEqual(this.m_contents, that.m_contents);
         }
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode()
         {
             return Arrays.GetHashCode(m_contents);

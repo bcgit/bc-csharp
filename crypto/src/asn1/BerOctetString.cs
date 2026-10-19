@@ -4,6 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 OCTET STRING with BER (possibly constructed) encoding.</summary>
     public class BerOctetString
         : DerOctetString
     {
@@ -71,22 +72,32 @@ namespace Org.BouncyCastle.Asn1
 
         private readonly Asn1OctetString[] m_elements;
 
+        /// <summary>Create a new <see cref="BerOctetString"/>.</summary>
+        /// <param name="contents">The contents.</param>
         public BerOctetString(byte[] contents)
             : this(contents, null)
         {
         }
 
+        /// <summary>Create a new <see cref="BerOctetString"/>.</summary>
+        /// <param name="elements">The elements.</param>
         public BerOctetString(Asn1OctetString[] elements)
             : this(FlattenOctetStrings(elements), elements)
         {
         }
 
+        /// <summary>Create a new <see cref="BerOctetString"/>.</summary>
+        /// <param name="contents">The contents.</param>
+        /// <param name="segmentLimit">The segment limit.</param>
         [Obsolete("Use version without segmentLimit (which is ignored anyway)")]
         public BerOctetString(byte[] contents, int segmentLimit)
             : this(contents)
         {
         }
 
+        /// <summary>Create a new <see cref="BerOctetString"/>.</summary>
+        /// <param name="elements">The elements.</param>
+        /// <param name="segmentLimit">The segment limit.</param>
         [Obsolete("Use version without segmentLimit (which is ignored anyway)")]
         public BerOctetString(Asn1OctetString[] elements, int segmentLimit)
             : this(elements)

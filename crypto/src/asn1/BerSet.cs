@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 SET with BER encoding.</summary>
     public class BerSet
         : DLSet
     {
@@ -32,36 +33,49 @@ namespace Org.BouncyCastle.Asn1
             return c.Count < 1 ? Empty : new BerSet(isSorted: false, CollectionUtilities.Map(c, func));
         }
 
+        /// <summary>Create a new <see cref="BerSet"/>.</summary>
         public BerSet()
             : base()
         {
         }
 
+        /// <summary>Create a new <see cref="BerSet"/>.</summary>
+        /// <param name="element">The element.</param>
         public BerSet(Asn1Encodable element)
             : base(element)
         {
         }
 
+        /// <summary>Create a new <see cref="BerSet"/>.</summary>
+        /// <param name="elements">The elements.</param>
         public BerSet(params Asn1Encodable[] elements)
             : base(elements)
         {
         }
 
+        /// <summary>Create a new <see cref="BerSet"/>.</summary>
+        /// <param name="elementVector">The element vector.</param>
         public BerSet(Asn1EncodableVector elementVector)
             : base(elementVector)
         {
         }
 
+        /// <summary>Create a new <see cref="BerSet"/>.</summary>
+        /// <param name="elements">The elements.</param>
         public BerSet(IReadOnlyCollection<Asn1Encodable> elements)
             : base(elements)
         {
         }
 
+        /// <summary>Create a new <see cref="BerSet"/>.</summary>
+        /// <param name="sequence">The sequence.</param>
         public BerSet(Asn1Sequence sequence)
             : base(sequence)
         {
         }
 
+        /// <summary>Create a new <see cref="BerSet"/>.</summary>
+        /// <param name="asn1Set">The asn 1 set.</param>
         public BerSet(Asn1Set asn1Set)
             : base(asn1Set)
         {

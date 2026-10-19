@@ -2,6 +2,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Parser for a tagged ASN.1 object.</summary>
     public interface Asn1TaggedObjectParser
         : IAsn1Convertible
     {

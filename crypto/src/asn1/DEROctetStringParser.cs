@@ -3,6 +3,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Parser for a DER encoded OCTET STRING.</summary>
     public class DerOctetStringParser
         : Asn1OctetStringParser
     {
@@ -13,8 +14,10 @@ namespace Org.BouncyCastle.Asn1
             m_stream = stream;
         }
 
+        /// <inheritdoc/>
         public Stream GetOctetStream() => m_stream;
 
+        /// <inheritdoc/>
         public Asn1Object ToAsn1Object()
         {
             try

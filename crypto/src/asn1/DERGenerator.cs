@@ -2,6 +2,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Base class for the generators that write DER encoded objects to a stream piece by piece.</summary>
     public abstract class DerGenerator
         : Asn1Generator
     {
@@ -9,11 +10,17 @@ namespace Org.BouncyCastle.Asn1
         private bool _isExplicit;
         private int _tagNo;
 
+        /// <summary>Create a new <see cref="DerGenerator"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
         protected DerGenerator(Stream outStream)
             : base(outStream)
         {
         }
 
+        /// <summary>Create a new <see cref="DerGenerator"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
+        /// <param name="tagNo">The tag no.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
         protected DerGenerator(Stream outStream, int tagNo, bool isExplicit)
             : base(outStream)
         {

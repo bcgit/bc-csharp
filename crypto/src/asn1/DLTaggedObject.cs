@@ -2,24 +2,41 @@
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Tagged ASN.1 object with definite-length (DL) encoding.</summary>
     public class DLTaggedObject
         : DerTaggedObject
     {
+        /// <summary>Create a new <see cref="DLTaggedObject"/>.</summary>
+        /// <param name="tagNo">The tag no.</param>
+        /// <param name="obj">The object.</param>
         public DLTaggedObject(int tagNo, Asn1Encodable obj)
             : base(tagNo, obj)
         {
         }
 
+        /// <summary>Create a new <see cref="DLTaggedObject"/>.</summary>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag no.</param>
+        /// <param name="obj">The object.</param>
         public DLTaggedObject(int tagClass, int tagNo, Asn1Encodable obj)
             : base(tagClass, tagNo, obj)
         {
         }
 
+        /// <summary>Create a new <see cref="DLTaggedObject"/>.</summary>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <param name="tagNo">The tag no.</param>
+        /// <param name="obj">The object.</param>
         public DLTaggedObject(bool isExplicit, int tagNo, Asn1Encodable obj)
             : base(isExplicit, tagNo, obj)
         {
         }
 
+        /// <summary>Create a new <see cref="DLTaggedObject"/>.</summary>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag no.</param>
+        /// <param name="obj">The object.</param>
         public DLTaggedObject(bool isExplicit, int tagClass, int tagNo, Asn1Encodable obj)
             : base(isExplicit, tagClass, tagNo, obj)
         {

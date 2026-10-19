@@ -23,6 +23,11 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Return an <see cref="Asn1GeneralizedTime"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="Asn1GeneralizedTime"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="Asn1GeneralizedTime"/>, or null if <paramref name="obj"/> is null.</returns>
         public static Asn1GeneralizedTime GetInstance(object obj)
         {
             if (obj == null)
@@ -51,11 +56,18 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
+        /// <summary>Return an <see cref="Asn1GeneralizedTime"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Asn1GeneralizedTime"/>.</returns>
         public static Asn1GeneralizedTime GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (Asn1GeneralizedTime)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Return an <see cref="Asn1GeneralizedTime"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="Asn1GeneralizedTime"/>, or null if <paramref name="element"/> is null.</returns>
         public static Asn1GeneralizedTime GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -67,6 +79,10 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="Asn1GeneralizedTime"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Asn1GeneralizedTime"/>.</returns>
         public static Asn1GeneralizedTime GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (Asn1GeneralizedTime)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
@@ -76,6 +92,8 @@ namespace Org.BouncyCastle.Asn1
         private readonly bool m_timeStringCanonical;
         private readonly DateTime m_dateTime;
 
+        /// <summary>Create a new <see cref="Asn1GeneralizedTime"/>.</summary>
+        /// <param name="timeString">The time string.</param>
         public Asn1GeneralizedTime(string timeString)
         {
             m_timeString = timeString ?? throw new ArgumentNullException(nameof(timeString));
@@ -91,6 +109,8 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Create a new <see cref="Asn1GeneralizedTime"/>.</summary>
+        /// <param name="dateTime">The date time.</param>
         public Asn1GeneralizedTime(DateTime dateTime)
         {
             dateTime = dateTime.ToUniversalTime();
@@ -107,6 +127,7 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        /// <summary>Gets the time string.</summary>
         public string TimeString => m_timeString;
 
         public DateTime ToDateTime() => m_dateTime;
@@ -140,6 +161,7 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveDerEncoding(tagClass, tagNo, GetContents(Asn1OutputStream.EncodingDer));
         }
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             if (!(asn1Object is Asn1GeneralizedTime that))
@@ -151,6 +173,7 @@ namespace Org.BouncyCastle.Asn1
                 that.GetContents(Asn1OutputStream.EncodingDer));
         }
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode()
         {
             // TODO Performance

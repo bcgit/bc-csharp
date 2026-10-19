@@ -10,6 +10,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Stream for writing ASN.1 objects with a chosen encoding (BER, DL or DER).</summary>
     public class Asn1OutputStream
         : FilterStream
     {
@@ -45,6 +46,9 @@ namespace Org.BouncyCastle.Asn1
 
         private readonly bool m_leaveOpen;
 
+        /// <summary>Create a new <see cref="Asn1OutputStream"/>.</summary>
+        /// <param name="output">The buffer to write the output to.</param>
+        /// <param name="leaveOpen">true if leave open, false otherwise.</param>
         protected internal Asn1OutputStream(Stream output, bool leaveOpen)
             : base(output)
         {
@@ -54,6 +58,7 @@ namespace Org.BouncyCastle.Asn1
             m_leaveOpen = leaveOpen;
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)

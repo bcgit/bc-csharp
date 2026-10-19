@@ -4,9 +4,11 @@ using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Base class for the ASN.1 primitive and constructed types.</summary>
     public abstract class Asn1Object
         : Asn1Encodable
     {
+        /// <inheritdoc/>
         public override void EncodeTo(Stream output)
         {
             using (var asn1Out = Asn1OutputStream.Create(output, Ber, leaveOpen: true))
@@ -15,6 +17,7 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <inheritdoc/>
         public override void EncodeTo(Stream output, string encoding)
         {
             using (var asn1Out = Asn1OutputStream.Create(output, encoding, leaveOpen: true))
@@ -73,6 +76,7 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <inheritdoc/>
         public sealed override Asn1Object ToAsn1Object() => this;
 
         internal abstract IAsn1Encoding GetEncoding(int encoding);

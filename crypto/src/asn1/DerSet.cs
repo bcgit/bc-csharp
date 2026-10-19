@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 SET with DER encoding; the elements are sorted.</summary>
     public class DerSet
         : Asn1Set
     {
@@ -33,16 +34,21 @@ namespace Org.BouncyCastle.Asn1
             return c.Count < 1 ? Empty : new DerSet(CollectionUtilities.Map(c, func));
         }
 
+        /// <summary>Create a new <see cref="DerSet"/>.</summary>
         public DerSet()
             : base()
         {
         }
 
+        /// <summary>Create a new <see cref="DerSet"/>.</summary>
+        /// <param name="element">The element.</param>
         public DerSet(Asn1Encodable element)
             : base(element)
         {
         }
 
+        /// <summary>Create a new <see cref="DerSet"/>.</summary>
+        /// <param name="elements">The elements.</param>
         public DerSet(params Asn1Encodable[] elements)
             : base(elements, doSort: true)
         {
@@ -53,6 +59,8 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        /// <summary>Create a new <see cref="DerSet"/>.</summary>
+        /// <param name="elementVector">The element vector.</param>
         public DerSet(Asn1EncodableVector elementVector)
             : base(elementVector, doSort: true)
         {
@@ -63,16 +71,22 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        /// <summary>Create a new <see cref="DerSet"/>.</summary>
+        /// <param name="elements">The elements.</param>
         public DerSet(IReadOnlyCollection<Asn1Encodable> elements)
             : base(elements, doSort: true)
         {
         }
 
+        /// <summary>Create a new <see cref="DerSet"/>.</summary>
+        /// <param name="sequence">The sequence.</param>
         public DerSet(Asn1Sequence sequence)
             : base(element: sequence)
         {
         }
 
+        /// <summary>Create a new <see cref="DerSet"/>.</summary>
+        /// <param name="asn1Set">The asn 1 set.</param>
         public DerSet(Asn1Set asn1Set)
             : base(element: asn1Set)
         {
