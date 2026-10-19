@@ -27,6 +27,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <summary>Gets the private value X.</summary>
         public BigInteger X => x;
 
+        /// <inheritdoc/>
         public override bool Equals(
             object obj)
         {
@@ -47,6 +48,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return other.x.Equals(x) && base.Equals(other);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return x.GetHashCode() ^ base.GetHashCode();

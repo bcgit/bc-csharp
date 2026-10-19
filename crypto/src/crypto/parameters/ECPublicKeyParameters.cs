@@ -30,6 +30,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_q = ECDomainParameters.ValidatePublicPoint(Parameters.Curve, q);
         }
 
+        /// <summary>Create a new <see cref="ECPublicKeyParameters"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="q">The q.</param>
+        /// <param name="publicKeyParamSet">The public key param set.</param>
         public ECPublicKeyParameters(string algorithm, ECPoint q, DerObjectIdentifier publicKeyParamSet)
             : base(algorithm, false, publicKeyParamSet)
         {
@@ -39,11 +43,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <summary>Gets the public point Q.</summary>
         public ECPoint Q => m_q;
 
+        /// <inheritdoc/>
         public override bool Equals(object obj) => obj is ECPublicKeyParameters other && Equals(other);
 
         // TODO[api] Should be override
         protected bool Equals(ECPublicKeyParameters other) => m_q.Equals(other.m_q) && base.Equals(other);
 
+        /// <inheritdoc/>
         public override int GetHashCode() => m_q.GetHashCode() ^ base.GetHashCode();
     }
 }

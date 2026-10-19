@@ -75,6 +75,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         private IDictionary<int, byte[]> m_parameters;
 
+        /// <summary>Create a new <see cref="SkeinParameters"/>.</summary>
         public SkeinParameters()
             : this(new Dictionary<int, byte[]>())
         {
@@ -146,16 +147,21 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
             private Dictionary<int, byte[]> m_parameters;
 
+            /// <summary>Create a new <see cref="Builder"/>.</summary>
             public Builder()
             {
                 m_parameters = new Dictionary<int, byte[]>();
             }
 
+            /// <summary>Create a new <see cref="Builder"/>.</summary>
+            /// <param name="paramsMap">The params map.</param>
             public Builder(IDictionary<int, byte[]> paramsMap)
             {
                 m_parameters = new Dictionary<int, byte[]>(paramsMap);
             }
 
+            /// <summary>Create a new <see cref="Builder"/>.</summary>
+            /// <param name="parameters">The parameters.</param>
             public Builder(SkeinParameters parameters)
                 : this(parameters.m_parameters)
             {

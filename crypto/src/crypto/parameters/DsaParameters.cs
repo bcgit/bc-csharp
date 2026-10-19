@@ -4,6 +4,7 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>DSA domain parameters.</summary>
     // TODO[api] Don't implement ICipherParameters
     public class DsaParameters
         : ICipherParameters
@@ -11,6 +12,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly BigInteger p, q , g;
         private readonly DsaValidationParameters validation;
 
+        /// <summary>Create a new <see cref="DsaParameters"/>.</summary>
+        /// <param name="p">The p.</param>
+        /// <param name="q">The q.</param>
+        /// <param name="g">The g.</param>
         public DsaParameters(
             BigInteger p,
             BigInteger q,
@@ -19,6 +24,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
         }
 
+        /// <summary>Create a new <see cref="DsaParameters"/>.</summary>
+        /// <param name="p">The p.</param>
+        /// <param name="q">The q.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="parameters">The parameters.</param>
         public DsaParameters(
             BigInteger p,
             BigInteger q,
@@ -38,16 +48,19 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.validation = parameters;
         }
 
+        /// <summary>Gets the p.</summary>
         public BigInteger P
         {
             get { return p; }
         }
 
+        /// <summary>Gets the q.</summary>
         public BigInteger Q
         {
             get { return q; }
         }
 
+        /// <summary>Gets the g.</summary>
         public BigInteger G
         {
             get { return g; }
@@ -58,6 +71,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             get { return validation; }
         }
 
+        /// <inheritdoc/>
         public override bool Equals(
             object obj)
         {
@@ -78,6 +92,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return p.Equals(other.p) && q.Equals(other.q) && g.Equals(other.g);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return p.GetHashCode() ^ q.GetHashCode() ^ g.GetHashCode();

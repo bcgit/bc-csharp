@@ -4,6 +4,7 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>ElGamal domain parameters.</summary>
     // TODO[api] Don't implement ICipherParameters
     public class ElGamalParameters
         : ICipherParameters
@@ -11,6 +12,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly BigInteger p, g;
         private readonly int l;
 
+        /// <summary>Create a new <see cref="ElGamalParameters"/>.</summary>
+        /// <param name="p">The p.</param>
+        /// <param name="g">The g.</param>
         public ElGamalParameters(
             BigInteger p,
             BigInteger g)
@@ -18,6 +22,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
         }
 
+        /// <summary>Create a new <see cref="ElGamalParameters"/>.</summary>
+        /// <param name="p">The p.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="l">The l.</param>
         public ElGamalParameters(
             BigInteger p,
             BigInteger g,
@@ -33,6 +41,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.l = l;
         }
 
+        /// <summary>Gets the p.</summary>
         public BigInteger P
         {
             get { return p; }
@@ -54,6 +63,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             get { return l; }
         }
 
+        /// <inheritdoc/>
         public override bool Equals(
             object obj)
         {
@@ -74,6 +84,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return p.Equals(other.p) && g.Equals(other.g) && l == other.l;
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return p.GetHashCode() ^ g.GetHashCode() ^ l;

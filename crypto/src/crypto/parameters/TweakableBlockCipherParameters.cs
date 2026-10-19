@@ -13,6 +13,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly byte[] tweak;
         private readonly KeyParameter key;
 
+        /// <summary>Create a new <see cref="TweakableBlockCipherParameters"/>.</summary>
+        /// <param name="key">The key.</param>
+        /// <param name="tweak">The tweak.</param>
         public TweakableBlockCipherParameters(KeyParameter key, byte[] tweak)
         {
             this.key = key;

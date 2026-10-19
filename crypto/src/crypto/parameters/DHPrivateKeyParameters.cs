@@ -22,6 +22,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.x = x;
         }
 
+        /// <summary>Create a new <see cref="DHPrivateKeyParameters"/>.</summary>
+        /// <param name="x">The first operand.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="algorithmOid">The algorithm object identifier.</param>
         public DHPrivateKeyParameters(
             BigInteger x,
             DHParameters parameters,
@@ -37,6 +41,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             get { return x; }
         }
 
+        /// <inheritdoc/>
         public override bool Equals(
             object obj)
         {
@@ -57,6 +62,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return x.Equals(other.x) && base.Equals(other);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return x.GetHashCode() ^ base.GetHashCode();

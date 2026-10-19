@@ -27,6 +27,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_d = Parameters.ValidatePrivateScalar(d);
         }
 
+        /// <summary>Create a new <see cref="ECPrivateKeyParameters"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="d">The d.</param>
+        /// <param name="publicKeyParamSet">The public key param set.</param>
         public ECPrivateKeyParameters(string algorithm, BigInteger d, DerObjectIdentifier publicKeyParamSet)
             : base(algorithm, true, publicKeyParamSet)
         {
@@ -36,11 +40,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <summary>Gets the private scalar D.</summary>
         public BigInteger D => m_d;
 
+        /// <inheritdoc/>
         public override bool Equals(object obj) => obj is ECPrivateKeyParameters other && Equals(other);
 
         // TODO[api] Should be override
         protected bool Equals(ECPrivateKeyParameters other) => m_d.Equals(other.m_d) && base.Equals(other);
 
+        /// <inheritdoc/>
         public override int GetHashCode() => m_d.GetHashCode() ^ base.GetHashCode();
     }
 }

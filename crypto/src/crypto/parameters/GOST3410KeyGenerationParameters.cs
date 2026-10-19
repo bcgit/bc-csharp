@@ -6,12 +6,16 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Parameters for generating GOST R 34.10-94 key pairs.</summary>
     public class Gost3410KeyGenerationParameters
         : KeyGenerationParameters
     {
         private readonly Gost3410Parameters parameters;
         private readonly DerObjectIdentifier publicKeyParamSet;
 
+        /// <summary>Create a new <see cref="Gost3410KeyGenerationParameters"/>.</summary>
+        /// <param name="random">The source of randomness.</param>
+        /// <param name="parameters">The parameters.</param>
         public Gost3410KeyGenerationParameters(
             SecureRandom random,
             Gost3410Parameters parameters)
@@ -20,6 +24,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.parameters = parameters;
         }
 
+        /// <summary>Create a new <see cref="Gost3410KeyGenerationParameters"/>.</summary>
+        /// <param name="random">The source of randomness.</param>
+        /// <param name="publicKeyParamSet">The public key param set.</param>
         public Gost3410KeyGenerationParameters(
             SecureRandom random,
             DerObjectIdentifier publicKeyParamSet)
@@ -33,6 +40,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             get { return parameters; }
         }
 
+        /// <summary>Gets the public key param set.</summary>
         public DerObjectIdentifier PublicKeyParamSet
         {
             get { return publicKeyParamSet; }

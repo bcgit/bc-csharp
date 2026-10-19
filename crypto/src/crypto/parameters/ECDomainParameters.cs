@@ -8,6 +8,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Elliptic curve domain parameters: the curve, base point, order and cofactor.</summary>
     public class ECDomainParameters
     {
         public static ECDomainParameters FromX962Parameters(X962Parameters x962Parameters)
@@ -49,6 +50,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         private BigInteger m_hInv;
 
+        /// <summary>Create a copy of the given <see cref="ECDomainParameters"/>.</summary>
+        /// <param name="other">The instance to copy.</param>
         public ECDomainParameters(ECDomainParameters other)
         {
             m_curve = other.Curve;
@@ -60,21 +63,38 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_hInv = other.m_hInv;
         }
 
+        /// <summary>Create a new <see cref="ECDomainParameters"/>.</summary>
+        /// <param name="x9">The x 9.</param>
         public ECDomainParameters(X9ECParameters x9)
             : this(x9.Curve, x9.G, x9.N, x9.H, x9.GetSeed())
         {
         }
 
+        /// <summary>Create a new <see cref="ECDomainParameters"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="n">The n.</param>
         public ECDomainParameters(ECCurve curve, ECPoint g, BigInteger n)
             : this(curve, g, n, BigInteger.One, null)
         {
         }
 
+        /// <summary>Create a new <see cref="ECDomainParameters"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="n">The n.</param>
+        /// <param name="h">The h.</param>
         public ECDomainParameters(ECCurve curve, ECPoint g, BigInteger n, BigInteger h)
             : this(curve, g, n, h, null)
         {
         }
 
+        /// <summary>Create a new <see cref="ECDomainParameters"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="n">The n.</param>
+        /// <param name="h">The h.</param>
+        /// <param name="seed">The seed.</param>
         public ECDomainParameters(ECCurve curve, ECPoint g, BigInteger n, BigInteger h, byte[] seed)
         {
             if (curve == null)
@@ -95,19 +115,25 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public ECCurve Curve => m_curve;
 
+        /// <summary>Gets the g.</summary>
         public ECPoint G => m_g;
 
+        /// <summary>Gets the n.</summary>
         public BigInteger N => m_n;
 
+        /// <summary>Gets the h.</summary>
         public BigInteger H => m_h;
 
+        /// <summary>Gets the h inv.</summary>
         public BigInteger HInv =>
             Objects.EnsureSingletonInitialized(ref m_hInv, this, self => BigIntegers.ModOddInverseVar(self.N, self.H));
 
+        /// <summary>Return the seed.</summary>
         public byte[] GetSeed() => Arrays.Clone(m_seed);
 
         internal byte[] Seed => m_seed;
 
+        /// <inheritdoc/>
         public override bool Equals(object obj) => obj is ECDomainParameters other && Equals(other);
 
         protected virtual bool Equals(ECDomainParameters other)
@@ -121,6 +147,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 && m_n.Equals(other.m_n);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

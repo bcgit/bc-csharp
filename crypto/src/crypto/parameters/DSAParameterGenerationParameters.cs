@@ -4,9 +4,12 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Parameters for generating DSA domain parameters.</summary>
     public class DsaParameterGenerationParameters
     {
+        /// <summary>The <c>DigitalSignatureUsage</c> constant, with the value <c>1</c>.</summary>
         public const int DigitalSignatureUsage = 1;
+        /// <summary>The <c>KeyEstablishmentUsage</c> constant, with the value <c>2</c>.</summary>
         public const int KeyEstablishmentUsage = 2;
 
         private readonly int l;
@@ -46,21 +49,25 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.usageIndex = usageIndex;
         }
 
+        /// <summary>Gets the l.</summary>
         public virtual int L
         {
             get { return l; }
         }
 
+        /// <summary>Gets the n.</summary>
         public virtual int N
         {
             get { return n; }
         }
 
+        /// <summary>Gets the usage index.</summary>
         public virtual int UsageIndex
         {
             get { return usageIndex; }
         }
 
+        /// <summary>Gets the certainty.</summary>
         public virtual int Certainty
         {
             get { return certainty; }

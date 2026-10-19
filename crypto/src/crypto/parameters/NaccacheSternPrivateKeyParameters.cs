@@ -43,11 +43,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.phiN = phiN;
         }
 
+        /// <summary>Gets the phi n.</summary>
         public BigInteger PhiN
         {
             get { return phiN; }
         }
 
+        /// <summary>Gets the small primes list.</summary>
         public IList<BigInteger> SmallPrimesList
         {
             get { return smallPrimes; }

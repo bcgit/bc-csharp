@@ -5,6 +5,7 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>GOST R 34.10-94 domain parameters.</summary>
     // TODO[api] Don't implement ICipherParameters
     public class Gost3410Parameters
         : ICipherParameters
@@ -12,6 +13,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly BigInteger p, q, a;
         private readonly Gost3410ValidationParameters validation;
 
+        /// <summary>Create a new <see cref="Gost3410Parameters"/>.</summary>
+        /// <param name="p">The p.</param>
+        /// <param name="q">The q.</param>
+        /// <param name="a">The first operand.</param>
         public Gost3410Parameters(
             BigInteger p,
             BigInteger q,
@@ -20,6 +25,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
         }
 
+        /// <summary>Create a new <see cref="Gost3410Parameters"/>.</summary>
+        /// <param name="p">The p.</param>
+        /// <param name="q">The q.</param>
+        /// <param name="a">The first operand.</param>
+        /// <param name="validation">The validation.</param>
         public Gost3410Parameters(
             BigInteger p,
             BigInteger q,
@@ -39,16 +49,19 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.validation = validation;
         }
 
+        /// <summary>Gets the p.</summary>
         public BigInteger P
         {
             get { return p; }
         }
 
+        /// <summary>Gets the q.</summary>
         public BigInteger Q
         {
             get { return q; }
         }
 
+        /// <summary>Gets the a.</summary>
         public BigInteger A
         {
             get { return a; }
@@ -59,6 +72,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             get { return validation; }
         }
 
+        /// <inheritdoc/>
         public override bool Equals(
             object obj)
         {
@@ -79,6 +93,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return p.Equals(other.p) && q.Equals(other.q) && a.Equals(other.a);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return p.GetHashCode() ^ q.GetHashCode() ^ a.GetHashCode();

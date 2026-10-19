@@ -4,9 +4,12 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Parameters for DES, holding the key.</summary>
     public class DesParameters
         : KeyParameter
     {
+        /// <summary>Create a new <see cref="DesParameters"/>.</summary>
+        /// <param name="key">The key.</param>
         public DesParameters(
             byte[] key)
             : base(key)
@@ -15,6 +18,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 throw new ArgumentException("attempt to create weak DES key");
         }
 
+        /// <summary>Create a new <see cref="DesParameters"/>.</summary>
+        /// <param name="key">The key.</param>
+        /// <param name="keyOff">The key off.</param>
+        /// <param name="keyLen">The key len.</param>
         public DesParameters(
             byte[] key,
             int keyOff,
@@ -139,6 +146,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Set the odd parity.</summary>
+        /// <param name="bytes">The bytes.</param>
         public static void SetOddParity(Span<byte> bytes)
         {
             for (int i = 0; i < bytes.Length; i++)

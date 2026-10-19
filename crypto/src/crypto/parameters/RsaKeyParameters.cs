@@ -17,7 +17,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <summary>Initializes a new instance of <see cref="RsaKeyParameters"/>.</summary>
         /// <param name="isPrivate">Whether the key is private or not.</param>
         /// <param name="modulus">The RSA modulus.</param>
-        /// <param name="exponent">The RSA exponent (public exponent for public keys, private exponent for private keys).</param>
+        /// <param name="exponent">
+        /// The RSA exponent (public exponent for public keys, private exponent for private keys).
+        /// </param>
         public RsaKeyParameters(bool isPrivate, BigInteger modulus, BigInteger exponent)
             : this(isPrivate, modulus, exponent, isInternal: false)
         {
@@ -47,6 +49,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <summary>Gets the RSA exponent.</summary>
         public BigInteger Exponent => m_exponent;
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             return obj is RsaKeyParameters that
@@ -55,6 +58,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 && this.Exponent.Equals(that.Exponent);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode() => IsPrivate.GetHashCode() ^ Modulus.GetHashCode() ^ Exponent.GetHashCode();
 
         private static int GetMRIterations(int bits)

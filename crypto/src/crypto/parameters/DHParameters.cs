@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Diffie-Hellman domain parameters.</summary>
     // TODO[api] Don't implement ICipherParameters
     public class DHParameters
         : ICipherParameters
@@ -18,31 +19,63 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private static int GetDefaultMParam(int lParam) =>
             lParam == 0 ? DefaultMinimumLength : System.Math.Min(lParam, DefaultMinimumLength);
 
+        /// <summary>Create a new <see cref="DHParameters"/>.</summary>
+        /// <param name="p">The p.</param>
+        /// <param name="g">The g.</param>
         public DHParameters(BigInteger p, BigInteger g)
             : this(p, g, q: null)
         {
         }
 
+        /// <summary>Create a new <see cref="DHParameters"/>.</summary>
+        /// <param name="p">The p.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="q">The q.</param>
         public DHParameters(BigInteger p, BigInteger g, BigInteger q)
             : this(p, g, q, l: 0)
         {
         }
 
+        /// <summary>Create a new <see cref="DHParameters"/>.</summary>
+        /// <param name="p">The p.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="q">The q.</param>
+        /// <param name="l">The l.</param>
         public DHParameters(BigInteger p, BigInteger g, BigInteger q, int l)
             : this(p, g, q, m: GetDefaultMParam(l), l)
         {
         }
 
+        /// <summary>Create a new <see cref="DHParameters"/>.</summary>
+        /// <param name="p">The p.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="q">The q.</param>
+        /// <param name="m">The m.</param>
+        /// <param name="l">The l.</param>
         public DHParameters(BigInteger p, BigInteger g, BigInteger q, int m, int l)
             : this(p, g, q, m, l, j: null, validation: null)
         {
         }
 
+        /// <summary>Create a new <see cref="DHParameters"/>.</summary>
+        /// <param name="p">The p.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="q">The q.</param>
+        /// <param name="j">The j.</param>
+        /// <param name="validation">The validation.</param>
         public DHParameters(BigInteger p, BigInteger g, BigInteger q, BigInteger j, DHValidationParameters validation)
             : this(p, g, q, m: DefaultMinimumLength, l: 0, j, validation)
         {
         }
 
+        /// <summary>Create a new <see cref="DHParameters"/>.</summary>
+        /// <param name="p">The p.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="q">The q.</param>
+        /// <param name="m">The m.</param>
+        /// <param name="l">The l.</param>
+        /// <param name="j">The j.</param>
+        /// <param name="validation">The validation.</param>
         public DHParameters(BigInteger p, BigInteger g, BigInteger q, int m, int l, BigInteger j,
             DHValidationParameters validation)
         {
@@ -79,12 +112,16 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_validation = validation;
         }
 
+        /// <summary>Gets the p.</summary>
         public BigInteger P => m_p;
 
+        /// <summary>Gets the g.</summary>
         public BigInteger G => m_g;
 
+        /// <summary>Gets the q.</summary>
         public BigInteger Q => m_q;
 
+        /// <summary>Gets the j.</summary>
         public BigInteger J => m_j;
 
         /// <summary>The minimum bitlength of the private value.</summary>
@@ -95,6 +132,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public DHValidationParameters ValidationParameters => m_validation;
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             if (obj == this)
@@ -111,6 +149,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 && Objects.Equals(m_q, other.m_q);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             int hc = m_p.GetHashCode() ^ m_g.GetHashCode();

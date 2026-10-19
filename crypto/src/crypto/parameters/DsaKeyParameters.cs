@@ -25,6 +25,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <summary>Gets the DSA domain parameters.</summary>
         public DsaParameters Parameters => parameters;
 
+        /// <inheritdoc/>
         public override bool Equals(
             object obj)
         {
@@ -46,6 +47,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 && base.Equals(other);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             int hc = base.GetHashCode();

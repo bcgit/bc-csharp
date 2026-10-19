@@ -16,6 +16,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly ECPrivateKeyParameters mEphemeralPrivateKey;
         private readonly ECPoint mEphemeralPublicPoint;
 
+        /// <summary>Create a new <see cref="SM2KeyExchangePrivateParameters"/>.</summary>
+        /// <param name="initiator">true if initiator, false otherwise.</param>
+        /// <param name="staticPrivateKey">The static private key.</param>
+        /// <param name="ephemeralPrivateKey">The ephemeral private key.</param>
         public SM2KeyExchangePrivateParameters(
             bool initiator,
             ECPrivateKeyParameters staticPrivateKey,
@@ -39,26 +43,31 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.mEphemeralPublicPoint = m.Multiply(parameters.G, ephemeralPrivateKey.D).Normalize();
         }
 
+        /// <summary>Gets a value indicating whether this is initiator.</summary>
         public virtual bool IsInitiator
         {
             get { return mInitiator; }
         }
 
+        /// <summary>Gets the static private key.</summary>
         public virtual ECPrivateKeyParameters StaticPrivateKey
         {
             get { return mStaticPrivateKey; }
         }
 
+        /// <summary>Gets the static public point.</summary>
         public virtual ECPoint StaticPublicPoint
         {
             get { return mStaticPublicPoint; }
         }
 
+        /// <summary>Gets the ephemeral private key.</summary>
         public virtual ECPrivateKeyParameters EphemeralPrivateKey
         {
             get { return mEphemeralPrivateKey; }
         }
 
+        /// <summary>Gets the ephemeral public point.</summary>
         public virtual ECPoint EphemeralPublicPoint
         {
             get { return mEphemeralPublicPoint; }

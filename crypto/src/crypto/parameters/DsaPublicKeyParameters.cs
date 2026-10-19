@@ -50,6 +50,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <summary>Gets the public value Y.</summary>
         public BigInteger Y => y;
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             if (obj == this)
@@ -69,6 +70,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return y.Equals(other.y) && base.Equals(other);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return y.GetHashCode() ^ base.GetHashCode();

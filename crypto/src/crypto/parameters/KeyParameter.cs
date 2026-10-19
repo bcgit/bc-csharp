@@ -44,6 +44,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Create a new <see cref="KeyParameter"/>.</summary>
+        /// <param name="key">The key.</param>
         public KeyParameter(ReadOnlySpan<byte> key)
         {
             m_key = key.ToArray();

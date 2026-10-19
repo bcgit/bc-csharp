@@ -4,6 +4,9 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>
+    /// Parameters for the key derivation function in double-pipeline iteration mode (NIST SP 800-108).
+    /// </summary>
     public class KdfDoublePipelineIterationParameters
         : IDerivationParameters
     {
@@ -51,15 +54,19 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return new KdfDoublePipelineIterationParameters(ki, fixedInputData, UNUSED_R, false);
         }
 
+        /// <summary>Gets the ki.</summary>
         public byte[] Ki
         {
             get { return Arrays.Clone(ki); }
         }
 
+        /// <summary>Gets the use counter.</summary>
         public bool UseCounter => useCounter;
 
+        /// <summary>Gets the r.</summary>
         public int R => r;
 
+        /// <summary>Gets the fixed input data.</summary>
         public byte[] FixedInputData
         {
             get { return Arrays.Clone(fixedInputData); }

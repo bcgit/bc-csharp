@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Parameters for triple DES (DESede), holding the key.</summary>
     public class DesEdeParameters
         : DesParameters
     {
@@ -36,12 +37,18 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return tmp;
         }
 
+        /// <summary>Create a new <see cref="DesEdeParameters"/>.</summary>
+        /// <param name="key">The key.</param>
         public DesEdeParameters(
             byte[] key)
             : base(FixKey(key, 0, key.Length))
         {
         }
 
+        /// <summary>Create a new <see cref="DesEdeParameters"/>.</summary>
+        /// <param name="key">The key.</param>
+        /// <param name="keyOff">The key off.</param>
+        /// <param name="keyLen">The key len.</param>
         public DesEdeParameters(
             byte[] key,
             int keyOff,

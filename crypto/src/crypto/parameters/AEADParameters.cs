@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Parameters for AEAD cipher modes: a key, the MAC size, a nonce and optional associated data.</summary>
     public class AeadParameters
         : ICipherParameters
     {
@@ -46,16 +47,19 @@ namespace Org.BouncyCastle.Crypto.Parameters
             get { return key; }
         }
 
+        /// <summary>Gets the mac size.</summary>
         public virtual int MacSize
         {
             get { return macSize; }
         }
 
+        /// <summary>Return the associated text.</summary>
         public virtual byte[] GetAssociatedText()
         {
             return associatedText;
         }
 
+        /// <summary>Return the nonce.</summary>
         public virtual byte[] GetNonce()
         {
             return (byte[])nonce.Clone();

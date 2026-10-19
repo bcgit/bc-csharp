@@ -4,6 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Cipher parameters accompanied by a context string.</summary>
     public class ParametersWithContext
         : ICipherParameters
     {
@@ -23,6 +24,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly ICipherParameters m_parameters;
         private readonly byte[] m_context;
 
+        /// <summary>Create a new <see cref="ParametersWithContext"/>.</summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="context">The context.</param>
         public ParametersWithContext(ICipherParameters parameters, byte[] context)
         {
             // NOTE: 'parameters' may be null to imply key re-use
@@ -30,6 +34,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_context = Arrays.CopyBuffer(context);
         }
 
+        /// <summary>Create a new <see cref="ParametersWithContext"/>.</summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="contextOff">The context off.</param>
+        /// <param name="contextLen">The context len.</param>
         public ParametersWithContext(ICipherParameters parameters, byte[] context, int contextOff, int contextLen)
         {
             // NOTE: 'parameters' may be null to imply key re-use
@@ -38,6 +47,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Create a new <see cref="ParametersWithContext"/>.</summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="context">The context.</param>
         public ParametersWithContext(ICipherParameters parameters, ReadOnlySpan<byte> context)
         {
             // NOTE: 'parameters' may be null to imply key re-use
@@ -55,10 +67,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 #endif
 
+        /// <summary>Gets the context length.</summary>
         public int ContextLength => m_context.Length;
 
         public void CopyContextTo(byte[] buf, int off, int len) => Arrays.CopyBufferToSegment(m_context, buf, off, len);
 
+        /// <summary>Return the context.</summary>
         public byte[] GetContext() => Arrays.InternalCopyBuffer(m_context);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
