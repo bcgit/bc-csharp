@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Asn1.Utilities
 {
+    /// <summary>Utility methods for producing a textual dump of an ASN.1 structure.</summary>
     public static class Asn1Dump
     {
         private const string Tab = "    ";
