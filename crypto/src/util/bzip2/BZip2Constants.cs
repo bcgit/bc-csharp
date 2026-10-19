@@ -50,6 +50,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
         public const int G_SIZE = 50;
         /// <summary>The <c>N_ITERS</c> constant, with the value <c>4</c>.</summary>
         public const int N_ITERS = 4;
+        /// <summary>The maximum number of Huffman table selectors.</summary>
         public const int MAX_SELECTORS = 2 + (900000 / G_SIZE);
         /// <summary>The <c>NUM_OVERSHOOT_BYTES</c> constant, with the value <c>20</c>.</summary>
         public const int NUM_OVERSHOOT_BYTES = 20;

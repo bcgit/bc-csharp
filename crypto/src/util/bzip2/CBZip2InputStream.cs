@@ -276,6 +276,8 @@ namespace Org.BouncyCastle.Utilities.Bzip2
             m_streamCrc = Integers.RotateLeft(m_streamCrc, 1) ^ blockFinalCrc;
         }
 
+        /// <summary>Dispose of this stream without disposing of the underlying stream.</summary>
+        /// <param name="disposing">true when called from <c>Dispose</c>, false when called from a finalizer.</param>
         protected void Detach(bool disposing)
         {
             if (disposing)
@@ -846,6 +848,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
         }
     }
 
+    /// <summary>A <see cref="CBZip2InputStream"/> that leaves the underlying stream open when it is disposed.</summary>
     public class CBZip2InputStreamLeaveOpen
         : CBZip2InputStream
     {

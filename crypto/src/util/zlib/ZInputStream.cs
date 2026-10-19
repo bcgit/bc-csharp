@@ -41,6 +41,9 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Utilities.Zlib
 {
+    /// <summary>
+    /// An input stream that decompresses (or compresses) the data it reads from an underlying stream.
+    /// </summary>
     public class ZInputStream
         : BaseInputStream
     {
@@ -53,16 +56,21 @@ namespace Org.BouncyCastle.Utilities.Zlib
 
         private const int BufferSize = 4096;
 
+        /// <summary>The zlib stream state.</summary>
         protected ZStream z;
         /// <summary>The flush level.</summary>
         protected int flushLevel = JZlib.Z_NO_FLUSH;
+        /// <summary>The buffer for data read from the underlying stream.</summary>
         // TODO Allow custom buf
         protected byte[] buf = new byte[BufferSize];
         /// <summary>The buf 1.</summary>
         protected byte[] buf1 = new byte[1];
+        /// <summary>true if the stream compresses data, false if it decompresses.</summary>
         protected bool compress;
 
+        /// <summary>The underlying stream.</summary>
         protected Stream input;
+        /// <summary>true once the stream has been closed.</summary>
         protected bool closed;
 
         private bool nomoreinput = false;
@@ -139,6 +147,8 @@ namespace Org.BouncyCastle.Utilities.Zlib
             this.z.avail_in = 0;
         }
 
+        /// <summary>Dispose of this stream without disposing of the underlying stream.</summary>
+        /// <param name="disposing">true when called from <c>Dispose</c>, false when called from a finalizer.</param>
         protected void Detach(bool disposing)
         {
             if (disposing)
@@ -271,6 +281,7 @@ namespace Org.BouncyCastle.Utilities.Zlib
         }
     }
 
+    /// <summary>A <see cref="ZInputStream"/> that leaves the underlying stream open when it is disposed.</summary>
     public class ZInputStreamLeaveOpen
         : ZInputStream
     {

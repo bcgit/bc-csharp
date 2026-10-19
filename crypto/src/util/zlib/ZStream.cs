@@ -36,6 +36,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Org.BouncyCastle.Utilities.Zlib {
 
+    /// <summary>The state of a zlib stream, used for both compression and decompression.</summary>
     public sealed class ZStream{
 
         private const int MAX_WBITS=15;        // 32K LZ77 window
@@ -59,16 +60,25 @@ namespace Org.BouncyCastle.Utilities.Zlib {
         private const int Z_BUF_ERROR=-5;
         private const int Z_VERSION_ERROR=-6;
 
+        /// <summary>The next input bytes.</summary>
         public byte[] next_in;     // next input byte
+        /// <summary>The index of the next input byte in <c>next_in</c>.</summary>
         public int next_in_index;
+        /// <summary>The number of bytes available at <c>next_in</c>.</summary>
         public int avail_in;       // number of bytes available at next_in
+        /// <summary>The total number of input bytes read so far.</summary>
         public long total_in;      // total nb of input bytes read so far
 
+        /// <summary>The buffer for the next output bytes.</summary>
         public byte[] next_out;    // next output byte should be put there
+        /// <summary>The index at which the next output byte is written in <c>next_out</c>.</summary>
         public int next_out_index;
+        /// <summary>The remaining free space in <c>next_out</c>.</summary>
         public int avail_out;      // remaining free space at next_out
+        /// <summary>The total number of bytes output so far.</summary>
         public long total_out;     // total nb of bytes output so far
 
+        /// <summary>The last error message, or null if there is none.</summary>
         public string msg;
 
         internal Deflate dstate;
@@ -76,74 +86,127 @@ namespace Org.BouncyCastle.Utilities.Zlib {
 
         internal int data_type; // best guess about the data type: ascii or binary
 
+        /// <summary>The Adler-32 checksum of the uncompressed data.</summary>
         public long adler;
         internal Adler32 _adler=new Adler32();
 
+        /// <summary>Initialise the stream for decompression.</summary>
+        /// <returns>A zlib status code; <c>Z_OK</c> on success.</returns>
         public int inflateInit(){
             return inflateInit(DEF_WBITS);
         }
+        /// <summary>Initialise the stream for decompression.</summary>
+        /// <param name="nowrap">true to omit the zlib header and checksum.</param>
+        /// <returns>A zlib status code; <c>Z_OK</c> on success.</returns>
         public int inflateInit(bool nowrap){
             return inflateInit(DEF_WBITS, nowrap);
         }
+        /// <summary>Initialise the stream for decompression.</summary>
+        /// <param name="w">The base-2 logarithm of the window size.</param>
+        /// <returns>A zlib status code; <c>Z_OK</c> on success.</returns>
         public int inflateInit(int w){
             return inflateInit(w, false);
         }
 
+        /// <summary>Initialise the stream for decompression.</summary>
+        /// <param name="w">The base-2 logarithm of the window size.</param>
+        /// <param name="nowrap">true to omit the zlib header and checksum.</param>
+        /// <returns>A zlib status code; <c>Z_OK</c> on success.</returns>
         public int inflateInit(int w, bool nowrap){
             istate=new Inflate();
             return istate.inflateInit(this, nowrap?-w:w);
         }
 
+        /// <summary>Decompress as much data as possible.</summary>
+        /// <param name="f">The flush mode.</param>
+        /// <returns>A zlib status code.</returns>
         public int inflate(int f){
             if(istate==null) return Z_STREAM_ERROR;
             return istate.inflate(this, f);
         }
+        /// <summary>Free the resources of the decompressor.</summary>
+        /// <returns>A zlib status code; <c>Z_OK</c> on success.</returns>
         public int inflateEnd(){
             if(istate==null) return Z_STREAM_ERROR;
             int ret=istate.inflateEnd(this);
             istate = null;
             return ret;
         }
+        /// <summary>Skip invalid compressed data until a full flush point is found.</summary>
+        /// <returns>A zlib status code; <c>Z_OK</c> if a flush point was found.</returns>
         public int inflateSync(){
             if(istate == null)
                 return Z_STREAM_ERROR;
             return istate.inflateSync(this);
         }
+        /// <summary>Set the dictionary of the decompressor.</summary>
+        /// <param name="dictionary">The dictionary.</param>
+        /// <param name="dictLength">The length of the dictionary.</param>
+        /// <returns>A zlib status code; <c>Z_OK</c> on success.</returns>
         public int inflateSetDictionary(byte[] dictionary, int dictLength){
             if(istate == null)
                 return Z_STREAM_ERROR;
             return istate.inflateSetDictionary(this, dictionary, dictLength);
         }
 
+        /// <summary>Initialise the stream for compression.</summary>
+        /// <param name="level">The compression level, from 0 to 9.</param>
+        /// <returns>A zlib status code; <c>Z_OK</c> on success.</returns>
         public int deflateInit(int level){
             return deflateInit(level, MAX_WBITS);
         }
+        /// <summary>Initialise the stream for compression.</summary>
+        /// <param name="level">The compression level, from 0 to 9.</param>
+        /// <param name="nowrap">true to omit the zlib header and checksum.</param>
+        /// <returns>A zlib status code; <c>Z_OK</c> on success.</returns>
         public int deflateInit(int level, bool nowrap){
             return deflateInit(level, MAX_WBITS, nowrap);
         }
+        /// <summary>Initialise the stream for compression.</summary>
+        /// <param name="level">The compression level, from 0 to 9.</param>
+        /// <param name="bits">The base-2 logarithm of the window size.</param>
+        /// <returns>A zlib status code; <c>Z_OK</c> on success.</returns>
         public int deflateInit(int level, int bits){
             return deflateInit(level, bits, false);
         }
+        /// <summary>Initialise the stream for compression.</summary>
+        /// <param name="level">The compression level, from 0 to 9.</param>
+        /// <param name="bits">The base-2 logarithm of the window size.</param>
+        /// <param name="nowrap">true to omit the zlib header and checksum.</param>
+        /// <returns>A zlib status code; <c>Z_OK</c> on success.</returns>
         public int deflateInit(int level, int bits, bool nowrap){
             dstate=new Deflate();
             return dstate.deflateInit(this, level, nowrap?-bits:bits);
         }
+        /// <summary>Compress as much data as possible.</summary>
+        /// <param name="flush">The flush mode.</param>
+        /// <returns>A zlib status code.</returns>
         public int deflate(int flush){
             if(dstate==null){
                 return Z_STREAM_ERROR;
             }
             return dstate.deflate(this, flush);
         }
+        /// <summary>Free the resources of the compressor.</summary>
+        /// <returns>A zlib status code; <c>Z_OK</c> on success.</returns>
         public int deflateEnd(){
             if(dstate==null) return Z_STREAM_ERROR;
             int ret=dstate.deflateEnd();
             dstate=null;
             return ret;
         }
+        /// <summary>Change the compression level and strategy.</summary>
+        /// <param name="level">The compression level, from 0 to 9.</param>
+        /// <param name="strategy">The compression strategy.</param>
+        /// <returns>A zlib status code; <c>Z_OK</c> on success.</returns>
         public int deflateParams(int level, int strategy){
             if(dstate==null) return Z_STREAM_ERROR;
             return dstate.deflateParams(this, level, strategy);
         }
+        /// <summary>Set the dictionary of the compressor.</summary>
+        /// <param name="dictionary">The dictionary.</param>
+        /// <param name="dictLength">The length of the dictionary.</param>
+        /// <returns>A zlib status code; <c>Z_OK</c> on success.</returns>
         public int deflateSetDictionary (byte[] dictionary, int dictLength){
             if(dstate == null)
                 return Z_STREAM_ERROR;
@@ -204,6 +267,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
             return len;
         }
 
+        /// <summary>Free the buffers held by the stream.</summary>
         public void free(){
             next_in=null;
             next_out=null;

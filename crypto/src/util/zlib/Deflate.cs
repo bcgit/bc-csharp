@@ -36,6 +36,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Org.BouncyCastle.Utilities.Zlib {
 
+    /// <summary>The deflate compressor.</summary>
     public sealed class Deflate{
 
         private const int MAX_MEM_LEVEL=9;

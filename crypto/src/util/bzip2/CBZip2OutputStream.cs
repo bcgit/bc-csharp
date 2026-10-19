@@ -44,7 +44,9 @@ namespace Org.BouncyCastle.Utilities.Bzip2
     public class CBZip2OutputStream
         : BaseOutputStream
     {
+        /// <summary>The mask for the flag bit set on quadrant entries.</summary>
         protected const int SETMASK = 1 << 21;
+        /// <summary>The mask that clears the flag bit on quadrant entries.</summary>
         protected const int CLEARMASK = ~SETMASK;
         /// <summary>The <c>GREATER_ICOST</c> constant, with the value <c>15</c>.</summary>
         protected const int GREATER_ICOST = 15;
@@ -90,6 +92,11 @@ namespace Org.BouncyCastle.Utilities.Bzip2
 
         private bool finished;
 
+        /// <summary>Calculate the code lengths of a Huffman code limited to a maximum length.</summary>
+        /// <param name="len">The array to receive the code lengths.</param>
+        /// <param name="freq">The symbol frequencies.</param>
+        /// <param name="alphaSize">The number of symbols.</param>
+        /// <param name="maxLen">The maximum code length.</param>
         protected static void HbMakeCodeLengths(byte[] len, int[] freq, int alphaSize, int maxLen)
         {
             /*
@@ -429,6 +436,8 @@ namespace Org.BouncyCastle.Utilities.Bzip2
 
         bool closed = false;
 
+        /// <summary>Dispose of this stream without disposing of the underlying stream.</summary>
+        /// <param name="disposing">true when called from <c>Dispose</c>, false when called from a finalizer.</param>
         protected void Detach(bool disposing)
         {
             if (disposing)
@@ -461,6 +470,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
             }
         }
 
+        /// <summary>Finish writing the compressed data without closing the stream.</summary>
         public void Finish()
         {
             if (finished)
@@ -1613,6 +1623,9 @@ namespace Org.BouncyCastle.Utilities.Bzip2
         }
     }
 
+    /// <summary>
+    /// A <see cref="CBZip2OutputStream"/> that leaves the underlying stream open when it is disposed.
+    /// </summary>
     public class CBZip2OutputStreamLeaveOpen
         : CBZip2OutputStream
     {

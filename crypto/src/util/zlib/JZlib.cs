@@ -36,9 +36,12 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Org.BouncyCastle.Utilities.Zlib
 {
+    /// <summary>Constants and helpers of the zlib implementation (a port of JZlib).</summary>
     public sealed class JZlib
     {
         private const string _version="1.0.7";
+        /// <summary>Get the version of the zlib implementation.</summary>
+        /// <returns>The version string.</returns>
         public static string version()
         {
             return _version;
