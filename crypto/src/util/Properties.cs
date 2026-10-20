@@ -144,13 +144,13 @@ namespace Org.BouncyCastle.Utilities
 
         /// <summary>
         /// The PBE iteration count the PKCS12 keystore uses when <b>writing</b> a file - the write-side counterpart of
-        /// <see cref="Pkcs12MaxIterationCount"/>, which only bounds what is accepted on load. Default 599,000 for the
+        /// <see cref="Pkcs12MaxIterationCount"/>, which only bounds what is accepted on load. Default 300,000 for the
         /// key and certificate encryption, twice that for the integrity MAC.
         /// </summary>
         /// <remarks>
-        /// Note that Windows currently reports an error importing a PKCS#12 file written with an iteration count of
-        /// 600,000 or greater, which is why the default sits just below that figure; setting this property to 600,000
-        /// or more produces files Windows may refuse.
+        /// Note that Windows currently reports an error importing a PKCS#12 file whose key and certificate encryption
+        /// uses a PBE iteration count of 600,000 or greater (it accepts 600,000 for the MAC), so setting this property
+        /// to 600,000 or more produces files Windows may refuse.
         /// <para>
         /// A value outside 1..2,500,000 is ignored and the default used, so a mistyped property fails towards the
         /// default rather than towards a file with no PBE work in it; the upper bound keeps the doubled MAC count

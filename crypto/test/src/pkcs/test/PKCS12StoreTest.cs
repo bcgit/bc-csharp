@@ -2075,9 +2075,9 @@ namespace Org.BouncyCastle.Pkcs.Tests
             {
                 byte[] ignored = StoreFreshPkcs12(Random);
 
-                Assert.AreEqual(599000, GetKeyBagIterationCount(ignored),
+                Assert.AreEqual(300_000, GetKeyBagIterationCount(ignored),
                     "out of range key bag iteration count honoured");
-                Assert.AreEqual(1198000, GetMacIterationCount(ignored), "out of range MAC iteration count honoured");
+                Assert.AreEqual(600_000, GetMacIterationCount(ignored), "out of range MAC iteration count honoured");
             });
 
             //

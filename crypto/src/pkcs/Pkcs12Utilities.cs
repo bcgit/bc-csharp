@@ -15,14 +15,14 @@ namespace Org.BouncyCastle.Pkcs
 
         /// <summary>
         /// The PBE iteration count used when writing a PKCS#12 file, and half the count used for its integrity MAC.
-        /// Just under the OWASP figure of 600,000 for PBKDF2-HMAC-SHA256.
         /// </summary>
         /// <remarks>
         /// <b>Do not raise this to 600,000 or more without testing on Windows:</b> Windows currently reports an error
-        /// importing a PKCS#12 file written with an iteration count of 600,000 or greater.That limit may change in
-        /// later Windows releases, so recheck it before moving this.
+        /// importing a PKCS#12 file whose key and certificate encryption uses a PBE iteration count of 600,000 or
+        /// greater (it accepts 600,000 for the MAC). That limit may change in later Windows releases, so recheck it
+        /// before moving this.
         /// </remarks>
-        private const int DefaultStoreIterationCount = 599_000;
+        private const int DefaultStoreIterationCount = 300_000;
 
         /// <summary>
         /// Largest count <see cref="Properties.Pkcs12StoreIterationCount"/> may name. Half of
