@@ -102,6 +102,12 @@ namespace Org.BouncyCastle.Crypto.Signers
             hMac.Init(new KeyParameter(K));
             hMac.BlockUpdate(V, 0, V.Length);
             hMac.DoFinal(V, 0);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Arrays.ZeroMemory(xm[..size]);
+#else
+            Arrays.ZeroMemory(x);
+#endif
         }
 
         public virtual BigInteger NextK()
