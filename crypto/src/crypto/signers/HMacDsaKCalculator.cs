@@ -8,41 +8,33 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
-    /**
-     * A deterministic K calculator based on the algorithm in section 3.2 of RFC 6979.
-     */
+    /// <summary>A deterministic K calculator based on the algorithm in section 3.2 of RFC 6979.</summary>
     public class HMacDsaKCalculator
         :   IDsaKCalculator
     {
         private readonly HMac hMac;
+#if !(NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER)
         private readonly byte[] K;
+#endif
         private readonly byte[] V;
 
         private BigInteger n;
 
-        /**
-         * Base constructor.
-         *
-         * @param digest digest to build the HMAC on.
-         */
         public HMacDsaKCalculator(IDigest digest)
         {
             this.hMac = new HMac(digest);
 
             int macSize = hMac.GetMacSize();
             this.V = new byte[macSize];
+#if !(NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER)
             this.K = new byte[macSize];
+#endif
         }
 
-        public virtual bool IsDeterministic
-        {
-            get { return true; }
-        }
+        public virtual bool IsDeterministic => true;
 
-        public virtual void Init(BigInteger n, SecureRandom random)
-        {
+        public virtual void Init(BigInteger n, SecureRandom random) =>
             throw new InvalidOperationException("Operation not supported");
-        }
 
         public void Init(BigInteger n, BigInteger d, byte[] message)
         {
@@ -68,10 +60,14 @@ namespace Org.BouncyCastle.Crypto.Signers
             byte[] m = BigIntegers.AsUnsignedByteArray(size, mInt);
 #endif
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            hMac.Init(KeyParameter.Create(V.Length, (object)null, (bytes, _) => bytes.Fill(0x00)));
+#else
             Arrays.Fill(K, 0x00);
-            Arrays.Fill(V, 0x01);
-
             hMac.Init(new KeyParameter(K));
+#endif
+
+            Arrays.Fill(V, 0x01);
 
             hMac.BlockUpdate(V, 0, V.Length);
             hMac.Update(0x00);
@@ -82,9 +78,14 @@ namespace Org.BouncyCastle.Crypto.Signers
             hMac.BlockUpdate(m, 0, m.Length);
 #endif
             InitAdditionalInput0(hMac);
-            hMac.DoFinal(K, 0);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            hMac.Init(KeyParameter.Create(V.Length, hMac, (bytes, mac) => mac.DoFinal(bytes)));
+#else
+            hMac.DoFinal(K, 0);
             hMac.Init(new KeyParameter(K));
+#endif
+
             hMac.BlockUpdate(V, 0, V.Length);
             hMac.DoFinal(V, 0);
 
@@ -97,9 +98,14 @@ namespace Org.BouncyCastle.Crypto.Signers
             hMac.BlockUpdate(m, 0, m.Length);
 #endif
             InitAdditionalInput1(hMac);
-            hMac.DoFinal(K, 0);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            hMac.Init(KeyParameter.Create(V.Length, hMac, (bytes, mac) => mac.DoFinal(bytes)));
+#else
+            hMac.DoFinal(K, 0);
             hMac.Init(new KeyParameter(K));
+#endif
+
             hMac.BlockUpdate(V, 0, V.Length);
             hMac.DoFinal(V, 0);
 
@@ -135,9 +141,14 @@ namespace Org.BouncyCastle.Crypto.Signers
 
                 hMac.BlockUpdate(V, 0, V.Length);
                 hMac.Update(0x00);
-                hMac.DoFinal(K, 0);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                hMac.Init(KeyParameter.Create(V.Length, hMac, (bytes, mac) => mac.DoFinal(bytes)));
+#else
+                hMac.DoFinal(K, 0);
                 hMac.Init(new KeyParameter(K));
+#endif
+
                 hMac.BlockUpdate(V, 0, V.Length);
                 hMac.DoFinal(V, 0);
             }
