@@ -331,22 +331,32 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 // RFC 9580 sec. 3.7.1.4 + RFC 9106 sec. 3.1: memory size m = 2^memorySizeExponent
                 // KiB must satisfy m >= 8*p, i.e. memorySizeExponent >= 3 + ceil(log2(p)).
                 // For p >= 1 this is 3 + bitLen(p - 1).
+                // The limits are read before the packet values are checked, so that a misconfigured property is
+                // reported whatever the packet contains.
+                // TODO[pgp] In principle these checks could be left to the untrusted Argon2Parameters.Builder below,
+                // which applies the same limits (and RFC 9106's minimum memory, in Build()), wrapping its exceptions
+                // in PgpException.
+
+                int maxParallelism = GetArgon2Limit(Properties.Argon2MaxParallelism, 16, 1, 255);
+                int maxMemorySizeExponent = GetArgon2Limit(Properties.Argon2MaxMemoryExp, 24, 3, 30);
+                int maxPasses = GetArgon2Limit(Properties.Argon2MaxPasses, 10, 1, 255);
 
                 int parallelism = argon2Config.Parallelism;
-                if (parallelism < 1 || parallelism > Properties.GetInt32(Properties.Argon2MaxParallelism, 16))
+                if (parallelism < 1 || parallelism > maxParallelism)
                     throw new PgpException("parallelism out of range");
 
                 int memorySizeExponent = argon2Config.MemorySizeExponent;
                 if (memorySizeExponent < 3 + Integers.BitLength(parallelism - 1) ||
-                    memorySizeExponent > Properties.GetInt32(Properties.Argon2MaxMemoryExp, 24))
+                    memorySizeExponent > maxMemorySizeExponent)
                 {
                     throw new PgpException("memory size exponent out of range");
                 }
 
                 int passes = argon2Config.Passes;
-                if (passes < 1 || passes > Properties.GetInt32(Properties.Argon2MaxPasses, 10))
+                if (passes < 1 || passes > maxPasses)
                     throw new PgpException("passes out of range");
 
+                // In 'trusted' mode since we applied our own checks.
                 var argon2Parameters = new Argon2Parameters.Builder(Argon2Parameters.Argon2id)
                     .WithSalt(argon2Config.GetSalt())
                     .WithIterations(argon2Config.Passes)
@@ -438,6 +448,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
 
             return MakeKey(algorithm, keyBytes);
+        }
+
+        // A limit below minValue would reject every Argon2 S2K, so it is reported as a configuration error. A limit
+        // above maxValue (the most an S2K can specify, or Argon2Parameters accept) is no limit, so it is clamped.
+        private static int GetArgon2Limit(string propertyName, int defaultValue, int minValue, int maxValue)
+        {
+            int limit = Properties.GetInt32(propertyName, defaultValue);
+            if (limit < minValue)
+                throw new InvalidOperationException($"{propertyName} out of range");
+
+            return System.Math.Min(limit, maxValue);
         }
 
         /// <summary>Write out the passed in file as a literal data packet.</summary>

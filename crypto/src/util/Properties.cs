@@ -12,10 +12,24 @@ namespace Org.BouncyCastle.Utilities
     public static class Properties
     {
         /// <summary>
+        /// Allow Argon2 parameters with a memory size below the minimum of 8 * parallelism KiB that RFC 9106 sec. 3.1
+        /// requires.
+        /// </summary>
+        /// <remarks>
+        /// bc-csharp versions prior to 2.8.0 accepted such parameters, padding the memory actually used up to the
+        /// minimum but hashing in the requested size, so their output matches no RFC 9106 implementation. Since a
+        /// password record cannot be upgraded without the password, hashes computed that way can only be verified with
+        /// this property set to 'true'. It applies only to cost parameters from a trusted source (see the 'trusted'
+        /// parameter of the Argon2Parameters.Builder constructor). Defaults to 'false'.
+        /// </remarks>
+        public static readonly string Argon2AllowLegacyMemory = "Org.BouncyCastle.Argon2.AllowLegacyMemory";
+
+        /// <summary>
         /// The maximum permitted memory exponent (i.e. <c>memory &lt;= (1 &lt;&lt; MaxMemoryExp)</c>.
         /// </summary>
         /// <remarks>
-        /// Defaults to 24 (16 GiB); the property may be raised up to a ceiling of 30.
+        /// Defaults to 24 (16 GiB); the property may be raised up to a ceiling of 30, and a larger value is treated
+        /// as 30. A value below 3 is a configuration error.
         /// </remarks>
         public static readonly string Argon2MaxMemoryExp = "Org.BouncyCastle.Argon2.MaxMemoryExp";
 
@@ -24,7 +38,7 @@ namespace Org.BouncyCastle.Utilities
         /// parameters.
         /// </summary>
         /// <remarks>
-        /// Defaults to 10.
+        /// Defaults to 10. A value below 1 is a configuration error.
         /// </remarks>
         public static readonly string Argon2MaxPasses = "Org.BouncyCastle.Argon2.MaxPasses";
 
@@ -32,7 +46,8 @@ namespace Org.BouncyCastle.Utilities
         /// The maximum Argon2 parallelism (lanes) accepted when a key is derived from untrusted cost parameters.
         /// </summary>
         /// <remarks>
-        /// Defaults to 16.
+        /// Defaults to 16; the property may be raised up to a ceiling of <c>(1 &lt;&lt; 24) - 1</c>, and a larger
+        /// value is treated as that ceiling. A value below 1 is a configuration error.
         /// </remarks>
         public static readonly string Argon2MaxParallelism = "Org.BouncyCastle.Argon2.MaxParallelism";
 

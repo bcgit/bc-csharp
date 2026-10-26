@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 using NUnit.Framework;
 
@@ -190,6 +191,27 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             });
         }
 
+        [Test]
+        public void CheckArgon2LimitsTooSmall()
+        {
+            // A limit that would reject every S2K is a configuration error, whatever the message contains
+            ImplCheckArgon2LimitTooSmall(Properties.Argon2MaxMemoryExp, "2");
+            ImplCheckArgon2LimitTooSmall(Properties.Argon2MaxParallelism, "0");
+            ImplCheckArgon2LimitTooSmall(Properties.Argon2MaxPasses, "0");
+        }
+
+        [Test]
+        public void CheckArgon2LimitsTooLarge()
+        {
+            // A limit beyond what an S2K can specify is clamped, not rejected
+            Properties.WithThreadProperty(Properties.Argon2MaxMemoryExp, "31", () =>
+            Properties.WithThreadProperty(Properties.Argon2MaxParallelism, "256", () =>
+            Properties.WithThreadProperty(Properties.Argon2MaxPasses, "256", () =>
+            {
+                Assert.AreEqual(TestMsgPlain, DecryptSymmetricallyEncryptedMessage(TestMsgAes128, TestMsgPassword));
+            })));
+        }
+
         //[Test]
         //public void CheckArgon2MaxMemoryExpValueOnSecretKey()
         //{
@@ -227,6 +249,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         //        }
         //    });
         //}
+
+        private static void ImplCheckArgon2LimitTooSmall(string propertyName, string propertyValue)
+        {
+            Properties.WithThreadProperty(propertyName, propertyValue, () =>
+            {
+                var e = Assert.Throws<PgpException>(
+                    () => DecryptSymmetricallyEncryptedMessage(TestMsgAes128, TestMsgPassword));
+                Assert.IsInstanceOf<InvalidOperationException>(e.InnerException);
+                Assert.AreEqual(propertyName + " out of range", e.InnerException.Message);
+            });
+        }
 
         private static string DecryptSymmetricallyEncryptedMessage(string message, string password)
         {

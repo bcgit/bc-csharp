@@ -389,6 +389,102 @@ namespace Org.BouncyCastle.Crypto.Tests
             });
         }
 
+        [Test]
+        public void CheckArgon2LimitsEnforced()
+        {
+            // Trusted (the default): the passes and parallelism limits don't apply
+            var trusted = new Argon2Parameters.Builder(Argon2Parameters.Argon2id);
+            trusted.WithIterations(11).WithParallelism(17);
+
+            var untrusted = new Argon2Parameters.Builder(Argon2Parameters.Argon2id, trusted: false);
+            untrusted.WithIterations(10).WithParallelism(16);
+            Assert.Throws<ArgumentOutOfRangeException>(() => untrusted.WithIterations(11));
+            Assert.Throws<ArgumentOutOfRangeException>(() => untrusted.WithParallelism(17));
+
+            Properties.WithThreadProperty(Properties.Argon2MaxPasses, "2", () =>
+            Properties.WithThreadProperty(Properties.Argon2MaxParallelism, "2", () =>
+            {
+                new Argon2Parameters.Builder(Argon2Parameters.Argon2id).WithIterations(3).WithParallelism(3);
+
+                var limited = new Argon2Parameters.Builder(Argon2Parameters.Argon2id, trusted: false);
+                limited.WithIterations(2).WithParallelism(2);
+                Assert.Throws<ArgumentOutOfRangeException>(() => limited.WithIterations(3));
+                Assert.Throws<ArgumentOutOfRangeException>(() => limited.WithParallelism(3));
+            }));
+        }
+
+        [Test]
+        public void CheckArgon2LimitsTooSmall()
+        {
+            // A limit that would reject every value is a configuration error, where the limit applies
+            ImplCheckArgon2LimitTooSmall(Properties.Argon2MaxMemoryExp, "2", appliesWhenTrusted: true);
+            ImplCheckArgon2LimitTooSmall(Properties.Argon2MaxParallelism, "0", appliesWhenTrusted: false);
+            ImplCheckArgon2LimitTooSmall(Properties.Argon2MaxPasses, "0", appliesWhenTrusted: false);
+        }
+
+        [Test]
+        public void CheckArgon2LimitsTooLarge()
+        {
+            // A limit beyond what Argon2 allows is clamped, not rejected
+            Properties.WithThreadProperty(Properties.Argon2MaxMemoryExp, "31", () =>
+            Properties.WithThreadProperty(Properties.Argon2MaxParallelism, (1 << 24).ToString(), () =>
+            {
+                var builder = new Argon2Parameters.Builder(Argon2Parameters.Argon2id, trusted: false);
+                builder.WithMemoryPowOfTwo(30).WithParallelism((1 << 24) - 1);
+                Assert.Throws<ArgumentOutOfRangeException>(() => builder.WithMemoryPowOfTwo(31));
+                Assert.Throws<ArgumentOutOfRangeException>(() => builder.WithParallelism(1 << 24));
+            }));
+        }
+
+        [Test]
+        public void CheckArgon2MinimumMemory()
+        {
+            // RFC 9106 sec. 3.1: memory must be at least 8 * parallelism KiB, whichever is set first
+            new Argon2Parameters.Builder().WithParallelism(4).WithMemoryAsKB(32).Build();
+            Assert.Throws<InvalidOperationException>(
+                () => new Argon2Parameters.Builder().WithParallelism(4).WithMemoryAsKB(31).Build());
+            Assert.Throws<InvalidOperationException>(
+                () => new Argon2Parameters.Builder().WithMemoryAsKB(31).WithParallelism(4).Build());
+
+            // the setters reject memory below the minimum for a single lane straight away
+            Assert.Throws<ArgumentOutOfRangeException>(() => new Argon2Parameters.Builder().WithMemoryAsKB(7));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new Argon2Parameters.Builder().WithMemoryPowOfTwo(2));
+
+            Properties.WithThreadProperty(Properties.Argon2AllowLegacyMemory, "true", () =>
+            {
+                new Argon2Parameters.Builder().WithParallelism(4).WithMemoryAsKB(31).Build();
+                new Argon2Parameters.Builder().WithMemoryPowOfTwo(0).Build();
+                new Argon2Parameters.Builder().WithMemoryAsKB(1).Build();
+
+                // but not for untrusted cost parameters
+                var untrusted = new Argon2Parameters.Builder(Argon2Parameters.Argon2id, trusted: false);
+                untrusted.WithParallelism(4).WithMemoryAsKB(31);
+                Assert.Throws<InvalidOperationException>(() => untrusted.Build());
+                Assert.Throws<ArgumentOutOfRangeException>(() => untrusted.WithMemoryPowOfTwo(2));
+            });
+        }
+
+        private static void ImplCheckArgon2LimitTooSmall(string propertyName, string propertyValue,
+            bool appliesWhenTrusted)
+        {
+            Properties.WithThreadProperty(propertyName, propertyValue, () =>
+            {
+                var e = Assert.Throws<InvalidOperationException>(
+                    () => new Argon2Parameters.Builder(Argon2Parameters.Argon2id, trusted: false));
+                Assert.AreEqual(propertyName + " out of range", e.Message);
+
+                if (appliesWhenTrusted)
+                {
+                    Assert.Throws<InvalidOperationException>(
+                        () => new Argon2Parameters.Builder(Argon2Parameters.Argon2id));
+                }
+                else
+                {
+                    Assert.DoesNotThrow(() => new Argon2Parameters.Builder(Argon2Parameters.Argon2id));
+                }
+            });
+        }
+
         #region "Block pool tests"
         // A FixedBlockPool with capacity smaller than the working set must still
         // produce correct output - excess deallocations are silently dropped.
@@ -483,12 +579,16 @@ namespace Org.BouncyCastle.Crypto.Tests
         [TestCase(100, 3)]
         public void BlockCountMatchesTheBlocksTaken(int memory, int lanes)
         {
-            byte[] expected = HashWithPool(null, memory, lanes);
+            // memory below 8 * lanes KiB (padded up to that by the generator) needs the legacy opt-out
+            Properties.WithThreadProperty(Properties.Argon2AllowLegacyMemory, "true", () =>
+            {
+                byte[] expected = HashWithPool(null, memory, lanes);
 
-            // exact only with a task for every lane (one lane is filled in turn whatever the TaskFactory)
-            CheckBlockCount(expected, memory, lanes, taskFactory: null, exact: lanes == 1);
-            CheckBlockCount(expected, memory, lanes, Task.Factory, exact: false);
-            CheckBlockCount(expected, memory, lanes, new TaskFactory(new TestTaskScheduler(lanes)), exact: true);
+                // exact only with a task for every lane (one lane is filled in turn whatever the TaskFactory)
+                CheckBlockCount(expected, memory, lanes, taskFactory: null, exact: lanes == 1);
+                CheckBlockCount(expected, memory, lanes, Task.Factory, exact: false);
+                CheckBlockCount(expected, memory, lanes, new TaskFactory(new TestTaskScheduler(lanes)), exact: true);
+            });
         }
 
         private static void CheckBlockCount(byte[] expected, int memory, int lanes, TaskFactory taskFactory,

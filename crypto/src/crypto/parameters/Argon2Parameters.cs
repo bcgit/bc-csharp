@@ -40,7 +40,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
             private static readonly int DefaultVersion = Version13;
 
             private readonly int m_type;
+            private readonly int m_maxIterations;
             private readonly int m_maxMemory;
+            private readonly int m_maxParallelism;
+            private readonly bool m_allowLegacyMemory;
 
             private byte[] salt = Array.Empty<byte>();
             private byte[] secret = Array.Empty<byte>();
@@ -52,9 +55,24 @@ namespace Org.BouncyCastle.Crypto.Parameters
             private ICharToByteConverter converter = PasswordConverter.Utf8;
             private Argon2BytesGenerator.IBlockPool blockPool;
 
-            /// <summary>Create a builder defaulting to <see cref="Argon2i"/>.</summary>
+            /// <summary>Create a builder defaulting to <see cref="Argon2i"/>, for trusted cost parameters.</summary>
+            /// <exception cref="InvalidOperationException">
+            /// If the <see cref="Properties.Argon2MaxMemoryExp"/> property is set too low.
+            /// </exception>
             public Builder()
                 : this(DefaultType)
+            {
+            }
+
+            /// <summary>Create a builder for the given Argon2 variant, for trusted cost parameters.</summary>
+            /// <param name="type">
+            /// One of <see cref="Argon2d"/>, <see cref="Argon2i"/>, or <see cref="Argon2id"/>.
+            /// </param>
+            /// <exception cref="InvalidOperationException">
+            /// If the <see cref="Properties.Argon2MaxMemoryExp"/> property is set too low.
+            /// </exception>
+            public Builder(int type)
+                : this(type, trusted: true)
             {
             }
 
@@ -62,22 +80,36 @@ namespace Org.BouncyCastle.Crypto.Parameters
             /// <param name="type">
             /// One of <see cref="Argon2d"/>, <see cref="Argon2i"/>, or <see cref="Argon2id"/>.
             /// </param>
-            public Builder(int type)
+            /// <param name="trusted">
+            /// Whether the cost parameters come from a trusted source. If <c>false</c>, the iterations and the
+            /// parallelism are also limited by the <see cref="Properties.Argon2MaxPasses"/> and
+            /// <see cref="Properties.Argon2MaxParallelism"/> properties, and the
+            /// <see cref="Properties.Argon2AllowLegacyMemory"/> property is ignored. The memory is always limited by
+            /// the <see cref="Properties.Argon2MaxMemoryExp"/> property.
+            /// </param>
+            /// <exception cref="InvalidOperationException">If an applicable limit property is set too low.</exception>
+            public Builder(int type, bool trusted)
             {
                 m_type = type;
-                m_maxMemory = Properties.GetInt32(Properties.Argon2MaxMemoryExp, 24);
-                if (m_maxMemory < 3 || m_maxMemory > 30)
-                    throw new InvalidOperationException($"{Properties.Argon2MaxMemoryExp} out of range");
+                // RFC 9106 allows up to 2^32 - 1 passes, but they are held as a signed 32-bit count, so int.MaxValue
+                // is the ceiling regardless.
+                m_maxIterations = GetLimit(!trusted, Properties.Argon2MaxPasses, 10, 1, int.MaxValue);
+                // Memory is held as a signed 32-bit count of KiB, so 30 is the ceiling regardless. The property
+                // applies even to trusted cost parameters, for compatibility with earlier versions.
+                m_maxMemory = GetLimit(true, Properties.Argon2MaxMemoryExp, 24, 3, 30);
+                m_maxParallelism = GetLimit(!trusted, Properties.Argon2MaxParallelism, 16, 1, (1 << 24) - 1);
+                m_allowLegacyMemory = trusted && Properties.GetBoolean(Properties.Argon2AllowLegacyMemory, false);
             }
 
             /// <summary>Set the parallelism (number of lanes).</summary>
             /// <param name="parallelism">
-            /// The degree of parallelism, must be at least 1, and less than <c>1 &lt;&lt; 24</c>.
+            /// The degree of parallelism, must be at least 1, and less than <c>1 &lt;&lt; 24</c>. For untrusted
+            /// cost parameters, it must also be at most the limit set by <see cref="Properties.Argon2MaxParallelism"/>.
             /// </param>
             /// <returns>This builder.</returns>
             public Builder WithParallelism(int parallelism)
             {
-                if (parallelism < 1 || parallelism >= (1 << 24))
+                if (parallelism < 1 || parallelism > m_maxParallelism)
                     throw new ArgumentOutOfRangeException(nameof(parallelism));
 
                 this.parallelism = parallelism;
@@ -115,11 +147,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
 
             /// <summary>Set the number of passes (time cost).</summary>
-            /// <param name="iterations">Number of iterations, must be at least 1.</param>
+            /// <param name="iterations">
+            /// Number of iterations, must be at least 1. For untrusted cost parameters, it must also be at most the
+            /// limit set by <see cref="Properties.Argon2MaxPasses"/>.
+            /// </param>
             /// <returns>This builder.</returns>
             public Builder WithIterations(int iterations)
             {
-                if (iterations < 1)
+                if (iterations < 1 || iterations > m_maxIterations)
                     throw new ArgumentOutOfRangeException(nameof(iterations));
 
                 this.iterations = iterations;
@@ -127,12 +162,16 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
 
             /// <summary>Set the memory cost expressed directly in KiB.</summary>
-            /// <param name="memory">Memory in KiB; must be in <c>[1, 1 &lt;&lt; MaxMemoryExp]</c>.</param>
+            /// <param name="memory">
+            /// Memory in KiB; must be in <c>[8, 1 &lt;&lt; MaxMemoryExp]</c> (or from 1, if legacy memory sizes are
+            /// allowed; see <see cref="Properties.Argon2AllowLegacyMemory"/>).
+            /// </param>
             /// <returns>This builder.</returns>
             /// <exception cref="ArgumentOutOfRangeException">If the value is out of range.</exception>
             public Builder WithMemoryAsKB(int memory)
             {
-                if (memory < 1 || memory > (1 << m_maxMemory))
+                int minMemory = m_allowLegacyMemory ? 0 : 3;
+                if (memory < (1 << minMemory) || memory > (1 << m_maxMemory))
                     throw new ArgumentOutOfRangeException(nameof(memory));
 
                 this.memory = memory;
@@ -142,13 +181,17 @@ namespace Org.BouncyCastle.Crypto.Parameters
             /// <summary>
             /// Set the memory cost as a power of two: the resulting memory in KiB is <c>1 &lt;&lt; memory.</c>.
             /// </summary>
-            /// <param name="memory">Exponent; must be in <c>[0, MaxMemoryExp]</c>.</param>
+            /// <param name="memory">
+            /// Exponent; must be in <c>[3, MaxMemoryExp]</c> (or from 0, if legacy memory sizes are allowed; see
+            /// <see cref="Properties.Argon2AllowLegacyMemory"/>).
+            /// </param>
             /// <returns>This builder.</returns>
             /// <exception cref="ArgumentOutOfRangeException">If the exponent is out of range.</exception>
             public Builder WithMemoryPowOfTwo(int memory)
             {
                 // Actual range is supposed to be 31 - int's are signed here so cutoff is at 2**30
-                if (memory < 0 || memory > m_maxMemory)
+                int minMemory = m_allowLegacyMemory ? 0 : 3;
+                if (memory < minMemory || memory > m_maxMemory)
                     throw new ArgumentOutOfRangeException(nameof(memory));
 
                 this.memory = 1 << memory;
@@ -193,8 +236,16 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
             /// <summary>Construct immutable <see cref="Argon2Parameters"/> from the current builder state.</summary>
             /// <returns>The configured parameters.</returns>
+            /// <exception cref="InvalidOperationException">
+            /// If the memory is less than the minimum of <c>8 * parallelism</c> KiB that RFC 9106 sec. 3.1 requires,
+            /// unless the cost parameters are trusted and <see cref="Properties.Argon2AllowLegacyMemory"/> is set.
+            /// </exception>
             public Argon2Parameters Build()
             {
+                // Checked here, rather than in the setters, since memory and parallelism may be set in either order
+                if (memory < 8 * parallelism && !m_allowLegacyMemory)
+                    throw new InvalidOperationException("memory must be at least 8 * parallelism KiB");
+
                 return new Argon2Parameters(m_type, salt, secret, additional, iterations, memory, parallelism, version,
                     converter, blockPool);
             }
@@ -205,6 +256,22 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 Arrays.ZeroMemory(salt);
                 Arrays.ZeroMemory(secret);
                 Arrays.ZeroMemory(additional);
+            }
+
+            // Without useProperty, the limit is just maxValue (the most Argon2 allows). A property limit below
+            // minValue would reject every value, so it is reported as a configuration error; one above maxValue is
+            // no limit, so it is clamped.
+            private static int GetLimit(bool useProperty, string propertyName, int defaultValue, int minValue,
+                int maxValue)
+            {
+                if (!useProperty)
+                    return maxValue;
+
+                int limit = Properties.GetInt32(propertyName, defaultValue);
+                if (limit < minValue)
+                    throw new InvalidOperationException($"{propertyName} out of range");
+
+                return System.Math.Min(limit, maxValue);
             }
         }
 
