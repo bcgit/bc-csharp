@@ -156,6 +156,12 @@ namespace Org.BouncyCastle.X509.Store
             set { m_subjectKeyIdentifier = Arrays.Clone(value); }
         }
 
+        internal byte[] SubjectKeyIdentifierInternal
+        {
+            get { return m_subjectKeyIdentifier; }
+            set { m_subjectKeyIdentifier = value; }
+        }
+
         public SubjectPublicKeyInfo SubjectPublicKey
         {
             get { return m_subjectPublicKey; }

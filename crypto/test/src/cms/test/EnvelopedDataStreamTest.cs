@@ -477,11 +477,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
                 Assert.AreEqual(ep.EncryptionAlgOid, CmsEnvelopedGenerator.Aes128Cbc);
 
-                var recSel = new RecipientID
-                {
-                    Issuer = ReciECCert.IssuerDN,
-                    SerialNumber = ReciECCert.SerialNumber
-                };
+                RecipientID recSel = RecipientID.ForCertificate(ReciECCert);
 
                 RecipientInformation recipient = recipients.GetFirstRecipient(recSel);
 

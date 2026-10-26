@@ -4,61 +4,50 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Cms
 {
+    /// <summary>
+    /// A store collection class for RecipientInformation objects.
+    /// </summary>
     public class RecipientInformationStore
         : IEnumerable<RecipientInformation>
     {
         private readonly List<RecipientInformation> m_all;
-        private readonly Dictionary<RecipientID, List<RecipientInformation>> m_table =
-            new Dictionary<RecipientID, List<RecipientInformation>>();
 
-        /**
-         * Create a store containing a single RecipientInformation object.
-         *
-         * @param recipientInfo the recipient information to contain.
-         */
+        /// <summary>
+        /// Create a store containing a single RecipientInformation object.
+        /// </summary>
+        /// <param name="recipientInfo">The recipient information to contain.</param>
         public RecipientInformationStore(RecipientInformation recipientInfo)
         {
             m_all = new List<RecipientInformation>(1){ recipientInfo };
-            m_table[recipientInfo.RecipientID] = m_all;
         }
 
-        /**
-         * Create a store containing a collection of RecipientInformation objects.
-         *
-         * @param recipientInfos a collection of recipient information objects to contain.
-         */
+        /// <summary>
+        /// Create a store containing a collection of RecipientInformation objects.
+        /// </summary>
+        /// <param name="recipientInfos">A collection of recipient information objects to contain.</param>
         public RecipientInformationStore(IEnumerable<RecipientInformation> recipientInfos)
         {
             m_all = new List<RecipientInformation>(recipientInfos);
-
-            foreach (RecipientInformation recipientInformation in m_all)
-            {
-                RecipientID rid = recipientInformation.RecipientID;
-
-                if (!m_table.TryGetValue(rid, out var list))
-                {
-                    m_table[rid] = list = new List<RecipientInformation>(1);
-                }
-
-                list.Add(recipientInformation);
-            }
         }
 
         public RecipientInformation this[RecipientID selector] => GetFirstRecipient(selector);
 
-        /**
-         * Return the first RecipientInformation object that matches the
-         * passed in selector. Null if there are no matches.
-         *
-         * @param selector to identify a recipient
-         * @return a single RecipientInformation object. Null if none matches.
-         */
+        /// <summary>
+        /// Return the first recipient object that matches the passed in <see cref="RecipientID"/>, or <c>null</c>.
+        /// </summary>
+        /// <param name="selector">A <see cref="RecipientID"/> to select against.</param>
+        /// <returns>A single <see cref="RecipientInformation"/> object, or <c>null</c> if none matches.</returns>
         public RecipientInformation GetFirstRecipient(RecipientID selector)
         {
-            if (!m_table.TryGetValue(selector, out var list))
-                return null;
-
-            return list[0];
+            if (selector.Issuer != null && selector.SubjectKeyIdentifierInternal != null)
+            {
+                return CollectionUtilities.GetFirstOrNull(MatchingRecipients(WithIssuerAndSerialNumber(selector)))
+                    ?? CollectionUtilities.GetFirstOrNull(MatchingRecipients(WithSubjectKeyIdentifier(selector)));
+            }
+            else
+            {
+                return CollectionUtilities.GetFirstOrNull(MatchingRecipients(selector));
+            }
         }
 
         /// <summary>The number of recipients in the collection.</summary>
@@ -67,18 +56,29 @@ namespace Org.BouncyCastle.Cms
         /// <returns>A list of all recipients in the collection</returns>
         public IList<RecipientInformation> GetRecipients() => new List<RecipientInformation>(m_all);
 
-        /**
-         * Return possible empty collection with recipients matching the passed in RecipientID
-         *
-         * @param selector a recipient id to select against.
-         * @return a collection of RecipientInformation objects.
-         */
+        /// <summary>
+        /// Return a possibly empty list of recipients matching the passed in <see cref="RecipientID"/>.
+        /// </summary>
+        /// <param name="selector">A <see cref="RecipientID"/> to select against.</param>
+        /// <returns>A list of <see cref="RecipientInformation"/> objects.</returns>
         public IList<RecipientInformation> GetRecipients(RecipientID selector)
         {
-            if (!m_table.TryGetValue(selector, out var list))
-                return new List<RecipientInformation>(0);
+            // A message carries a handful of recipients: a scan costs no more than a hash lookup and,
+            // unlike a Dictionary keyed on the recipient IDs, cannot be flooded by IDs chosen to collide.
 
-            return new List<RecipientInformation>(list);
+            List<RecipientInformation> results = new List<RecipientInformation>(0);
+
+            if (selector.Issuer != null && selector.SubjectKeyIdentifierInternal != null)
+            {
+                results.AddRange(MatchingRecipients(WithIssuerAndSerialNumber(selector)));
+                results.AddRange(MatchingRecipients(WithSubjectKeyIdentifier(selector)));
+            }
+            else
+            {
+                results.AddRange(MatchingRecipients(selector));
+            }
+
+            return results;
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
@@ -90,5 +90,21 @@ namespace Org.BouncyCastle.Cms
         }
 
         internal List<RecipientInformation> RecipientsInternal => m_all;
+
+        private IEnumerable<RecipientInformation> MatchingRecipients(RecipientID selector) =>
+            CollectionUtilities.Where(m_all, recipient => selector.Equals(recipient.RecipientID));
+
+        private static RecipientID WithIssuerAndSerialNumber(RecipientID selector) =>
+            new RecipientID()
+            {
+                Issuer = selector.Issuer,
+                SerialNumber = selector.SerialNumber,
+            };
+
+        private static RecipientID WithSubjectKeyIdentifier(RecipientID selector) =>
+            new RecipientID()
+            {
+                SubjectKeyIdentifierInternal = selector.SubjectKeyIdentifierInternal,
+            };
     }
 }

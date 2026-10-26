@@ -1046,6 +1046,14 @@ namespace Org.BouncyCastle.Cms.Tests
 
                 Assert.IsTrue(Arrays.AreEqual(data, recData));
             }
+
+            RecipientID rid = RecipientID.ForCertificate(ReciCert);
+
+            Assert.NotNull(recipients.GetFirstRecipient(rid));
+
+            var selection = recipients.GetRecipients(rid);
+            Assert.AreEqual(1, selection.Count);
+            Assert.NotNull(selection[0]);
         }
 
         [Test]
@@ -1258,9 +1266,7 @@ namespace Org.BouncyCastle.Cms.Tests
         private static void ConfirmDataReceived(RecipientInformationStore recipients,
             byte[] expectedData, X509Certificate reciCert, AsymmetricKeyParameter reciPrivKey)
         {
-            RecipientID rid = new RecipientID();
-            rid.Issuer = reciCert.IssuerDN;
-            rid.SerialNumber = reciCert.SerialNumber;
+            RecipientID rid = RecipientID.ForCertificate(reciCert);
 
             RecipientInformation recipient = recipients[rid];
             Assert.IsNotNull(recipient);

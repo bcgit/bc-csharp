@@ -1971,18 +1971,7 @@ namespace Org.BouncyCastle.Cms.Tests
             // check signer information lookup
             //
 
-            // TODO[cms] Need equivalent constructor/helper
-            //SignerId sid = new JcaSignerId(signatureCert);
-            SignerID signerID;
-            {
-                var issuerAndSerialNumber = new Asn1.Cms.IssuerAndSerialNumber(signatureCert.CertificateStructure);
-
-                signerID = new SignerID()
-                {
-                    Issuer = issuerAndSerialNumber.Issuer,
-                    SerialNumber = issuerAndSerialNumber.SerialNumber.Value,
-                };
-            }
+            SignerID signerID = SignerID.ForCertificate(signatureCert);
 
             var collection = signers.GetSigners(signerID);
 
@@ -2184,18 +2173,7 @@ namespace Org.BouncyCastle.Cms.Tests
             // check signer information lookup
             //
 
-            // TODO[cms] Need equivalent constructor/helper
-            //SignerId sid = new JcaSignerId(signatureCert);
-            SignerID signerID;
-            {
-                var issuerAndSerialNumber = new Asn1.Cms.IssuerAndSerialNumber(signatureCert.CertificateStructure);
-
-                signerID = new SignerID()
-                {
-                    Issuer = issuerAndSerialNumber.Issuer,
-                    SerialNumber = issuerAndSerialNumber.SerialNumber.Value,
-                };
-            }
+            SignerID signerID = SignerID.ForCertificate(signatureCert);
 
             var collection = signers.GetSigners(signerID);
 

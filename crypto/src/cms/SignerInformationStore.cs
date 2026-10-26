@@ -11,8 +11,6 @@ namespace Org.BouncyCastle.Cms
         : IEnumerable<SignerInformation>
     {
         private readonly List<SignerInformation> m_all;
-        private readonly Dictionary<SignerID, List<SignerInformation>> m_table =
-            new Dictionary<SignerID, List<SignerInformation>>();
 
         /// <summary>
         /// Create a store containing a single SignerInformation object.
@@ -21,7 +19,6 @@ namespace Org.BouncyCastle.Cms
         public SignerInformationStore(SignerInformation signerInfo)
         {
             m_all = new List<SignerInformation>(1){ signerInfo };
-            m_table[signerInfo.SignerID] = m_all;
         }
 
         /// <summary>
@@ -31,36 +28,26 @@ namespace Org.BouncyCastle.Cms
         public SignerInformationStore(IEnumerable<SignerInformation> signerInfos)
         {
             m_all = new List<SignerInformation>(signerInfos);
-
-            foreach (SignerInformation signer in m_all)
-            {
-                SignerID sid = signer.SignerID;
-
-                if (!m_table.TryGetValue(sid, out var list))
-                {
-                    list = new List<SignerInformation>(1);
-                    m_table[sid] = list;
-                }
-
-                list.Add(signer);
-            }
         }
 
         public SignerInformation this[SignerID selector] => GetFirstSigner(selector);
 
-        /**
-         * Return the first SignerInformation object that matches the
-         * passed in selector. Null if there are no matches.
-         *
-         * @param selector to identify a signer
-         * @return a single SignerInformation object. Null if none matches.
-         */
+        /// <summary>
+        /// Return the first signer object that matches the passed in <see cref="SignerID"/>, or <c>null</c>.
+        /// </summary>
+        /// <param name="selector">A <see cref="SignerID"/> to select against.</param>
+        /// <returns>A single <see cref="SignerInformation"/> object, or <c>null</c> if none matches.</returns>
         public SignerInformation GetFirstSigner(SignerID selector)
         {
-            if (m_table.TryGetValue(selector, out var list))
-                return list[0];
-
-            return null;
+            if (selector.Issuer != null && selector.SubjectKeyIdentifierInternal != null)
+            {
+                return CollectionUtilities.GetFirstOrNull(MatchingSigners(WithIssuerAndSerialNumber(selector)))
+                    ?? CollectionUtilities.GetFirstOrNull(MatchingSigners(WithSubjectKeyIdentifier(selector)));
+            }
+            else
+            {
+                return CollectionUtilities.GetFirstOrNull(MatchingSigners(selector));
+            }
         }
 
         /// <summary>The number of signers in the collection.</summary>
@@ -69,18 +56,29 @@ namespace Org.BouncyCastle.Cms
         /// <returns>A list of all signers in the collection</returns>
         public IList<SignerInformation> GetSigners() => new List<SignerInformation>(m_all);
 
-        /**
-         * Return possible empty collection with signers matching the passed in SignerID
-         *
-         * @param selector a signer id to select against.
-         * @return a collection of SignerInformation objects.
-         */
+        /// <summary>
+        /// Return a possibly empty list of signers matching the passed in <see cref="SignerID"/>.
+        /// </summary>
+        /// <param name="selector">A <see cref="SignerID"/> to select against.</param>
+        /// <returns>A list of <see cref="SignerInformation"/> objects.</returns>
         public IList<SignerInformation> GetSigners(SignerID selector)
         {
-            if (m_table.TryGetValue(selector, out var list))
-                return new List<SignerInformation>(list);
+            // A message carries a handful of signers: a scan costs no more than a hash lookup and,
+            // unlike a Dictionary keyed on the signer IDs, cannot be flooded by IDs chosen to collide.
 
-            return new List<SignerInformation>(0);
+            List<SignerInformation> results = new List<SignerInformation>(0);
+
+            if (selector.Issuer != null && selector.SubjectKeyIdentifierInternal != null)
+            {
+                results.AddRange(MatchingSigners(WithIssuerAndSerialNumber(selector)));
+                results.AddRange(MatchingSigners(WithSubjectKeyIdentifier(selector)));
+            }
+            else
+            {
+                results.AddRange(MatchingSigners(selector));
+            }
+
+            return results;
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
@@ -92,5 +90,21 @@ namespace Org.BouncyCastle.Cms
         }
 
         internal List<SignerInformation> SignersInternal => m_all;
+
+        private IEnumerable<SignerInformation> MatchingSigners(SignerID selector) =>
+            CollectionUtilities.Where(m_all, signer => selector.Equals(signer.SignerID));
+
+        private static SignerID WithIssuerAndSerialNumber(SignerID selector) =>
+            new SignerID()
+            {
+                Issuer = selector.Issuer,
+                SerialNumber = selector.SerialNumber,
+            };
+
+        private static SignerID WithSubjectKeyIdentifier(SignerID selector) =>
+            new SignerID()
+            {
+                SubjectKeyIdentifierInternal = selector.SubjectKeyIdentifierInternal,
+            };
     }
 }

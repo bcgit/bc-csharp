@@ -180,31 +180,8 @@ namespace Org.BouncyCastle.Crmf.Tests
             Assert.That(Arrays.AreEqual(certTemplate.Subject.GetEncoded(), new X509Name("CN=Test").GetEncoded()));
             Assert.That(Arrays.AreEqual(certTemplate.PublicKey.GetEncoded(), spki.GetEncoded()));
 
-            CheckCertReqMsgWithArchiveControl(rsaKeyPair, rsaKeyPair.Private, crm);
-            CheckCertReqMsgWithArchiveControl(rsaKeyPair, rsaKeyPair.Private,
-                new CertificateRequestMessage(crm.GetEncoded()));
-        }
-
-        [Test]
-        public void BasicMessageWithArchiveControlJVMGenerated()
-        {
-            AsymmetricKeyParameter publicKey = PublicKeyFactory.CreateKey(
-                Hex.Decode("305c300d06092a864886f70d0101010500034b003048024100a9a94b7b98dc3daf8cac032a14bd4510832b0e007edbdafc065e328645a35828b8185cdbf73ed495c88436b11a9322965595d2e4c1dd63c3c4d41812f876b3070203010001"));
-            AsymmetricKeyParameter privateKey = PrivateKeyFactory.CreateKey(
-                Hex.Decode("30820154020100300d06092a864886f70d01010105000482013e3082013a020100024100a9a94b7b98dc3daf8cac032a14bd4510832b0e007edbdafc065e328645a35828b8185cdbf73ed495c88436b11a9322965595d2e4c1dd63c3c4d41812f876b307020301000102400831deacfe21a9331902d7f648e1297c563196b00c70971fb439098cb5c1618925bdbac4c66b30f8956660220f326f51e5a1725ce690165154fb62fa14497265022100e54943be1b4951e127f6e79c5ab333cba4b0fff0b5e59328d6393ba98dc0e6c3022100bd6da58ce195146a1d3825ec2a622cf4962da653096bea87fbd9a94db266a66d0221008948bcceeef78f97089ec53ed0efcb6b7b489f7638f32491a6f2cdce4f99d89102204eb1b066d8883054ed12985e863506ec0d3fa5ab356cc99ff876b228ff0639f9022024049aaf39bf9a0ddfbd4caee277d0a9f07d075faae12571176a5c0ca40415c0"));
-
-            CertificateRequestMessage crm = new CertificateRequestMessage(
-                Hex.Decode("308202af308202ab0201013071a511300f310d300b0603550403130454657374a65c300d06092a864886f70d0101010500034b003048024100a9a94b7b98dc3daf8cac032a14bd4510832b0e007edbdafc065e328645a35828b8185cdbf73ed495c88436b11a9322965595d2e4c1dd63c3c4d41812f876b3070203010001308202313082022d06092b0601050507050104a082021ea082021a0201003171306f0201003019300f310d300b06035504030c04546573740206016859de5806300d06092a864886f70d0101010500044066f1a72f808908af784b83c07895276104d7c4caaee6090212ce5b27517aec510425b784352b5342c999f844b8796286f10a59807e290f06aa39f8cba86dd6bf308201a0060b2a864886f70d0109100115301d060960864801650304010204104aceaa277cc7974ea2a775ff9db6062580820170c648e70c25c4789d2ff4ed398e5536efb45d2dd8ba76a628ad30bf9596a18337afc0f596f0c18e05fb3fa9944ed9691dae1d9b327b5bbafaaa63efb0e22d675811c27bfb023b80184325fd4b67b3b9e41bf43c5583a86433b230e09a34b61397ddff0eadf10c883fc1f01860e2a56ab4002dcc4d4925c53e09dde0b99928fdf602bce544722155cebd8816e91a411a99feea07695774cd8883034022d57f64e9cd3383c3125c48db2936b7395a22b17910be1f2c0b8650bdb5bd752ffc40fcd30169e5ae3a4ac7ad9cc850e9c17bbcf8e1a1898d0d8be19145c484467b8f1124657a5e08c10fc67416274990cc16d55c9fb76c265dd436b7e803425892297f1a08e4fab8e178874b2b3bf9c749693d609db208e9a3ebbddd26cd6a1b33c0201532170dc6c303e7ac0c42ba0bc54dfb928b228842b6bb08d8dc411d262dabf140a8b5a5c67ea486c1877a2fc000981d54cf2decaf1cfeebcf83134992b09a2b1fe9e02da25b874604b5d8bbd609875ba8"));
-
-            var rsaKeyPair = new AsymmetricCipherKeyPair(publicKey, privateKey);
-            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey);
-
-            var certTemplate = crm.GetCertTemplate();
-            Assert.That(certTemplate.Subject.Equivalent(new X509Name("CN=Test")));
-            Assert.That(Arrays.AreEqual(certTemplate.PublicKey.GetEncoded(), spki.GetEncoded()));
-
-            CheckCertReqMsgWithArchiveControl(rsaKeyPair, rsaKeyPair.Private, crm);
-            CheckCertReqMsgWithArchiveControl(rsaKeyPair, rsaKeyPair.Private,
+            CheckCertReqMsgWithArchiveControl(rsaKeyPair, rsaKeyPair.Private, cert, crm);
+            CheckCertReqMsgWithArchiveControl(rsaKeyPair, rsaKeyPair.Private, cert,
                 new CertificateRequestMessage(crm.GetEncoded()));
         }
 
@@ -382,8 +359,8 @@ namespace Org.BouncyCastle.Crmf.Tests
             Assert.That(certTemplate.Subject.Equivalent(new X509Name("CN=Test")));
             Assert.That(certTemplate.PublicKey.Equals(clientSpki));
 
-            CheckCertReqMsgWithArchiveControl(clientKP, serverKP.Private, crm);
-            CheckCertReqMsgWithArchiveControl(clientKP, serverKP.Private,
+            CheckCertReqMsgWithArchiveControl(clientKP, serverKP.Private, serverCert, crm);
+            CheckCertReqMsgWithArchiveControl(clientKP, serverKP.Private, serverCert,
                 new CertificateRequestMessage(crm.GetEncoded()));
         }
 
@@ -687,7 +664,7 @@ namespace Org.BouncyCastle.Crmf.Tests
         }
 
         private void CheckCertReqMsgWithArchiveControl(AsymmetricCipherKeyPair kp,
-            AsymmetricKeyParameter recipientPrivateKey, CertificateRequestMessage certReqMessage)
+            AsymmetricKeyParameter recipientPrivateKey, X509Certificate cert, CertificateRequestMessage certReqMessage)
         {
             PkiArchiveControl archiveControl = (PkiArchiveControl)certReqMessage.GetControl(
                 CrmfObjectIdentifiers.id_regCtrl_pkiArchiveOptions);
@@ -696,10 +673,13 @@ namespace Org.BouncyCastle.Crmf.Tests
             Assert.True(archiveControl.IsEnvelopedData());
             RecipientInformationStore recips = archiveControl.GetEnvelopedData().GetRecipientInfos();
 
+            RecipientID recipientId = RecipientID.ForCertificate(cert);
+
             var collection = recips.GetRecipients();
             Assert.AreEqual(1, collection.Count);
 
-            RecipientInformation recipientInformation = collection[0];
+            RecipientInformation recipientInformation = recips.GetFirstRecipient(recipientId);
+
             if (recipientInformation is KeyAgreeRecipientInformation keyAgreeRI)
             {
             }
