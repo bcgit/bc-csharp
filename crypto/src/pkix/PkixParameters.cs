@@ -6,34 +6,32 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Pkix
 {
-    /// <summary>
-    /// Summary description for PkixParameters.
-    /// </summary>
+    /// <summary>The parameters for PKIX certification path validation and building (RFC 5280).</summary>
+    /// <remarks>
+    /// The parameters name the trust anchors, the stores of certificates and CRLs to draw on, constraints on the
+    /// target certificate, the policy settings and the revocation checking behaviour. They are used by
+    /// <see cref="PkixCertPathValidator"/> and, via <see cref="PkixBuilderParameters"/>, by
+    /// <see cref="PkixCertPathBuilder"/>.
+    /// </remarks>
     public class PkixParameters
     {
-        /**
-         * This is the default PKIX validity model. Actually there are two variants
-         * of this: The PKIX model and the modified PKIX model. The PKIX model
-         * verifies that all involved certificates must have been valid at the
-         * current time. The modified PKIX model verifies that all involved
-         * certificates were valid at the signing time. Both are indirectly choosen
-         * with the {@link PKIXParameters#setDate(java.util.Date)} method, so this
-         * methods sets the Date when <em>all</em> certificates must have been
-         * valid.
-         */
+        /// <summary>The default PKIX validity model.</summary>
+        /// <remarks>
+        /// There are two variants of this: the PKIX model and the modified PKIX model. The PKIX model verifies that all
+        /// involved certificates must have been valid at the current time. The modified PKIX model verifies that all
+        /// involved certificates were valid at the signing time. Both are indirectly chosen with the
+        /// <see cref="Date"/> property, which sets the time when <em>all</em> certificates must have been valid.
+        /// </remarks>
         public const int PkixValidityModel = 0;
 
-        /**
-         * This model uses the following validity model. Each certificate must have
-         * been valid at the moment where is was used. That means the end
-         * certificate must have been valid at the time the signature was done. The
-         * CA certificate which signed the end certificate must have been valid,
-         * when the end certificate was signed. The CA (or Root CA) certificate must
-         * have been valid, when the CA certificate was signed and so on. So the
-         * {@link PKIXParameters#setDate(java.util.Date)} method sets the time, when
-         * the <em>end certificate</em> must have been valid. <p/> It is used e.g.
-         * in the German signature law.
-         */
+        /// <summary>The chain validity model.</summary>
+        /// <remarks>
+        /// Each certificate must have been valid at the moment where it was used. That means the end certificate must
+        /// have been valid at the time the signature was done, the CA certificate which signed the end certificate
+        /// must have been valid when the end certificate was signed, the CA (or root CA) certificate must have been
+        /// valid when the CA certificate was signed, and so on. So the <see cref="Date"/> property sets the time when
+        /// the <em>end certificate</em> must have been valid. It is used, for example, in the German signature law.
+        /// </remarks>
         public const int ChainValidityModel = 1;
 
         private HashSet<TrustAnchor> trustAnchors;
@@ -62,24 +60,11 @@ namespace Org.BouncyCastle.Pkix
         private int validityModel = PkixValidityModel;
         private bool useDeltas = false;
 
-        /**
-         * Creates an instance of PkixParameters with the specified Set of
-         * most-trusted CAs. Each element of the set is a TrustAnchor.<br />
-         * <br />
-         * Note that the Set is copied to protect against subsequent modifications.
-         *
-         * @param trustAnchors
-         *            a Set of TrustAnchors
-         *
-         * @exception InvalidAlgorithmParameterException
-         *                if the specified Set is empty
-         *                <code>(trustAnchors.isEmpty() == true)</code>
-         * @exception NullPointerException
-         *                if the specified Set is <code>null</code>
-         * @exception ClassCastException
-         *                if any of the elements in the Set are not of type
-         *                <code>java.security.cert.TrustAnchor</code>
-         */
+        /// <summary>Creates an instance of PkixParameters with the specified set of most-trusted CAs.</summary>
+        /// <remarks>The set is copied to protect against subsequent modifications.</remarks>
+        /// <param name="trustAnchors">A set of <see cref="TrustAnchor"/>s.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="trustAnchors"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="trustAnchors"/> contains no trust anchors.</exception>
         public PkixParameters(ISet<TrustAnchor> trustAnchors)
             : this()
         {
@@ -115,7 +100,7 @@ namespace Org.BouncyCastle.Pkix
         }
 
         //// TODO implement for other keystores (see Java build)?
-        ///**
+        // /**
         // * Creates an instance of <code>PKIXParameters</code> that
         // * populates the set of most-trusted CAs from the trusted
         // * certificate entries contained in the specified <code>KeyStore</code>.
@@ -155,30 +140,37 @@ namespace Org.BouncyCastle.Pkix
         //    this.attrCertCheckers = new HashSet();
         //}
 
+        /// <summary>Gets or sets whether revocation checking is enabled (true by default).</summary>
         public virtual bool IsRevocationEnabled
         {
             get { return revocationEnabled; }
             set { revocationEnabled = value; }
         }
 
+        /// <summary>Gets or sets whether an acceptable policy identifier is required in every certificate.</summary>
         public virtual bool IsExplicitPolicyRequired
         {
             get { return explicitPolicyRequired; }
             set { this.explicitPolicyRequired = value; }
         }
 
+        /// <summary>Gets or sets whether the anyPolicy OID is inhibited (not treated as matching any policy).</summary>
         public virtual bool IsAnyPolicyInhibited
         {
             get { return anyPolicyInhibited; }
             set { this.anyPolicyInhibited = value; }
         }
 
+        /// <summary>Gets or sets whether policy mapping is inhibited.</summary>
         public virtual bool IsPolicyMappingInhibited
         {
             get { return policyMappingInhibited; }
             set { this.policyMappingInhibited = value; }
         }
 
+        /// <summary>
+        /// Gets or sets whether paths containing a critical policy qualifier are rejected (true by default).
+        /// </summary>
         public virtual bool IsPolicyQualifiersRejected
         {
             get { return policyQualifiersRejected; }
@@ -191,20 +183,27 @@ namespace Org.BouncyCastle.Pkix
         //    set { this.checkOnlyEECertificateCrl = value; }
         //}
 
+        /// <summary>
+        /// Gets or sets the time for which the validity of the path is checked, or null to use the current time.
+        /// </summary>
+        /// <remarks>See <see cref="PkixValidityModel"/> and <see cref="ChainValidityModel"/>.</remarks>
         public virtual DateTime? Date
         {
             get { return this.date; }
             set { this.date = value; }
         }
 
-        // Returns a Set of the most-trusted CAs.
+        /// <summary>Returns a copy of the set of most-trusted CAs.</summary>
         public virtual ISet<TrustAnchor> GetTrustAnchors()
         {
             return new HashSet<TrustAnchor>(this.trustAnchors);
         }
 
-        // Sets the set of most-trusted CAs.
-        // Set is copied to protect against subsequent modifications.
+        /// <summary>Sets the set of most-trusted CAs.</summary>
+        /// <remarks>The set is copied to protect against subsequent modifications.</remarks>
+        /// <param name="tas">A set of <see cref="TrustAnchor"/>s.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="tas"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="tas"/> contains no trust anchors.</exception>
         public virtual void SetTrustAnchors(ISet<TrustAnchor> tas)
         {
             if (tas == null)
@@ -233,50 +232,19 @@ namespace Org.BouncyCastle.Pkix
             this.trustAnchors = new HashSet<TrustAnchor>() { trustAnchor };
         }
 
-        /**
-         * Returns the required constraints on the target certificate or attribute
-         * certificate. The constraints are returned as an instance of
-         * <code>IX509Selector</code>. If <code>null</code>, no constraints are
-         * defined.
-         *
-         * <p>
-         * The target certificate in a PKIX path may be a certificate or an
-         * attribute certificate.
-         * </p><p>
-         * Note that the <code>IX509Selector</code> returned is cloned to protect
-         * against subsequent modifications.
-         * </p>
-         * @return a <code>IX509Selector</code> specifying the constraints on the
-         *         target certificate or attribute certificate (or <code>null</code>)
-         * @see #setTargetConstraints
-         * @see X509CertStoreSelector
-         * @see X509AttributeCertStoreSelector
-         */
+        /// <summary>Returns the required constraints on the target attribute certificate, or null if none.</summary>
+        /// <remarks>The selector returned is cloned to protect against subsequent modifications.</remarks>
+        /// <returns>A selector specifying the constraints on the target attribute certificate (or null).</returns>
         public virtual ISelector<X509V2AttributeCertificate> GetTargetConstraintsAttrCert()
         {
             return (ISelector<X509V2AttributeCertificate>)m_targetConstraintsAttrCert?.Clone();
         }
 
-        /**
-         * Sets the required constraints on the target certificate or attribute
-         * certificate. The constraints are specified as an instance of
-         * <code>IX509Selector</code>. If <code>null</code>, no constraints are
-         * defined.
-         * <p>
-         * The target certificate in a PKIX path may be a certificate or an
-         * attribute certificate.
-         * </p><p>
-         * Note that the <code>IX509Selector</code> specified is cloned to protect
-         * against subsequent modifications.
-         * </p>
-         *
-         * @param selector a <code>IX509Selector</code> specifying the constraints on
-         *            the target certificate or attribute certificate (or
-         *            <code>null</code>)
-         * @see #getTargetConstraints
-         * @see X509CertStoreSelector
-         * @see X509AttributeCertStoreSelector
-         */
+        /// <summary>Sets the required constraints on the target attribute certificate.</summary>
+        /// <remarks>The selector specified is cloned to protect against subsequent modifications.</remarks>
+        /// <param name="targetConstraintsAttrCert">
+        /// A selector specifying the constraints on the target attribute certificate (or null for none).
+        /// </param>
         public virtual void SetTargetConstraintsAttrCert(
             ISelector<X509V2AttributeCertificate> targetConstraintsAttrCert)
         {
@@ -284,56 +252,31 @@ namespace Org.BouncyCastle.Pkix
                 targetConstraintsAttrCert?.Clone();
         }
 
-        /**
-         * Returns the required constraints on the target certificate. The
-         * constraints are returned as an instance of CertSelector. If
-         * <code>null</code>, no constraints are defined.<br />
-         * <br />
-         * Note that the CertSelector returned is cloned to protect against
-         * subsequent modifications.
-         *
-         * @return a CertSelector specifying the constraints on the target
-         *         certificate (or <code>null</code>)
-         *
-         * @see #setTargetCertConstraints(CertSelector)
-         */
+        /// <summary>Returns the required constraints on the target certificate, or null if none.</summary>
+        /// <remarks>The selector returned is cloned to protect against subsequent modifications.</remarks>
+        /// <returns>A selector specifying the constraints on the target certificate (or null).</returns>
         public virtual ISelector<X509Certificate> GetTargetConstraintsCert()
         {
             return (ISelector<X509Certificate>)m_targetConstraintsCert?.Clone();
         }
 
-        /**
-         * Sets the required constraints on the target certificate. The constraints
-         * are specified as an instance of CertSelector. If null, no constraints are
-         * defined.<br />
-         * <br />
-         * Note that the CertSelector specified is cloned to protect against
-         * subsequent modifications.
-         *
-         * @param selector
-         *            a CertSelector specifying the constraints on the target
-         *            certificate (or <code>null</code>)
-         *
-         * @see #getTargetCertConstraints()
-         */
+        /// <summary>Sets the required constraints on the target certificate.</summary>
+        /// <remarks>The selector specified is cloned to protect against subsequent modifications.</remarks>
+        /// <param name="targetConstraintsCert">
+        /// A selector specifying the constraints on the target certificate (or null for none).
+        /// </param>
         public virtual void SetTargetConstraintsCert(ISelector<X509Certificate> targetConstraintsCert)
         {
             m_targetConstraintsCert = (ISelector<X509Certificate>)targetConstraintsCert?.Clone();
         }
 
-        /**
-         * Returns an immutable Set of initial policy identifiers (OID strings),
-         * indicating that any one of these policies would be acceptable to the
-         * certificate user for the purposes of certification path processing. The
-         * default return value is an empty <code>Set</code>, which is
-         * interpreted as meaning that any policy would be acceptable.
-         *
-         * @return an immutable <code>Set</code> of initial policy OIDs in String
-         *         format, or an empty <code>Set</code> (implying any policy is
-         *         acceptable). Never returns <code>null</code>.
-         *
-         * @see #setInitialPolicies(java.util.Set)
-         */
+        /// <summary>Returns a copy of the set of initial policy identifiers (OID strings).</summary>
+        /// <remarks>
+        /// Any one of these policies would be acceptable to the certificate user for the purposes of certification
+        /// path processing. The default is an empty set, which is interpreted as meaning that any policy would be
+        /// acceptable.
+        /// </remarks>
+        /// <returns>The initial policy OIDs, or an empty set (implying any policy is acceptable). Never null.</returns>
         public virtual ISet<string> GetInitialPolicies()
         {
             // TODO Can it really be null?
@@ -343,27 +286,14 @@ namespace Org.BouncyCastle.Pkix
             return new HashSet<string>(initialPolicies);
         }
 
-        /**
-         * Sets the <code>Set</code> of initial policy identifiers (OID strings),
-         * indicating that any one of these policies would be acceptable to the
-         * certificate user for the purposes of certification path processing. By
-         * default, any policy is acceptable (i.e. all policies), so a user that
-         * wants to allow any policy as acceptable does not need to call this
-         * method, or can call it with an empty <code>Set</code> (or
-         * <code>null</code>).<br />
-         * <br />
-         * Note that the Set is copied to protect against subsequent modifications.<br />
-         * <br />
-         *
-         * @param initialPolicies
-         *            a Set of initial policy OIDs in String format (or
-         *            <code>null</code>)
-         *
-         * @exception ClassCastException
-         *                if any of the elements in the set are not of type String
-         *
-         * @see #getInitialPolicies()
-         */
+        /// <summary>Sets the set of initial policy identifiers (OID strings).</summary>
+        /// <remarks>
+        /// Any one of these policies would be acceptable to the certificate user for the purposes of certification
+        /// path processing. By default any policy is acceptable, so there is no need to call this method to allow any
+        /// policy; it may also be called with an empty set (or null). The set is copied to protect against subsequent
+        /// modifications.
+        /// </remarks>
+        /// <param name="initialPolicies">A set of initial policy OIDs in string form (or null).</param>
         public virtual void SetInitialPolicies(ISet<string> initialPolicies)
         {
             this.initialPolicies = new HashSet<string>();
@@ -379,41 +309,23 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        /**
-         * Sets a <code>List</code> of additional certification path checkers. If
-         * the specified List contains an object that is not a PKIXCertPathChecker,
-         * it is ignored.<br />
-         * <br />
-         * Each <code>PKIXCertPathChecker</code> specified implements additional
-         * checks on a certificate. Typically, these are checks to process and
-         * verify private extensions contained in certificates. Each
-         * <code>PKIXCertPathChecker</code> should be instantiated with any
-         * initialization parameters needed to execute the check.<br />
-         * <br />
-         * This method allows sophisticated applications to extend a PKIX
-         * <code>CertPathValidator</code> or <code>CertPathBuilder</code>. Each
-         * of the specified PKIXCertPathCheckers will be called, in turn, by a PKIX
-         * <code>CertPathValidator</code> or <code>CertPathBuilder</code> for
-         * each certificate processed or validated.<br />
-         * <br />
-         * Regardless of whether these additional PKIXCertPathCheckers are set, a
-         * PKIX <code>CertPathValidator</code> or <code>CertPathBuilder</code>
-         * must perform all of the required PKIX checks on each certificate. The one
-         * exception to this rule is if the RevocationEnabled flag is set to false
-         * (see the {@link #setRevocationEnabled(boolean) setRevocationEnabled}
-         * method).<br />
-         * <br />
-         * Note that the List supplied here is copied and each PKIXCertPathChecker
-         * in the list is cloned to protect against subsequent modifications.
-         *
-         * @param checkers
-         *            a List of PKIXCertPathCheckers. May be null, in which case no
-         *            additional checkers will be used.
-         * @exception ClassCastException
-         *                if any of the elements in the list are not of type
-         *                <code>java.security.cert.PKIXCertPathChecker</code>
-         * @see #getCertPathCheckers()
-         */
+        /// <summary>Sets the list of additional certification path checkers.</summary>
+        /// <remarks>
+        /// Each <see cref="PkixCertPathChecker"/> implements additional checks on a certificate. Typically these are
+        /// checks to process and verify private extensions contained in certificates. Each checker should be
+        /// instantiated with any initialization parameters needed to execute the check.
+        /// <para>
+        /// This allows sophisticated applications to extend the PKIX validator or builder: each of the checkers will be
+        /// called, in turn, for each certificate processed or validated. Regardless of whether additional checkers are
+        /// set, the validator or builder must perform all of the required PKIX checks on each certificate, unless
+        /// <see cref="IsRevocationEnabled"/> is false.
+        /// </para>
+        /// <para>
+        /// The list supplied is copied and each checker in it is cloned to protect against subsequent modifications.
+        /// </para>
+        /// </remarks>
+        /// <param name="checkers">A list of checkers, or null, in which case no additional checkers will be used.
+        /// </param>
         public virtual void SetCertPathCheckers(IList<PkixCertPathChecker> checkers)
         {
             m_checkers = new List<PkixCertPathChecker>();
@@ -427,15 +339,9 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        /**
-         * Returns the List of certification path checkers. Each PKIXCertPathChecker
-         * in the returned IList is cloned to protect against subsequent modifications.
-         *
-         * @return an immutable List of PKIXCertPathCheckers (may be empty, but not
-         *         <code>null</code>)
-         *
-         * @see #setCertPathCheckers(java.util.List)
-         */
+        /// <summary>Returns the list of certification path checkers.</summary>
+        /// <remarks>Each checker in the returned list is cloned to protect against subsequent modifications.</remarks>
+        /// <returns>A list of checkers (may be empty, but never null).</returns>
         public virtual IList<PkixCertPathChecker> GetCertPathCheckers()
         {
             var result = new List<PkixCertPathChecker>(m_checkers.Count);
@@ -446,17 +352,12 @@ namespace Org.BouncyCastle.Pkix
             return result;
         }
 
-        /**
-         * Adds a <code>PKIXCertPathChecker</code> to the list of certification
-         * path checkers. See the {@link #setCertPathCheckers setCertPathCheckers}
-         * method for more details.
-         * <p>
-         * Note that the <code>PKIXCertPathChecker</code> is cloned to protect
-         * against subsequent modifications.</p>
-         *
-         * @param checker a <code>PKIXCertPathChecker</code> to add to the list of
-         * checks. If <code>null</code>, the checker is ignored (not added to list).
-         */
+        /// <summary>Adds a checker to the list of certification path checkers.</summary>
+        /// <remarks>
+        /// See <see cref="SetCertPathCheckers"/> for more details. The checker is cloned to protect against subsequent
+        /// modifications.
+        /// </remarks>
+        /// <param name="checker">The checker to add. If null, it is ignored.</param>
         public virtual void AddCertPathChecker(PkixCertPathChecker checker)
         {
             if (checker != null)
@@ -465,6 +366,7 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
+        /// <summary>Returns a copy of these parameters.</summary>
         public virtual object Clone()
         {
             // FIXME Check this whole method against the Java implementation!
@@ -499,13 +401,8 @@ namespace Org.BouncyCastle.Pkix
             //return obj;
         }
 
-        /**
-         * Method to support <code>Clone()</code> under J2ME.
-         * <code>super.Clone()</code> does not exist and fields are not copied.
-         *
-         * @param params Parameters to set. If this are
-         *            <code>ExtendedPkixParameters</code> they are copied to.
-         */
+        /// <summary>Copies the settings of the given parameters into this instance.</summary>
+        /// <param name="parameters">The parameters to copy.</param>
         protected virtual void SetParams(PkixParameters parameters)
         {
             Date = parameters.Date;
@@ -534,48 +431,49 @@ namespace Org.BouncyCastle.Pkix
             attrCertCheckers = new HashSet<PkixAttrCertChecker>(parameters.attrCertCheckers);
         }
 
-        /**
-         * Whether delta CRLs should be used for checking the revocation status.
-         * Defaults to <code>false</code>.
-         */
+        /// <summary>Gets or sets whether delta CRLs should be used for checking the revocation status.</summary>
+        /// <remarks>The default is false.</remarks>
         public virtual bool IsUseDeltasEnabled
         {
             get { return useDeltas; }
             set { useDeltas = value; }
         }
 
-        /**
-         * The validity model.
-         * @see #CHAIN_VALIDITY_MODEL
-         * @see #PKIX_VALIDITY_MODEL
-         */
+        /// <summary>Gets or sets the validity model.</summary>
+        /// <remarks>One of <see cref="PkixValidityModel"/> (the default) or <see cref="ChainValidityModel"/>.</remarks>
         public virtual int ValidityModel
         {
             get { return validityModel; }
             set { validityModel = value; }
         }
 
+        /// <summary>Returns a copy of the list of stores of attribute certificates.</summary>
         public virtual IList<IStore<X509V2AttributeCertificate>> GetStoresAttrCert()
         {
             return new List<IStore<X509V2AttributeCertificate>>(m_storesAttrCert);
         }
 
+        /// <summary>Returns a copy of the list of stores of certificates.</summary>
         public virtual IList<IStore<X509Certificate>> GetStoresCert()
         {
             return new List<IStore<X509Certificate>>(m_storesCert);
         }
 
+        /// <summary>Returns a copy of the list of stores of CRLs.</summary>
         public virtual IList<IStore<X509Crl>> GetStoresCrl()
         {
             return new List<IStore<X509Crl>>(m_storesCrl);
         }
 
+        /// <summary>Set the attr stores cert.</summary>
+        /// <param name="storesAttrCert">The stores attr cert.</param>
         [Obsolete("Use 'SetStoresAttrCert' instead")]
         public virtual void SetAttrStoresCert(IList<IStore<X509V2AttributeCertificate>> storesAttrCert)
         {
             SetStoresAttrCert(storesAttrCert);
         }
 
+        /// <summary>Sets the stores of attribute certificates; the list is copied, and null clears it.</summary>
         public virtual void SetStoresAttrCert(IList<IStore<X509V2AttributeCertificate>> storesAttrCert)
         {
             if (storesAttrCert == null)
@@ -588,6 +486,7 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
+        /// <summary>Sets the stores of certificates; the list is copied, and null clears it.</summary>
         public virtual void SetStoresCert(IList<IStore<X509Certificate>> storesCert)
         {
             if (storesCert == null)
@@ -600,6 +499,7 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
+        /// <summary>Sets the stores of CRLs; the list is copied, and null clears it.</summary>
         public virtual void SetStoresCrl(IList<IStore<X509Crl>> storesCrl)
         {
             if (storesCrl == null)
@@ -612,6 +512,7 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
+        /// <summary>Adds a store of attribute certificates; null is ignored.</summary>
         public virtual void AddStoreAttrCert(IStore<X509V2AttributeCertificate> storeAttrCert)
         {
             if (storeAttrCert != null)
@@ -620,6 +521,7 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
+        /// <summary>Adds a store of certificates; null is ignored.</summary>
         public virtual void AddStoreCert(IStore<X509Certificate> storeCert)
         {
             if (storeCert != null)
@@ -628,6 +530,7 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
+        /// <summary>Adds a store of CRLs; null is ignored.</summary>
         public virtual void AddStoreCrl(IStore<X509Crl> storeCrl)
         {
             if (storeCrl != null)
@@ -636,59 +539,36 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        /**
-         * Returns if additional {@link X509Store}s for locations like LDAP found
-         * in certificates or CRLs should be used.
-         *
-         * @return Returns <code>true</code> if additional stores are used.
-         */
+        /// <summary>
+        /// Gets whether additional stores for locations like LDAP found in certificates or CRLs should be used.
+        /// </summary>
         public virtual bool IsAdditionalLocationsEnabled
         {
             get { return additionalLocationsEnabled; }
         }
 
-        /**
-         * Sets if additional {@link X509Store}s for locations like LDAP found in
-         * certificates or CRLs should be used.
-         *
-         * @param enabled <code>true</code> if additional stores are used.
-         */
+        /// <summary>
+        /// Sets whether additional stores for locations like LDAP found in certificates or CRLs should be used.
+        /// </summary>
+        /// <param name="enabled">true if additional stores are used.</param>
         public virtual void SetAdditionalLocationsEnabled(bool enabled)
         {
             additionalLocationsEnabled = enabled;
         }
 
-        /**
-         * Returns the trusted attribute certificate issuers. If attribute
-         * certificates is verified the trusted AC issuers must be set.
-         * <p>
-         * The returned <code>ISet</code> consists of <code>TrustAnchor</code>s.
-         * </p><p>
-         * The returned <code>ISet</code> is immutable. Never <code>null</code>
-         * </p>
-         *
-         * @return Returns an immutable set of the trusted AC issuers.
-         */
+        /// <summary>Returns a copy of the trusted attribute certificate issuers.</summary>
+        /// <remarks>If attribute certificates are verified, the trusted AC issuers must be set.</remarks>
+        /// <returns>A set of <see cref="TrustAnchor"/>s. Never null.</returns>
         public virtual ISet<TrustAnchor> GetTrustedACIssuers()
         {
             return new HashSet<TrustAnchor>(trustedACIssuers);
         }
 
-        /**
-         * Sets the trusted attribute certificate issuers. If attribute certificates
-         * is verified the trusted AC issuers must be set.
-         * <p>
-         * The <code>trustedACIssuers</code> must be a <code>ISet</code> of
-         * <code>TrustAnchor</code>
-         * </p><p>
-         * The given set is cloned.
-         * </p>
-         *
-         * @param trustedACIssuers The trusted AC issuers to set. Is never
-         *            <code>null</code>.
-         * @throws ClassCastException if an element of <code>stores</code> is not
-         *             a <code>TrustAnchor</code>.
-         */
+        /// <summary>Sets the trusted attribute certificate issuers.</summary>
+        /// <remarks>
+        /// If attribute certificates are verified, the trusted AC issuers must be set. The given set is copied.
+        /// </remarks>
+        /// <param name="trustedACIssuers">A set of <see cref="TrustAnchor"/>s; null clears the set.</param>
         public virtual void SetTrustedACIssuers(ISet<TrustAnchor> trustedACIssuers)
         {
             if (trustedACIssuers == null)
@@ -701,35 +581,18 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        /**
-         * Returns the necessary attributes which must be contained in an attribute
-         * certificate.
-         * <p>
-         * The returned <code>ISet</code> is immutable and contains
-         * <code>String</code>s with the OIDs.
-         * </p>
-         *
-         * @return Returns the necessary AC attributes.
-         */
+        /// <summary>Returns a copy of the set of attributes which must be contained in an attribute certificate.
+        /// </summary>
+        /// <returns>The OIDs, in string form, of the necessary attributes. Never null.</returns>
         public virtual ISet<string> GetNecessaryACAttributes()
         {
             return new HashSet<string>(necessaryACAttributes);
         }
 
-        /**
-         * Sets the necessary which must be contained in an attribute certificate.
-         * <p>
-         * The <code>ISet</code> must contain <code>String</code>s with the
-         * OIDs.
-         * </p><p>
-         * The set is cloned.
-         * </p>
-         *
-         * @param necessaryACAttributes The necessary AC attributes to set.
-         * @throws ClassCastException if an element of
-         *             <code>necessaryACAttributes</code> is not a
-         *             <code>String</code>.
-         */
+        /// <summary>Sets the attributes which must be contained in an attribute certificate.</summary>
+        /// <remarks>The given set is copied.</remarks>
+        /// <param name="necessaryACAttributes">The OIDs, in string form, of the attributes; null clears the set.
+        /// </param>
         public virtual void SetNecessaryACAttributes(ISet<string> necessaryACAttributes)
         {
             if (necessaryACAttributes == null)
@@ -742,34 +605,18 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        /**
-         * Returns the attribute certificates which are not allowed.
-         * <p>
-         * The returned <code>ISet</code> is immutable and contains
-         * <code>String</code>s with the OIDs.
-         * </p>
-         *
-         * @return Returns the prohibited AC attributes. Is never <code>null</code>.
-         */
+        /// <summary>Returns a copy of the set of attributes which are not allowed in an attribute certificate.
+        /// </summary>
+        /// <returns>The OIDs, in string form, of the prohibited attributes. Never null.</returns>
         public virtual ISet<string> GetProhibitedACAttributes()
         {
             return new HashSet<string>(prohibitedACAttributes);
         }
 
-        /**
-         * Sets the attribute certificates which are not allowed.
-         * <p>
-         * The <code>ISet</code> must contain <code>String</code>s with the
-         * OIDs.
-         * </p><p>
-         * The set is cloned.
-         * </p>
-         *
-         * @param prohibitedACAttributes The prohibited AC attributes to set.
-         * @throws ClassCastException if an element of
-         *             <code>prohibitedACAttributes</code> is not a
-         *             <code>String</code>.
-         */
+        /// <summary>Sets the attributes which are not allowed in an attribute certificate.</summary>
+        /// <remarks>The given set is copied.</remarks>
+        /// <param name="prohibitedACAttributes">The OIDs, in string form, of the attributes; null clears the set.
+        /// </param>
         public virtual void SetProhibitedACAttributes(ISet<string> prohibitedACAttributes)
         {
             if (prohibitedACAttributes == null)
@@ -782,32 +629,16 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        /**
-         * Returns the attribute certificate checker. The returned set contains
-         * {@link PKIXAttrCertChecker}s and is immutable.
-         *
-         * @return Returns the attribute certificate checker. Is never
-         *         <code>null</code>.
-         */
+        /// <summary>Returns a copy of the set of attribute certificate checkers.</summary>
+        /// <returns>A set of <see cref="PkixAttrCertChecker"/>s. Never null.</returns>
         public virtual ISet<PkixAttrCertChecker> GetAttrCertCheckers()
         {
             return new HashSet<PkixAttrCertChecker>(attrCertCheckers);
         }
 
-        /**
-         * Sets the attribute certificate checkers.
-         * <p>
-         * All elements in the <code>ISet</code> must a {@link PKIXAttrCertChecker}.
-         * </p>
-         * <p>
-         * The given set is cloned.
-         * </p>
-         *
-         * @param attrCertCheckers The attribute certificate checkers to set. Is
-         *            never <code>null</code>.
-         * @throws ClassCastException if an element of <code>attrCertCheckers</code>
-         *             is not a <code>PKIXAttrCertChecker</code>.
-         */
+        /// <summary>Sets the attribute certificate checkers.</summary>
+        /// <remarks>The given set is copied.</remarks>
+        /// <param name="attrCertCheckers">A set of <see cref="PkixAttrCertChecker"/>s; null clears the set.</param>
         public virtual void SetAttrCertCheckers(ISet<PkixAttrCertChecker> attrCertCheckers)
         {
             if (attrCertCheckers == null)

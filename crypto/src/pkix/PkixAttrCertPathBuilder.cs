@@ -9,12 +9,18 @@ using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Pkix
 {
+    /// <summary>Builds certification paths for the issuers of X.509 attribute certificates (RFC 3281).</summary>
     public class PkixAttrCertPathBuilder
     {
         private Exception m_certPathException;
 
         /// <summary>Build and validate a CertPath using the given parameter.</summary>
         /// <param name="pkixParams">Object containing all information to build the CertPath.</param>
+        /// <returns>The result for the first valid path found.</returns>
+        /// <exception cref="PkixCertPathBuilderException">
+        /// The target constraints are not an <see cref="X509AttrCertStoreSelector"/>, no matching attribute
+        /// certificate was found, or no valid path could be built.
+        /// </exception>
         public virtual PkixCertPathBuilderResult Build(PkixBuilderParameters pkixParams)
         {
             m_certPathException = null;

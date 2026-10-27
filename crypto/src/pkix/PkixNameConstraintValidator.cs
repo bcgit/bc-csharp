@@ -10,6 +10,15 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Pkix
 {
+    /// <summary>
+    /// Checks names against the permitted and excluded subtrees of the name constraints of a certification path
+    /// (RFC 5280, 4.2.1.10).
+    /// </summary>
+    /// <remarks>
+    /// Subtrees are accumulated with <c>IntersectPermittedSubtree</c> and <c>AddExcludedSubtree</c>, then names are
+    /// checked with the <c>Check</c> methods. A name must be within the permitted subtrees (if any are set for its
+    /// type) and outside the excluded subtrees. The permitted check is applied before the excluded one.
+    /// </remarks>
     public class PkixNameConstraintValidator
     {
         // The excluded* fields are null until the first excluded subtree of that family is added, and never
@@ -39,16 +48,25 @@ namespace Org.BouncyCastle.Pkix
 
         private HashSet<OtherName> permittedSubtreesOtherName;
 
+        /// <summary>Create a validator with no constraints.</summary>
         public PkixNameConstraintValidator()
         {
         }
 
         #region DN
 
-        /// <exception cref="PkixNameConstraintValidatorException"/>
+        /// <summary>Check a directoryName against the permitted and excluded subtrees.</summary>
+        /// <param name="dn">The directory name to check.</param>
+        /// <exception cref="PkixNameConstraintValidatorException">
+        /// The name violates the permitted or excluded subtrees.
+        /// </exception>
         public void CheckDN(Asn1Sequence dn) => CheckDN(permittedSubtreesDN, excludedSubtreesDN, dn);
 
-        /// <exception cref="PkixNameConstraintValidatorException"/>
+        /// <summary>Check a directoryName against the permitted and excluded subtrees.</summary>
+        /// <param name="dn">The directory name to check.</param>
+        /// <exception cref="PkixNameConstraintValidatorException">
+        /// The name violates the permitted or excluded subtrees.
+        /// </exception>
         public void CheckDN(X509Name dn) => CheckDN(Asn1Sequence.GetInstance(dn.ToAsn1Object()));
 
         /// <summary>Check a directoryName with the relaxed GSMA SGP.22 matching (see
@@ -61,10 +79,16 @@ namespace Org.BouncyCastle.Pkix
         internal void CheckDNSgp22(Asn1Sequence dn) =>
             CheckDN(permittedSubtreesDN, excludedSubtreesDN, dn, sgp22: true);
 
-        /// <exception cref="PkixNameConstraintValidatorException"/>
+        /// <summary>Check that a directoryName is not within the excluded subtrees.</summary>
+        /// <param name="dn">The directory name to check.</param>
+        /// <exception cref="PkixNameConstraintValidatorException">The name is within an excluded subtree.</exception>
         public void CheckExcludedDN(Asn1Sequence dn) => CheckDN(null, excludedSubtreesDN, dn);
 
-        /// <exception cref="PkixNameConstraintValidatorException"/>
+        /// <summary>Check that a directoryName is within the permitted subtrees.</summary>
+        /// <param name="dn">The directory name to check.</param>
+        /// <exception cref="PkixNameConstraintValidatorException">
+        /// The name is not within the permitted subtrees.
+        /// </exception>
         public void CheckPermittedDN(Asn1Sequence dn) => CheckDN(permittedSubtreesDN, null, dn);
 
         private static void CheckDN(HashSet<NameConstraintDN> permitted, HashSet<NameConstraintDN> excluded,
@@ -171,13 +195,25 @@ namespace Org.BouncyCastle.Pkix
 
         #region Email
 
-        /// <exception cref="PkixNameConstraintValidatorException"/>
+        /// <summary>Check an rfc822Name (email address) against the permitted and excluded subtrees.</summary>
+        /// <param name="email">The email address to check.</param>
+        /// <exception cref="PkixNameConstraintValidatorException">
+        /// The name violates the permitted or excluded subtrees.
+        /// </exception>
         public void CheckEmail(string email) => CheckEmail(permittedSubtreesEmail, excludedSubtreesEmail, email);
 
-        /// <exception cref="PkixNameConstraintValidatorException"/>
+        /// <summary>Check that an rfc822Name (email address) is not within the excluded subtrees.</summary>
+        /// <param name="email">The email address to check.</param>
+        /// <exception cref="PkixNameConstraintValidatorException">
+        /// The address is within an excluded subtree.
+        /// </exception>
         public void CheckExcludedEmail(string email) => CheckEmail(null, excludedSubtreesEmail, email);
 
-        /// <exception cref="PkixNameConstraintValidatorException"/>
+        /// <summary>Check that an rfc822Name (email address) is within the permitted subtrees.</summary>
+        /// <param name="email">The email address to check.</param>
+        /// <exception cref="PkixNameConstraintValidatorException">
+        /// The address is not within the permitted subtrees.
+        /// </exception>
         public void CheckPermittedEmail(string email) => CheckEmail(permittedSubtreesEmail, null, email);
 
         private static void CheckEmail(HashSet<NameConstraintEmail> permitted, HashSet<NameConstraintEmail> excluded,
@@ -286,42 +322,42 @@ namespace Org.BouncyCastle.Pkix
 
         #endregion
 
-        /// <exception cref="PkixNameConstraintValidatorException"/>
+        /// <summary>Check that a name is within the permitted subtrees.</summary>
+        /// <param name="name">The name to check.</param>
+        /// <exception cref="PkixNameConstraintValidatorException">
+        /// The name is not within the permitted subtrees.
+        /// </exception>
         [Obsolete("Use 'CheckPermittedName' instead")]
         public void checkPermitted(GeneralName name) => CheckPermittedName(name);
 
-        /**
-         * Checks that the given GeneralName is within the permitted subtrees and not within the excluded
-         * subtrees, converting the name (once) as required. The permitted check is applied before the
-         * excluded check, so for a name violating both it is the permitted violation that is reported.
-         */
-        /// <exception cref="PkixNameConstraintValidatorException"/>
+        /// <summary>
+        /// Checks that the given GeneralName is within the permitted subtrees and not within the excluded subtrees,
+        /// converting the name (once) as required.
+        /// </summary>
+        /// <remarks>
+        /// The permitted check is applied before the excluded check, so for a name violating both it is the permitted
+        /// violation that is reported. Name types other than those supported are ignored.
+        /// </remarks>
+        /// <param name="name">The name to check.</param>
+        /// <exception cref="PkixNameConstraintValidatorException">The name violates the constraints.</exception>
         public void CheckName(GeneralName name) => CheckName(name, checkPermitted: true, checkExcluded: true);
 
-        /**
-         * Checks if the given GeneralName is in the permitted ISet.
-         *
-         * @param name The GeneralName
-         * @throws PkixNameConstraintValidatorException
-         *          If the <code>name</code>
-         */
-        /// <exception cref="PkixNameConstraintValidatorException"/>
+        /// <summary>Checks that the given GeneralName is within the permitted subtrees.</summary>
+        /// <param name="name">The name to check.</param>
+        /// <exception cref="PkixNameConstraintValidatorException">The name is not within the permitted subtrees.
+        /// </exception>
         public void CheckPermittedName(GeneralName name) =>
             CheckName(name, checkPermitted: true, checkExcluded: false);
 
-        /// <exception cref="PkixNameConstraintValidatorException"/>
+        /// <summary>Check that a name is not within the excluded subtrees.</summary>
+        /// <param name="name">The name to check.</param>
+        /// <exception cref="PkixNameConstraintValidatorException">The name is within an excluded subtree.</exception>
         [Obsolete("Use 'CheckExcludedName' instead")]
         public void checkExcluded(GeneralName name) => CheckExcludedName(name);
 
-        /**
-         * Check if the given GeneralName is contained in the excluded ISet.
-         *
-         * @param name The GeneralName.
-         * @throws PkixNameConstraintValidatorException
-         *          If the <code>name</code> is
-         *          excluded.
-         */
-        /// <exception cref="PkixNameConstraintValidatorException"/>
+        /// <summary>Checks that the given GeneralName is not within the excluded subtrees.</summary>
+        /// <param name="name">The name to check.</param>
+        /// <exception cref="PkixNameConstraintValidatorException">The name is within an excluded subtree.</exception>
         public void CheckExcludedName(GeneralName name) =>
             CheckName(name, checkPermitted: false, checkExcluded: true);
 
@@ -363,17 +399,19 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        /// <exception cref="PkixNameConstraintValidatorException">for a structurally invalid constraint</exception>
+        /// <summary>
+        /// Updates the permitted subtrees of these name constraints with the intersection with the given subtree.
+        /// </summary>
+        /// <param name="permitted">The permitted subtree.</param>
+        /// <exception cref="PkixNameConstraintValidatorException">The constraint is structurally invalid.</exception>
         public void IntersectPermittedSubtree(GeneralSubtree permitted) =>
             IntersectPermittedSubtree(permitted.Base.TagNo, new HashSet<GeneralSubtree>() { permitted });
 
-        /**
-         * Updates the permitted ISet of these name constraints with the intersection
-         * with the given subtree.
-         *
-         * @param permitted The permitted subtrees
-         */
-        /// <exception cref="PkixNameConstraintValidatorException">for a structurally invalid constraint</exception>
+        /// <summary>
+        /// Updates the permitted subtrees of these name constraints with the intersection with the given subtrees.
+        /// </summary>
+        /// <param name="permitted">A sequence of <c>GeneralSubtree</c> structures.</param>
+        /// <exception cref="PkixNameConstraintValidatorException">A constraint is structurally invalid.</exception>
         public void IntersectPermittedSubtree(Asn1Sequence permitted)
         {
             var subtreesMap = new Dictionary<int, HashSet<GeneralSubtree>>();
@@ -427,6 +465,10 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
+        /// <summary>
+        /// Makes the permitted subtrees of the given name type empty, so that no name of that type is permitted.
+        /// </summary>
+        /// <param name="nameType">The <see cref="GeneralName"/> tag number of the name type.</param>
         public void IntersectEmptyPermittedSubtree(int nameType)
         {
             switch (nameType)
@@ -454,12 +496,9 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        /**
-         * Adds a subtree to the excluded ISet of these name constraints.
-         *
-         * @param subtree A subtree with an excluded GeneralName.
-         */
-        /// <exception cref="PkixNameConstraintValidatorException">for a structurally invalid constraint</exception>
+        /// <summary>Adds a subtree to the excluded subtrees of these name constraints.</summary>
+        /// <param name="subtree">A subtree with an excluded GeneralName.</param>
+        /// <exception cref="PkixNameConstraintValidatorException">The constraint is structurally invalid.</exception>
         public void AddExcludedSubtree(GeneralSubtree subtree)
         {
             var subtreeBase = subtree.Base;
@@ -495,6 +534,7 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
+        /// <summary>Returns a hash code computed from the permitted and excluded subtrees.</summary>
         public override int GetHashCode()
         {
             return HashCollection(excludedSubtreesDN)
@@ -524,6 +564,7 @@ namespace Org.BouncyCastle.Pkix
             return hash;
         }
 
+        /// <summary>Compares the permitted and excluded subtrees with those of another validator.</summary>
         public override bool Equals(object o) => o is PkixNameConstraintValidator that
             && AreEqualSets(that.excludedSubtreesDN, excludedSubtreesDN)
             && AreEqualSets(that.excludedSubtreesDns, excludedSubtreesDns)
@@ -598,6 +639,7 @@ namespace Org.BouncyCastle.Pkix
             return sb.ToString();
         }
 
+        /// <summary>Returns a textual description of the permitted and excluded subtrees.</summary>
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder("permitted:");
