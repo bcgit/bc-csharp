@@ -21,6 +21,11 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Return an <see cref="DerUtf8String"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="DerUtf8String"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="DerUtf8String"/>, or null if <paramref name="obj"/> is null.</returns>
         public static DerUtf8String GetInstance(object obj)
         {
             if (obj == null)
@@ -49,9 +54,16 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
+        /// <summary>Return an <see cref="DerUtf8String"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DerUtf8String"/>.</returns>
         public static DerUtf8String GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             (DerUtf8String)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
 
+        /// <summary>Return an <see cref="DerUtf8String"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="DerUtf8String"/>, or null if <paramref name="element"/> is null.</returns>
         public static DerUtf8String GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -63,16 +75,24 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="DerUtf8String"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DerUtf8String"/>.</returns>
         public static DerUtf8String GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             (DerUtf8String)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
 
         private readonly byte[] m_contents;
 
+        /// <summary>Create a new <see cref="DerUtf8String"/>.</summary>
+        /// <param name="str">The str.</param>
         public DerUtf8String(string str)
             : this(Strings.ToUtf8ByteArray(str), false)
         {
         }
 
+        /// <summary>Create a new <see cref="DerUtf8String"/>.</summary>
+        /// <param name="contents">The contents.</param>
         public DerUtf8String(byte[] contents)
             : this(contents, true)
         {
@@ -86,8 +106,10 @@ namespace Org.BouncyCastle.Asn1
             m_contents = clone ? Arrays.Clone(contents) : contents;
         }
 
+        /// <inheritdoc/>
         public override string GetString() => Strings.FromUtf8ByteArray(m_contents);
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             DerUtf8String that = asn1Object as DerUtf8String;
@@ -95,6 +117,7 @@ namespace Org.BouncyCastle.Asn1
                 && Arrays.AreEqual(this.m_contents, that.m_contents);
         }
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode() => Arrays.GetHashCode(m_contents);
 
         internal override IAsn1Encoding GetEncoding(int encoding) =>

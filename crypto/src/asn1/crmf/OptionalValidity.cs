@@ -4,9 +4,15 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
+    /// <summary>The OptionalValidity structure of RFC 4211.</summary>
     public class OptionalValidity
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="OptionalValidity"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="OptionalValidity"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="OptionalValidity"/>, or null if <paramref name="obj"/> is null.</returns>
         public static OptionalValidity GetInstance(object obj)
         {
             if (obj == null)
@@ -16,9 +22,16 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new OptionalValidity(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="OptionalValidity"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="OptionalValidity"/>.</returns>
         public static OptionalValidity GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new OptionalValidity(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="OptionalValidity"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="OptionalValidity"/>, or null if <paramref name="element"/> is null.</returns>
         public static OptionalValidity GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -34,6 +47,10 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return null;
         }
 
+        /// <summary>Return an <see cref="OptionalValidity"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="OptionalValidity"/>.</returns>
         public static OptionalValidity GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new OptionalValidity(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -56,6 +73,9 @@ namespace Org.BouncyCastle.Asn1.Crmf
                 throw new ArgumentException("at least one of notBefore/notAfter MUST be present.");
         }
 
+        /// <summary>Create a new <see cref="OptionalValidity"/>.</summary>
+        /// <param name="notBefore">The not before.</param>
+        /// <param name="notAfter">The not after.</param>
         public OptionalValidity(Time notBefore, Time notAfter)
         {
             if (notBefore == null && notAfter == null)
@@ -65,8 +85,10 @@ namespace Org.BouncyCastle.Asn1.Crmf
             m_notAfter = notAfter;
         }
 
+        /// <summary>Gets the not before.</summary>
         public virtual Time NotBefore => m_notBefore;
 
+        /// <summary>Gets the not after.</summary>
         public virtual Time NotAfter => m_notAfter;
 
         /// <remarks>

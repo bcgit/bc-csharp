@@ -15,6 +15,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class KemCiphertextInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="KemCiphertextInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="KemCiphertextInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="KemCiphertextInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static KemCiphertextInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -24,9 +29,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new KemCiphertextInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="KemCiphertextInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="KemCiphertextInfo"/>.</returns>
         public static KemCiphertextInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new KemCiphertextInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="KemCiphertextInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="KemCiphertextInfo"/>.</returns>
         public static KemCiphertextInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new KemCiphertextInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -46,14 +59,19 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="KemCiphertextInfo"/>.</summary>
+        /// <param name="kem">The kem.</param>
+        /// <param name="ct">The ct.</param>
         public KemCiphertextInfo(AlgorithmIdentifier kem, Asn1OctetString ct)
         {
             m_kem = kem ?? throw new ArgumentNullException(nameof(kem));
             m_ct = ct ?? throw new ArgumentNullException(nameof(ct));
         }
 
+        /// <summary>Gets the kem.</summary>
         public virtual AlgorithmIdentifier Kem => m_kem;
 
+        /// <summary>Gets the ct.</summary>
         public virtual Asn1OctetString Ct => m_ct;
 
         /**

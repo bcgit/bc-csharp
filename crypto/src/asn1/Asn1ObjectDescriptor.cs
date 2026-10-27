@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 ObjectDescriptor type.</summary>
     public sealed class Asn1ObjectDescriptor
         : Asn1Object
     {
@@ -75,6 +76,9 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1ObjectDescriptor)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Return an <see cref="Asn1ObjectDescriptor"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="Asn1ObjectDescriptor"/>, or null if <paramref name="element"/> is null.</returns>
         public static Asn1ObjectDescriptor GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -86,6 +90,10 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="Asn1ObjectDescriptor"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Asn1ObjectDescriptor"/>.</returns>
         public static Asn1ObjectDescriptor GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (Asn1ObjectDescriptor)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
@@ -93,6 +101,8 @@ namespace Org.BouncyCastle.Asn1
 
         private readonly DerGraphicString m_baseGraphicString;
 
+        /// <summary>Create a new <see cref="Asn1ObjectDescriptor"/>.</summary>
+        /// <param name="baseGraphicString">The base graphic string.</param>
         public Asn1ObjectDescriptor(DerGraphicString baseGraphicString)
         {
             if (null == baseGraphicString)
@@ -101,6 +111,7 @@ namespace Org.BouncyCastle.Asn1
             this.m_baseGraphicString = baseGraphicString;
         }
 
+        /// <summary>Gets the base graphic string.</summary>
         public DerGraphicString BaseGraphicString
         {
             get { return m_baseGraphicString; }
@@ -126,11 +137,13 @@ namespace Org.BouncyCastle.Asn1
             return m_baseGraphicString.GetEncodingDerImplicit(tagClass, tagNo);
         }
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode()
         {
             return ~m_baseGraphicString.CallAsn1GetHashCode();
         }
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             Asn1ObjectDescriptor that = asn1Object as Asn1ObjectDescriptor;

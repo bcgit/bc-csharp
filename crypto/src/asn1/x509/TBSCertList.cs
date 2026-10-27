@@ -5,9 +5,15 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
+    /// <summary>
+    /// An entry of a CRL: a revoked certificate's serial number, the revocation date and the entry extensions.
+    /// </summary>
     public class CrlEntry
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CrlEntry"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="CrlEntry"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="CrlEntry"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CrlEntry GetInstance(object obj)
         {
             if (obj == null)
@@ -19,6 +25,10 @@ namespace Org.BouncyCastle.Asn1.X509
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="CrlEntry"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CrlEntry"/>.</returns>
         public static CrlEntry GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -26,6 +36,10 @@ namespace Org.BouncyCastle.Asn1.X509
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="CrlEntry"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CrlEntry"/>.</returns>
         public static CrlEntry GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -39,6 +53,8 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly Time m_revocationDate;
         private readonly X509Extensions m_crlEntryExtensions;
 
+        /// <summary>Create a new <see cref="CrlEntry"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public CrlEntry(Asn1Sequence seq)
         {
@@ -59,12 +75,16 @@ namespace Org.BouncyCastle.Asn1.X509
             m_seq = seq;
         }
 
+        /// <summary>Gets the user certificate.</summary>
         public DerInteger UserCertificate => m_userCertificate;
 
+        /// <summary>Gets the revocation date.</summary>
         public Time RevocationDate => m_revocationDate;
 
+        /// <summary>Gets the extensions.</summary>
         public X509Extensions Extensions => m_crlEntryExtensions;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => m_seq;
     }
 
@@ -92,6 +112,11 @@ namespace Org.BouncyCastle.Asn1.X509
     public class TbsCertificateList
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="TbsCertificateList"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="TbsCertificateList"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="TbsCertificateList"/>, or null if <paramref name="obj"/> is null.</returns>
         public static TbsCertificateList GetInstance(object obj)
         {
             if (obj == null)
@@ -101,9 +126,17 @@ namespace Org.BouncyCastle.Asn1.X509
             return new TbsCertificateList(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="TbsCertificateList"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="TbsCertificateList"/>.</returns>
         public static TbsCertificateList GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new TbsCertificateList(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="TbsCertificateList"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="TbsCertificateList"/>.</returns>
         public static TbsCertificateList GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new TbsCertificateList(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -142,27 +175,37 @@ namespace Org.BouncyCastle.Asn1.X509
             m_seq = seq;
         }
 
+        /// <summary>Gets the version.</summary>
         public int Version => m_version.IntValueExact + 1;
 
+        /// <summary>Gets the version number.</summary>
         public DerInteger VersionNumber => m_version;
 
+        /// <summary>Gets the signature.</summary>
         public AlgorithmIdentifier Signature => m_signature;
 
+        /// <summary>Gets the issuer.</summary>
         public X509Name Issuer => m_issuer;
 
+        /// <summary>Gets the this update.</summary>
         public Time ThisUpdate => m_thisUpdate;
 
+        /// <summary>Gets the next update.</summary>
         public Time NextUpdate => m_nextUpdate;
 
+        /// <summary>Return the revoked certificates.</summary>
         // TODO[api] Don't convert null to empty array
         public CrlEntry[] GetRevokedCertificates() =>
             m_revokedCertificates?.MapElements(CrlEntry.GetInstance) ?? Array.Empty<CrlEntry>();
 
+        /// <summary>Return the revoked certificate enumeration.</summary>
         public IEnumerable<CrlEntry> GetRevokedCertificateEnumeration() =>
             CollectionUtilities.Select(m_revokedCertificates ?? DerSequence.Empty, CrlEntry.GetInstance);
 
+        /// <summary>Gets the extensions.</summary>
         public X509Extensions Extensions => m_crlExtensions;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => m_seq;
     }
 }

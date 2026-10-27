@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 VideotexString type.</summary>
     public class DerVideotexString
         : DerStringBase
     {
@@ -68,6 +69,9 @@ namespace Org.BouncyCastle.Asn1
             return (DerVideotexString)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Return an <see cref="DerVideotexString"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="DerVideotexString"/>, or null if <paramref name="element"/> is null.</returns>
         public static DerVideotexString GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -79,6 +83,10 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="DerVideotexString"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DerVideotexString"/>.</returns>
         public static DerVideotexString GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (DerVideotexString)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
@@ -86,6 +94,8 @@ namespace Org.BouncyCastle.Asn1
 
         private readonly byte[] m_contents;
 
+        /// <summary>Create a new <see cref="DerVideotexString"/>.</summary>
+        /// <param name="contents">The contents.</param>
         public DerVideotexString(byte[] contents)
             : this(contents, true)
         {
@@ -99,11 +109,13 @@ namespace Org.BouncyCastle.Asn1
             m_contents = clone ? Arrays.Clone(contents) : contents;
         }
 
+        /// <inheritdoc/>
         public override string GetString()
         {
             return Strings.FromByteArray(m_contents);
         }
 
+        /// <summary>Return the octets.</summary>
         public byte[] GetOctets()
         {
             return Arrays.Clone(m_contents);
@@ -129,6 +141,7 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
         }
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             DerVideotexString that = asn1Object as DerVideotexString;
@@ -136,6 +149,7 @@ namespace Org.BouncyCastle.Asn1
                 && Arrays.AreEqual(this.m_contents, that.m_contents);
         }
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode()
         {
             return Arrays.GetHashCode(m_contents);

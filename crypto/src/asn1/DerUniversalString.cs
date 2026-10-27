@@ -72,6 +72,9 @@ namespace Org.BouncyCastle.Asn1
             return (DerUniversalString)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Return an <see cref="DerUniversalString"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="DerUniversalString"/>, or null if <paramref name="element"/> is null.</returns>
         public static DerUniversalString GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -83,6 +86,10 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="DerUniversalString"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DerUniversalString"/>.</returns>
         public static DerUniversalString GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (DerUniversalString)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
@@ -90,6 +97,8 @@ namespace Org.BouncyCastle.Asn1
 
         private readonly byte[] m_contents;
 
+        /// <summary>Create a new <see cref="DerUniversalString"/>.</summary>
+        /// <param name="contents">The contents.</param>
         public DerUniversalString(byte[] contents)
             : this(contents, true)
         {
@@ -103,6 +112,7 @@ namespace Org.BouncyCastle.Asn1
             m_contents = clone ? Arrays.Clone(contents) : contents;
         }
 
+        /// <inheritdoc/>
         public override string GetString()
         {
             int dl = m_contents.Length;
@@ -119,6 +129,7 @@ namespace Org.BouncyCastle.Asn1
             return buf.ToString();
         }
 
+        /// <summary>Return the octets.</summary>
         public byte[] GetOctets()
         {
             return Arrays.Clone(m_contents);
@@ -144,6 +155,7 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
         }
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             DerUniversalString that = asn1Object as DerUniversalString;
@@ -151,6 +163,7 @@ namespace Org.BouncyCastle.Asn1
                 && Arrays.AreEqual(this.m_contents, that.m_contents);
         }
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode()
         {
             return Arrays.GetHashCode(m_contents);

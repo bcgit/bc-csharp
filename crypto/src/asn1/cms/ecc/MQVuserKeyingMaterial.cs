@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cms.Ecc
 {
+    /// <summary>The MQVuserKeyingMaterial structure of RFC 5753.</summary>
     public class MQVuserKeyingMaterial
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="MQVuserKeyingMaterial"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="MQVuserKeyingMaterial"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="MQVuserKeyingMaterial"/>, or null if <paramref name="obj"/> is null.</returns>
         public static MQVuserKeyingMaterial GetInstance(object obj)
         {
             if (obj == null)
@@ -14,15 +20,26 @@ namespace Org.BouncyCastle.Asn1.Cms.Ecc
             return new MQVuserKeyingMaterial(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="MQVuserKeyingMaterial"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="MQVuserKeyingMaterial"/>.</returns>
         public static MQVuserKeyingMaterial GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
             new MQVuserKeyingMaterial(Asn1Sequence.GetInstance(obj, isExplicit));
 
+        /// <summary>Return an <see cref="MQVuserKeyingMaterial"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="MQVuserKeyingMaterial"/>.</returns>
         public static MQVuserKeyingMaterial GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new MQVuserKeyingMaterial(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly OriginatorPublicKey m_ephemeralPublicKey;
         private readonly Asn1OctetString m_addedukm;
 
+        /// <summary>Create a new <see cref="MQVuserKeyingMaterial"/>.</summary>
+        /// <param name="ephemeralPublicKey">The ephemeral public key.</param>
+        /// <param name="addedukm">The addedukm.</param>
         public MQVuserKeyingMaterial(OriginatorPublicKey ephemeralPublicKey, Asn1OctetString addedukm)
         {
             m_ephemeralPublicKey = ephemeralPublicKey ?? throw new ArgumentNullException(nameof(ephemeralPublicKey));
@@ -42,8 +59,10 @@ namespace Org.BouncyCastle.Asn1.Cms.Ecc
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the ephemeral public key.</summary>
         public OriginatorPublicKey EphemeralPublicKey => m_ephemeralPublicKey;
 
+        /// <summary>Gets the added ukm.</summary>
         public Asn1OctetString AddedUkm => m_addedukm;
 
         /// <summary>Produce an object suitable for an <see cref="Asn1OutputStream"/>.</summary>

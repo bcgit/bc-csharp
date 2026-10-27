@@ -5,6 +5,7 @@ namespace Org.BouncyCastle.Asn1
      */
     public interface IAsn1String
     {
+        /// <summary>Return the string.</summary>
         string GetString();
     }
 }

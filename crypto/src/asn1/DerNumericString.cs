@@ -68,6 +68,9 @@ namespace Org.BouncyCastle.Asn1
             return (DerNumericString)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Return an <see cref="DerNumericString"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="DerNumericString"/>, or null if <paramref name="element"/> is null.</returns>
         public static DerNumericString GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -79,6 +82,10 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="DerNumericString"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DerNumericString"/>.</returns>
         public static DerNumericString GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (DerNumericString)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
@@ -86,6 +93,8 @@ namespace Org.BouncyCastle.Asn1
 
         private readonly byte[] m_contents;
 
+        /// <summary>Create a new <see cref="DerNumericString"/>.</summary>
+        /// <param name="str">The str.</param>
         public DerNumericString(string str)
             : this(str, false)
         {
@@ -109,6 +118,8 @@ namespace Org.BouncyCastle.Asn1
             m_contents = Strings.ToAsciiByteArray(str);
         }
 
+        /// <summary>Create a new <see cref="DerNumericString"/>.</summary>
+        /// <param name="contents">The contents.</param>
         public DerNumericString(byte[] contents)
             : this(contents, true)
         {
@@ -122,11 +133,13 @@ namespace Org.BouncyCastle.Asn1
             m_contents = clone ? Arrays.Clone(contents) : contents;
         }
 
+        /// <inheritdoc/>
         public override string GetString()
         {
             return Strings.FromAsciiByteArray(m_contents);
         }
 
+        /// <summary>Return the octets.</summary>
         public byte[] GetOctets()
         {
             return Arrays.Clone(m_contents);
@@ -152,6 +165,7 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
         }
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             DerNumericString that = asn1Object as DerNumericString;
@@ -159,6 +173,7 @@ namespace Org.BouncyCastle.Asn1
                 && Arrays.AreEqual(this.m_contents, that.m_contents);
         }
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode()
         {
             return Arrays.GetHashCode(m_contents);

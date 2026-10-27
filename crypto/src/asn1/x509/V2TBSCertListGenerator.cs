@@ -37,101 +37,133 @@ namespace Org.BouncyCastle.Asn1.X509
         private Asn1Encodable m_extensions;
         private List<Asn1Sequence> crlEntries;
 
+        /// <summary>Create a new <see cref="V2TbsCertListGenerator"/>.</summary>
         public V2TbsCertListGenerator()
         {
         }
 
-		public void SetSignature(AlgorithmIdentifier signature)
+        /// <summary>Set the signature.</summary>
+        /// <param name="signature">The signature.</param>
+        public void SetSignature(AlgorithmIdentifier signature)
         {
             this.signature = signature;
         }
 
-		public void SetIssuer(X509Name issuer)
+        /// <summary>Set the issuer.</summary>
+        /// <param name="issuer">The issuer.</param>
+        public void SetIssuer(X509Name issuer)
         {
             this.issuer = issuer;
         }
 
-		public void SetThisUpdate(Asn1UtcTime thisUpdate)
+        /// <summary>Set the this update.</summary>
+        /// <param name="thisUpdate">The this update.</param>
+        public void SetThisUpdate(Asn1UtcTime thisUpdate)
         {
             this.thisUpdate = new Time(thisUpdate);
         }
 
-		public void SetNextUpdate(Asn1UtcTime nextUpdate)
+        /// <summary>Set the next update.</summary>
+        /// <param name="nextUpdate">The next update.</param>
+        public void SetNextUpdate(Asn1UtcTime nextUpdate)
         {
             this.nextUpdate = (nextUpdate != null)
-				?	new Time(nextUpdate)
-				:	null;
+                ? new Time(nextUpdate)
+                : null;
         }
 
-		public void SetThisUpdate(Time thisUpdate)
+        /// <summary>Set the this update.</summary>
+        /// <param name="thisUpdate">The this update.</param>
+        public void SetThisUpdate(Time thisUpdate)
         {
             this.thisUpdate = thisUpdate;
         }
 
-		public void SetNextUpdate(Time nextUpdate)
+        /// <summary>Set the next update.</summary>
+        /// <param name="nextUpdate">The next update.</param>
+        public void SetNextUpdate(Time nextUpdate)
         {
             this.nextUpdate = nextUpdate;
         }
 
-		public void AddCrlEntry(Asn1Sequence crlEntry)
-		{
-			if (crlEntries == null)
-			{
+        /// <summary>Add a CRL entry given as a ready-made sequence.</summary>
+        /// <param name="crlEntry">The CRL entry.</param>
+        public void AddCrlEntry(Asn1Sequence crlEntry)
+        {
+            if (crlEntries == null)
+            {
                 crlEntries = new List<Asn1Sequence>();
-			}
+            }
 
-			crlEntries.Add(crlEntry);
-		}
+            crlEntries.Add(crlEntry);
+        }
 
-		public void AddCrlEntry(DerInteger userCertificate, Asn1UtcTime revocationDate, int reason)
-		{
-			AddCrlEntry(userCertificate, new Time(revocationDate), reason);
-		}
+        /// <summary>Add a CRL entry with a revocation reason.</summary>
+        /// <param name="userCertificate">The serial number of the revoked certificate.</param>
+        /// <param name="revocationDate">The revocation date.</param>
+        /// <param name="reason">The reason code.</param>
+        public void AddCrlEntry(DerInteger userCertificate, Asn1UtcTime revocationDate, int reason)
+        {
+            AddCrlEntry(userCertificate, new Time(revocationDate), reason);
+        }
 
-		public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, int reason)
-		{
-			AddCrlEntry(userCertificate, revocationDate, reason, null);
-		}
+        /// <summary>Add a CRL entry with a revocation reason.</summary>
+        /// <param name="userCertificate">The serial number of the revoked certificate.</param>
+        /// <param name="revocationDate">The revocation date.</param>
+        /// <param name="reason">The reason code.</param>
+        public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, int reason)
+        {
+            AddCrlEntry(userCertificate, revocationDate, reason, null);
+        }
 
-		public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, int reason,
+        /// <summary>Add a CRL entry with a revocation reason and an invalidity date.</summary>
+        /// <param name="userCertificate">The serial number of the revoked certificate.</param>
+        /// <param name="revocationDate">The revocation date.</param>
+        /// <param name="reason">The reason code.</param>
+        /// <param name="invalidityDate">The date from which the certificate is considered invalid.</param>
+        public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, int reason,
             Asn1GeneralizedTime invalidityDate)
-		{
+        {
             var extOids = new List<DerObjectIdentifier>();
             var extValues = new List<X509Extension>();
 
-			if (reason != 0)
-			{
-				CrlReason crlReason = new CrlReason(reason);
+            if (reason != 0)
+            {
+                CrlReason crlReason = new CrlReason(reason);
 
-				try
-				{
-					extOids.Add(X509Extensions.ReasonCode);
-					extValues.Add(new X509Extension(false, new DerOctetString(crlReason.GetEncoded())));
-				}
-				catch (IOException e)
-				{
-					throw new ArgumentException("error encoding reason: " + e);
-				}
-			}
+                try
+                {
+                    extOids.Add(X509Extensions.ReasonCode);
+                    extValues.Add(new X509Extension(false, new DerOctetString(crlReason.GetEncoded())));
+                }
+                catch (IOException e)
+                {
+                    throw new ArgumentException("error encoding reason: " + e);
+                }
+            }
 
-			if (invalidityDate != null)
-			{
-				try
-				{
-					extOids.Add(X509Extensions.InvalidityDate);
-					extValues.Add(new X509Extension(false, new DerOctetString(invalidityDate.GetEncoded())));
-				}
-				catch (IOException e)
-				{
-					throw new ArgumentException("error encoding invalidityDate: " + e);
-				}
-			}
+            if (invalidityDate != null)
+            {
+                try
+                {
+                    extOids.Add(X509Extensions.InvalidityDate);
+                    extValues.Add(new X509Extension(false, new DerOctetString(invalidityDate.GetEncoded())));
+                }
+                catch (IOException e)
+                {
+                    throw new ArgumentException("error encoding invalidityDate: " + e);
+                }
+            }
 
             var extensions = extOids.Count < 1 ? null : new X509Extensions(extOids, extValues);
 
             AddCrlEntry(userCertificate, revocationDate, extensions);
-		}
+        }
 
+        /// <summary>Add a CRL entry with extensions.</summary>
+        /// <param name="userCertificate">The serial number of the revoked certificate.</param>
+        /// <param name="revocationDate">The revocation date.</param>
+        /// <param name="extensions">The extensions of the entry.</param>
         public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, X509Extensions extensions)
         {
             Asn1EncodableVector v = new Asn1EncodableVector(userCertificate, revocationDate);
@@ -139,17 +171,26 @@ namespace Org.BouncyCastle.Asn1.X509
             AddCrlEntry(new DerSequence(v));
         }
 
+        /// <summary>Set the extensions.</summary>
+        /// <param name="extensions">The extensions.</param>
         public void SetExtensions(X509Extensions extensions)
         {
             //SetExtensions(Extensions.GetInstance(extensions));
             m_extensions = extensions;
         }
 
+        /// <summary>Set the extensions.</summary>
+        /// <param name="extensions">The extensions.</param>
         public void SetExtensions(Extensions extensions)
         {
             m_extensions = extensions;
         }
 
+        /// <summary>
+        /// Generate the TBSCertList without the signature algorithm, as used when the signature is calculated before
+        /// the algorithm is known.
+        /// </summary>
+        /// <returns>The pre-TBSCertList sequence.</returns>
         public Asn1Sequence GeneratePreTbsCertList()
         {
             if (signature != null)
@@ -162,6 +203,9 @@ namespace Org.BouncyCastle.Asn1.X509
             return GenerateTbsCertificateStructure();
         }
 
+        /// <summary>Generate the TBSCertList from the state of the generator.</summary>
+        /// <returns>The TBSCertList.</returns>
+        /// <exception cref="InvalidOperationException">A required field has not been set.</exception>
         public TbsCertificateList GenerateTbsCertList()
         {
             if ((signature == null) || (issuer == null) || (thisUpdate == null))

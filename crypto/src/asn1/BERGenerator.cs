@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Base class for the generators that write BER encoded objects to a stream piece by piece.</summary>
     public abstract class BerGenerator
         : Asn1Generator
     {
@@ -12,11 +13,17 @@ namespace Org.BouncyCastle.Asn1
         private bool _isExplicit;
         private int _tagNo;
 
+        /// <summary>Create a new <see cref="BerGenerator"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
         protected BerGenerator(Stream outStream)
             : base(outStream)
         {
         }
 
+        /// <summary>Create a new <see cref="BerGenerator"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
         protected BerGenerator(Stream outStream, int tagNo, bool isExplicit)
             : base(outStream)
         {
@@ -25,21 +32,25 @@ namespace Org.BouncyCastle.Asn1
             _tagNo = tagNo;
         }
 
+        /// <inheritdoc/>
         protected override void Finish()
         {
             WriteBerEnd();
         }
 
+        /// <inheritdoc/>
         public override void AddObject(Asn1Encodable obj)
         {
             obj.EncodeTo(OutStream);
         }
 
+        /// <inheritdoc/>
         public override void AddObject(Asn1Object obj)
         {
             obj.EncodeTo(OutStream);
         }
 
+        /// <inheritdoc/>
         public override Stream GetRawOutputStream()
         {
             return OutStream;
@@ -57,6 +68,8 @@ namespace Org.BouncyCastle.Asn1
             OutStream.WriteByte(0x80);
         }
 
+        /// <summary>Write the header of a BER constructed object with indefinite length.</summary>
+        /// <param name="tag">The tag of the object.</param>
         protected void WriteBerHeader(int tag)
         {
             if (!_tagged)
@@ -83,12 +96,15 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Copy the body of a BER constructed object to the output.</summary>
+        /// <param name="contentStream">The stream holding the body.</param>
         // TODO[api] Remove unnecessary method
         protected void WriteBerBody(Stream contentStream)
         {
             Streams.PipeAll(contentStream, OutStream);
         }
 
+        /// <summary>Write the end-of-contents octets of a BER constructed object with indefinite length.</summary>
         protected void WriteBerEnd()
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

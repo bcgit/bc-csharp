@@ -9,6 +9,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 RELATIVE-OID type.</summary>
     public class Asn1RelativeOid
         : Asn1Object
     {
@@ -34,9 +35,17 @@ namespace Org.BouncyCastle.Asn1
         private const int MaxContentsLength = 4096;
         private const int MaxIdentifierLength = MaxContentsLength * 4 - 1;
 
+        /// <summary>Create a relative object identifier from the contents octets of its encoding.</summary>
+        /// <param name="contents">The contents.</param>
+        /// <returns>The relative object identifier.</returns>
         public static Asn1RelativeOid FromContents(byte[] contents) =>
             CreatePrimitive(contents ?? throw new ArgumentNullException(nameof(contents)), clone: true);
 
+        /// <summary>Return an <see cref="Asn1RelativeOid"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="Asn1RelativeOid"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="Asn1RelativeOid"/>, or null if <paramref name="obj"/> is null.</returns>
         public static Asn1RelativeOid GetInstance(object obj)
         {
             if (obj == null)
@@ -65,11 +74,18 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
+        /// <summary>Return an <see cref="Asn1RelativeOid"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Asn1RelativeOid"/>.</returns>
         public static Asn1RelativeOid GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (Asn1RelativeOid)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Return an <see cref="Asn1RelativeOid"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="Asn1RelativeOid"/>, or null if <paramref name="element"/> is null.</returns>
         public static Asn1RelativeOid GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -81,11 +97,19 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="Asn1RelativeOid"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Asn1RelativeOid"/>.</returns>
         public static Asn1RelativeOid GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (Asn1RelativeOid)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Try to create a relative object identifier from its string form.</summary>
+        /// <param name="identifier">The dotted-decimal string.</param>
+        /// <param name="oid">On success, the relative object identifier.</param>
+        /// <returns>true if the string was valid, false otherwise.</returns>
         public static bool TryFromID(string identifier, out Asn1RelativeOid oid)
         {
             if (identifier == null)
@@ -111,6 +135,8 @@ namespace Org.BouncyCastle.Asn1
         private readonly byte[] m_contents;
         private string m_identifier;
 
+        /// <summary>Create a new <see cref="Asn1RelativeOid"/>.</summary>
+        /// <param name="identifier">The identifier.</param>
         public Asn1RelativeOid(string identifier)
         {
             CheckIdentifier(identifier);
@@ -128,6 +154,9 @@ namespace Org.BouncyCastle.Asn1
             m_identifier = identifier;
         }
 
+        /// <summary>Create a relative object identifier by appending a branch to this one.</summary>
+        /// <param name="branchID">The dotted-decimal branch to append.</param>
+        /// <returns>The new relative object identifier.</returns>
         public virtual Asn1RelativeOid Branch(string branchID)
         {
             CheckIdentifier(branchID);
@@ -159,22 +188,27 @@ namespace Org.BouncyCastle.Asn1
             return new Asn1RelativeOid(contents, identifier);
         }
 
+        /// <summary>Return the ID.</summary>
         public string GetID()
         {
             return Objects.EnsureSingletonInitialized(ref m_identifier, m_contents, ParseContents);
         }
 
+        /// <summary>Gets the id.</summary>
         [Obsolete("Use 'GetID' instead")]
         public string Id => GetID();
 
+        /// <inheritdoc/>
         public override string ToString() => GetID();
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             return asn1Object is Asn1RelativeOid that
                 && Arrays.AreEqual(this.m_contents, that.m_contents);
         }
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode()
         {
             return Arrays.GetHashCode(m_contents);
@@ -470,7 +504,7 @@ namespace Org.BouncyCastle.Asn1
 
             return buf.ToArray();
         }
- 
+
         internal static void WriteField(MemoryStream buf, string identifier, int from, int to)
         {
             string token = identifier.Substring(from, to - from);

@@ -29,9 +29,17 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new ArchiveTimeStampChain(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="ArchiveTimeStampChain"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ArchiveTimeStampChain"/>.</returns>
         public static ArchiveTimeStampChain GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ArchiveTimeStampChain(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="ArchiveTimeStampChain"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ArchiveTimeStampChain"/>.</returns>
         public static ArchiveTimeStampChain GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ArchiveTimeStampChain(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -42,16 +50,21 @@ namespace Org.BouncyCastle.Asn1.Tsp
             m_archiveTimeStamps = DerSequence.Map(seq, ArchiveTimeStamp.GetInstance);
         }
 
+        /// <summary>Create a new <see cref="ArchiveTimeStampChain"/>.</summary>
+        /// <param name="archiveTimeStamp">The archive time stamp.</param>
         public ArchiveTimeStampChain(ArchiveTimeStamp archiveTimeStamp)
         {
             m_archiveTimeStamps = new DerSequence(archiveTimeStamp);
         }
 
+        /// <summary>Create a new <see cref="ArchiveTimeStampChain"/>.</summary>
+        /// <param name="archiveTimeStamps">The archive time stamps.</param>
         public ArchiveTimeStampChain(ArchiveTimeStamp[] archiveTimeStamps)
         {
             m_archiveTimeStamps = DerSequence.FromElements(archiveTimeStamps);
         }
 
+        /// <summary>Return the archive timestamps.</summary>
         public virtual ArchiveTimeStamp[] GetArchiveTimestamps() =>
             m_archiveTimeStamps.MapElements(ArchiveTimeStamp.GetInstance);
 
@@ -73,6 +86,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new ArchiveTimeStampChain(new DerSequence(v));
         }
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => m_archiveTimeStamps;
     }
 }

@@ -16,6 +16,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class KemBMParameter
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="KemBMParameter"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="KemBMParameter"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="KemBMParameter"/>, or null if <paramref name="obj"/> is null.</returns>
         public static KemBMParameter GetInstance(object obj)
         {
             if (obj == null)
@@ -25,9 +30,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new KemBMParameter(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="KemBMParameter"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="KemBMParameter"/>.</returns>
         public static KemBMParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new KemBMParameter(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="KemBMParameter"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="KemBMParameter"/>.</returns>
         public static KemBMParameter GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new KemBMParameter(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -49,6 +62,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="KemBMParameter"/>.</summary>
+        /// <param name="kdf">The kdf.</param>
+        /// <param name="len">The number of bytes.</param>
+        /// <param name="mac">The MAC.</param>
         public KemBMParameter(AlgorithmIdentifier kdf, DerInteger len, AlgorithmIdentifier mac)
         {
             m_kdf = kdf ?? throw new ArgumentNullException(nameof(kdf));
@@ -56,15 +73,22 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_mac = mac ?? throw new ArgumentNullException(nameof(mac));
         }
 
+        /// <summary>Create a new <see cref="KemBMParameter"/>.</summary>
+        /// <param name="kdf">The kdf.</param>
+        /// <param name="len">The number of bytes.</param>
+        /// <param name="mac">The MAC.</param>
         public KemBMParameter(AlgorithmIdentifier kdf, long len, AlgorithmIdentifier mac)
             : this(kdf, DerInteger.ValueOf(len), mac)
         {
         }
 
+        /// <summary>Gets the kdf.</summary>
         public virtual AlgorithmIdentifier Kdf => m_kdf;
 
+        /// <summary>Gets the len.</summary>
         public virtual DerInteger Len => m_len;
 
+        /// <summary>Gets the mac.</summary>
         public virtual AlgorithmIdentifier Mac => m_mac;
 
         /**

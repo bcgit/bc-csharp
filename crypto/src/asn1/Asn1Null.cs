@@ -21,6 +21,9 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Return an <see cref="Asn1Null"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="Asn1Null"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="Asn1Null"/>, or null if <paramref name="obj"/> is null.</returns>
         public static Asn1Null GetInstance(object obj)
         {
             if (obj == null)
@@ -49,11 +52,18 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
+        /// <summary>Return an <see cref="Asn1Null"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Asn1Null"/>.</returns>
         public static Asn1Null GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (Asn1Null)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Return an <see cref="Asn1Null"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="Asn1Null"/>, or null if <paramref name="element"/> is null.</returns>
         public static Asn1Null GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -65,6 +75,10 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="Asn1Null"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Asn1Null"/>.</returns>
         public static Asn1Null GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (Asn1Null)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
@@ -74,6 +88,7 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        /// <inheritdoc/>
         public override string ToString() => "NULL";
 
         private static void CheckContentsLength(int contentsLength)

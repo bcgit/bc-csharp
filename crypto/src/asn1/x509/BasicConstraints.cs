@@ -4,9 +4,15 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
+    /// <summary>The BasicConstraints extension of RFC 5280.</summary>
     public class BasicConstraints
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="BasicConstraints"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="BasicConstraints"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="BasicConstraints"/>, or null if <paramref name="obj"/> is null.</returns>
         public static BasicConstraints GetInstance(object obj)
         {
             if (obj == null)
@@ -19,12 +25,23 @@ namespace Org.BouncyCastle.Asn1.X509
             return new BasicConstraints(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="BasicConstraints"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="BasicConstraints"/>.</returns>
         public static BasicConstraints GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new BasicConstraints(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="BasicConstraints"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="BasicConstraints"/>.</returns>
         public static BasicConstraints GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new BasicConstraints(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
+        /// <summary>Get the extension of this type from a table of extensions, if it is present.</summary>
+        /// <param name="extensions">The extensions, or null.</param>
+        /// <returns>The value, or null if the extension is not present.</returns>
         public static BasicConstraints FromExtensions(X509Extensions extensions)
         {
             return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.BasicConstraints));
@@ -46,13 +63,15 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-		public BasicConstraints(bool cA)
+        /// <summary>Create a new <see cref="BasicConstraints"/>.</summary>
+        /// <param name="cA">true if c a, false otherwise.</param>
+        public BasicConstraints(bool cA)
         {
             m_cA = cA ? DerBoolean.True : DerBoolean.False;
             m_pathLenConstraint = null;
         }
 
-		/**
+        /**
          * create a cA=true object for the given path length constraint.
          *
          * @param pathLenConstraint
@@ -63,13 +82,17 @@ namespace Org.BouncyCastle.Asn1.X509
             m_pathLenConstraint = DerInteger.ValueOf(pathLenConstraint);
         }
 
+        /// <summary>Determine whether the subject is a CA.</summary>
+        /// <returns>true if the subject is a CA, false otherwise.</returns>
         public bool IsCA() => m_cA.IsTrue;
 
+        /// <summary>Gets the path len constraint.</summary>
         public BigInteger PathLenConstraint => m_pathLenConstraint?.Value;
 
+        /// <summary>Gets the path len constraint integer.</summary>
         public DerInteger PathLenConstraintInteger => m_pathLenConstraint;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * BasicConstraints := Sequence {
@@ -89,12 +112,13 @@ namespace Org.BouncyCastle.Asn1.X509
             return new DerSequence(v);
         }
 
-		public override string ToString()
+        /// <inheritdoc/>
+        public override string ToString()
         {
             if (m_pathLenConstraint == null)
-				return "BasicConstraints: isCa(" + IsCA() + ")";
+                return "BasicConstraints: isCa(" + IsCA() + ")";
 
-			return "BasicConstraints: isCa(" + IsCA() + "), pathLenConstraint = " + m_pathLenConstraint.Value;
+            return "BasicConstraints: isCa(" + IsCA() + "), pathLenConstraint = " + m_pathLenConstraint.Value;
         }
     }
 }

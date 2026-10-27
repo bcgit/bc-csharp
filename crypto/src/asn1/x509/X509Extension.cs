@@ -10,24 +10,34 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly bool m_critical;
         private readonly Asn1OctetString m_value;
 
+        /// <summary>Create a new <see cref="X509Extension"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="value">The value.</param>
         public X509Extension(DerBoolean critical, Asn1OctetString value)
         {
             m_critical = critical?.IsTrue ?? throw new ArgumentNullException(nameof(critical));
             m_value = value ?? throw new ArgumentNullException(nameof(value));
         }
 
+        /// <summary>Create a new <see cref="X509Extension"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="value">The value.</param>
         public X509Extension(bool critical, Asn1OctetString value)
         {
             m_critical = critical;
             m_value = value ?? throw new ArgumentNullException(nameof(value));
         }
 
+        /// <summary>Gets a value indicating whether this is critical.</summary>
         public bool IsCritical => m_critical;
 
+        /// <summary>Gets the value.</summary>
         public Asn1OctetString Value => m_value;
 
+        /// <summary>Return the parsed value.</summary>
         public Asn1Object GetParsedValue() => ConvertValueToObject(this);
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             int vh = Value.GetHashCode();
@@ -35,6 +45,7 @@ namespace Org.BouncyCastle.Asn1.X509
             return IsCritical ? vh : ~vh;
         }
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             return obj is X509Extension that

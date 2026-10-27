@@ -2,9 +2,13 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
+    /// <summary>The MetaData structure of RFC 5544.</summary>
     public class MetaData
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="MetaData"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="MetaData"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="MetaData"/>, or null if <paramref name="obj"/> is null.</returns>
         public static MetaData GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +18,16 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new MetaData(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="MetaData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="MetaData"/>.</returns>
         public static MetaData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new MetaData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="MetaData"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="MetaData"/>, or null if <paramref name="element"/> is null.</returns>
         public static MetaData GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -32,6 +43,10 @@ namespace Org.BouncyCastle.Asn1.Cms
             return null;
         }
 
+        /// <summary>Return an <see cref="MetaData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="MetaData"/>.</returns>
         public static MetaData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new MetaData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -40,6 +55,11 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly DerIA5String m_mediaType;
         private readonly Attributes m_otherMetaData;
 
+        /// <summary>Create a new <see cref="MetaData"/>.</summary>
+        /// <param name="hashProtected">The hash protected.</param>
+        /// <param name="fileName">The file name.</param>
+        /// <param name="mediaType">The media type.</param>
+        /// <param name="otherMetaData">The other meta data.</param>
         public MetaData(DerBoolean hashProtected, DerUtf8String fileName, DerIA5String mediaType,
             Attributes otherMetaData)
         {
@@ -64,12 +84,16 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets a value indicating whether this is hash protected.</summary>
         public virtual bool IsHashProtected => m_hashProtected.IsTrue;
 
+        /// <summary>Gets the file name.</summary>
         public virtual DerUtf8String FileName => m_fileName;
 
+        /// <summary>Gets the media type.</summary>
         public virtual DerIA5String MediaType => m_mediaType;
 
+        /// <summary>Gets the other meta data.</summary>
         public virtual Attributes OtherMetaData => m_otherMetaData;
 
         /// <remarks>

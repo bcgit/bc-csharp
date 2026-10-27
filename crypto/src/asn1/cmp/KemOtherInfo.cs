@@ -20,6 +20,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class KemOtherInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="KemOtherInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="KemOtherInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="KemOtherInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static KemOtherInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -29,9 +34,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new KemOtherInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="KemOtherInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="KemOtherInfo"/>.</returns>
         public static KemOtherInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new KemOtherInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="KemOtherInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="KemOtherInfo"/>.</returns>
         public static KemOtherInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new KemOtherInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -45,6 +58,13 @@ namespace Org.BouncyCastle.Asn1.Cmp
         private readonly AlgorithmIdentifier m_mac;
         private readonly Asn1OctetString m_ct;
 
+        /// <summary>Create a new <see cref="KemOtherInfo"/>.</summary>
+        /// <param name="transactionID">The transaction ID.</param>
+        /// <param name="senderNonce">The sender nonce.</param>
+        /// <param name="recipNonce">The recip nonce.</param>
+        /// <param name="len">The number of bytes.</param>
+        /// <param name="mac">The MAC.</param>
+        /// <param name="ct">The ct.</param>
         public KemOtherInfo(Asn1OctetString transactionID, Asn1OctetString senderNonce, Asn1OctetString recipNonce,
             DerInteger len, AlgorithmIdentifier mac, Asn1OctetString ct)
         {
@@ -57,6 +77,13 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_ct = ct;
         }
 
+        /// <summary>Create a new <see cref="KemOtherInfo"/>.</summary>
+        /// <param name="transactionID">The transaction ID.</param>
+        /// <param name="senderNonce">The sender nonce.</param>
+        /// <param name="recipNonce">The recip nonce.</param>
+        /// <param name="len">The number of bytes.</param>
+        /// <param name="mac">The MAC.</param>
+        /// <param name="ct">The ct.</param>
         public KemOtherInfo(Asn1OctetString transactionID, Asn1OctetString senderNonce, Asn1OctetString recipNonce,
             long len, AlgorithmIdentifier mac, Asn1OctetString ct)
             : this(transactionID, senderNonce, recipNonce, DerInteger.ValueOf(len), mac, ct)
@@ -84,16 +111,22 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the transaction ID.</summary>
         public virtual Asn1OctetString TransactionID => m_transactionID;
 
+        /// <summary>Gets the sender nonce.</summary>
         public virtual Asn1OctetString SenderNonce => m_senderNonce;
 
+        /// <summary>Gets the recip nonce.</summary>
         public virtual Asn1OctetString RecipNonce => m_recipNonce;
 
+        /// <summary>Gets the len.</summary>
         public virtual DerInteger Len => m_len;
 
+        /// <summary>Gets the mac.</summary>
         public virtual AlgorithmIdentifier Mac => m_mac;
 
+        /// <summary>Gets the ct.</summary>
         public virtual Asn1OctetString Ct => m_ct;
 
         /**

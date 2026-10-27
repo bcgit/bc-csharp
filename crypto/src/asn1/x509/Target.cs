@@ -6,7 +6,7 @@ namespace Org.BouncyCastle.Asn1.X509
     /**
      * Target structure used in target information extension for attribute
      * certificates from RFC 3281.
-     * 
+     *
      * <pre>
      *     Target  ::= CHOICE {
      *       targetName          [0] GeneralName,
@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Asn1.X509
      *       targetCert          [2] TargetCert
      *     }
      * </pre>
-     * 
+     *
      * <p>
      * The targetCert field is currently not supported and must not be used
      * according to RFC 3281.</p>
@@ -22,9 +22,12 @@ namespace Org.BouncyCastle.Asn1.X509
     public class Target
         : Asn1Encodable, IAsn1Choice
     {
+        /// <summary>A choice type, holding the alternative that was selected.</summary>
         public enum Choice
         {
+            /// <summary>The target is a name (targetName).</summary>
             Name = 0,
+            /// <summary>The target is a group (targetGroup).</summary>
             Group = 1
         };
 
@@ -32,7 +35,7 @@ namespace Org.BouncyCastle.Asn1.X509
          * Creates an instance of a Target from the given object.
          * <p>
          * <code>obj</code> can be a Target or a {@link Asn1TaggedObject}</p>
-         * 
+         *
          * @param obj The object.
          * @return A Target instance.
          * @throws ArgumentException if the given object cannot be
@@ -40,9 +43,16 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public static Target GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
+        /// <summary>Return an <see cref="Target"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Target"/>.</returns>
         public static Target GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
 
+        /// <summary>Return an <see cref="Target"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="Target"/>, or null if <paramref name="element"/> is null.</returns>
         public static Target GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -64,6 +74,10 @@ namespace Org.BouncyCastle.Asn1.X509
             return null;
         }
 
+        /// <summary>Return an <see cref="Target"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Target"/>.</returns>
         public static Target GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
@@ -72,7 +86,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         /**
          * Constructor from Asn1TaggedObject.
-         * 
+         *
          * @param tagObj The tagged object.
          * @throws ArgumentException if the encoding is wrong.
          */
@@ -120,9 +134,9 @@ namespace Org.BouncyCastle.Asn1.X509
 
         /**
          * Produce an object suitable for an Asn1OutputStream.
-         * 
+         *
          * Returns:
-         * 
+         *
          * <pre>
          *     Target  ::= CHOICE {
          *       targetName          [0] GeneralName,
@@ -130,7 +144,7 @@ namespace Org.BouncyCastle.Asn1.X509
          *       targetCert          [2] TargetCert
          *     }
          * </pre>
-         * 
+         *
          * @return an Asn1Object
          */
         public override Asn1Object ToAsn1Object()

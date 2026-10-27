@@ -2,9 +2,13 @@
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 EXTERNAL with definite-length encoding.</summary>
     public class DLExternal
         : DerExternal
     {
+        /// <summary>Create a DL external from a sequence.</summary>
+        /// <param name="seq">The sequence.</param>
+        /// <returns>The new object.</returns>
         public static new DLExternal FromSequence(Asn1Sequence seq)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -12,6 +16,9 @@ namespace Org.BouncyCastle.Asn1
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Create a DL external from a vector of elements.</summary>
+        /// <param name="vector">The vector.</param>
+        /// <returns>The new object.</returns>
         public static new DLExternal FromVector(Asn1EncodableVector vector)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -19,12 +26,16 @@ namespace Org.BouncyCastle.Asn1
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Create a new <see cref="DLExternal"/>.</summary>
+        /// <param name="vector">The vector.</param>
         [Obsolete("Use 'FromVector' instead")]
         public DLExternal(Asn1EncodableVector vector)
             : base(vector)
         {
         }
 
+        /// <summary>Create a new <see cref="DLExternal"/>.</summary>
+        /// <param name="sequence">The sequence.</param>
         [Obsolete("Use 'FromSequence' instead")]
         public DLExternal(Asn1Sequence sequence)
             : base(sequence)
