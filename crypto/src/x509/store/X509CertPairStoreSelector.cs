@@ -18,6 +18,7 @@ namespace Org.BouncyCastle.X509.Store
         private X509CertStoreSelector m_forwardSelector;
         private X509CertStoreSelector m_reverseSelector;
 
+        /// <summary>Create a selector with no criteria.</summary>
         public X509CertPairStoreSelector()
         {
         }
@@ -74,6 +75,7 @@ namespace Org.BouncyCastle.X509.Store
             return true;
         }
 
+        /// <summary>Return a copy of this selector.</summary>
         public object Clone() => new X509CertPairStoreSelector(this);
     }
 }

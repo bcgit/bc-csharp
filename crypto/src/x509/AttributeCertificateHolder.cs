@@ -26,6 +26,7 @@ namespace Org.BouncyCastle.X509
     /// }
     /// </pre>
     /// </remarks>
+    /// <summary>The holder of an attribute certificate: the entity the attributes are assigned to.</summary>
     public class AttributeCertificateHolder
         : IEquatable<AttributeCertificateHolder>, ISelector<X509Certificate>
     {
@@ -36,49 +37,53 @@ namespace Org.BouncyCastle.X509
             m_holder = Holder.GetInstance(seq);
         }
 
+        /// <summary>Create a holder identified by the issuer and serial number of its public key certificate.</summary>
+        /// <param name="issuerName">The issuer of the holder's certificate.</param>
+        /// <param name="serialNumber">The serial number of the holder's certificate.</param>
         public AttributeCertificateHolder(X509Name issuerName, BigInteger serialNumber)
             : this(issuerName, new DerInteger(serialNumber))
         {
         }
 
+        /// <summary>Create a holder identified by the issuer and serial number of its public key certificate.</summary>
+        /// <param name="issuerName">The issuer of the holder's certificate.</param>
+        /// <param name="serialNumber">The serial number of the holder's certificate.</param>
         public AttributeCertificateHolder(X509Name issuerName, DerInteger serialNumber)
         {
             m_holder = new Holder(new IssuerSerial(issuerName, serialNumber));
         }
 
+        /// <summary>Create a holder identified by its public key certificate.</summary>
+        /// <param name="cert">The holder's certificate.</param>
         public AttributeCertificateHolder(X509Certificate cert)
         {
             m_holder = new Holder(X509Utilities.CreateIssuerSerial(cert));
         }
 
+        /// <summary>Create a holder identified by a name.</summary>
+        /// <param name="principal">The name of the holder.</param>
         public AttributeCertificateHolder(X509Name principal)
         {
             m_holder = new Holder(new GeneralNames(new GeneralName(principal)));
         }
 
-        /**
-         * Constructs a holder for v2 attribute certificates with a hash value for
-         * some type of object.
-         * <p>
-         * <code>digestedObjectType</code> can be one of the following:
-         * <ul>
-         * <li>0 - publicKey - A hash of the public key of the holder must be
-         * passed.</li>
-         * <li>1 - publicKeyCert - A hash of the public key certificate of the
-         * holder must be passed.</li>
-         * <li>2 - otherObjectDigest - A hash of some other object type must be
-         * passed. <code>otherObjectTypeID</code> must not be empty.</li>
-         * </ul>
-         * </p>
-         * <p>This cannot be used if a v1 attribute certificate is used.</p>
-         *
-         * @param digestedObjectType The digest object type.
-         * @param digestAlgorithm The algorithm identifier for the hash.
-         * @param otherObjectTypeID The object type ID if
-         *            <code>digestedObjectType</code> is
-         *            <code>otherObjectDigest</code>.
-         * @param objectDigest The hash value.
-         */
+        /// <summary>Constructs a holder for v2 attribute certificates with a hash value for some type of object.
+        /// </summary>
+        /// <remarks>
+        /// <paramref name="digestedObjectType"/> can be one of the following:
+        /// <list type="bullet">
+        /// <item>0 - publicKey - A hash of the public key of the holder must be passed.</item>
+        /// <item>1 - publicKeyCert - A hash of the public key certificate of the holder must be passed.</item>
+        /// <item>2 - otherObjectDigest - A hash of some other object type must be passed.
+        /// <paramref name="otherObjectTypeID"/> must not be empty.</item>
+        /// </list>
+        /// This cannot be used if a v1 attribute certificate is used.
+        /// </remarks>
+        /// <param name="digestedObjectType">The digest object type.</param>
+        /// <param name="digestAlgorithm">The algorithm identifier for the hash.</param>
+        /// <param name="otherObjectTypeID">The object type ID if <paramref name="digestedObjectType"/> is
+        /// otherObjectDigest.</param>
+        /// <param name="objectDigest">The hash value.</param>
         public AttributeCertificateHolder(int digestedObjectType, string digestAlgorithm, string otherObjectTypeID,
             byte[] objectDigest)
         {
@@ -89,21 +94,16 @@ namespace Org.BouncyCastle.X509
             m_holder = new Holder(objectDigestInfo);
         }
 
-        /**
-         * Returns the digest object type if an object digest info is used.
-         * <p>
-         * <ul>
-         * <li>0 - publicKey - A hash of the public key of the holder must be
-         * passed.</li>
-         * <li>1 - publicKeyCert - A hash of the public key certificate of the
-         * holder must be passed.</li>
-         * <li>2 - otherObjectDigest - A hash of some other object type must be
-         * passed. <code>otherObjectTypeID</code> must not be empty.</li>
-         * </ul>
-         * </p>
-         *
-         * @return The digest object type or -1 if no object digest info is set.
-         */
+        /// <summary>Returns the digest object type if an object digest info is used.</summary>
+        /// <remarks>
+        /// The possible values are:
+        /// <list type="bullet">
+        /// <item>0 - publicKey - A hash of the public key of the holder.</item>
+        /// <item>1 - publicKeyCert - A hash of the public key certificate of the holder.</item>
+        /// <item>2 - otherObjectDigest - A hash of some other object type; see <see cref="OtherObjectTypeID"/>.</item>
+        /// </list>
+        /// </remarks>
+        /// <returns>The digest object type or -1 if no object digest info is set.</returns>
         public int DigestedObjectType
         {
             get
@@ -116,27 +116,16 @@ namespace Org.BouncyCastle.X509
             }
         }
 
-        /**
-         * Returns the other object type ID if an object digest info is used.
-         *
-         * @return The other object type ID or <code>null</code> if no object
-         *         digest info is set.
-         */
+        /// <summary>Returns the digest algorithm ID if an object digest info is used.</summary>
+        /// <returns>The digest algorithm ID or <c>null</c> if no object digest info is set.</returns>
         public string DigestAlgorithm => m_holder.ObjectDigestInfo?.DigestAlgorithm.Algorithm.Id;
 
-        /**
-         * Returns the hash if an object digest info is used.
-         *
-         * @return The hash or <code>null</code> if no object digest info is set.
-         */
+        /// <summary>Returns the hash if an object digest info is used.</summary>
+        /// <returns>The hash or <c>null</c> if no object digest info is set.</returns>
         public byte[] GetObjectDigest() => m_holder.ObjectDigestInfo?.ObjectDigest.GetBytes();
 
-        /**
-         * Returns the digest algorithm ID if an object digest info is used.
-         *
-         * @return The digest algorithm ID or <code>null</code> if no object
-         *         digest info is set.
-         */
+        /// <summary>Returns the other object type ID if an object digest info is used.</summary>
+        /// <returns>The other object type ID or <c>null</c> if no object digest info is set.</returns>
         public string OtherObjectTypeID => m_holder.ObjectDigestInfo?.OtherObjectTypeID.Id;
 
         private bool MatchesDN(X509Name subject, GeneralNames targets)
@@ -173,37 +162,36 @@ namespace Org.BouncyCastle.X509
             return result.ToArray();
         }
 
-        /**
-         * Return any principal objects inside the attribute certificate holder entity names field.
-         *
-         * @return an array of IPrincipal objects (usually X509Name), null if no entity names field is set.
-         */
+        /// <summary>Return the names inside the attribute certificate holder entity names field.</summary>
+        /// <returns>An array of names, or null if no entity names field is set.</returns>
         public X509Name[] GetEntityNames()
         {
             var entityName = m_holder.EntityName;
             return entityName == null ? null : GetPrincipals(entityName);
         }
 
-        /**
-         * Return the principals associated with the issuer attached to this holder
-         *
-         * @return an array of principals, null if no BaseCertificateID is set.
-         */
+        /// <summary>Return the names of the issuer attached to this holder.</summary>
+        /// <returns>An array of names, or null if no BaseCertificateID is set.</returns>
         public X509Name[] GetIssuer()
         {
             var baseCertificateID = m_holder.BaseCertificateID;
             return baseCertificateID == null ? null : GetPrincipals(baseCertificateID.Issuer);
         }
 
-        /**
-         * Return the serial number associated with the issuer attached to this holder.
-         *
-         * @return the certificate serial number, null if no BaseCertificateID is set.
-         */
+        /// <summary>Return the serial number associated with the issuer attached to this holder.</summary>
+        /// <returns>the certificate serial number, null if no BaseCertificateID is set.</returns>
         public BigInteger SerialNumber => m_holder.BaseCertificateID?.Serial.Value;
 
+        /// <summary>Return a copy of this holder.</summary>
         public object Clone() => new AttributeCertificateHolder((Asn1Sequence)m_holder.ToAsn1Object());
 
+        /// <summary>Test whether the given certificate is the holder's certificate.</summary>
+        /// <remarks>
+        /// The certificate is matched against the base certificate ID if there is one, otherwise against the entity
+        /// name and then the object digest.
+        /// </remarks>
+        /// <param name="x509Cert">The certificate to test.</param>
+        /// <returns>true if the certificate matches, false otherwise or if it is null.</returns>
         public bool Match(X509Certificate x509Cert)
         {
             if (x509Cert == null)
@@ -259,13 +247,16 @@ namespace Org.BouncyCastle.X509
             return false;
         }
 
+        /// <summary>Two holders are equal if their underlying ASN.1 structures are equal.</summary>
         public virtual bool Equals(AttributeCertificateHolder other)
         {
             return this == other || m_holder.Equals(other?.m_holder);
         }
 
+        /// <summary>Two holders are equal if their underlying ASN.1 structures are equal.</summary>
         public override bool Equals(object obj) => Equals(obj as AttributeCertificateHolder);
 
+        /// <summary>Returns a hash code derived from the underlying ASN.1 structure.</summary>
         public override int GetHashCode() => m_holder.GetHashCode();
     }
 }

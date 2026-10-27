@@ -10,6 +10,8 @@ using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.X509.Store
 {
+    /// <summary>A selector for X.509 certificates, matching them against configurable criteria.</summary>
+    /// <remarks>Criteria that have not been set are not applied.</remarks>
     public class X509CertStoreSelector
         : ISelector<X509Certificate>, ISpecificCertificate
     {
@@ -33,10 +35,13 @@ namespace Org.BouncyCastle.X509.Store
         private SubjectPublicKeyInfo m_subjectPublicKey;
         private DerObjectIdentifier m_subjectPublicKeyAlgID;
 
+        /// <summary>Create a selector with no criteria.</summary>
         public X509CertStoreSelector()
         {
         }
 
+        /// <summary>Create a selector with the criteria of another selector.</summary>
+        /// <param name="o">The selector to copy.</param>
         public X509CertStoreSelector(X509CertStoreSelector o)
         {
             m_authorityKeyIdentifier = o.m_authorityKeyIdentifier;
@@ -58,6 +63,7 @@ namespace Org.BouncyCastle.X509.Store
             m_subjectPublicKeyAlgID = o.m_subjectPublicKeyAlgID;
         }
 
+        /// <summary>Return a copy of this selector.</summary>
         public virtual object Clone() => new X509CertStoreSelector(this);
 
         /// <remarks>
@@ -69,78 +75,108 @@ namespace Org.BouncyCastle.X509.Store
             set { m_authorityKeyIdentifier = Arrays.Clone(value); }
         }
 
+        /// <summary>Gets or sets the minimum path length required by the basic constraints extension.</summary>
+        /// <remarks>
+        /// The default of -1 applies no criterion. A value of -2 only matches certificates that are not CA
+        /// certificates; otherwise only CA certificates allowing a path at least that long match.
+        /// </remarks>
+        /// <exception cref="ArgumentException">The value set is less than -2.</exception>
         public int BasicConstraints
         {
             get { return m_basicConstraints; }
             set { m_basicConstraints = CheckBasicConstraints(value); }
         }
 
+        /// <summary>Gets or sets the certificate to match exactly.</summary>
         public X509Certificate Certificate
         {
             get { return m_certificate; }
             set { m_certificate = value; }
         }
 
+        /// <summary>Gets or sets the time at which matching certificates must be valid.</summary>
         public DateTime? CertificateValid
         {
             get { return m_certificateValid; }
             set { m_certificateValid = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the extended key usage purposes; a certificate must allow at least one of them.
+        /// </summary>
         public ISet<DerObjectIdentifier> ExtendedKeyUsage
         {
             get { return CopySet(m_extendedKeyUsage); }
             set { m_extendedKeyUsage = CopySet(value); }
         }
 
+        /// <summary>
+        /// Gets or sets whether the ordering of the RDNs is ignored when matching issuer and subject names.
+        /// </summary>
         public bool IgnoreX509NameOrdering
         {
             get { return m_ignoreX509NameOrdering; }
             set { m_ignoreX509NameOrdering = value; }
         }
 
+        /// <summary>Gets or sets the issuer name that matching certificates must have.</summary>
         public X509Name Issuer
         {
             get { return m_issuer; }
             set { m_issuer = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the key usage bits that matching certificates must have set (a copy is kept).
+        /// </summary>
         public bool[] KeyUsage
         {
             get { return Arrays.Clone(m_keyUsage); }
             set { m_keyUsage = Arrays.Clone(value); }
         }
 
+        /// <summary>
+        /// Gets or sets whether a certificate must match all of the subject alternative names (the default) or any one.
+        /// </summary>
         public bool MatchAllSubjectAltNames
         {
             get { return m_matchAllSubjectAltNames; }
             set { m_matchAllSubjectAltNames = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the policy object identifiers; a certificate must assert at least one of them.
+        /// </summary>
         public ISet<DerObjectIdentifier> Policy
         {
             get { return CopySet(m_policy); }
             set { m_policy = CopySet(value); }
         }
 
+        /// <summary>
+        /// Gets or sets the time at which the private key usage period of matching certificates must be valid.
+        /// </summary>
         public DateTime? PrivateKeyValid
         {
             get { return m_privateKeyValid; }
             set { m_privateKeyValid = value; }
         }
 
+        /// <summary>Gets or sets the serial number that matching certificates must have.</summary>
         public BigInteger SerialNumber
         {
             get { return m_serialNumber; }
             set { m_serialNumber = value; }
         }
 
+        /// <summary>Gets or sets the subject name that matching certificates must have.</summary>
         public X509Name Subject
         {
             get { return m_subject; }
             set { m_subject = value; }
         }
 
+        /// <summary>Gets or sets the subject alternative names to match against.</summary>
         public ISet<GeneralName> SubjectAlternativeNames
         {
             get { return CopySet(m_subjectAlternativeNames); }
@@ -156,18 +192,25 @@ namespace Org.BouncyCastle.X509.Store
             set { m_subjectKeyIdentifier = Arrays.Clone(value); }
         }
 
+        /// <summary>Gets or sets the subject public key that matching certificates must have.</summary>
         public SubjectPublicKeyInfo SubjectPublicKey
         {
             get { return m_subjectPublicKey; }
             set { m_subjectPublicKey = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the algorithm of the subject public key that matching certificates must have.
+        /// </summary>
         public DerObjectIdentifier SubjectPublicKeyAlgID
         {
             get { return m_subjectPublicKeyAlgID; }
             set { m_subjectPublicKeyAlgID = value; }
         }
 
+        /// <summary>Test whether a certificate meets all the criteria that have been set.</summary>
+        /// <param name="c">The certificate to test.</param>
+        /// <returns>true if the certificate matches, false otherwise or if it is null.</returns>
         public virtual bool Match(X509Certificate c)
         {
             if (c == null)
@@ -221,13 +264,17 @@ namespace Org.BouncyCastle.X509.Store
             return true;
         }
 
+        /// <summary>Returns a hash code derived from the subject key identifier criterion.</summary>
         protected internal int GetHashCodeOfSubjectKeyIdentifier() => Arrays.GetHashCode(m_subjectKeyIdentifier);
 
+        /// <summary>Returns whether the issuer criteria of the two selectors are the same.</summary>
         protected internal bool MatchesIssuer(X509CertStoreSelector other) => IssuersMatch(m_issuer, other.m_issuer);
 
+        /// <summary>Returns whether the serial number criteria of the two selectors are the same.</summary>
         protected internal bool MatchesSerialNumber(X509CertStoreSelector other) =>
             Objects.Equals(m_serialNumber, other.m_serialNumber);
 
+        /// <summary>Returns whether the subject key identifier criteria of the two selectors are the same.</summary>
         protected internal bool MatchesSubjectKeyIdentifier(X509CertStoreSelector other) =>
             Arrays.AreEqual(m_subjectKeyIdentifier, other.m_subjectKeyIdentifier);
 
@@ -370,8 +417,10 @@ namespace Org.BouncyCastle.X509.Store
         }
     }
 
+    /// <summary>Implemented by selectors that identify one specific certificate.</summary>
     public interface ISpecificCertificate
     {
+        /// <summary>Gets the certificate being selected.</summary>
         X509Certificate Certificate { get; }
     }
 }

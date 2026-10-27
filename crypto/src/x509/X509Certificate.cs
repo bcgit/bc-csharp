@@ -64,15 +64,21 @@ namespace Org.BouncyCastle.X509
         private volatile bool hashValueSet;
         private volatile int hashValue;
 
+        /// <summary>Default constructor for subclasses.</summary>
         protected X509Certificate()
         {
         }
 
+        /// <summary>Parse a certificate from its encoding.</summary>
+        /// <param name="certData">The encoded certificate.</param>
         public X509Certificate(byte[] certData)
             : this(X509CertificateStructure.GetInstance(certData))
         {
         }
 
+        /// <summary>Wrap an ASN.1 certificate structure.</summary>
+        /// <param name="c">The ASN.1 structure.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="c"/> is null.</exception>
         // TODO[api] Change parameter name to 'certificate'
         public X509Certificate(X509CertificateStructure c)
         {
@@ -123,6 +129,7 @@ namespace Org.BouncyCastle.X509
             }
         }
 
+        /// <summary>Gets the underlying ASN.1 structure.</summary>
         public virtual X509CertificateStructure CertificateStructure => c;
 
         /// <summary>
@@ -148,7 +155,9 @@ namespace Org.BouncyCastle.X509
         /// Checks if the given date is within certificate's validity period.
         /// </summary>
         /// <exception cref="CertificateExpiredException">if the certificate is expired by given date</exception>
-        /// <exception cref="CertificateNotYetValidException">if the certificate is not yet valid on given date</exception>
+        /// <exception cref="CertificateNotYetValidException">
+        /// if the certificate is not yet valid on given date
+        /// </exception>
         public virtual void CheckValidity(DateTime time)
         {
             if (time.CompareTo(NotAfter) > 0)
@@ -195,6 +204,7 @@ namespace Org.BouncyCastle.X509
         /// <returns>A DateTime object representing that time in the local time zone.</returns>
         public virtual DateTime NotAfter => c.EndDate.ToDateTime();
 
+        /// <summary>Gets the to-be-signed part of the certificate.</summary>
         public virtual TbsCertificateStructure TbsCertificate => c.TbsCertificate;
 
         /// <summary>
@@ -227,7 +237,9 @@ namespace Org.BouncyCastle.X509
         /// <summary>
         /// Get the signature algorithms parameters. (EG DSA Parameters)
         /// </summary>
-        /// <returns>A byte array containing the Der encoded version of the parameters or null if there are none.</returns>
+        /// <returns>
+        /// A byte array containing the Der encoded version of the parameters or null if there are none.
+        /// </returns>
         public virtual byte[] GetSigAlgParams() => Arrays.Clone(sigAlgParams);
 
         /// <summary>The signature algorithm.</summary>
@@ -250,6 +262,9 @@ namespace Org.BouncyCastle.X509
         /// </summary>
         public virtual bool[] GetKeyUsage() => Arrays.Clone(keyUsage);
 
+        /// <summary>Return the purposes listed in the extended key usage extension.</summary>
+        /// <returns>The purposes, or null if the extension is not present.</returns>
+        /// <exception cref="CertificateParsingException">The extension could not be processed.</exception>
         public virtual IList<DerObjectIdentifier> GetExtendedKeyUsage()
         {
             try
@@ -272,6 +287,11 @@ namespace Org.BouncyCastle.X509
             }
         }
 
+        /// <summary>Return the maximum path length from the basic constraints extension.</summary>
+        /// <returns>
+        /// -1 if the certificate is not a CA certificate, <see cref="int.MaxValue"/> if it is a CA certificate with no
+        /// path length limit, otherwise the limit.
+        /// </returns>
         public virtual int GetBasicConstraints()
         {
             if (basicConstraints == null || !basicConstraints.IsCA())
@@ -284,22 +304,33 @@ namespace Org.BouncyCastle.X509
             return pathLenConstraint.IntPositiveValueExact;
         }
 
+        /// <summary>Return the issuer alternative names extension, or null if not present.</summary>
         public virtual GeneralNames GetIssuerAlternativeNameExtension() =>
             GetAlternativeNameExtension(X509Extensions.IssuerAlternativeName);
 
+        /// <summary>Return the subject alternative names extension, or null if not present.</summary>
         public virtual GeneralNames GetSubjectAlternativeNameExtension() =>
             GetAlternativeNameExtension(X509Extensions.SubjectAlternativeName);
 
+        /// <summary>Return the issuer alternative names as a list of (tag number, name) pairs.</summary>
+        /// <returns>The names, or null if the extension is not present.</returns>
         public virtual IList<IList<object>> GetIssuerAlternativeNames() =>
             GetAlternativeNames(X509Extensions.IssuerAlternativeName);
 
+        /// <summary>Return the subject alternative names as a list of (tag number, name) pairs.</summary>
+        /// <returns>The names, or null if the extension is not present.</returns>
         public virtual IList<IList<object>> GetSubjectAlternativeNames() =>
             GetAlternativeNames(X509Extensions.SubjectAlternativeName);
 
+        /// <summary>Return the alternative names extension with the given object identifier.</summary>
+        /// <param name="oid">The object identifier of the extension.</param>
         // TODO[api] Remove protected access
         protected virtual GeneralNames GetAlternativeNameExtension(DerObjectIdentifier oid) =>
             this.GetExtension(oid, GeneralNames.GetInstance);
 
+        /// <summary>Return the names in the alternative names extension with the given object identifier.</summary>
+        /// <param name="oid">The object identifier of the extension.</param>
+        /// <returns>The names as (tag number, name) pairs, or null if the extension is not present.</returns>
         // TODO[api] Remove protected access
         protected virtual IList<IList<object>> GetAlternativeNames(DerObjectIdentifier oid)
         {
@@ -349,6 +380,7 @@ namespace Org.BouncyCastle.X509
             return result;
         }
 
+        /// <summary>Returns the extensions of the certificate, or null for a certificate before version 3.</summary>
         protected override X509Extensions GetX509Extensions() => c.Version >= 3 ? c.Extensions : null;
 
         /// <summary>
@@ -376,6 +408,7 @@ namespace Org.BouncyCastle.X509
             return Arrays.Clone(GetCachedEncoding().GetEncoded());
         }
 
+        /// <summary>Two certificates are equal if their DER encodings are equal.</summary>
         public override bool Equals(object other)
         {
             if (this == other)
@@ -405,6 +438,7 @@ namespace Org.BouncyCastle.X509
                 && Arrays.AreEqual(thisEncoding, thatEncoding);
         }
 
+        /// <summary>Returns a hash code derived from the DER encoding.</summary>
         public override int GetHashCode()
         {
             if (!hashValueSet)
@@ -418,6 +452,7 @@ namespace Org.BouncyCastle.X509
             return hashValue;
         }
 
+        /// <summary>Returns a textual description of the certificate.</summary>
         public override string ToString()
         {
             StringBuilder buf = new StringBuilder();
@@ -508,16 +543,31 @@ namespace Org.BouncyCastle.X509
             return buf.ToString();
         }
 
+        /// <summary>Check whether the certificate signature is valid for the given public key.</summary>
+        /// <param name="key">The public key of the issuer.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
+        /// <exception cref="CertificateException">The signature algorithms in the certificate do not match.</exception>
         // TODO[api] Rename 'key' to 'publicKey'
         public virtual bool IsSignatureValid(AsymmetricKeyParameter key) =>
             CheckSignatureValid(new Asn1VerifierFactory(c.SignatureAlgorithm, key));
 
+        /// <summary>Check whether the certificate signature is valid, using a verifier from the given provider.
+        /// </summary>
+        /// <param name="verifierProvider">A provider of signature verifier factories.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
+        /// <exception cref="CertificateException">The signature algorithms in the certificate do not match.</exception>
         public virtual bool IsSignatureValid(IVerifierFactoryProvider verifierProvider) =>
             CheckSignatureValid(verifierProvider.CreateVerifierFactory(c.SignatureAlgorithm));
 
+        /// <summary>Check whether the alternative signature in the certificate's extensions is valid.</summary>
+        /// <param name="publicKey">The public key for the alternative signature.</param>
+        /// <returns>true if the alternative signature is valid, false otherwise.</returns>
         public virtual bool IsAlternativeSignatureValid(AsymmetricKeyParameter publicKey) =>
             IsAlternativeSignatureValid(new Asn1VerifierFactoryProvider(publicKey));
 
+        /// <summary>Check whether the alternative signature in the certificate's extensions is valid.</summary>
+        /// <param name="verifierProvider">A provider of signature verifier factories.</param>
+        /// <returns>true if the alternative signature is valid, false otherwise.</returns>
         public virtual bool IsAlternativeSignatureValid(IVerifierFactoryProvider verifierProvider)
         {
             var tbsCertificate = c.TbsCertificate;
@@ -547,9 +597,11 @@ namespace Org.BouncyCastle.X509
         /// <summary>
         /// Verify the certificate's signature using the nominated public key.
         /// </summary>
-        /// <param name="key">An appropriate public key parameter object, RsaPublicKeyParameters, DsaPublicKeyParameters or ECDsaPublicKeyParameters</param>
-        /// <returns>True if the signature is valid.</returns>
-        /// <exception cref="Exception">If key submitted is not of the above nominated types.</exception>
+        /// <param name="key">
+        /// An appropriate public key parameter object, RsaPublicKeyParameters, DsaPublicKeyParameters or
+        /// ECDsaPublicKeyParameters
+        /// </param>
+        /// <exception cref="InvalidKeyException">The certificate does not verify with the key.</exception>
         // TODO[api] Rename 'key' to 'publicKey'
         public virtual void Verify(AsymmetricKeyParameter key)
         {
@@ -579,12 +631,19 @@ namespace Org.BouncyCastle.X509
                 throw new InvalidKeyException("Public key presented not for certificate alternative signature");
         }
 
+        /// <summary>Verify the certificate signature using the given verifier factory.</summary>
+        /// <param name="verifier">The verifier factory.</param>
+        /// <exception cref="InvalidKeyException">The certificate does not verify.</exception>
         protected virtual void CheckSignature(IVerifierFactory verifier)
         {
             if (!CheckSignatureValid(verifier))
                 throw new InvalidKeyException("Public key presented not for certificate signature");
         }
 
+        /// <summary>Check the certificate signature using the given verifier factory.</summary>
+        /// <param name="verifier">The verifier factory.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
+        /// <exception cref="CertificateException">The signature algorithms in the certificate do not match.</exception>
         protected virtual bool CheckSignatureValid(IVerifierFactory verifier)
         {
             var tbsCertificate = c.TbsCertificate;

@@ -21,14 +21,23 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security
 {
+    /// <summary>Factory for private keys, creating the appropriate key parameters from a PKCS#8 encoding.</summary>
     public static class PrivateKeyFactory
     {
+        /// <summary>Create a private key from an encoded PrivateKeyInfo.</summary>
+        /// <param name="privateKeyInfoData">The encoded PrivateKeyInfo.</param>
         public static AsymmetricKeyParameter CreateKey(byte[] privateKeyInfoData) =>
             CreateKey(PrivateKeyInfo.GetInstance(privateKeyInfoData));
 
+        /// <summary>Create a private key from an encoded PrivateKeyInfo read from a stream.</summary>
+        /// <param name="inStr">The stream to read from.</param>
         public static AsymmetricKeyParameter CreateKey(Stream inStr) =>
             CreateKey(PrivateKeyInfo.GetInstance(Asn1Object.FromStream(inStr)));
 
+        /// <summary>Create a private key from a PrivateKeyInfo.</summary>
+        /// <param name="keyInfo">The PrivateKeyInfo.</param>
+        /// <exception cref="SecurityUtilityException">The key algorithm is not recognised.</exception>
+        /// <exception cref="ArgumentException">The key data is invalid for its algorithm.</exception>
         public static AsymmetricKeyParameter CreateKey(PrivateKeyInfo keyInfo)
         {
             AlgorithmIdentifier algID = keyInfo.PrivateKeyAlgorithm;
@@ -374,18 +383,35 @@ namespace Org.BouncyCastle.Security
         }
 #endif
 
+        /// <summary>Decrypt and create a private key from an EncryptedPrivateKeyInfo.</summary>
+        /// <param name="passPhrase">The password.</param>
+        /// <param name="encInfo">The encrypted private key info.</param>
         public static AsymmetricKeyParameter DecryptKey(char[] passPhrase, EncryptedPrivateKeyInfo encInfo) =>
             CreateKey(PrivateKeyInfoFactory.CreatePrivateKeyInfo(passPhrase, encInfo));
 
+        /// <summary>Decrypt and create a private key from an encoded EncryptedPrivateKeyInfo.</summary>
+        /// <param name="passPhrase">The password.</param>
+        /// <param name="encryptedPrivateKeyInfoData">The encoded encrypted private key info.</param>
         public static AsymmetricKeyParameter DecryptKey(char[] passPhrase, byte[] encryptedPrivateKeyInfoData) =>
             DecryptKey(passPhrase, EncryptedPrivateKeyInfo.GetInstance(encryptedPrivateKeyInfoData));
 
+        /// <summary>Decrypt and create a private key from an encoded EncryptedPrivateKeyInfo read from a stream.
+        /// </summary>
+        /// <param name="passPhrase">The password.</param>
+        /// <param name="encryptedPrivateKeyInfoStream">The stream to read from.</param>
         public static AsymmetricKeyParameter DecryptKey(char[] passPhrase, Stream encryptedPrivateKeyInfoStream)
         {
             return DecryptKey(passPhrase,
                 EncryptedPrivateKeyInfo.GetInstance(Asn1Object.FromStream(encryptedPrivateKeyInfoStream)));
         }
 
+        /// <summary>Encrypt a private key with a password-based encryption algorithm.</summary>
+        /// <param name="algorithm">The object identifier of the algorithm.</param>
+        /// <param name="passPhrase">The password.</param>
+        /// <param name="salt">The salt.</param>
+        /// <param name="iterationCount">The iteration count.</param>
+        /// <param name="key">The private key.</param>
+        /// <returns>The encoded EncryptedPrivateKeyInfo.</returns>
         public static byte[] EncryptKey(
             DerObjectIdentifier algorithm,
             char[] passPhrase,
@@ -397,6 +423,13 @@ namespace Org.BouncyCastle.Security
                 algorithm, passPhrase, salt, iterationCount, key).GetEncoded();
         }
 
+        /// <summary>Encrypt a private key with a password-based encryption algorithm.</summary>
+        /// <param name="algorithm">The name or object identifier (as a string) of the algorithm.</param>
+        /// <param name="passPhrase">The password.</param>
+        /// <param name="salt">The salt.</param>
+        /// <param name="iterationCount">The iteration count.</param>
+        /// <param name="key">The private key.</param>
+        /// <returns>The encoded EncryptedPrivateKeyInfo.</returns>
         public static byte[] EncryptKey(
             string algorithm,
             char[] passPhrase,

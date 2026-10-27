@@ -26,6 +26,7 @@ namespace Org.BouncyCastle.X509.Store
         private ISet<GeneralName> targetNames = new HashSet<GeneralName>();
         private ISet<GeneralName> targetGroups = new HashSet<GeneralName>();
 
+        /// <summary>Create a selector with no criteria.</summary>
         public X509AttrCertStoreSelector()
         {
         }
@@ -93,6 +94,7 @@ namespace Org.BouncyCastle.X509.Store
             return true;
         }
 
+        /// <summary>Return a copy of this selector.</summary>
         public object Clone() => new X509AttrCertStoreSelector(this);
 
         /// <summary>The attribute certificate which must be matched.</summary>
@@ -274,8 +276,10 @@ namespace Org.BouncyCastle.X509.Store
         }
     }
 
+    /// <summary>Implemented by selectors that identify one specific attribute certificate.</summary>
     public interface ISpecificAttributeCert
     {
+        /// <summary>Gets the attribute certificate being selected.</summary>
         X509V2AttributeCertificate AttributeCert { get; }
     }
 }
