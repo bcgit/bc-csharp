@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
         /// <summary>Create a new <see cref="ECGost3410Parameters"/>.</summary>
-        /// <param name="dp">The dp.</param>
+        /// <param name="x9ECParameters">The curve parameters.</param>
         /// <param name="publicKeyParamSet">The public key param set.</param>
         /// <param name="digestParamSet">The digest param set.</param>
         /// <param name="encryptionParamSet">The encryption param set.</param>

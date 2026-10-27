@@ -49,9 +49,10 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
 
         public virtual void Init(Srp6GroupParameters group, IDigest digest) => Init(group, digest, random: null);
 
-        /// <summary>Create a new <see cref="Srp6VerifierGenerator"/>.</summary>
+        /// <summary>Initialise the verifier generator.</summary>
         /// <param name="group">The group.</param>
         /// <param name="digest">The digest.</param>
+        /// <param name="random">The source of randomness, or null to use the default.</param>
         public virtual void Init(Srp6GroupParameters group, IDigest digest, SecureRandom random) =>
             Init(group.N, group.G, digest, random);
 
