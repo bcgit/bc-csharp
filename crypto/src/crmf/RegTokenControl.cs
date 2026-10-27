@@ -5,6 +5,7 @@ using Org.BouncyCastle.Asn1.Crmf;
 
 namespace Org.BouncyCastle.Crmf
 {
+    /// <summary>The registration token control of CRMF (RFC 4211 section 6.1).</summary>
     public class RegTokenControl
         : IControl
     {

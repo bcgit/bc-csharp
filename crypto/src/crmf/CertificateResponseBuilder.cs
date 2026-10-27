@@ -18,24 +18,19 @@ namespace Org.BouncyCastle.Crmf
         private CertifiedKeyPair m_certKeyPair;
         private Asn1OctetString m_rspInfo;
 
-        /**
-         * Base constructor.
-         *
-         * @param certReqId the request ID for the response.
-         * @param statusInfo the status info to associate with the response.
-         */
+        /// <summary>Base constructor.</summary>
+        /// <param name="certReqID">The request ID for the response.</param>
+        /// <param name="statusInfo">The status info to associate with the response.</param>
         public CertificateResponseBuilder(DerInteger certReqID, PkiStatusInfo statusInfo)
         {
             m_certReqID = certReqID;
             m_statusInfo = statusInfo;
         }
 
-        /**
-         * Specify the certificate to assign to this response (in plaintext).
-         *
-         * @param certificate the X.509 PK certificate to include.
-         * @return the current builder.
-         */
+        /// <summary>Specify the certificate to assign to this response (in plaintext).</summary>
+        /// <param name="certificate">The X.509 PK certificate to include.</param>
+        /// <returns>The current builder.</returns>
+        /// <exception cref="InvalidOperationException">A certificate has already been set.</exception>
         public virtual CertificateResponseBuilder WithCertificate(X509Certificate certificate)
         {
             if (m_certKeyPair != null)
@@ -48,12 +43,10 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
-        /**
-         * Specify the certificate to assign to this response (in plaintext).
-         *
-         * @param cmpCertificate the X.509 PK certificate to include.
-         * @return the current builder.
-         */
+        /// <summary>Specify the certificate to assign to this response (in plaintext).</summary>
+        /// <param name="cmpCertificate">The certificate to include.</param>
+        /// <returns>The current builder.</returns>
+        /// <exception cref="InvalidOperationException">A certificate has already been set.</exception>
         public virtual CertificateResponseBuilder WithCertificate(CmpCertificate cmpCertificate)
         {
             if (m_certKeyPair != null)
@@ -64,12 +57,10 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
-        /**
-         * Specify the encrypted certificate to assign to this response (in plaintext).
-         *
-         * @param encryptedCertificate an encrypted
-         * @return the current builder.
-         */
+        /// <summary>Specify the encrypted certificate to assign to this response.</summary>
+        /// <param name="encryptedCertificate">The enveloped data holding the encrypted certificate.</param>
+        /// <returns>The current builder.</returns>
+        /// <exception cref="InvalidOperationException">A certificate has already been set.</exception>
         public virtual CertificateResponseBuilder WithCertificate(CmsEnvelopedData encryptedCertificate)
         {
             if (m_certKeyPair != null)
@@ -82,12 +73,10 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
-        /**
-         * Specify the response info field on the response.
-         *
-         * @param responseInfo a response info string.
-         * @return the current builder.
-         */
+        /// <summary>Specify the response info field on the response.</summary>
+        /// <param name="responseInfo">The response info.</param>
+        /// <returns>The current builder.</returns>
+        /// <exception cref="InvalidOperationException">The response info has already been set.</exception>
         public virtual CertificateResponseBuilder WithResponseInfo(byte[] responseInfo)
         {
             if (m_rspInfo != null)
@@ -98,6 +87,7 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        /// <summary>Build the response.</summary>
         public virtual CertificateResponse Build() =>
             new CertificateResponse(new CertResponse(m_certReqID, m_statusInfo, m_certKeyPair, m_rspInfo));
     }

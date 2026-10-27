@@ -7,11 +7,17 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Crmf
 {
+    /// <summary>A certificate request message (CertReqMsg, RFC 4211): a template, controls and a proof of possession.
+    /// </summary>
     public class CertificateRequestMessage
     {
+        /// <summary>Proof-of-possession type: the RA has already verified possession.</summary>
         public static readonly int popRaVerified = Asn1.Crmf.ProofOfPossession.TYPE_RA_VERIFIED;
+        /// <summary>Proof-of-possession type: a signature made with the private key.</summary>
         public static readonly int popSigningKey = Asn1.Crmf.ProofOfPossession.TYPE_SIGNING_KEY;
+        /// <summary>Proof-of-possession type: demonstrated by key encipherment.</summary>
         public static readonly int popKeyEncipherment = Asn1.Crmf.ProofOfPossession.TYPE_KEY_ENCIPHERMENT;
+        /// <summary>Proof-of-possession type: demonstrated by key agreement.</summary>
         public static readonly int popKeyAgreement = Asn1.Crmf.ProofOfPossession.TYPE_KEY_AGREEMENT;
 
         private readonly CertReqMsg m_certReqMsg;
@@ -28,6 +34,8 @@ namespace Org.BouncyCastle.Crmf
         {
         }
 
+        /// <summary>Wrap a CertReqMsg structure.</summary>
+        /// <param name="certReqMsg">The ASN.1 structure.</param>
         public CertificateRequestMessage(CertReqMsg certReqMsg)
         {
             m_certReqMsg = certReqMsg;
@@ -112,6 +120,9 @@ namespace Org.BouncyCastle.Crmf
         /// </returns>
         public Asn1Encodable GetControlValue(DerObjectIdentifier type) => FindControl(type)?.Value;
 
+        /// <summary>Find the raw control of the specified type.</summary>
+        /// <param name="type">The type OID of the control.</param>
+        /// <returns>The control if present, null otherwise.</returns>
         public AttributeTypeAndValue FindControl(DerObjectIdentifier type)
         {
             if (m_controls != null)
@@ -164,9 +175,13 @@ namespace Org.BouncyCastle.Crmf
         /// <summary>
         /// Return whether or not a signing key proof-of-possession (POP) is valid.
         /// </summary>
-        /// <param name="verifierProvider">a provider that can produce content verifiers for the signature contained in this POP.</param>
+        /// <param name="verifierProvider">
+        /// a provider that can produce content verifiers for the signature contained in this POP.
+        /// </param>
         /// <returns>true if the POP is valid, false otherwise.</returns>
-        /// <exception cref="InvalidOperationException">if there is a problem in verification or content verifier creation.</exception>
+        /// <exception cref="InvalidOperationException">
+        /// if there is a problem in verification or content verifier creation.
+        /// </exception>
         /// <exception cref="InvalidOperationException">if POP not appropriate.</exception>
         public bool IsValidSigningKeyPop(IVerifierFactoryProvider verifierProvider)
         {
@@ -184,11 +199,15 @@ namespace Org.BouncyCastle.Crmf
         /// <summary>
         /// Return whether or not a signing key proof-of-possession (POP), with an associated PKMAC, is valid.
         /// </summary>
-        /// <param name="verifierProvider">a provider that can produce content verifiers for the signature contained in this POP.</param>
+        /// <param name="verifierProvider">
+        /// a provider that can produce content verifiers for the signature contained in this POP.
+        /// </param>
         /// <param name="macBuilder">a suitable PKMacBuilder to create the MAC verifier.</param>
         /// <param name="password">the password used to key the MAC calculation.</param>
         /// <returns>true if the POP is valid, false otherwise.</returns>
-        /// <exception cref="InvalidOperationException">if there is a problem in verification or content verifier creation.</exception>
+        /// <exception cref="InvalidOperationException">
+        /// if there is a problem in verification or content verifier creation.
+        /// </exception>
         /// <exception cref="InvalidOperationException">if POP not appropriate.</exception>
         public bool IsValidSigningKeyPop(IVerifierFactoryProvider verifierProvider, PKMacBuilder macBuilder,
             char[] password)
@@ -216,11 +235,15 @@ namespace Org.BouncyCastle.Crmf
         /// <summary>
         /// Return whether or not a signing key proof-of-possession (POP), with an associated PKMAC, is valid.
         /// </summary>
-        /// <param name="verifierProvider">a provider that can produce content verifiers for the signature contained in this POP.</param>
+        /// <param name="verifierProvider">
+        /// a provider that can produce content verifiers for the signature contained in this POP.
+        /// </param>
         /// <param name="macBuilder">a suitable PKMacBuilder to create the MAC verifier.</param>
         /// <param name="password">the password used to key the MAC calculation.</param>
         /// <returns>true if the POP is valid, false otherwise.</returns>
-        /// <exception cref="InvalidOperationException">if there is a problem in verification or content verifier creation.</exception>
+        /// <exception cref="InvalidOperationException">
+        /// if there is a problem in verification or content verifier creation.
+        /// </exception>
         /// <exception cref="InvalidOperationException">if POP not appropriate.</exception>
         public bool IsValidSigningKeyPop(IVerifierFactoryProvider verifierProvider, PKMacBuilder macBuilder,
             ReadOnlySpan<char> password)

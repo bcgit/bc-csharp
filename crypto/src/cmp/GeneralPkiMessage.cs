@@ -3,6 +3,7 @@ using Org.BouncyCastle.Asn1.Cmp;
 
 namespace Org.BouncyCastle.Cmp
 {
+    /// <summary>A wrapper for a PKIMessage that may or may not carry protection.</summary>
     public class GeneralPkiMessage
     {
         private readonly PkiMessage m_pkiMessage;
@@ -27,8 +28,10 @@ namespace Org.BouncyCastle.Cmp
         {
         }
 
+        /// <summary>Gets the message header.</summary>
         public virtual PkiHeader Header => m_pkiMessage.Header;
 
+        /// <summary>Gets the message body.</summary>
         public virtual PkiBody Body => m_pkiMessage.Body;
 
         /// <summary>
@@ -37,6 +40,7 @@ namespace Org.BouncyCastle.Cmp
         /// </summary>
         public virtual bool HasProtection => m_pkiMessage.Protection != null;
 
+        /// <summary>Return the underlying ASN.1 structure.</summary>
         public virtual PkiMessage ToAsn1Structure() => m_pkiMessage;
     }
 }
