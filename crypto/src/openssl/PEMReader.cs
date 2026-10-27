@@ -21,13 +21,12 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.OpenSsl
 {
-    /**
-    * Class for reading OpenSSL PEM encoded streams containing 
-    * X509 certificates, PKCS8 encoded keys and PKCS7 objects.
-    * <p>
-    * In the case of PKCS7 objects the reader will return a CMS ContentInfo object. Keys and
-    * Certificates will be returned using the appropriate java.security type.</p>
-    */
+    /// <summary>Class for reading OpenSSL PEM encoded streams.</summary>
+    /// <remarks>
+    /// The streams may contain X509 certificates, CRLs, certification requests, PKCS#8 and traditional OpenSSL
+    /// encoded keys and PKCS#7 objects. In the case of PKCS#7 objects the reader returns a CMS ContentInfo object;
+    /// keys and certificates are returned using the appropriate Bouncy Castle type.
+    /// </remarks>
     public class PemReader
         : Utilities.IO.Pem.PemReader
     {
@@ -55,28 +54,30 @@ namespace Org.BouncyCastle.OpenSsl
 
         private readonly IPasswordFinder pFinder;
 
-        /**
-        * Create a new PemReader
-        *
-        * @param reader the Reader
-        */
+        /// <summary>Create a new PemReader.</summary>
+        /// <param name="reader">The reader to read the PEM data from.</param>
         public PemReader(TextReader reader)
             : this(reader, null)
         {
         }
 
-        /**
-        * Create a new PemReader with a password finder
-        *
-        * @param reader the Reader
-        * @param pFinder the password finder
-        */
+        /// <summary>Create a new PemReader with a password finder.</summary>
+        /// <param name="reader">The reader to read the PEM data from.</param>
+        /// <param name="pFinder">The password finder used to obtain passwords for encrypted objects.</param>
         public PemReader(TextReader reader, IPasswordFinder pFinder)
             : base(reader)
         {
             this.pFinder = pFinder;
         }
 
+        /// <summary>Read the next object from the stream.</summary>
+        /// <returns>The object read, or null if the end of the stream has been reached.</returns>
+        /// <exception cref="IOException">The object type is not recognised or the object cannot be parsed.
+        /// </exception>
+        /// <exception cref="PemException">The object is malformed.</exception>
+        /// <exception cref="PasswordException">
+        /// A password is needed to decrypt the object but no usable password is available.
+        /// </exception>
         public object ReadObject()
         {
             PemObject obj = ReadPemObject();

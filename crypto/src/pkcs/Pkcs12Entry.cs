@@ -14,6 +14,8 @@ namespace Org.BouncyCastle.Pkcs
     {
         private readonly IDictionary<DerObjectIdentifier, Asn1Encodable> m_attributes;
 
+        /// <summary>Create a new <see cref="Pkcs12Entry"/>.</summary>
+        /// <param name="attributes">The attributes.</param>
         // TODO[api] Remove 'protected'
         protected internal Pkcs12Entry(IDictionary<DerObjectIdentifier, Asn1Encodable> attributes)
         {
