@@ -33,24 +33,24 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>SHA3-512.</summary>
         Sha3_512 = 14,      // SHA3-512
 
-        [Obsolete("Non-standard")]
         /// <summary>The MD4 hash algorithm.</summary>
+        [Obsolete("Non-standard")]
         MD4 = 301,
-        [Obsolete("Non-standard")]
         /// <summary>SHA3-224.</summary>
+        [Obsolete("Non-standard")]
         Sha3_224 = 312,     // SHA3-224
-        [Obsolete("Non-standard")]
         /// <summary>SHA3-256.</summary>
+        [Obsolete("Non-standard")]
         Sha3_256_Old = 313, // SHA3-256
-        [Obsolete("Non-standard")]
         /// <summary>SHA3-384.</summary>
-        Sha3_384 = 314,     // SHA3-384
         [Obsolete("Non-standard")]
+        Sha3_384 = 314,     // SHA3-384
         /// <summary>SHA3-512.</summary>
+        [Obsolete("Non-standard")]
         Sha3_512_Old = 315, // SHA3-512
 
-        [Obsolete("Non-standard")]
         /// <summary>SM3.</summary>
+        [Obsolete("Non-standard")]
         SM3 = 326, // SM3
     }
 }

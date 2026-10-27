@@ -24,8 +24,8 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Reserved for Diffie-Hellman (X9.42, as defined for IETF-S/MIME).</summary>
         DiffieHellman = 21, // Reserved for Diffie-Hellman (X9.42, as defined for IETF-S/MIME)
 
-        [Obsolete("Use 'EdDsa_Legacy' instead")]
         /// <summary>EdDSA - (internet draft, but appearing in use).</summary>
+        [Obsolete("Use 'EdDsa_Legacy' instead")]
         EdDsa = 22,             // EdDSA - (internet draft, but appearing in use)
         /// <summary>New name for old EdDSA tag.</summary>
         EdDsa_Legacy = 22,      // new name for old EdDSA tag.
