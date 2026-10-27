@@ -71,12 +71,15 @@ namespace Org.BouncyCastle.Ocsp
         }
 
         /// <summary>Basic constructor.</summary>
+        /// <param name="responderID">The identifier of the responder that will sign the response.</param>
         public BasicOcspRespGenerator(RespID responderID)
         {
             m_responderID = responderID;
         }
 
         /// <summary>Construct with the responderID as the SHA-1 keyHash of the passed in public key.</summary>
+        /// <param name="publicKey">The responder's public key.</param>
+        /// <exception cref="OcspException">The key hash could not be calculated.</exception>
         public BasicOcspRespGenerator(AsymmetricKeyParameter publicKey)
         {
             m_responderID = new RespID(publicKey);
@@ -123,6 +126,7 @@ namespace Org.BouncyCastle.Ocsp
         }
 
         /// <summary>Set the extensions for the response.</summary>
+        /// <param name="responseExtensions">The response extensions.</param>
         public void SetResponseExtensions(X509Extensions responseExtensions)
         {
             m_responseExtensions = responseExtensions;
@@ -165,6 +169,14 @@ namespace Org.BouncyCastle.Ocsp
             return new BasicOcspResp(new BasicOcspResponse(responseData, sigAlgID, signature, certs));
         }
 
+        /// <summary>Generate the signed response, using the default source of randomness.</summary>
+        /// <param name="signingAlgorithm">The name of the signature algorithm to use.</param>
+        /// <param name="privateKey">The private key to sign with.</param>
+        /// <param name="chain">The certificate chain associated with the response signer.</param>
+        /// <param name="thisUpdate">The "produced at" date of the response.</param>
+        /// <returns>The signed <see cref="BasicOcspResp"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="signingAlgorithm"/> is null.</exception>
+        /// <exception cref="OcspException">The response could not be encoded or signed.</exception>
         // TODO[api] Rename 'thisUpdate' to 'producedAt'
         public BasicOcspResp Generate(string signingAlgorithm, AsymmetricKeyParameter privateKey,
             X509Certificate[] chain, DateTime thisUpdate)
@@ -172,6 +184,15 @@ namespace Org.BouncyCastle.Ocsp
             return Generate(signingAlgorithm, privateKey, chain, thisUpdate, null);
         }
 
+        /// <summary>Generate the signed response, using the given source of randomness.</summary>
+        /// <param name="signingAlgorithm">The name of the signature algorithm to use.</param>
+        /// <param name="privateKey">The private key to sign with.</param>
+        /// <param name="chain">The certificate chain associated with the response signer.</param>
+        /// <param name="producedAt">The "produced at" date of the response.</param>
+        /// <param name="random">The source of randomness for the signature, or null to use the default.</param>
+        /// <returns>The signed <see cref="BasicOcspResp"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="signingAlgorithm"/> is null.</exception>
+        /// <exception cref="OcspException">The response could not be encoded or signed.</exception>
         public BasicOcspResp Generate(string signingAlgorithm, AsymmetricKeyParameter privateKey,
             X509Certificate[] chain, DateTime producedAt, SecureRandom random)
         {
@@ -186,8 +207,10 @@ namespace Org.BouncyCastle.Ocsp
         /// </summary>
         /// <param name="signatureCalculatorFactory">Implementation of signing calculator factory.</param>
         /// <param name="chain">The certificate chain associated with the response signer.</param>
-        /// <param name="producedAt">"produced at" date.</param>
-        /// <returns></returns>
+        /// <param name="producedAt">The "produced at" date of the response.</param>
+        /// <returns>The signed <see cref="BasicOcspResp"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="signatureCalculatorFactory"/> is null.</exception>
+        /// <exception cref="OcspException">The response could not be encoded or signed.</exception>
         // TODO[api] Rename 'signatureCalculatorFactory' to 'signatureFactory'
         public BasicOcspResp Generate(ISignatureFactory signatureCalculatorFactory, X509Certificate[] chain,
             DateTime producedAt)

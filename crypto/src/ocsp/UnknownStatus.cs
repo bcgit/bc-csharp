@@ -1,9 +1,12 @@
 namespace Org.BouncyCastle.Ocsp
 {
-    /// <summary>Wrapper for the UnknownInfo object.</summary>
+    /// <summary>
+    /// The status of a certificate the responder knows nothing about, wrapping the UnknownInfo object.
+    /// </summary>
     public class UnknownStatus
         : CertificateStatus
     {
+        /// <summary>Create an unknown status.</summary>
         public UnknownStatus()
         {
         }

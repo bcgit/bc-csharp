@@ -12,6 +12,13 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Ocsp
 {
+    /// <summary>Generator for OCSP requests (RFC 6960).</summary>
+    /// <remarks>
+    /// Add one or more <see cref="CertificateID"/> entries with <c>AddRequest</c>, optionally set the requestor name
+    /// and request extensions (for example a nonce), then call one of the <c>Generate</c> overloads. A request is
+    /// only signed if a signature algorithm or <see cref="ISignatureFactory"/> is supplied, in which case a
+    /// requestor name must also have been set.
+    /// </remarks>
     public class OcspReqGenerator
     {
         private readonly List<RequestObject> m_list = new List<RequestObject>();
@@ -67,11 +74,15 @@ namespace Org.BouncyCastle.Ocsp
             }
         }
 
+        /// <summary>Set the requestor name to the passed in GeneralName.</summary>
+        /// <param name="requestorName">A GeneralName representing the requestor name.</param>
         public void SetRequestorName(GeneralName requestorName)
         {
             m_requestorName = requestorName;
         }
 
+        /// <summary>Set the extensions for the request as a whole (as opposed to a single entry).</summary>
+        /// <param name="requestExtensions">The request extensions.</param>
         public void SetRequestExtensions(X509Extensions requestExtensions)
         {
             m_requestExtensions = requestExtensions;
@@ -124,11 +135,30 @@ namespace Org.BouncyCastle.Ocsp
         /// <summary>Generate an unsigned request.</summary>
         public OcspReq Generate() => GenerateRequest(null, null);
 
+        /// <summary>Generate a signed request.</summary>
+        /// <param name="signingAlgorithm">The name of the signature algorithm to use.</param>
+        /// <param name="privateKey">The private key to sign with.</param>
+        /// <param name="chain">Optional certificates to include in the request's signature.</param>
+        /// <returns>The signed <see cref="OcspReq"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="signingAlgorithm"/> is null.</exception>
+        /// <exception cref="OcspException">
+        /// No requestor name has been set, or the request could not be encoded or signed.
+        /// </exception>
         public OcspReq Generate(string signingAlgorithm, AsymmetricKeyParameter privateKey, X509Certificate[] chain)
         {
             return Generate(signingAlgorithm, privateKey, chain, random: null);
         }
 
+        /// <summary>Generate a signed request, using the given source of randomness.</summary>
+        /// <param name="signingAlgorithm">The name of the signature algorithm to use.</param>
+        /// <param name="privateKey">The private key to sign with.</param>
+        /// <param name="chain">Optional certificates to include in the request's signature.</param>
+        /// <param name="random">The source of randomness for the signature, or null to use the default.</param>
+        /// <returns>The signed <see cref="OcspReq"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="signingAlgorithm"/> is null.</exception>
+        /// <exception cref="OcspException">
+        /// No requestor name has been set, or the request could not be encoded or signed.
+        /// </exception>
         public OcspReq Generate(string signingAlgorithm, AsymmetricKeyParameter privateKey, X509Certificate[] chain,
             SecureRandom random)
         {
@@ -138,6 +168,14 @@ namespace Org.BouncyCastle.Ocsp
             return GenerateRequest(new Asn1SignatureFactory(signingAlgorithm, privateKey, random), chain);
         }
 
+        /// <summary>Generate a signed request using a signature factory.</summary>
+        /// <param name="signatureFactory">The factory that creates the signature calculator.</param>
+        /// <param name="chain">Optional certificates to include in the request's signature.</param>
+        /// <returns>The signed <see cref="OcspReq"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="signatureFactory"/> is null.</exception>
+        /// <exception cref="OcspException">
+        /// No requestor name has been set, or the request could not be encoded or signed.
+        /// </exception>
         public OcspReq Generate(ISignatureFactory signatureFactory, X509Certificate[] chain)
         {
             if (signatureFactory == null)
