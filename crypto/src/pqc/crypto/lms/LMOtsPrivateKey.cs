@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>An LM-OTS private key.</summary>
     // TODO[api] Make internal
     public sealed class LMOtsPrivateKey
     {
@@ -13,6 +14,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private readonly int m_q;
         private readonly byte[] m_masterSecret;
 
+        /// <summary>Create a new <see cref="LMOtsPrivateKey"/>.</summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="i">The i.</param>
+        /// <param name="q">The q.</param>
+        /// <param name="masterSecret">The master secret.</param>
         public LMOtsPrivateKey(LMOtsParameters parameters, byte[] i, int q, byte[] masterSecret)
         {
             m_parameters = parameters;
@@ -21,6 +27,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_masterSecret = masterSecret;
         }
 
+        /// <summary>Create the context for signing a message with this key.</summary>
+        /// <param name="sigParams">The LMS signature parameters.</param>
+        /// <param name="path">The authentication path.</param>
+        /// <returns>The context.</returns>
         public LmsContext GetSignatureContext(LMSigParameters sigParams, byte[][] path)
         {
             byte[] C = new byte[m_parameters.N];
@@ -47,17 +57,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return new LMOtsPublicKey(m_parameters, m_I, m_q, K);
         }
 
-        // TODO[api] Remove
+        /// <summary>Return the i.</summary>
         public byte[] GetI() => Arrays.Clone(m_I);
 
         internal byte[] InternalI => m_I;
 
-        // TODO[api] Remove (see LmsPrivateKeyParameters.GetMasterSecret)
+        /// <summary>Return the master secret.</summary>
         [Obsolete("Use 'LmsPrivateKeyParameters.GetEncoded' instead")]
         public byte[] GetMasterSecret() => Arrays.Clone(m_masterSecret);
 
+        /// <summary>Gets the parameters.</summary>
         public LMOtsParameters Parameters => m_parameters;
 
+        /// <summary>Gets the q.</summary>
         public int Q => m_q;
 
         internal SeedDerive GetDerivationFunction()
@@ -69,9 +81,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             };
         }
 
+        /// <summary>Gets the i.</summary>
         [Obsolete("Use 'GetI' instead")]
         public byte[] I => m_I;
 
+        /// <summary>Gets the master secret.</summary>
         [Obsolete("Use 'LmsPrivateKeyParameters.GetEncoded' instead")]
         public byte[] MasterSecret => m_masterSecret;
     }

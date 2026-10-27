@@ -6,6 +6,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
 
+    /// <summary>Base class for the symmetric primitives used by SABER.</summary>
     public abstract class Symmetric
     {
 
@@ -15,6 +16,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
 
         internal abstract void Prf(byte[] output, byte[] input, int inLen, int outputLen);
 
+        /// <summary>The SHAKE-based symmetric primitives used by SABER.</summary>
         protected internal class ShakeSymmetric
             : Symmetric
         {

@@ -6,6 +6,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
+    /// <summary>A generator of SPHINCS+ key pairs.</summary>
     [Obsolete("Use SLH-DSA instead")]
     public sealed class SphincsPlusKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
@@ -13,12 +14,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         private SecureRandom random;
         private SphincsPlusParameters parameters;
 
+        /// <inheritdoc/>
         public void Init(KeyGenerationParameters param)
         {
             random = param.Random;
             parameters = ((SphincsPlusKeyGenerationParameters)param).Parameters;
         }
 
+        /// <inheritdoc/>
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
             SphincsPlusEngine engine = parameters.GetEngine();

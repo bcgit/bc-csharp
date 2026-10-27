@@ -4,6 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
+    /// <summary>A Falcon private key.</summary>
     public sealed class FalconPrivateKeyParameters
         : FalconKeyParameters
     {
@@ -12,6 +13,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         private readonly byte[] m_g;
         private readonly byte[] m_F;
 
+        /// <summary>Create a new <see cref="FalconPrivateKeyParameters"/>.</summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="f">The f.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="F">The f.</param>
+        /// <param name="pk_encoded">The pk encoded.</param>
         public FalconPrivateKeyParameters(FalconParameters parameters, byte[] f, byte[] g, byte[] F, byte[] pk_encoded)
             : base(true, parameters)
         {
@@ -21,8 +28,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             m_pk = Arrays.CopyBuffer(pk_encoded);
         }
 
+        /// <summary>Return the encoded.</summary>
         public byte[] GetEncoded() => Arrays.ConcatenateAll(m_f, m_g, m_F);
 
+        /// <summary>Return the public key.</summary>
         public byte[] GetPublicKey() =>
             Arrays.IsNullOrEmpty(m_pk) ? DerivePublicKey() : Arrays.InternalCopyBuffer(m_pk);
 
@@ -30,10 +39,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         public FalconPublicKeyParameters GetPublicKeyParameters() =>
             new FalconPublicKeyParameters(Parameters, GetPublicKey());
 
+        /// <summary>Return the spoly little f.</summary>
         public byte[] GetSpolyLittleF() => Arrays.InternalCopyBuffer(m_f);
 
+        /// <summary>Return the g.</summary>
         public byte[] GetG() => Arrays.InternalCopyBuffer(m_g);
 
+        /// <summary>Return the spoly big f.</summary>
         public byte[] GetSpolyBigF() => Arrays.InternalCopyBuffer(m_F);
 
         /// <summary>

@@ -3,12 +3,14 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 {
+    /// <summary>A generator of FrodoKEM key pairs.</summary>
     public class FrodoKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
         private FrodoParameters m_parameters;
         private SecureRandom m_random;
 
+        /// <inheritdoc/>
         public void Init(KeyGenerationParameters param)
         {
             FrodoKeyGenerationParameters frodoParams = (FrodoKeyGenerationParameters)param;
@@ -17,6 +19,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             m_random = frodoParams.Random;
         }
 
+        /// <inheritdoc/>
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
 #pragma warning disable CS0618 // Type or member is obsolete

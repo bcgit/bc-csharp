@@ -17,8 +17,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
         }
 
+        /// <summary>Start composing a message.</summary>
+        /// <returns>A new composer.</returns>
         public static Composer Compose() => new Composer();
 
+        /// <summary>Append an unsigned 64-bit value in big-endian form.</summary>
+        /// <param name="n">The value.</param>
+        /// <returns>This composer.</returns>
         public Composer U64Str(long n)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -32,6 +37,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return this;
         }
 
+        /// <summary>Append an unsigned 32-bit value in big-endian form.</summary>
+        /// <param name="n">The value.</param>
+        /// <returns>This composer.</returns>
         public Composer U32Str(int n)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -47,6 +55,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return this;
         }
 
+        /// <summary>Append an unsigned 16-bit value in big-endian form.</summary>
+        /// <param name="n">The value.</param>
+        /// <returns>This composer.</returns>
         public Composer U16Str(int n)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -61,6 +72,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return this;
         }
 
+        /// <summary>Append the encodings of several objects.</summary>
+        /// <param name="encodable">The objects.</param>
+        /// <returns>This composer.</returns>
         public Composer Bytes(IEncodable[] encodable)
         {
             foreach (var e in encodable)
@@ -71,6 +85,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return this;
         }
 
+        /// <summary>Append the encoding of an object.</summary>
+        /// <param name="encodable">The object.</param>
+        /// <returns>This composer.</returns>
         public Composer Bytes(IEncodable encodable)
         {
             byte[] encoding = encodable.GetEncoded();
@@ -78,6 +95,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return this;
         }
 
+        /// <summary>Append zero bytes.</summary>
+        /// <param name="v">The value of the padding bytes.</param>
+        /// <param name="len">The number of bytes.</param>
+        /// <returns>This composer.</returns>
         public Composer Pad(int v, int len)
         {
             for (; len > 0; len--)
@@ -87,6 +108,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return this;
         }
 
+        /// <summary>Append several arrays.</summary>
+        /// <param name="arrays">The arrays.</param>
+        /// <returns>This composer.</returns>
         public Composer Bytes2(byte[][] arrays)
         {
             foreach (byte[] array in arrays)
@@ -96,6 +120,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return this;
         }
 
+        /// <summary>Append a range of an array of arrays.</summary>
+        /// <param name="arrays">The arrays.</param>
+        /// <param name="start">The index of the first array to append.</param>
+        /// <param name="end">The index after the last array to append.</param>
+        /// <returns>This composer.</returns>
         public Composer Bytes2(byte[][] arrays, int start, int end)
         {
             for (int j = start; j < end; ++j)
@@ -105,18 +134,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return this;
         }
 
+        /// <summary>Append an array.</summary>
+        /// <param name="array">The array.</param>
+        /// <returns>This composer.</returns>
         public Composer Bytes(byte[] array)
         {
             m_buffer.Write(array, 0, array.Length);
             return this;
         }
 
+        /// <summary>Append a range of an array.</summary>
+        /// <param name="array">The array.</param>
+        /// <param name="start">The index of the first byte.</param>
+        /// <param name="len">The number of bytes.</param>
+        /// <returns>This composer.</returns>
         public Composer Bytes(byte[] array, int start, int len)
         {
             m_buffer.Write(array, start, len);
             return this;
         }
 
+        /// <summary>Get the composed message.</summary>
+        /// <returns>The message.</returns>
         public byte[] Build() => m_buffer.ToArray();
 
         /// <summary>Feed what has been composed to <paramref name="digest"/> in place of building it.</summary>
@@ -132,6 +171,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         // (net5+), which do not cover the SHAKE parameter sets.
         internal void BuildTo(IDigest digest) => m_buffer.WriteTo(new DigestSink(digest));
 
+        /// <summary>Append padding until the message has the required length.</summary>
+        /// <param name="v">The value of the padding bytes.</param>
+        /// <param name="requiredLen">The required length.</param>
+        /// <returns>This composer.</returns>
         public Composer PadUntil(int v, int requiredLen)
         {
             while (m_buffer.Length < requiredLen)
@@ -141,6 +184,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return this;
         }
 
+        /// <summary>Append a boolean as one byte.</summary>
+        /// <param name="v">The value.</param>
+        /// <returns>This composer.</returns>
         public Composer Boolean(bool v)
         {
             m_buffer.WriteByte((byte)(v ? 1 : 0));

@@ -6,16 +6,20 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
+    /// <summary>Generates a shared secret and its encapsulation for a public key, for BIKE.</summary>
     public sealed class BikeKemGenerator
         : IEncapsulatedSecretGenerator
     {
         private readonly SecureRandom sr;
 
+        /// <summary>Create a new <see cref="BikeKemGenerator"/>.</summary>
+        /// <param name="random">The source of randomness.</param>
         public BikeKemGenerator(SecureRandom random)
         {
             this.sr = random;
         }
 
+        /// <inheritdoc/>
         public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
         {
             BikePublicKeyParameters key = (BikePublicKeyParameters)recipientKey;

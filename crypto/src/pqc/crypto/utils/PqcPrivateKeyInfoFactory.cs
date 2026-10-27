@@ -20,6 +20,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
+    /// <summary>Factory for creating PKCS#8 structures from post-quantum private keys.</summary>
     public static class PqcPrivateKeyInfoFactory
     {
         /// <summary> Create a PrivateKeyInfo representation of a private key.</summary>

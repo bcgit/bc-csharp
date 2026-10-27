@@ -8,11 +8,15 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 {
+    /// <summary>Base class for the generators of the public matrix A used by FrodoKEM.</summary>
     public abstract class FrodoMatrixGenerator
     {
         internal readonly int m_n;
         internal readonly int m_q;
 
+        /// <summary>Create a new <see cref="FrodoMatrixGenerator"/>.</summary>
+        /// <param name="n">The n.</param>
+        /// <param name="q">The q.</param>
         public FrodoMatrixGenerator(int n, int q)
         {
             Debug.Assert((n & 7) == 0);

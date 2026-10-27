@@ -8,9 +8,13 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>Utility methods for LMS.</summary>
     // TODO[api] Make internal
     public static class LmsUtilities
     {
+        /// <summary>Update a digest with an unsigned 32-bit value in big-endian form.</summary>
+        /// <param name="n">The value.</param>
+        /// <param name="d">The digest.</param>
         public static void U32Str(int n, IDigest d)
         {
             d.Update((byte)(n >> 24));
@@ -19,22 +23,36 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             d.Update((byte)(n));
         }
 
+        /// <summary>Update a digest with an unsigned 16-bit value in big-endian form.</summary>
+        /// <param name="n">The value.</param>
+        /// <param name="d">The digest.</param>
         public static void U16Str(short n, IDigest d)
         {
             d.Update((byte)(n >> 8));
             d.Update((byte)(n));
         }
 
+        /// <summary>Update a digest with an array or a range of one.</summary>
+        /// <param name="array">The array.</param>
+        /// <param name="digest">The digest.</param>
         public static void ByteArray(byte[] array, IDigest digest)
         {
             digest.BlockUpdate(array, 0, array.Length);
         }
 
+        /// <summary>Update a digest with an array or a range of one.</summary>
+        /// <param name="array">The array.</param>
+        /// <param name="start">The index of the first byte.</param>
+        /// <param name="len">The number of bytes.</param>
+        /// <param name="digest">The digest.</param>
         public static void ByteArray(byte[] array, int start, int len, IDigest digest)
         {
             digest.BlockUpdate(array, start, len);
         }
 
+        /// <summary>Calculate the strength in bits of LMS parameters, as the node size in bits.</summary>
+        /// <param name="lmsParameters">The parameters.</param>
+        /// <returns>The strength in bits.</returns>
         public static int CalculateStrength(LmsParameters lmsParameters)
         {
             if (lmsParameters == null)

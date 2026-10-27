@@ -2,6 +2,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 {
+    /// <summary>Base class for FrodoKEM keys.</summary>
     public abstract class FrodoKeyParameters
         : AsymmetricKeyParameter
     {
@@ -13,6 +14,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             m_parameters = parameters;
         }
 
+        /// <summary>Gets the parameters.</summary>
         public FrodoParameters Parameters => m_parameters;
     }
 }

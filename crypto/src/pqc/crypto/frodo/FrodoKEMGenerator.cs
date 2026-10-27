@@ -4,6 +4,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 {
+    /// <summary>Generates a shared secret and its encapsulation for a public key, for FrodoKEM.</summary>
     // TODO[api] FrodoKemGenerator
     public class FrodoKEMGenerator
         : IEncapsulatedSecretGenerator
@@ -11,11 +12,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         // the source of randomness
         private readonly SecureRandom m_random;
 
+        /// <summary>Create a new <see cref="FrodoKEMGenerator"/>.</summary>
+        /// <param name="random">The source of randomness.</param>
         public FrodoKEMGenerator(SecureRandom random)
         {
             m_random = random;
         }
 
+        /// <inheritdoc/>
         public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
         {
             FrodoPublicKeyParameters key = (FrodoPublicKeyParameters)recipientKey;
