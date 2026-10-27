@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Tsp
         /// <summary>Create an exception with an associated failure code.</summary>
         /// <param name="message">The message describing the validation failure.</param>
         /// <param name="failureCode">
-        /// The failure code, as one of the constants in <see cref="PkiFailureInfo"/>.
+        /// The failure code, as one of the constants in <see cref="Org.BouncyCastle.Asn1.Cmp.PkiFailureInfo"/>.
         /// </param>
         public TspValidationException(string message, int failureCode)
             : base(message)
