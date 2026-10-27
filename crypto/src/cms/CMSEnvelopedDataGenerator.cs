@@ -50,6 +50,10 @@ namespace Org.BouncyCastle.Cms
         public CmsEnvelopedData Generate(CmsProcessable content, string encryptionOid, int keySize) =>
             Generate(CmsUtilities.GetTypedData(content), new DerObjectIdentifier(encryptionOid), keySize);
 
+        /// <summary>Generate an enveloped object that contains a CMS Enveloped Data object.</summary>
+        /// <param name="content">The content to be encrypted.</param>
+        /// <param name="cipherBuilder">The cipher builder supplying the content encryption key and algorithm.</param>
+        /// <returns>The enveloped data.</returns>
         [Obsolete("Use 'Generate(CmsTypedData, ICipherBuilderWithKey)' instead")]
         public CmsEnvelopedData Generate(CmsProcessable content, ICipherBuilderWithKey cipherBuilder) =>
             Generate(CmsUtilities.GetTypedData(content), cipherBuilder);

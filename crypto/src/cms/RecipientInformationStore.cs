@@ -4,6 +4,7 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Cms
 {
+    /// <summary>A collection of <see cref="RecipientInformation"/> objects, indexed by recipient ID.</summary>
     public class RecipientInformationStore
         : IEnumerable<RecipientInformation>
     {
@@ -11,22 +12,16 @@ namespace Org.BouncyCastle.Cms
         private readonly Dictionary<RecipientID, List<RecipientInformation>> m_table =
             new Dictionary<RecipientID, List<RecipientInformation>>();
 
-        /**
-         * Create a store containing a single RecipientInformation object.
-         *
-         * @param recipientInfo the recipient information to contain.
-         */
+        /// <summary>Create a store containing a single <see cref="RecipientInformation"/> object.</summary>
+        /// <param name="recipientInfo">The recipient information to contain.</param>
         public RecipientInformationStore(RecipientInformation recipientInfo)
         {
             m_all = new List<RecipientInformation>(1){ recipientInfo };
             m_table[recipientInfo.RecipientID] = m_all;
         }
 
-        /**
-         * Create a store containing a collection of RecipientInformation objects.
-         *
-         * @param recipientInfos a collection of recipient information objects to contain.
-         */
+        /// <summary>Create a store containing a collection of <see cref="RecipientInformation"/> objects.</summary>
+        /// <param name="recipientInfos">A collection of recipient information objects to contain.</param>
         public RecipientInformationStore(IEnumerable<RecipientInformation> recipientInfos)
         {
             m_all = new List<RecipientInformation>(recipientInfos);
@@ -44,15 +39,17 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
+        /// <summary>
+        /// Gets the first recipient matching the passed in selector, or null if there are no matches.
+        /// </summary>
+        /// <param name="selector">The recipient ID to select against.</param>
         public RecipientInformation this[RecipientID selector] => GetFirstRecipient(selector);
 
-        /**
-         * Return the first RecipientInformation object that matches the
-         * passed in selector. Null if there are no matches.
-         *
-         * @param selector to identify a recipient
-         * @return a single RecipientInformation object. Null if none matches.
-         */
+        /// <summary>
+        /// Return the first <see cref="RecipientInformation"/> object that matches the passed in selector.
+        /// </summary>
+        /// <param name="selector">The recipient ID to select against.</param>
+        /// <returns>A single <see cref="RecipientInformation"/> object, or null if none matches.</returns>
         public RecipientInformation GetFirstRecipient(RecipientID selector)
         {
             if (!m_table.TryGetValue(selector, out var list))
@@ -67,12 +64,9 @@ namespace Org.BouncyCastle.Cms
         /// <returns>A list of all recipients in the collection</returns>
         public IList<RecipientInformation> GetRecipients() => new List<RecipientInformation>(m_all);
 
-        /**
-         * Return possible empty collection with recipients matching the passed in RecipientID
-         *
-         * @param selector a recipient id to select against.
-         * @return a collection of RecipientInformation objects.
-         */
+        /// <summary>Return a (possibly empty) list of the recipients matching the passed in selector.</summary>
+        /// <param name="selector">The recipient ID to select against.</param>
+        /// <returns>A list of <see cref="RecipientInformation"/> objects.</returns>
         public IList<RecipientInformation> GetRecipients(RecipientID selector)
         {
             if (!m_table.TryGetValue(selector, out var list))
@@ -83,6 +77,7 @@ namespace Org.BouncyCastle.Cms
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 
+        /// <summary>Return an enumerator over all the recipients in the store.</summary>
         public IEnumerator<RecipientInformation> GetEnumerator()
         {
             IEnumerable<RecipientInformation> e = CollectionUtilities.Proxy(m_all);

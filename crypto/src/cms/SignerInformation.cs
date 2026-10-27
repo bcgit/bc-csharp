@@ -41,11 +41,16 @@ namespace Org.BouncyCastle.Cms
         private readonly bool isCounterSignature;
 
         // TODO[api] Avoid having protected fields (maybe seal the class too?)
+        /// <summary>The underlying ASN.1 signer info.</summary>
         protected SignerInfo info;
+        /// <summary>The digest algorithm used by the signer.</summary>
         protected AlgorithmIdentifier digestAlgorithm;
         // TODO[api] Rename to 'signatureAlgorithm'
+        /// <summary>The signature algorithm used by the signer.</summary>
         protected AlgorithmIdentifier encryptionAlgorithm;
+        /// <summary>The signed attributes, or null if there are none.</summary>
         protected readonly Asn1Set signedAttributeSet;
+        /// <summary>The unsigned attributes, or null if there are none.</summary>
         protected readonly Asn1Set unsignedAttributeSet;
 
         internal SignerInformation(SignerInfo info, DerObjectIdentifier contentType, CmsProcessable content,

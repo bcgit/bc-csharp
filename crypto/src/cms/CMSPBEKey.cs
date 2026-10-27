@@ -88,6 +88,7 @@ namespace Org.BouncyCastle.Cms
         }
 #endif
 
+        /// <summary>Wipe the password when the key is finalized.</summary>
         ~CmsPbeKey()
         {
             // ZeroMemory (not Array.Clear) so the JIT cannot elide the wipe of the secret password

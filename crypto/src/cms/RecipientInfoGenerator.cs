@@ -6,6 +6,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Cms
 {
+    /// <summary>Generator for the RecipientInfo of a single recipient of CMS enveloped or authenticated data.</summary>
     public interface RecipientInfoGenerator
     {
         /// <summary>

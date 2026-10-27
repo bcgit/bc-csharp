@@ -33,6 +33,7 @@ namespace Org.BouncyCastle.Cms
         /// <summary>Return a copy of the content.</summary>
         public byte[] GetByteArray() => Arrays.Clone(m_bytes);
 
+        /// <summary>Gets the content type.</summary>
         [Obsolete("Use 'ContentType' instead")]
         public DerObjectIdentifier Type => m_type;
 

@@ -21,12 +21,19 @@ namespace Org.BouncyCastle.Cms
         {
         }
 
+        /// <summary>Create a stream of typed content.</summary>
+        /// <param name="oid">The content type, as a dotted-decimal OID string.</param>
+        /// <param name="inStream">The stream.</param>
         [Obsolete("Use 'DerObjectIdentifier' variant instead")]
         public CmsTypedStream(string oid, Stream inStream)
             : this(oid, inStream, Streams.DefaultBufferSize)
         {
         }
 
+        /// <summary>Create a stream of typed content, with the given buffer size.</summary>
+        /// <param name="oid">The content type, as a dotted-decimal OID string.</param>
+        /// <param name="inStream">The stream.</param>
+        /// <param name="bufSize">The size of the buffer used when reading.</param>
         [Obsolete("Use 'DerObjectIdentifier' variant instead")]
         public CmsTypedStream(string oid, Stream inStream, int bufSize)
             : this(new DerObjectIdentifier(oid), inStream, bufSize)
@@ -51,6 +58,7 @@ namespace Org.BouncyCastle.Cms
             m_contentStream = new BufferedFilterStream(contentStream, bufSize);
         }
 
+        /// <summary>Gets the content type as a dotted-decimal OID string.</summary>
         [Obsolete("Use 'ContentTypeOid' instead")]
         public string ContentType => m_contentType.GetID();
 
