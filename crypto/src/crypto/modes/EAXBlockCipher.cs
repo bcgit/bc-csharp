@@ -62,15 +62,19 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.cipher = new SicBlockCipher(cipher);
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => cipher.UnderlyingCipher.AlgorithmName + "/EAX";
 
+        /// <inheritdoc/>
         public virtual IBlockCipher UnderlyingCipher => cipher;
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize()
         {
             return cipher.GetBlockSize();
         }
 
+        /// <inheritdoc/>
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
             this.forEncryption = forEncryption;
@@ -194,6 +198,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             Reset(true);
@@ -225,6 +230,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+        /// <inheritdoc/>
         public virtual void ProcessAadByte(byte input)
         {
             if (cipherInitialized)
@@ -233,6 +239,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             mac.Update(input);
         }
 
+        /// <inheritdoc/>
         public virtual void ProcessAadBytes(byte[] inBytes, int inOff, int len)
         {
             if (cipherInitialized)
@@ -242,6 +249,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
         {
             if (cipherInitialized)
@@ -251,6 +259,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int ProcessByte(byte input, byte[] outBytes, int outOff)
         {
             InitCipher();
@@ -263,6 +272,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessByte(byte input, Span<byte> output)
         {
             InitCipher();
@@ -271,6 +281,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int ProcessBytes(byte[] inBytes, int inOff, int len, byte[] outBytes, int outOff)
         {
             Check.DataLength(inBytes, inOff, len, "input buffer too short");
@@ -292,6 +303,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             InitCipher();
@@ -308,6 +320,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int DoFinal(byte[] outBytes, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -367,6 +380,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int DoFinal(Span<byte> output)
         {
             InitCipher();
@@ -426,6 +440,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual byte[] GetMac()
         {
             byte[] mac = new byte[macSize];
@@ -435,6 +450,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return mac;
         }
 
+        /// <inheritdoc/>
         public virtual int GetUpdateOutputSize(int len)
         {
             int totalData = len + bufOff;
@@ -449,6 +465,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return totalData - totalData % blockSize;
         }
 
+        /// <inheritdoc/>
         public virtual int GetOutputSize(int len)
         {
             int totalData = len + bufOff;

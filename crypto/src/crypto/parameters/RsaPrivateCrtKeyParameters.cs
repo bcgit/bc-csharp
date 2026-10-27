@@ -33,6 +33,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
         }
 
+        /// <summary>Create a new <see cref="RsaPrivateCrtKeyParameters"/>.</summary>
+        /// <param name="rsaPrivateKey">The rsa private key.</param>
         public RsaPrivateCrtKeyParameters(RsaPrivateKeyStructure rsaPrivateKey)
             : this(
                 rsaPrivateKey.Modulus,
@@ -91,6 +93,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <summary>Gets the CRT coefficient (inverse of q mod p).</summary>
         public BigInteger QInv => qInv;
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             return obj is RsaPrivateCrtKeyParameters that
@@ -104,6 +107,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 && this.QInv.Equals(that.QInv);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return DP.GetHashCode() ^ DQ.GetHashCode() ^ Exponent.GetHashCode() ^ Modulus.GetHashCode()

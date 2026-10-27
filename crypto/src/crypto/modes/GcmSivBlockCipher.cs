@@ -165,13 +165,16 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
+        /// <inheritdoc/>
         public virtual IBlockCipher UnderlyingCipher => theCipher;
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize()
         {
             return theCipher.GetBlockSize();
         }
 
+        /// <inheritdoc/>
         public virtual void Init(bool pEncrypt, ICipherParameters cipherParameters)
         {
             /* Set defaults */
@@ -234,6 +237,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             ResetStreams();
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => theCipher.AlgorithmName + "-GCM-SIV";
 
         /**
@@ -291,6 +295,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 throw new InvalidOperationException("byte count exceeded");
         }
 
+        /// <inheritdoc/>
         public virtual void ProcessAadByte(byte pByte)
         {
             /* Check that we can supply AEAD */
@@ -300,6 +305,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             theAEADHasher.UpdateHash(pByte);
         }
 
+        /// <inheritdoc/>
         public virtual void ProcessAadBytes(byte[] pData, int pOffset, int pLen)
         {
             Check.DataLength(pData, pOffset, pLen, "input buffer too short");
@@ -316,6 +322,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
         {
             /* Check that we can supply AEAD */
@@ -326,6 +333,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int ProcessByte(byte pByte, byte[] pOutput, int pOutOffset)
         {
             /* Check that we have initialised */
@@ -347,6 +355,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessByte(byte input, Span<byte> output)
         {
             /* Check that we have initialised */
@@ -368,6 +377,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int ProcessBytes(byte[] pData, int pOffset, int pLen, byte[] pOutput, int pOutOffset)
         {
             Check.DataLength(pData, pOffset, pLen, "input buffer too short");
@@ -395,6 +405,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             /* Check that we have initialised */
@@ -416,6 +427,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int DoFinal(byte[] pOutput, int pOffset)
         {
             Check.OutputLength(pOutput, pOffset, GetOutputSize(0), "output buffer too short");
@@ -460,6 +472,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int DoFinal(Span<byte> output)
         {
             /* Check that we have initialised */
@@ -504,16 +517,19 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual byte[] GetMac()
         {
             throw new InvalidOperationException();
         }
 
+        /// <inheritdoc/>
         public virtual int GetUpdateOutputSize(int pLen)
         {
             return 0;
         }
 
+        /// <inheritdoc/>
         public virtual int GetOutputSize(int pLen)
         {
             if (forEncryption)
@@ -524,6 +540,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return myCurr > BUFLEN ? myCurr - BUFLEN : 0;
         }
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             ResetStreams();

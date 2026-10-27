@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             m_hLen = digest.GetDigestSize();
         }
 
+        /// <inheritdoc/>
         public void Init(IDerivationParameters parameters)
         {
             if (!(parameters is MgfParameters mgfParameters))
@@ -77,6 +78,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int GenerateBytes(Span<byte> output)
         {
             int hashPos = m_buffer.Length - m_hLen;

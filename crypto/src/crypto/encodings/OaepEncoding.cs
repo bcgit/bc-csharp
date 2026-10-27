@@ -30,21 +30,35 @@ namespace Org.BouncyCastle.Crypto.Encodings
         private SecureRandom random;
         private bool forEncryption;
 
+        /// <summary>Create a new <see cref="OaepEncoding"/>.</summary>
+        /// <param name="cipher">The cipher.</param>
         public OaepEncoding(IAsymmetricBlockCipher cipher)
             : this(cipher, new Sha1Digest(), null)
         {
         }
 
+        /// <summary>Create a new <see cref="OaepEncoding"/>.</summary>
+        /// <param name="cipher">The cipher.</param>
+        /// <param name="hash">The hash.</param>
         public OaepEncoding(IAsymmetricBlockCipher cipher, IDigest hash)
             : this(cipher, hash, null)
         {
         }
 
+        /// <summary>Create a new <see cref="OaepEncoding"/>.</summary>
+        /// <param name="cipher">The cipher.</param>
+        /// <param name="hash">The hash.</param>
+        /// <param name="encodingParams">The encoding params.</param>
         public OaepEncoding(IAsymmetricBlockCipher cipher, IDigest hash, byte[] encodingParams)
             : this(cipher, hash, hash, encodingParams)
         {
         }
 
+        /// <summary>Create a new <see cref="OaepEncoding"/>.</summary>
+        /// <param name="cipher">The cipher.</param>
+        /// <param name="hash">The hash.</param>
+        /// <param name="mgf1Hash">The mgf 1 hash.</param>
+        /// <param name="encodingParams">The encoding params.</param>
         public OaepEncoding(IAsymmetricBlockCipher cipher, IDigest hash, IDigest mgf1Hash, byte[] encodingParams)
         {
             this.engine = cipher;
@@ -62,10 +76,13 @@ namespace Org.BouncyCastle.Crypto.Encodings
             hash.DoFinal(defHash, 0);
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName => engine.AlgorithmName + "/OAEPPadding";
 
+        /// <summary>Gets the underlying cipher.</summary>
         public IAsymmetricBlockCipher UnderlyingCipher => engine;
 
+        /// <inheritdoc/>
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
             ParameterUtilities.GetRandom(parameters, out var initRandom);
@@ -76,6 +93,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
             engine.Init(forEncryption, parameters);
         }
 
+        /// <inheritdoc/>
         public int GetInputBlockSize()
         {
             int blockSize = engine.GetInputBlockSize();
@@ -83,6 +101,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
             return forEncryption ? GetReducedBlockSize(blockSize) : blockSize;
         }
 
+        /// <inheritdoc/>
         public int GetOutputBlockSize()
         {
             int blockSize = engine.GetOutputBlockSize();
@@ -92,6 +111,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
 
         private int GetReducedBlockSize(int blockSize) => blockSize - 1 - 2 * defHash.Length;
 
+        /// <inheritdoc/>
         public byte[] ProcessBlock(byte[] inBytes, int inOff, int inLen)
         {
             return forEncryption

@@ -4,6 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Parameters for the key derivation function in counter mode (NIST SP 800-108).</summary>
     public class KdfCounterParameters : IDerivationParameters
     {
         private byte[] ki;
@@ -63,27 +64,32 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.r = r;
         }
 
+        /// <summary>Gets the ki.</summary>
         public byte[] Ki
         {
             get { return ki; }
         }
 
+        /// <summary>Gets the fixed input data.</summary>
         public byte[] FixedInputData
         {
             get { return Arrays.Clone(fixedInputDataCounterSuffix); }
         }
 
+        /// <summary>Gets the fixed input data counter prefix.</summary>
         public byte[] FixedInputDataCounterPrefix
         {
             get { return Arrays.Clone(fixedInputDataCounterPrefix); }
 
         }
 
+        /// <summary>Gets the fixed input data counter suffix.</summary>
         public byte[] FixedInputDataCounterSuffix
         {
             get { return Arrays.Clone(fixedInputDataCounterSuffix); }
         }
 
+        /// <summary>Gets the r.</summary>
         public int R
         {
             get { return r; }

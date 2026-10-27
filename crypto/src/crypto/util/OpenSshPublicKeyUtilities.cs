@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
+    /// <summary>Utility methods for reading and writing public keys in the OpenSSH format.</summary>
     public static class OpenSshPublicKeyUtilities
     {
         private static readonly string RSA = "ssh-rsa";

@@ -24,12 +24,12 @@ namespace Org.BouncyCastle.Crypto.Modes
     /// </summary>
     /// <remarks>
     /// <para>
-    /// GCM provides both confidentiality and data origin authentication (AEAD). 
+    /// GCM provides both confidentiality and data origin authentication (AEAD).
     /// It requires a block cipher with a 128-bit block size, typically AES.
     /// </para>
     /// <para>
-    /// <b>CRITICAL SECURITY WARNING:</b> For encryption, a unique nonce (IV) MUST be used for every 
-    /// invocation with the same key. Reusing a nonce with the same key catastrophically compromises 
+    /// <b>CRITICAL SECURITY WARNING:</b> For encryption, a unique nonce (IV) MUST be used for every
+    /// invocation with the same key. Reusing a nonce with the same key catastrophically compromises
     /// the security of the cipher, allowing an attacker to recover the authentication key or plaintext.
     /// </para>
     /// </remarks>
@@ -56,8 +56,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         private const int BlockSize = 16;
 
-        private readonly IBlockCipher	cipher;
-        private readonly IGcmMultiplier	multiplier;
+        private readonly IBlockCipher cipher;
+        private readonly IGcmMultiplier multiplier;
         private BasicGcmExponentiator exp;
 
         // These fields are set by Init and not modified by processing
@@ -74,14 +74,14 @@ namespace Org.BouncyCastle.Crypto.Modes
         private byte[]      J0;
 
         // These fields are modified during processing
-        private byte[]		bufBlock;
-        private byte[]		macBlock;
+        private byte[] bufBlock;
+        private byte[] macBlock;
         private byte[]      S, S_at, S_atPre;
         private byte[]      counter;
         private uint        counter32;
         private uint        blocksRemaining;
         private int         bufOff;
-        private ulong		totalLength;
+        private ulong totalLength;
         private byte[]      atBlock;
         private int         atBlockPos;
         private ulong       atLength;
@@ -97,10 +97,13 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
         }
 
+        /// <summary>Create a new <see cref="GcmBlockCipher"/>.</summary>
+        /// <param name="c">The c.</param>
+        /// <param name="m">The m.</param>
         [Obsolete("Will be removed")]
         public GcmBlockCipher(
-            IBlockCipher	c,
-            IGcmMultiplier	m)
+            IBlockCipher c,
+            IGcmMultiplier m)
         {
             if (c.GetBlockSize() != BlockSize)
                 throw new ArgumentException("cipher required with a block size of " + BlockSize + ".");
@@ -130,7 +133,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         /// Initialise the GCM cipher.
         /// </summary>
         /// <param name="forEncryption">True if initializing for encryption, false for decryption.</param>
-        /// <param name="parameters">The parameters required (typically <see cref="AeadParameters"/> or <see cref="ParametersWithIV"/>).</param>
+        /// <param name="parameters">
+        /// The parameters required (typically <see cref="AeadParameters"/> or <see cref="ParametersWithIV"/>).
+        /// </param>
         /// <exception cref="ArgumentException">If parameters are invalid or nonce is reused for encryption.</exception>
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
@@ -291,7 +296,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             return macBlock == null ? new byte[macSize] : (byte[])macBlock.Clone();
         }
 
-        /// <summary>Return the size of the output buffer required for an input of <paramref name="len"/> bytes.</summary>
+        /// <summary>
+        /// Return the size of the output buffer required for an input of <paramref name="len"/> bytes.
+        /// </summary>
         /// <param name="len">Input length.</param>
         /// <returns>Required output buffer size.</returns>
         public int GetOutputSize(int len)
@@ -304,7 +311,10 @@ namespace Org.BouncyCastle.Crypto.Modes
             return totalData < macSize ? 0 : totalData - macSize;
         }
 
-        /// <summary>Return the size of the output buffer required for a <c>ProcessBytes</c> call with <paramref name="len"/> bytes.</summary>
+        /// <summary>
+        /// Return the size of the output buffer required for a <c>ProcessBytes</c> call with <paramref name="len"/>
+        /// bytes.
+        /// </summary>
         /// <param name="len">Input length.</param>
         /// <returns>Update output size.</returns>
         public int GetUpdateOutputSize(int len)
@@ -442,7 +452,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         /// <param name="outOff">The offset into the output buffer.</param>
         /// <returns>Number of bytes written to the output buffer.</returns>
         /// <exception cref="DataLengthException">If output buffer is too short.</exception>
-        public int ProcessByte(byte	input, byte[] output, int outOff)
+        public int ProcessByte(byte input, byte[] output, int outOff)
         {
             CheckStatus();
 
@@ -1113,7 +1123,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
-        /// <summary>Reset the cipher to its initial state (ready for a new message with the same key but DIFFERENT nonce).</summary>
+        /// <summary>
+        /// Reset the cipher to its initial state (ready for a new message with the same key but DIFFERENT nonce).
+        /// </summary>
         public void Reset()
         {
             Reset(true);

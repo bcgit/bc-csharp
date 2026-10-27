@@ -4,20 +4,22 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
+    /// <summary>Key generator for triple DES (DESede) keys.</summary>
     public class DesEdeKeyGenerator
-		: DesKeyGenerator
+        : DesKeyGenerator
     {
-		public DesEdeKeyGenerator()
-		{
-		}
-            
-		internal DesEdeKeyGenerator(
-			int defaultStrength)
-			: base(defaultStrength)
-		{
-		}
+        /// <summary>Create a new <see cref="DesEdeKeyGenerator"/>.</summary>
+        public DesEdeKeyGenerator()
+        {
+        }
 
-		/**
+        internal DesEdeKeyGenerator(
+            int defaultStrength)
+            : base(defaultStrength)
+        {
+        }
+
+        /**
         * initialise the key generator - if strength is set to zero
         * the key Generated will be 192 bits in size, otherwise
         * strength can be 128 or 192 (or 112 or 168 if you don't count
@@ -28,10 +30,10 @@ namespace Org.BouncyCastle.Crypto.Generators
         */
         protected override void EngineInit(KeyGenerationParameters parameters)
         {
-			this.random = parameters.Random;
-			this.strength = (parameters.Strength + 7) / 8;
+            this.random = parameters.Random;
+            this.strength = (parameters.Strength + 7) / 8;
 
-			if (strength == 0 || strength == (168 / 8))
+            if (strength == 0 || strength == (168 / 8))
             {
                 strength = DesEdeParameters.DesEdeKeyLength;
             }
@@ -49,6 +51,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
+        /// <inheritdoc/>
         protected override byte[] EngineGenerateKey()
         {
             byte[] newKey = new byte[strength];
@@ -64,6 +67,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         protected override KeyParameter EngineGenerateKeyParameter()
         {
             return KeyParameter.Create(strength, random, (bytes, random) =>

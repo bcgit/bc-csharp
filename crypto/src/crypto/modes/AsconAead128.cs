@@ -51,17 +51,22 @@ namespace Org.BouncyCastle.Crypto.Modes
         private State m_state = State.Uninitialized;
         private int m_bufPos = 0;
 
+        /// <summary>Create a new <see cref="AsconAead128"/>.</summary>
         public AsconAead128()
         {
             m_buf = new byte[BufSizeDecrypt];
         }
 
+        /// <summary>Return the key bytes size.</summary>
         public int GetKeyBytesSize() => CryptoKeyBytes;
 
+        /// <summary>Return the IV bytes size.</summary>
         public int GetIVBytesSize() => CryptoABytes;
 
+        /// <inheritdoc/>
         public string AlgorithmName => "Ascon-AEAD128";
 
+        /// <inheritdoc/>
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
             KeyParameter key;
@@ -125,6 +130,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             Reset(clearMac: true);
         }
 
+        /// <inheritdoc/>
         public void ProcessAadByte(byte input)
         {
             CheckAad();
@@ -141,6 +147,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+        /// <inheritdoc/>
         public void ProcessAadBytes(byte[] inBytes, int inOff, int len)
         {
             Check.DataLength(inBytes, inOff, len, "input buffer too short");
@@ -185,6 +192,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void ProcessAadBytes(ReadOnlySpan<byte> input)
         {
             // Don't enter AAD state until we actually get input
@@ -221,6 +229,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public int ProcessByte(byte input, byte[] outBytes, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -231,6 +240,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessByte(byte input, Span<byte> output)
         {
             Span<byte> singleByte = stackalloc byte[1]{ input };
@@ -239,6 +249,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public int ProcessBytes(byte[] inBytes, int inOff, int len, byte[] outBytes, int outOff)
         {
             Check.DataLength(inBytes, inOff, len, "input buffer too short");
@@ -335,6 +346,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             // TODO
@@ -422,6 +434,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] outBytes, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -468,6 +481,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             bool forEncryption = CheckData();
@@ -510,8 +524,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <inheritdoc/>
         public byte[] GetMac() => m_mac;
 
+        /// <inheritdoc/>
         public int GetUpdateOutputSize(int len)
         {
             int total = System.Math.Max(0, len);
@@ -537,6 +553,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return total - total % Rate;
         }
 
+        /// <inheritdoc/>
         public int GetOutputSize(int len)
         {
             int total = System.Math.Max(0, len);
@@ -557,6 +574,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+        /// <inheritdoc/>
         public void Reset() => Reset(true);
 
         private void CheckAad()
@@ -817,14 +835,14 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             Debug.Assert(bufOff <= buffer.Length - Rate);
 
-			S0 ^= Pack.LE_To_UInt64(buffer, bufOff);
-			S1 ^= Pack.LE_To_UInt64(buffer, bufOff + 8);
+            S0 ^= Pack.LE_To_UInt64(buffer, bufOff);
+            S1 ^= Pack.LE_To_UInt64(buffer, bufOff + 8);
 
-			P8();
-		}
+            P8();
+        }
 
         private void ProcessBufferDecrypt(byte[] buffer, int bufOff, byte[] output, int outOff)
-		{
+        {
             Debug.Assert(bufOff <= buffer.Length - Rate);
 
             Check.OutputLength(output, outOff, Rate, "output buffer too short");
@@ -833,15 +851,15 @@ namespace Org.BouncyCastle.Crypto.Modes
             Pack.UInt64_To_LE(S0 ^ t0, output, outOff);
             S0 = t0;
 
-			ulong t1 = Pack.LE_To_UInt64(buffer, bufOff + 8);
+            ulong t1 = Pack.LE_To_UInt64(buffer, bufOff + 8);
             Pack.UInt64_To_LE(S1 ^ t1, output, outOff + 8);
-			S1 = t1;
+            S1 = t1;
 
-			P8();
-		}
+            P8();
+        }
 
         private void ProcessBufferEncrypt(byte[] buffer, int bufOff, byte[] output, int outOff)
-		{
+        {
             Debug.Assert(bufOff <= buffer.Length - Rate);
 
             Check.OutputLength(output, outOff, Rate, "output buffer too short");
@@ -849,19 +867,19 @@ namespace Org.BouncyCastle.Crypto.Modes
             S0 ^= Pack.LE_To_UInt64(buffer, bufOff);
             Pack.UInt64_To_LE(S0, output, outOff);
 
-			S1 ^= Pack.LE_To_UInt64(buffer, bufOff + 8);
+            S1 ^= Pack.LE_To_UInt64(buffer, bufOff + 8);
             Pack.UInt64_To_LE(S1, output, outOff + 8);
 
-			P8();
-		}
+            P8();
+        }
 
         private void ProcessFinalDecrypt(byte[] input, int inOff, int inLen, byte[] output, int outOff)
-		{
+        {
             Debug.Assert(inLen < Rate);
 
             if (inLen >= 8)
-			{
-				ulong t0 = Pack.LE_To_UInt64(input, inOff);
+            {
+                ulong t0 = Pack.LE_To_UInt64(input, inOff);
                 Pack.UInt64_To_LE(S0 ^ t0, output, outOff);
                 S0 = t0;
 
@@ -872,19 +890,19 @@ namespace Org.BouncyCastle.Crypto.Modes
                 }
 
                 S1 ^= Pad(inLen);
-			}
-			else
-			{
-				if (inLen > 0)
-				{
+            }
+            else
+            {
+                if (inLen > 0)
+                {
                     ProcessFinalDecrypt64(input, inOff, inLen, output, outOff, ref S0);
-				}
+                }
 
-				S0 ^= Pad(inLen);
-			}
+                S0 ^= Pad(inLen);
+            }
 
-			FinishData(State.DecFinal);
-		}
+            FinishData(State.DecFinal);
+        }
 
         private static void ProcessFinalDecrypt64(byte[] input, int inOff, int inLen, byte[] output, int outOff,
             ref ulong s)
@@ -898,12 +916,12 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
         private void ProcessFinalEncrypt(byte[] input, int inOff, int inLen, byte[] output, int outOff)
-		{
+        {
             Debug.Assert(inLen < Rate);
 
             if (inLen >= 8)
-			{
-				S0 ^= Pack.LE_To_UInt64(input, inOff);
+            {
+                S0 ^= Pack.LE_To_UInt64(input, inOff);
                 Pack.UInt64_To_LE(S0, output, outOff);
 
                 inLen -= 8;
@@ -912,20 +930,20 @@ namespace Org.BouncyCastle.Crypto.Modes
                     ProcessFinalEncrypt64(input, inOff + 8, inLen, output, outOff + 8, ref S1);
                 }
 
-				S1 ^= Pad(inLen);
-			}
-			else
-			{
-				if (inLen > 0)
-				{
+                S1 ^= Pad(inLen);
+            }
+            else
+            {
+                if (inLen > 0)
+                {
                     ProcessFinalEncrypt64(input, inOff, inLen, output, outOff, ref S0);
-				}
+                }
 
-				S0 ^= Pad(inLen);
-			}
+                S0 ^= Pad(inLen);
+            }
 
-			FinishData(State.EncFinal);
-		}
+            FinishData(State.EncFinal);
+        }
 
         private static void ProcessFinalEncrypt64(byte[] input, int inOff, int inLen, byte[] output, int outOff,
             ref ulong s)

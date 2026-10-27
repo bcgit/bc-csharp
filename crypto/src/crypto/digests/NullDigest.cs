@@ -5,71 +5,80 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
-	public class NullDigest : IDigest
-	{
-		private readonly MemoryStream bOut = new MemoryStream();
+    /// <summary>A digest that does no hashing: it returns the data it was given, unchanged.</summary>
+    public class NullDigest : IDigest
+    {
+        private readonly MemoryStream bOut = new MemoryStream();
 
-		public string AlgorithmName
-		{
-			get { return "NULL"; }
-		}
+        /// <inheritdoc/>
+        public string AlgorithmName
+        {
+            get { return "NULL"; }
+        }
 
-		public int GetByteLength()
-		{
-			// TODO Is this okay?
-			return 0;
-		}
+        /// <inheritdoc/>
+        public int GetByteLength()
+        {
+            // TODO Is this okay?
+            return 0;
+        }
 
-		public int GetDigestSize()
-		{
-			return Convert.ToInt32(bOut.Length);
-		}
+        /// <inheritdoc/>
+        public int GetDigestSize()
+        {
+            return Convert.ToInt32(bOut.Length);
+        }
 
-		public void Update(byte b)
-		{
-			bOut.WriteByte(b);
-		}
+        /// <inheritdoc/>
+        public void Update(byte b)
+        {
+            bOut.WriteByte(b);
+        }
 
-		public void BlockUpdate(byte[] inBytes, int inOff, int len)
-		{
-			bOut.Write(inBytes, inOff, len);
-		}
+        /// <inheritdoc/>
+        public void BlockUpdate(byte[] inBytes, int inOff, int len)
+        {
+            bOut.Write(inBytes, inOff, len);
+        }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-		public void BlockUpdate(ReadOnlySpan<byte> input)
-		{
-			bOut.Write(input);
-		}
+        /// <inheritdoc/>
+        public void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            bOut.Write(input);
+        }
 #endif
 
-		public int DoFinal(byte[] outBytes, int outOff)
-		{
+        /// <inheritdoc/>
+        public int DoFinal(byte[] outBytes, int outOff)
+        {
             try
             {
                 byte[] data = bOut.GetBuffer();
-				int length = Convert.ToInt32(bOut.Length);
+                int length = Convert.ToInt32(bOut.Length);
 
-				Array.Copy(data, 0, outBytes, outOff, length);
+                Array.Copy(data, 0, outBytes, outOff, length);
 
-				return length;
-			}
-			finally
+                return length;
+            }
+            finally
             {
                 Reset();
             }
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             try
             {
-				byte[] data = bOut.GetBuffer();
-				int length = Convert.ToInt32(bOut.Length);
+                byte[] data = bOut.GetBuffer();
+                int length = Convert.ToInt32(bOut.Length);
 
-				data.AsSpan(0, length).CopyTo(output);
+                data.AsSpan(0, length).CopyTo(output);
 
-				return length;
+                return length;
             }
             finally
             {
@@ -78,9 +87,10 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public void Reset()
-		{
-			bOut.SetLength(0);
-		}
-	}
+        {
+            bOut.SetLength(0);
+        }
+    }
 }

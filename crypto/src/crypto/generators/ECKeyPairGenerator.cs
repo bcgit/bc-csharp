@@ -12,6 +12,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
+    /// <summary>Key pair generator for elliptic curve keys.</summary>
     public class ECKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
@@ -20,11 +21,14 @@ namespace Org.BouncyCastle.Crypto.Generators
         private ECDomainParameters m_parameters;
         private SecureRandom m_random;
 
+        /// <summary>Create a new <see cref="ECKeyPairGenerator"/>.</summary>
         public ECKeyPairGenerator()
             : this("EC")
         {
         }
 
+        /// <summary>Create a new <see cref="ECKeyPairGenerator"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
         public ECKeyPairGenerator(string algorithm)
         {
             if (algorithm == null)
@@ -33,6 +37,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             m_algorithm = ECKeyParameters.VerifyAlgorithmName(algorithm);
         }
 
+        /// <inheritdoc/>
         public void Init(KeyGenerationParameters parameters)
         {
             bool gostAlgorithm = ECGost3410Utilities.IsGostAlgorithmName(m_algorithm, out bool gost2012PerName);
@@ -99,6 +104,8 @@ namespace Org.BouncyCastle.Crypto.Generators
             return new AsymmetricCipherKeyPair(publicKey, privateKey);
         }
 
+        /// <summary>Create the multiplier used for multiplying the base point.</summary>
+        /// <returns>The multiplier.</returns>
         protected virtual ECMultiplier CreateBasePointMultiplier() => new FixedPointCombMultiplier();
 
         private static BigInteger GeneratePrivateScalar(BigInteger n, SecureRandom random)

@@ -1,5 +1,6 @@
 namespace Org.BouncyCastle.Crypto
 {
+    /// <summary>Implemented by classes that extract the secret from a key encapsulation.</summary>
     public interface IEncapsulatedSecretExtractor
     {
         /// <summary>

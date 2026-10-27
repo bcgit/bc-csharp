@@ -12,6 +12,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly ECPublicKeyParameters mStaticPublicKey;
         private readonly ECPublicKeyParameters mEphemeralPublicKey;
 
+        /// <summary>Create a new <see cref="SM2KeyExchangePublicParameters"/>.</summary>
+        /// <param name="staticPublicKey">The static public key.</param>
+        /// <param name="ephemeralPublicKey">The ephemeral public key.</param>
         public SM2KeyExchangePublicParameters(
             ECPublicKeyParameters staticPublicKey,
             ECPublicKeyParameters ephemeralPublicKey)
@@ -27,11 +30,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.mEphemeralPublicKey = ephemeralPublicKey;
         }
 
+        /// <summary>Gets the static public key.</summary>
         public virtual ECPublicKeyParameters StaticPublicKey
         {
             get { return mStaticPublicKey; }
         }
 
+        /// <summary>Gets the ephemeral public key.</summary>
         public virtual ECPublicKeyParameters EphemeralPublicKey
         {
             get { return mEphemeralPublicKey; }

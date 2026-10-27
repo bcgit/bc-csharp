@@ -5,8 +5,9 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
+    /// <summary>Implementation of the RC4 (ARC4) stream cipher.</summary>
     public class RC4Engine
-		: IStreamCipher
+        : IStreamCipher
     {
         private readonly static int STATE_LENGTH = 256;
 
@@ -15,10 +16,10 @@ namespace Org.BouncyCastle.Crypto.Engines
         * during encryption and decryption
         */
 
-        private byte[]	engineState;
-        private int		x;
-        private int		y;
-        private byte[]	workingKey;
+        private byte[] engineState;
+        private int x;
+        private int y;
+        private byte[] workingKey;
 
         /**
         * initialise a RC4 cipher.
@@ -46,13 +47,15 @@ namespace Org.BouncyCastle.Crypto.Engines
             throw new ArgumentException("invalid parameter passed to RC4 init - " + Platform.GetTypeName(parameters));
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "RC4"; }
         }
 
+        /// <inheritdoc/>
         public virtual byte ReturnByte(
-			byte input)
+            byte input)
         {
             x = (x + 1) & 0xff;
             y = (engineState[x] + y) & 0xff;
@@ -66,7 +69,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             return (byte)(input ^ engineState[(engineState[x] + engineState[y]) & 0xff]);
         }
 
-        public virtual void ProcessBytes(byte[]	input, int inOff, int length, byte[] output, int outOff)
+        /// <inheritdoc/>
+        public virtual void ProcessBytes(byte[] input, int inOff, int length, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, length, "input buffer too short");
             Check.OutputLength(output, outOff, length, "output buffer too short");
@@ -89,6 +93,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.OutputLength(output, input.Length, "output buffer too short");
@@ -111,6 +116,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             SetKey(workingKey);
@@ -119,7 +125,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         // Private implementation
 
         private void SetKey(
-			byte[] keyBytes)
+            byte[] keyBytes)
         {
             workingKey = keyBytes;
 

@@ -17,6 +17,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
+    /// <summary>Generator for the Argon2 password hashing function (RFC 9106).</summary>
     public sealed class Argon2BytesGenerator
     {
         private const int Argon2BlockSize = 1024;
@@ -60,6 +61,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         private Block[] memory;
         private Block[] fillerBlocks;
 
+        /// <summary>Create a new <see cref="Argon2BytesGenerator"/>.</summary>
         public Argon2BytesGenerator()
             : this(taskFactory: null)
         {
@@ -170,14 +172,38 @@ namespace Org.BouncyCastle.Crypto.Generators
         private static int GetSegmentLength(int memory, int lanes) =>
             System.Math.Max(memory, 2 * Argon2SyncPoints * lanes) / (Argon2SyncPoints * lanes);
 
+        /// <summary>Generate bytes from a password using Argon2.</summary>
+        /// <param name="password">The password.</param>
+        /// <param name="output">The buffer to receive the output.</param>
+        /// <returns>The number of bytes generated.</returns>
+        /// <exception cref="InvalidOperationException">The requested output length is too small.</exception>
         public int GenerateBytes(char[] password, byte[] output) =>
             GenerateBytes(parameters.CharToByteConverter.Convert(password), output);
 
+        /// <summary>Generate bytes from a password using Argon2.</summary>
+        /// <param name="password">The password.</param>
+        /// <param name="output">The buffer to receive the output.</param>
+        /// <param name="outOff">The offset into <paramref name="output"/> at which to start writing.</param>
+        /// <param name="outLen">The number of bytes to generate.</param>
+        /// <returns>The number of bytes generated.</returns>
+        /// <exception cref="InvalidOperationException">The requested output length is too small.</exception>
         public int GenerateBytes(char[] password, byte[] output, int outOff, int outLen) =>
             GenerateBytes(parameters.CharToByteConverter.Convert(password), output, outOff, outLen);
 
+        /// <summary>Generate bytes from a password using Argon2.</summary>
+        /// <param name="password">The password.</param>
+        /// <param name="output">The buffer to receive the output.</param>
+        /// <returns>The number of bytes generated.</returns>
+        /// <exception cref="InvalidOperationException">The requested output length is too small.</exception>
         public int GenerateBytes(byte[] password, byte[] output) => GenerateBytes(password, output, 0, output.Length);
 
+        /// <summary>Generate bytes from a password using Argon2.</summary>
+        /// <param name="password">The password.</param>
+        /// <param name="output">The buffer to receive the output.</param>
+        /// <param name="outOff">The offset into <paramref name="output"/> at which to start writing.</param>
+        /// <param name="outLen">The number of bytes to generate.</param>
+        /// <returns>The number of bytes generated.</returns>
+        /// <exception cref="InvalidOperationException">The requested output length is too small.</exception>
         public int GenerateBytes(byte[] password, byte[] output, int outOff, int outLen)
         {
             if (outLen < MinOutlen)

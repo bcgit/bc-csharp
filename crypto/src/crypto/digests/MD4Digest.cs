@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Digests
     * with legacy applications, it's not secure, don't use it for anything new!</p>
     */
     public class MD4Digest
-		: GeneralDigest
+        : GeneralDigest
     {
         private const int    DigestLength = 16;
 
@@ -35,13 +35,13 @@ namespace Org.BouncyCastle.Crypto.Digests
         * message digest.
         */
         public MD4Digest(MD4Digest t) : base(t)
-		{
-			CopyIn(t);
-		}
+        {
+            CopyIn(t);
+        }
 
-		private void CopyIn(MD4Digest t)
-		{
-			base.CopyIn(t);
+        private void CopyIn(MD4Digest t)
+        {
+            base.CopyIn(t);
             H1 = t.H1;
             H2 = t.H2;
             H3 = t.H3;
@@ -51,17 +51,19 @@ namespace Org.BouncyCastle.Crypto.Digests
             xOff = t.xOff;
         }
 
-		public override string AlgorithmName
-		{
-			get { return "MD4"; }
-		}
+        /// <inheritdoc/>
+        public override string AlgorithmName
+        {
+            get { return "MD4"; }
+        }
 
-		public override int GetDigestSize()
-		{
-			return DigestLength;
-		}
+        /// <inheritdoc/>
+        public override int GetDigestSize()
+        {
+            return DigestLength;
+        }
 
-		internal override void ProcessWord(byte[] input, int inOff)
+        internal override void ProcessWord(byte[] input, int inOff)
         {
             X[xOff++] = (int)Pack.LE_To_UInt32(input, inOff);
 
@@ -95,6 +97,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             X[15] = (int)((ulong) bitLength >> 32);
         }
 
+        /// <inheritdoc/>
         public override int DoFinal(byte[] output, int outOff)
         {
             Finish();
@@ -110,6 +113,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int DoFinal(Span<byte> output)
         {
             Finish();
@@ -278,16 +282,18 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-		public override IMemoable Copy()
-		{
-			return new MD4Digest(this);
-		}
+        /// <inheritdoc/>
+        public override IMemoable Copy()
+        {
+            return new MD4Digest(this);
+        }
 
-		public override void Reset(IMemoable other)
-		{
-			MD4Digest d = (MD4Digest)other;
+        /// <inheritdoc/>
+        public override void Reset(IMemoable other)
+        {
+            MD4Digest d = (MD4Digest)other;
 
-			CopyIn(d);
-		}
+            CopyIn(d);
+        }
     }
 }

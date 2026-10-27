@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     * a class that provides a basic SKIPJACK engine.
     */
     public sealed class SkipjackEngine
-		: IBlockCipher
+        : IBlockCipher
     {
         private const int BLOCK_SIZE = 8;
 
@@ -47,9 +47,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
             if (!(parameters is KeyParameter keyParameter))
-	            throw new ArgumentException("invalid parameter passed to SKIPJACK init - " + Platform.GetTypeName(parameters));
+                throw new ArgumentException("invalid parameter passed to SKIPJACK init - " + Platform.GetTypeName(parameters));
 
-			byte[] keyBytes = keyParameter.GetKey();
+            byte[] keyBytes = keyParameter.GetKey();
 
             this.encrypting = forEncryption;
             this.key0 = new int[32];
@@ -70,17 +70,20 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return "SKIPJACK"; }
         }
 
+        /// <inheritdoc/>
         public int GetBlockSize()
         {
             return BLOCK_SIZE;
         }
 
-        public int ProcessBlock(byte[] input, int inOff, byte[]	output, int outOff)
+        /// <inheritdoc/>
+        public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (key1 == null)
                 throw new InvalidOperationException("SKIPJACK engine not initialised");
@@ -108,10 +111,11 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
 #endif
 
-			return BLOCK_SIZE;
+            return BLOCK_SIZE;
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (key1 == null)

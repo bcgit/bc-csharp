@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Kdf
             m_hLen = digest.GetDigestSize();
         }
 
+        /// <inheritdoc/>
         public void Init(IDerivationParameters param)
         {
             if (!(param is KdfParameters kdfParameters))
@@ -42,7 +43,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Kdf
 
         /// <summary>Fill <c>len</c> bytes of the output buffer with bytes generated from the derivation function.
         /// </summary>
-        public int GenerateBytes(byte[]	output, int outOff, int length)
+        public int GenerateBytes(byte[] output, int outOff, int length)
         {
             if (length <= 0)
                 throw new ArgumentException("must be > 0", nameof(length));
@@ -85,6 +86,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Kdf
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int GenerateBytes(Span<byte> output)
         {
             if (output.Length <= 0)

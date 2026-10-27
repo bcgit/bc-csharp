@@ -5,6 +5,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
+    /// <summary>Signer for the DSA family of algorithms, hashing the message with a digest before signing.</summary>
     public class DsaDigestSigner
         : ISigner
     {
@@ -13,11 +14,18 @@ namespace Org.BouncyCastle.Crypto.Signers
         private readonly IDsaEncoding m_encoding;
         private bool m_forSigning;
 
+        /// <summary>Create a new <see cref="DsaDigestSigner"/>.</summary>
+        /// <param name="dsa">The dsa.</param>
+        /// <param name="digest">The digest.</param>
         public DsaDigestSigner(IDsa dsa, IDigest digest)
             : this(dsa, digest, StandardDsaEncoding.Instance)
         {
         }
 
+        /// <summary>Create a new <see cref="DsaDigestSigner"/>.</summary>
+        /// <param name="dsa">The dsa.</param>
+        /// <param name="digest">The digest.</param>
+        /// <param name="encoding">The encoding.</param>
         public DsaDigestSigner(IDsa dsa, IDigest digest, IDsaEncoding encoding)
         {
             m_dsa = dsa;
@@ -25,8 +33,10 @@ namespace Org.BouncyCastle.Crypto.Signers
             m_encoding = encoding;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => m_digest.AlgorithmName + "with" + m_dsa.AlgorithmName;
 
+        /// <inheritdoc/>
         public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
             m_forSigning = forSigning;
@@ -44,17 +54,22 @@ namespace Org.BouncyCastle.Crypto.Signers
             m_dsa.Init(forSigning, parameters);
         }
 
+        /// <inheritdoc/>
         public virtual void Update(byte input) => m_digest.Update(input);
 
+        /// <inheritdoc/>
         public virtual void BlockUpdate(byte[] input, int inOff, int inLen) =>
             m_digest.BlockUpdate(input, inOff, inLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void BlockUpdate(ReadOnlySpan<byte> input) => m_digest.BlockUpdate(input);
 #endif
 
+        /// <inheritdoc/>
         public virtual int GetMaxSignatureSize() => m_encoding.GetMaxEncodingSize(GetOrder());
 
+        /// <inheritdoc/>
         public virtual byte[] GenerateSignature()
         {
             if (!m_forSigning)
@@ -75,6 +90,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
+        /// <inheritdoc/>
         public virtual bool VerifySignature(byte[] signature)
         {
             if (m_forSigning)
@@ -95,8 +111,10 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
+        /// <inheritdoc/>
         public virtual void Reset() => m_digest.Reset();
 
+        /// <summary>Return the order.</summary>
         protected virtual BigInteger GetOrder() => m_dsa.Order;
     }
 }

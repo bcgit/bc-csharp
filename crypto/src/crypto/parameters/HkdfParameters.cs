@@ -70,6 +70,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return new HkdfParameters(ikm, true, null, info);
         }
 
+        /// <summary>Create HKDF parameters with no salt and no info.</summary>
+        /// <param name="ikm">The input keying material.</param>
+        /// <returns>The parameters.</returns>
         public static HkdfParameters DefaultParameters(byte[] ikm)
         {
             return new HkdfParameters(ikm, false, null, null);

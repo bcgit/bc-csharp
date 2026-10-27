@@ -4,22 +4,27 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
+    /// <summary>Implementation of the Haraka v2 hash function for 64-byte inputs, producing a 32-byte output.</summary>
     public sealed class Haraka512Digest
         : HarakaBase
     {
         private readonly byte[] m_buf;
         private int m_bufPos;
 
+        /// <summary>Create a new <see cref="Haraka512Digest"/>.</summary>
         public Haraka512Digest()
         {
             m_buf = new byte[64];
             m_bufPos = 0;
         }
 
+        /// <inheritdoc/>
         public override string AlgorithmName => "Haraka-512";
 
+        /// <inheritdoc/>
         public override int GetByteLength() => 64;
 
+        /// <inheritdoc/>
         public override void Update(byte input)
         {
             if (m_bufPos > 64 - 1)
@@ -28,6 +33,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             m_buf[m_bufPos++] = input;
         }
 
+        /// <inheritdoc/>
         public override void BlockUpdate(byte[] input, int inOff, int len)
         {
             if (m_bufPos > 64 - len)
@@ -38,6 +44,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override void BlockUpdate(ReadOnlySpan<byte> input)
         {
             if (m_bufPos > 64 - input.Length)
@@ -48,6 +55,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public override int DoFinal(byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -68,6 +76,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int DoFinal(Span<byte> output)
         {
             if (m_bufPos != 64)
@@ -93,6 +102,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public override void Reset()
         {
             m_bufPos = 0;

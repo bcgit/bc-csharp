@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     * An RC6 engine.
     */
     public class RC6Engine
-		: IBlockCipher
+        : IBlockCipher
     {
         /*
         * the number of rounds to perform
@@ -46,11 +46,13 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "RC6"; }
         }
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize()
         {
             return 16;
@@ -71,13 +73,14 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             this.forEncryption = forEncryption;
 
-			SetKey(keyParameter.GetKey());
+            SetKey(keyParameter.GetKey());
         }
 
+        /// <inheritdoc/>
         public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
-			if (_S == null)
-				throw new InvalidOperationException("RC6 engine not initialised");
+            if (_S == null)
+                throw new InvalidOperationException("RC6 engine not initialised");
 
             int blockSize = GetBlockSize();
             Check.DataLength(input, inOff, blockSize, "input buffer too short");
@@ -89,12 +92,13 @@ namespace Org.BouncyCastle.Crypto.Engines
                 : DecryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
 #else
             return forEncryption
-				? EncryptBlock(input, inOff, output, outOff)
-				: DecryptBlock(input, inOff, output, outOff);
+                ? EncryptBlock(input, inOff, output, outOff)
+                : DecryptBlock(input, inOff, output, outOff);
 #endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (_S == null)

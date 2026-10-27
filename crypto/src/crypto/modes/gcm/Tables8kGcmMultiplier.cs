@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
+    /// <summary>A GCM multiplier that uses a precomputed table of about 8 KiB.</summary>
     [Obsolete("Will be removed")]
     public class Tables8kGcmMultiplier
         : IGcmMultiplier
@@ -12,6 +13,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
         private byte[] H;
         private GcmUtilities.FieldElement[][] T;
 
+        /// <inheritdoc/>
         public void Init(byte[] H)
         {
             if (T == null)
@@ -54,6 +56,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             }
         }
 
+        /// <inheritdoc/>
         public void MultiplyH(byte[] x)
         {
             GcmUtilities.FieldElement[] T0 = T[0], T1 = T[1];

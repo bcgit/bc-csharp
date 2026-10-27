@@ -6,12 +6,19 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
+    /// <summary>Generator for ElGamal domain parameters.</summary>
     public class ElGamalParametersGenerator
     {
         private int m_size;
         private int m_certainty;
         private SecureRandom m_random;
 
+        /// <summary>Initialise the generator.</summary>
+        /// <param name="size">The size of the prime to generate, in bits.</param>
+        /// <param name="certainty">
+        /// A measure of the uncertainty that the caller is willing to tolerate that the number is prime.
+        /// </param>
+        /// <param name="random">The source of randomness.</param>
         public void Init(int size, int certainty, SecureRandom random)
         {
             m_size = size;

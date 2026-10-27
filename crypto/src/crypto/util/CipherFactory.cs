@@ -16,6 +16,7 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
+    /// <summary>Factory for ciphers created from algorithm identifiers.</summary>
     // TODO[api] Make static
     public class CipherFactory
     {
@@ -23,6 +24,11 @@ namespace Org.BouncyCastle.Crypto.Utilities
         {
         }
 
+        /// <summary>Create a cipher to encrypt or decrypt content, from an algorithm identifier.</summary>
+        /// <param name="forEncryption">true to create a cipher for encryption, false for decryption.</param>
+        /// <param name="encKey">The encryption key.</param>
+        /// <param name="encryptionAlgID">The identifier of the encryption algorithm, including parameters.</param>
+        /// <returns>The initialised cipher.</returns>
         public static object CreateContentCipher(bool forEncryption, ICipherParameters encKey,
             AlgorithmIdentifier encryptionAlgID)
         {

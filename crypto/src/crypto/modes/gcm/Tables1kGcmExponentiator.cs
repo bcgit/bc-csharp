@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
+    /// <summary>A GCM exponentiator that uses a precomputed table of about 1 KiB.</summary>
     [Obsolete("Will be removed")]
     public class Tables1kGcmExponentiator
         : IGcmExponentiator
@@ -11,6 +12,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
         // - lookupPowX2[i] = x^(2^i)
         private IList<GcmUtilities.FieldElement> lookupPowX2;
 
+        /// <inheritdoc/>
         public void Init(byte[] x)
         {
             GcmUtilities.FieldElement y;
@@ -22,6 +24,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             lookupPowX2.Add(y);
         }
 
+        /// <inheritdoc/>
         public void ExponentiateX(long pow, byte[] output)
         {
             GcmUtilities.FieldElement y;

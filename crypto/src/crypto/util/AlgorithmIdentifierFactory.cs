@@ -12,10 +12,13 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
+    /// <summary>Factory for the algorithm identifiers of ciphers, digests and keys.</summary>
     [Obsolete("Use 'ParameterUtilities' instead")]
     public class AlgorithmIdentifierFactory
     {
+        /// <summary>The object identifier <c>1.3.6.1.4.1.188.7.1.1.2</c>.</summary>
         public static readonly DerObjectIdentifier IDEA_CBC = MiscObjectIdentifiers.as_sys_sec_alg_ideaCBC;
+        /// <summary>The object identifier <c>1.2.840.113533.7.66.10</c>.</summary>
         public static readonly DerObjectIdentifier CAST5_CBC = MiscObjectIdentifiers.cast5CBC;
 
         /**

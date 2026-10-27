@@ -6,71 +6,86 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Base class for Diffie-Hellman keys.</summary>
     public class DHKeyParameters
-		: AsymmetricKeyParameter
+        : AsymmetricKeyParameter
     {
         private readonly DHParameters parameters;
-		private readonly DerObjectIdentifier algorithmOid;
+        private readonly DerObjectIdentifier algorithmOid;
 
-		protected DHKeyParameters(
-            bool			isPrivate,
-            DHParameters	parameters)
-			: this(isPrivate, parameters, PkcsObjectIdentifiers.DhKeyAgreement)
+        /// <summary>Create a new <see cref="DHKeyParameters"/>.</summary>
+        /// <param name="isPrivate">true if is private, false otherwise.</param>
+        /// <param name="parameters">The parameters.</param>
+        protected DHKeyParameters(
+            bool isPrivate,
+            DHParameters parameters)
+            : this(isPrivate, parameters, PkcsObjectIdentifiers.DhKeyAgreement)
         {
         }
 
-		protected DHKeyParameters(
-            bool				isPrivate,
-            DHParameters		parameters,
-			DerObjectIdentifier	algorithmOid)
-			: base(isPrivate)
+        /// <summary>Create a new <see cref="DHKeyParameters"/>.</summary>
+        /// <param name="isPrivate">true if is private, false otherwise.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="algorithmOid">The algorithm object identifier.</param>
+        protected DHKeyParameters(
+            bool isPrivate,
+            DHParameters parameters,
+            DerObjectIdentifier algorithmOid)
+            : base(isPrivate)
         {
-			// TODO Should we allow parameters to be null?
+            // TODO Should we allow parameters to be null?
             this.parameters = parameters;
-			this.algorithmOid = algorithmOid;
+            this.algorithmOid = algorithmOid;
         }
 
-		public DHParameters Parameters
+        /// <summary>Gets the parameters.</summary>
+        public DHParameters Parameters
         {
             get { return parameters; }
         }
 
-		public DerObjectIdentifier AlgorithmOid
-		{
-			get { return algorithmOid; }
-		}
-
-		public override bool Equals(
-			object obj)
+        /// <summary>Gets the algorithm oid.</summary>
+        public DerObjectIdentifier AlgorithmOid
         {
-			if (obj == this)
-				return true;
-
-			DHKeyParameters other = obj as DHKeyParameters;
-
-			if (other == null)
-				return false;
-
-			return Equals(other);
+            get { return algorithmOid; }
         }
 
-		protected bool Equals(
-			DHKeyParameters other)
-		{
-			return Objects.Equals(parameters, other.parameters)
-				&& base.Equals(other);
-		}
-
-		public override int GetHashCode()
+        /// <inheritdoc/>
+        public override bool Equals(
+            object obj)
         {
-			int hc = base.GetHashCode();
+            if (obj == this)
+                return true;
 
-			if (parameters != null)
-			{
-				hc ^= parameters.GetHashCode();
-			}
+            DHKeyParameters other = obj as DHKeyParameters;
 
-			return hc;
+            if (other == null)
+                return false;
+
+            return Equals(other);
+        }
+
+        /// <summary>Determine whether these parameters are equal to another instance.</summary>
+        /// <param name="other">The instance to compare with.</param>
+        /// <returns>true if the parameters are equal, false otherwise.</returns>
+        protected bool Equals(
+            DHKeyParameters other)
+        {
+            return Objects.Equals(parameters, other.parameters)
+                && base.Equals(other);
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            int hc = base.GetHashCode();
+
+            if (parameters != null)
+            {
+                hc ^= parameters.GetHashCode();
+            }
+
+            return hc;
         }
     }
 }

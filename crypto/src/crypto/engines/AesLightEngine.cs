@@ -359,16 +359,19 @@ namespace Org.BouncyCastle.Crypto.Engines
             this.forEncryption = forEncryption;
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return "AES"; }
         }
 
+        /// <inheritdoc/>
         public int GetBlockSize()
         {
             return BLOCK_SIZE;
         }
 
+        /// <inheritdoc/>
         public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (WorkingKey == null)
@@ -401,6 +404,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (WorkingKey == null)
