@@ -12,22 +12,20 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-     * General class for generating a CMS authenticated-data message.
-     *
-     * A simple example of usage.
-     *
-     * <pre>
-     *      CMSAuthenticatedDataGenerator  fact = new CMSAuthenticatedDataGenerator();
-     *
-     *      fact.addKeyTransRecipient(cert);
-     *
-     *      CMSAuthenticatedData         data = fact.generate(content, algorithm, "BC");
-     * </pre>
-     */
+    /// <summary>General class for generating a CMS authenticated-data message.</summary>
+    /// <example>
+    /// <code>
+    /// CmsAuthenticatedDataGenerator fact = new CmsAuthenticatedDataGenerator();
+    ///
+    /// fact.AddKeyTransRecipient(cert);
+    ///
+    /// CmsAuthenticatedData data = fact.Generate(content, macOid);
+    /// </code>
+    /// </example>
     public class CmsAuthenticatedDataGenerator
         : CmsAuthenticatedGenerator
     {
+        /// <summary>Create a generator using the default source of randomness.</summary>
         public CmsAuthenticatedDataGenerator()
         {
         }

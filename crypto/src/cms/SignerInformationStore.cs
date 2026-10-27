@@ -46,15 +46,15 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
+        /// <summary>Gets the first signer matching the passed in selector, or null if there are no matches.</summary>
+        /// <param name="selector">The signer ID to select against.</param>
         public SignerInformation this[SignerID selector] => GetFirstSigner(selector);
 
-        /**
-         * Return the first SignerInformation object that matches the
-         * passed in selector. Null if there are no matches.
-         *
-         * @param selector to identify a signer
-         * @return a single SignerInformation object. Null if none matches.
-         */
+        /// <summary>
+        /// Return the first <see cref="SignerInformation"/> object that matches the passed in selector.
+        /// </summary>
+        /// <param name="selector">The signer ID to select against.</param>
+        /// <returns>A single <see cref="SignerInformation"/> object, or null if none matches.</returns>
         public SignerInformation GetFirstSigner(SignerID selector)
         {
             if (m_table.TryGetValue(selector, out var list))
@@ -69,12 +69,9 @@ namespace Org.BouncyCastle.Cms
         /// <returns>A list of all signers in the collection</returns>
         public IList<SignerInformation> GetSigners() => new List<SignerInformation>(m_all);
 
-        /**
-         * Return possible empty collection with signers matching the passed in SignerID
-         *
-         * @param selector a signer id to select against.
-         * @return a collection of SignerInformation objects.
-         */
+        /// <summary>Return a (possibly empty) list of the signers matching the passed in selector.</summary>
+        /// <param name="selector">The signer ID to select against.</param>
+        /// <returns>A list of <see cref="SignerInformation"/> objects.</returns>
         public IList<SignerInformation> GetSigners(SignerID selector)
         {
             if (m_table.TryGetValue(selector, out var list))
@@ -85,6 +82,7 @@ namespace Org.BouncyCastle.Cms
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 
+        /// <summary>Return an enumerator over all the signers in the store.</summary>
         public IEnumerator<SignerInformation> GetEnumerator()
         {
             IEnumerable<SignerInformation> e = CollectionUtilities.Proxy(m_all);

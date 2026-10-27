@@ -17,16 +17,26 @@ namespace Org.BouncyCastle.Cms
         private readonly FileInfo m_file;
         private readonly int m_bufSize;
 
+        /// <summary>Create content of type <c>data</c> from a file.</summary>
+        /// <param name="file">The file.</param>
         public CmsProcessableFile(FileInfo file)
             : this(file, DefaultBufSize)
         {
         }
 
+        /// <summary>Create content of type <c>data</c> from a file, with the given buffer size.</summary>
+        /// <param name="file">The file.</param>
+        /// <param name="bufSize">The size of the buffer used when reading.</param>
         public CmsProcessableFile(FileInfo file, int bufSize)
             : this(CmsObjectIdentifiers.Data, file, bufSize)
         {
         }
 
+        /// <summary>Create typed content from a file, with the given buffer size.</summary>
+        /// <param name="type">The content type.</param>
+        /// <param name="file">The file.</param>
+        /// <param name="bufSize">The size of the buffer used when reading.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
         public CmsProcessableFile(DerObjectIdentifier type, FileInfo file, int bufSize)
         {
             m_type = type ?? throw new ArgumentNullException(nameof(type));
@@ -34,9 +44,12 @@ namespace Org.BouncyCastle.Cms
             m_bufSize = bufSize;
         }
 
+        /// <summary>Return a new read-only stream over the file.</summary>
         public virtual Stream GetInputStream() =>
             new FileStream(m_file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, m_bufSize);
 
+        /// <summary>Write the contents of the file to the stream.</summary>
+        /// <param name="zOut">The stream to write to.</param>
         public virtual void Write(Stream zOut)
         {
             using (var inStr = m_file.OpenRead())
@@ -45,6 +58,7 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
+        /// <summary>Gets the content type.</summary>
         public DerObjectIdentifier ContentType => m_type;
     }
 }

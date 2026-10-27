@@ -9,26 +9,26 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Cms
 {
-	/// <summary>PKCS#5 scheme 2 PBE key with the password encoded as ASCII bytes.</summary>
-	public class Pkcs5Scheme2PbeKey
-		: CmsPbeKey
-	{
-		/// <inheritdoc/>
-		public Pkcs5Scheme2PbeKey(
-			char[]	password,
-			byte[]	salt,
-			int		iterationCount)
-			: base(password, salt, iterationCount)
-		{
-		}
+    /// <summary>PKCS#5 scheme 2 PBE key with the password encoded as ASCII bytes.</summary>
+    public class Pkcs5Scheme2PbeKey
+        : CmsPbeKey
+    {
+        /// <inheritdoc/>
+        public Pkcs5Scheme2PbeKey(
+            char[] password,
+            byte[] salt,
+            int iterationCount)
+            : base(password, salt, iterationCount)
+        {
+        }
 
-		/// <inheritdoc/>
-		public Pkcs5Scheme2PbeKey(
-			char[]				password,
-			AlgorithmIdentifier keyDerivationAlgorithm)
-			: base(password, keyDerivationAlgorithm)
-		{
-		}
+        /// <inheritdoc/>
+        public Pkcs5Scheme2PbeKey(
+            char[] password,
+            AlgorithmIdentifier keyDerivationAlgorithm)
+            : base(password, keyDerivationAlgorithm)
+        {
+        }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         /// <inheritdoc/>
@@ -45,17 +45,17 @@ namespace Org.BouncyCastle.Cms
 #endif
 
         internal override KeyParameter GetEncoded(DerObjectIdentifier algorithmOid)
-		{
-			Pkcs5S2ParametersGenerator gen = new Pkcs5S2ParametersGenerator();
+        {
+            Pkcs5S2ParametersGenerator gen = new Pkcs5S2ParametersGenerator();
 
-			gen.Init(
-				PbeParametersGenerator.Pkcs5PasswordToBytes(password),
-				salt,
-				iterationCount);
+            gen.Init(
+                PbeParametersGenerator.Pkcs5PasswordToBytes(password),
+                salt,
+                iterationCount);
 
-			return (KeyParameter) gen.GenerateDerivedParameters(
-				algorithmOid.GetID(),
-				CmsEnvelopedHelper.GetKeySize(algorithmOid));
-		}
-	}
+            return (KeyParameter) gen.GenerateDerivedParameters(
+                algorithmOid.GetID(),
+                CmsEnvelopedHelper.GetKeySize(algorithmOid));
+        }
+    }
 }

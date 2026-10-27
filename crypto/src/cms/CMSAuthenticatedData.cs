@@ -163,7 +163,7 @@ namespace Org.BouncyCastle.Cms
         /// <exception cref="CmsException">Authenticated attributes are present but invalid.</exception>
         public byte[] GetContentDigest()
         {
-            // TODO Full validation; this is syntactic validation on access only; the actual digest is not checked 
+            // TODO Full validation; this is syntactic validation on access only; the actual digest is not checked
             Asn1Encodable validMessageDigest = GetSingleValuedAuthAttribute(CmsAttributes.MessageDigest,
                 "message-digest");
             if (validMessageDigest == null)

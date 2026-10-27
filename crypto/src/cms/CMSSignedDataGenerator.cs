@@ -270,7 +270,7 @@ namespace Org.BouncyCastle.Cms
                         }
 
                         // TODO Validate proposed signed attributes
- 
+
                         signedAttrs = m_outer.GetAttributeSet(signed);
 
                         // sig must be composed from the DER encoding.
