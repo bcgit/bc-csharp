@@ -160,7 +160,7 @@ namespace Org.BouncyCastle.Security
 
         /// <summary>Create a basic agreement that derives a key for the given wrap algorithm using a KDF.</summary>
         /// <param name="agreeAlgOid">The agreement algorithm's object identifier.</param>
-        /// <param name="wrapAlgOid">The object identifier of the key wrap algorithm.</param>
+        /// <param name="wrapAlgID">The algorithm identifier of the key wrap algorithm.</param>
         /// <exception cref="SecurityUtilityException">The agreement is not recognised.</exception>
         public static IBasicAgreement GetBasicAgreementWithKdf(DerObjectIdentifier agreeAlgOid,
             AlgorithmIdentifier wrapAlgID)
