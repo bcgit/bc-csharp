@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Pkix
         }
 
         //// TODO implement for other keystores (see Java build)?
-        ///**
+        // /**
         // * Creates an instance of <code>PKIXParameters</code> that
         // * populates the set of most-trusted CAs from the trusted
         // * certificate entries contained in the specified <code>KeyStore</code>.
