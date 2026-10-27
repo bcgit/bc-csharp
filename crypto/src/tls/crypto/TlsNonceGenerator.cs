@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls.Crypto
 {
+    /// <summary>Interface for a generator of nonces.</summary>
     public interface TlsNonceGenerator
     {
         /// <summary>Generate a nonce byte[] string.</summary>

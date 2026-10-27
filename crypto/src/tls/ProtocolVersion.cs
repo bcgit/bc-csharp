@@ -5,15 +5,24 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>A TLS or DTLS protocol version.</summary>
     public sealed class ProtocolVersion
     {
+        /// <summary>SSL 3.0.</summary>
         public static readonly ProtocolVersion SSLv3 = new ProtocolVersion(0x0300, "SSL 3.0");
+        /// <summary>TLS 1.0.</summary>
         public static readonly ProtocolVersion TLSv10 = new ProtocolVersion(0x0301, "TLS 1.0");
+        /// <summary>TLS 1.1.</summary>
         public static readonly ProtocolVersion TLSv11 = new ProtocolVersion(0x0302, "TLS 1.1");
+        /// <summary>TLS 1.2.</summary>
         public static readonly ProtocolVersion TLSv12 = new ProtocolVersion(0x0303, "TLS 1.2");
+        /// <summary>TLS 1.3.</summary>
         public static readonly ProtocolVersion TLSv13 = new ProtocolVersion(0x0304, "TLS 1.3");
+        /// <summary>DTLS 1.0.</summary>
         public static readonly ProtocolVersion DTLSv10 = new ProtocolVersion(0xFEFF, "DTLS 1.0");
+        /// <summary>DTLS 1.2.</summary>
         public static readonly ProtocolVersion DTLSv12 = new ProtocolVersion(0xFEFD, "DTLS 1.2");
+        /// <summary>DTLS 1.3.</summary>
         public static readonly ProtocolVersion DTLSv13 = new ProtocolVersion(0xFEFC, "DTLS 1.3");
 
         internal static readonly ProtocolVersion CLIENT_EARLIEST_SUPPORTED_DTLS = DTLSv10;
@@ -26,6 +35,10 @@ namespace Org.BouncyCastle.Tls
         internal static readonly ProtocolVersion SERVER_LATEST_SUPPORTED_DTLS = DTLSv12;
         internal static readonly ProtocolVersion SERVER_LATEST_SUPPORTED_TLS = TLSv13;
 
+        /// <summary>Determine whether an array of versions contains a given version.</summary>
+        /// <param name="versions">The versions, or null.</param>
+        /// <param name="version">The version to look for, or null.</param>
+        /// <returns>true if the version is in the array, false otherwise.</returns>
         public static bool Contains(ProtocolVersion[] versions, ProtocolVersion version)
         {
             if (versions != null && version != null)
@@ -39,6 +52,9 @@ namespace Org.BouncyCastle.Tls
             return false;
         }
 
+        /// <summary>Get the earliest version of the given kind in an array.</summary>
+        /// <param name="versions">The versions.</param>
+        /// <returns>The earliest version, or null if there is none.</returns>
         public static ProtocolVersion GetEarliestDtls(ProtocolVersion[] versions)
         {
             ProtocolVersion earliest = null;
@@ -59,6 +75,9 @@ namespace Org.BouncyCastle.Tls
             return earliest;
         }
 
+        /// <summary>Get the earliest version of the given kind in an array.</summary>
+        /// <param name="versions">The versions.</param>
+        /// <returns>The earliest version, or null if there is none.</returns>
         public static ProtocolVersion GetEarliestTls(ProtocolVersion[] versions)
         {
             ProtocolVersion earliest = null;
@@ -79,6 +98,9 @@ namespace Org.BouncyCastle.Tls
             return earliest;
         }
 
+        /// <summary>Get the latest version of the given kind in an array.</summary>
+        /// <param name="versions">The versions.</param>
+        /// <returns>The latest version, or null if there is none.</returns>
         public static ProtocolVersion GetLatestDtls(ProtocolVersion[] versions)
         {
             ProtocolVersion latest = null;
@@ -99,6 +121,9 @@ namespace Org.BouncyCastle.Tls
             return latest;
         }
 
+        /// <summary>Get the latest version of the given kind in an array.</summary>
+        /// <param name="versions">The versions.</param>
+        /// <returns>The latest version, or null if there is none.</returns>
         public static ProtocolVersion GetLatestTls(ProtocolVersion[] versions)
         {
             ProtocolVersion latest = null;
@@ -164,6 +189,12 @@ namespace Org.BouncyCastle.Tls
             this.name = name;
         }
 
+        /// <summary>
+        /// Get this version and all the earlier versions of the same kind down to a minimum, latest first.
+        /// </summary>
+        /// <param name="min">The earliest version to include, which must not be later than this one.</param>
+        /// <returns>The versions.</returns>
+        /// <exception cref="ArgumentException"><paramref name="min"/> is later than this version.</exception>
         public ProtocolVersion[] DownTo(ProtocolVersion min)
         {
             if (!IsEqualOrLaterVersionOf(min))
@@ -182,41 +213,49 @@ namespace Org.BouncyCastle.Tls
             return result.ToArray();
         }
 
+        /// <summary>Gets the full version.</summary>
         public int FullVersion
         {
             get { return version; }
         }
 
+        /// <summary>Gets the major version.</summary>
         public int MajorVersion
         {
             get { return version >> 8; }
         }
 
+        /// <summary>Gets the minor version.</summary>
         public int MinorVersion
         {
             get { return version & 0xFF; }
         }
 
+        /// <summary>Gets the name.</summary>
         public string Name
         {
             get { return name; }
         }
 
+        /// <summary>Gets a value indicating whether this is dtls.</summary>
         public bool IsDtls
         {
             get { return MajorVersion == 0xFE; }
         }
 
+        /// <summary>Gets a value indicating whether this is ssl.</summary>
         public bool IsSsl
         {
             get { return this == SSLv3; }
         }
 
+        /// <summary>Gets a value indicating whether this is tls.</summary>
         public bool IsTls
         {
             get { return MajorVersion == 0x03; }
         }
 
+        /// <summary>Return the equivalent tls version.</summary>
         public ProtocolVersion GetEquivalentTlsVersion()
         {
             switch (MajorVersion)
@@ -240,6 +279,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Return the next version.</summary>
         public ProtocolVersion GetNextVersion()
         {
             int major = MajorVersion, minor = MinorVersion;
@@ -268,6 +308,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Return the previous version.</summary>
         public ProtocolVersion GetPreviousVersion()
         {
             int major = MajorVersion, minor = MinorVersion;
@@ -296,6 +337,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Determine whether this version is earlier than another.</summary>
+        /// <param name="version">The other version.</param>
+        /// <returns>true if this version is earlier, false otherwise.</returns>
         public bool IsEarlierVersionOf(ProtocolVersion version)
         {
             if (null == version || MajorVersion != version.MajorVersion)
@@ -305,6 +349,9 @@ namespace Org.BouncyCastle.Tls
             return IsDtls ? diffMinorVersion > 0 : diffMinorVersion < 0;
         }
 
+        /// <summary>Determine whether this version is equal to or earlier than another.</summary>
+        /// <param name="version">The other version.</param>
+        /// <returns>true if this version is equal or earlier, false otherwise.</returns>
         public bool IsEqualOrEarlierVersionOf(ProtocolVersion version)
         {
             if (null == version || MajorVersion != version.MajorVersion)
@@ -314,6 +361,9 @@ namespace Org.BouncyCastle.Tls
             return IsDtls ? diffMinorVersion >= 0 : diffMinorVersion <= 0;
         }
 
+        /// <summary>Determine whether this version is equal to or later than another.</summary>
+        /// <param name="version">The other version.</param>
+        /// <returns>true if this version is equal or later, false otherwise.</returns>
         public bool IsEqualOrLaterVersionOf(ProtocolVersion version)
         {
             if (null == version || MajorVersion != version.MajorVersion)
@@ -323,6 +373,9 @@ namespace Org.BouncyCastle.Tls
             return IsDtls ? diffMinorVersion <= 0 : diffMinorVersion >= 0;
         }
 
+        /// <summary>Determine whether this version is later than another.</summary>
+        /// <param name="version">The other version.</param>
+        /// <returns>true if this version is later, false otherwise.</returns>
         public bool IsLaterVersionOf(ProtocolVersion version)
         {
             if (null == version || MajorVersion != version.MajorVersion)
@@ -332,21 +385,30 @@ namespace Org.BouncyCastle.Tls
             return IsDtls ? diffMinorVersion < 0 : diffMinorVersion > 0;
         }
 
+        /// <inheritdoc/>
         public override bool Equals(object other)
         {
             return this == other || (other is ProtocolVersion && Equals((ProtocolVersion)other));
         }
 
+        /// <summary>Determine whether this version is equal to another.</summary>
+        /// <param name="other">The other version.</param>
+        /// <returns>true if the versions are equal, false otherwise.</returns>
         public bool Equals(ProtocolVersion other)
         {
             return other != null && this.version == other.version;
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return version;
         }
 
+        /// <summary>Get the protocol version for a major and minor version number.</summary>
+        /// <param name="major">The major version number.</param>
+        /// <param name="minor">The minor version number.</param>
+        /// <returns>The version.</returns>
         public static ProtocolVersion Get(int major, int minor)
         {
             switch (major)
@@ -390,11 +452,14 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Create an array containing only this version.</summary>
+        /// <returns>The array.</returns>
         public ProtocolVersion[] Only()
         {
             return new ProtocolVersion[]{ this };
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return name;

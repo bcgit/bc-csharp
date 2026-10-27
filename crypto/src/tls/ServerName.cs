@@ -17,6 +17,9 @@ namespace Org.BouncyCastle.Tls
         private readonly short nameType;
         private readonly byte[] nameData;
 
+        /// <summary>Create a new <see cref="ServerName"/>.</summary>
+        /// <param name="nameType">The name type.</param>
+        /// <param name="nameData">The name data.</param>
         public ServerName(short nameType, byte[] nameData)
         {
             if (!TlsUtilities.IsValidUint8(nameType))
@@ -30,11 +33,13 @@ namespace Org.BouncyCastle.Tls
             this.nameData = nameData;
         }
 
+        /// <summary>Gets the name data.</summary>
         public byte[] NameData
         {
             get { return nameData; }
         }
 
+        /// <summary>Gets the name type.</summary>
         public short NameType
         {
             get { return nameType; }

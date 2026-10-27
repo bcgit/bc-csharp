@@ -5,8 +5,11 @@ namespace Org.BouncyCastle.Tls.Crypto
     /// <summary>Carrier class for Elliptic Curve parameter configuration.</summary>
     public class TlsECConfig
     {
+        /// <summary>The named group.</summary>
         protected readonly int m_namedGroup;
 
+        /// <summary>Create a new <see cref="TlsECConfig"/>.</summary>
+        /// <param name="namedGroup">The named group.</param>
         public TlsECConfig(int namedGroup)
         {
             this.m_namedGroup = namedGroup;

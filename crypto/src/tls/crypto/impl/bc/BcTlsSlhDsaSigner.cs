@@ -5,9 +5,15 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
+    /// <summary>An SLH-DSA signer for TLS, using the Bouncy Castle implementation.</summary>
     public class BcTlsSlhDsaSigner
         : BcTlsSigner
     {
+        /// <summary>Create an SLH-DSA signer for a signature scheme.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>The signer.</returns>
         public static BcTlsSlhDsaSigner Create(BcTlsCrypto crypto, SlhDsaPrivateKeyParameters privateKey, int signatureScheme)
         {
             if (signatureScheme != PqcUtilities.GetSlhDsaSignatureScheme(privateKey.Parameters))
@@ -28,6 +34,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             m_signatureScheme = signatureScheme;
         }
 
+        /// <inheritdoc/>
         public override TlsStreamSigner GetStreamSigner(SignatureAndHashAlgorithm algorithm)
         {
             if (algorithm == null || SignatureScheme.From(algorithm) != m_signatureScheme)

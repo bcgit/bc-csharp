@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Utility methods for elliptic curve cryptography in TLS.</summary>
     public abstract class TlsEccUtilities
     {
         /// <exception cref="IOException"/>
@@ -17,6 +18,9 @@ namespace Org.BouncyCastle.Tls
             return new TlsECConfig(namedGroup);
         }
 
+        /// <summary>Get the minimum size in bits of an elliptic curve for a cipher suite.</summary>
+        /// <param name="cipherSuite">The cipher suite.</param>
+        /// <returns>The minimum size in bits.</returns>
         public static int GetMinimumCurveBits(int cipherSuite)
         {
             /*
@@ -27,6 +31,9 @@ namespace Org.BouncyCastle.Tls
             return IsEccCipherSuite(cipherSuite) ? 1 : 0;
         }
 
+        /// <summary>Determine whether a cipher suite uses elliptic curve cryptography.</summary>
+        /// <param name="cipherSuite">The cipher suite.</param>
+        /// <returns>true if the cipher suite uses ECC, false otherwise.</returns>
         public static bool IsEccCipherSuite(int cipherSuite)
         {
             switch (TlsUtilities.GetKeyExchangeAlgorithm(cipherSuite))

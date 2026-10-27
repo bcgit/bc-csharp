@@ -13,6 +13,8 @@ namespace Org.BouncyCastle.Tls
         // TODO[api]
         //bool PreferLocalSupportedGroups();
 
+        /// <summary>Initialise the server with its context.</summary>
+        /// <param name="context">The server context.</param>
         void Init(TlsServerContext context);
 
         /// <summary>Return the specified session, if available.</summary>
@@ -24,6 +26,7 @@ namespace Org.BouncyCastle.Tls
         /// <seealso cref="SessionParameters.PeerCertificate"/>
         TlsSession GetSessionToResume(byte[] sessionID);
 
+        /// <summary>Return the new session ID.</summary>
         byte[] GetNewSessionID();
 
         /// <summary>Return the <see cref="TlsPskExternal">external PSK</see> to select from the ClientHello.</summary>
@@ -37,6 +40,8 @@ namespace Org.BouncyCastle.Tls
         /// any.</returns>
         TlsPskExternal GetExternalPsk(IList<PskIdentity> identities);
 
+        /// <summary>Notify the server of the session of the connection.</summary>
+        /// <param name="session">The session.</param>
         void NotifySession(TlsSession session);
 
         /// <exception cref="IOException"/>

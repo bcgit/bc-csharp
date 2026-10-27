@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Base class for the DTLS client and server protocols.</summary>
     public abstract class DtlsProtocol
     {
         internal DtlsProtocol()
@@ -31,7 +32,7 @@ namespace Org.BouncyCastle.Tls
             if (maxFragmentLength >= 0)
             {
                 if (!MaxFragmentLength.IsValid(maxFragmentLength))
-                    throw new TlsFatalAlert(AlertDescription.internal_error); 
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
 
                 int plainTextLimit = 1 << (8 + maxFragmentLength);
                 recordLayer.SetPlaintextLimit(plainTextLimit);

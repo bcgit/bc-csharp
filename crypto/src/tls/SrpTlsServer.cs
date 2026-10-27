@@ -5,6 +5,7 @@ using Org.BouncyCastle.Tls.Crypto;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>A TLS server that uses SRP.</summary>
     public class SrpTlsServer
         : AbstractTlsServer
     {
@@ -18,11 +19,17 @@ namespace Org.BouncyCastle.Tls
             CipherSuite.TLS_SRP_SHA_WITH_AES_128_CBC_SHA
         };
 
+        /// <summary>The srp identity manager.</summary>
         protected readonly TlsSrpIdentityManager m_srpIdentityManager;
 
+        /// <summary>The srp identity.</summary>
         protected byte[] m_srpIdentity = null;
+        /// <summary>The srp login parameters.</summary>
         protected TlsSrpLoginParameters m_srpLoginParameters = null;
 
+        /// <summary>Create a new <see cref="SrpTlsServer"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="srpIdentityManager">The srp identity manager.</param>
         public SrpTlsServer(TlsCrypto crypto, TlsSrpIdentityManager srpIdentityManager)
             : base(crypto)
         {
@@ -37,11 +44,14 @@ namespace Org.BouncyCastle.Tls
         protected virtual TlsCredentialedSigner GetRsaSignerCredentials() =>
             throw new TlsFatalAlert(AlertDescription.internal_error);
 
+        /// <inheritdoc/>
         protected override ProtocolVersion[] GetSupportedVersions() => ProtocolVersion.TLSv12.Only();
 
+        /// <inheritdoc/>
         protected override int[] GetSupportedCipherSuites() =>
             TlsUtilities.GetSupportedCipherSuites(Crypto, DefaultCipherSuites);
 
+        /// <inheritdoc/>
         public override void ProcessClientExtensions(IDictionary<int, byte[]> clientExtensions)
         {
             base.ProcessClientExtensions(clientExtensions);
@@ -49,6 +59,7 @@ namespace Org.BouncyCastle.Tls
             m_srpIdentity = TlsSrpUtilities.GetSrpExtension(clientExtensions);
         }
 
+        /// <inheritdoc/>
         public override int GetSelectedCipherSuite()
         {
             int cipherSuite = base.GetSelectedCipherSuite();
@@ -67,6 +78,7 @@ namespace Org.BouncyCastle.Tls
             return cipherSuite;
         }
 
+        /// <inheritdoc/>
         public override TlsCredentials GetCredentials()
         {
             int keyExchangeAlgorithm = m_context.SecurityParameters.KeyExchangeAlgorithm;
@@ -88,6 +100,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <inheritdoc/>
         public override TlsSrpLoginParameters GetSrpLoginParameters() => m_srpLoginParameters;
     }
 }

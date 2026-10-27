@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>(D)TLS DHE key exchange (RFC 4346 section 6.3.2).</summary>
     // TODO[api] Make sealed
     public class TlsDheKeyExchange
         : AbstractTlsKeyExchange
@@ -22,19 +23,30 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>The dh group verifier.</summary>
         // TODO[api] Make readonly
         protected TlsDHGroupVerifier m_dhGroupVerifier;
 
+        /// <summary>The dh config.</summary>
         protected TlsDHConfig m_dhConfig;
+        /// <summary>The server credentials.</summary>
         protected TlsCredentialedSigner m_serverCredentials = null;
+        /// <summary>The server certificate.</summary>
         protected TlsCertificate m_serverCertificate = null;
+        /// <summary>The agreement.</summary>
         protected TlsAgreement m_agreement;
 
+        /// <summary>Create a new <see cref="TlsDheKeyExchange"/>.</summary>
+        /// <param name="keyExchange">The key exchange.</param>
+        /// <param name="dhGroupVerifier">The dh group verifier.</param>
         public TlsDheKeyExchange(int keyExchange, TlsDHGroupVerifier dhGroupVerifier)
             : this(keyExchange, dhGroupVerifier, null)
         {
         }
 
+        /// <summary>Create a new <see cref="TlsDheKeyExchange"/>.</summary>
+        /// <param name="keyExchange">The key exchange.</param>
+        /// <param name="dhConfig">The dh config.</param>
         public TlsDheKeyExchange(int keyExchange, TlsDHConfig dhConfig)
             : this(keyExchange, null, dhConfig)
         {
@@ -47,20 +59,25 @@ namespace Org.BouncyCastle.Tls
             m_dhConfig = dhConfig;
         }
 
+        /// <inheritdoc/>
         public override void SkipServerCredentials() => throw new TlsFatalAlert(AlertDescription.internal_error);
 
+        /// <inheritdoc/>
         public override void ProcessServerCredentials(TlsCredentials serverCredentials)
         {
             m_serverCredentials = TlsUtilities.RequireSignerCredentials(serverCredentials);
         }
 
+        /// <inheritdoc/>
         public override void ProcessServerCertificate(Certificate serverCertificate)
         {
             m_serverCertificate = serverCertificate.GetCertificateAt(0);
         }
 
+        /// <inheritdoc/>
         public override bool RequiresServerKeyExchange => true;
 
+        /// <inheritdoc/>
         public override byte[] GenerateServerKeyExchange()
         {
             DigestInputBuffer digestBuffer = new DigestInputBuffer();
@@ -78,6 +95,7 @@ namespace Org.BouncyCastle.Tls
             return digestBuffer.ToArray();
         }
 
+        /// <inheritdoc/>
         public override void ProcessServerKeyExchange(Stream input)
         {
             DigestInputBuffer digestBuffer = new DigestInputBuffer();
@@ -94,21 +112,26 @@ namespace Org.BouncyCastle.Tls
             m_agreement.ReceivePeerValue(y);
         }
 
+        /// <inheritdoc/>
         public override short[] GetClientCertificateTypes()
         {
             return new short[]{ ClientCertificateType.dss_sign, ClientCertificateType.ecdsa_sign,
                 ClientCertificateType.rsa_sign };
         }
 
+        /// <inheritdoc/>
         public override void ProcessClientCredentials(TlsCredentials clientCredentials) =>
             TlsUtilities.RequireSignerCredentials(clientCredentials);
 
+        /// <inheritdoc/>
         public override void GenerateClientKeyExchange(Stream output) =>
             TlsUtilities.WriteOpaque16(m_agreement.GenerateEphemeral(), output);
 
+        /// <inheritdoc/>
         public override void ProcessClientKeyExchange(Stream input) =>
             m_agreement.ReceivePeerValue(TlsUtilities.ReadOpaque16(input, 1));
 
+        /// <inheritdoc/>
         public override TlsSecret GeneratePreMasterSecret() => m_agreement.CalculateSecret();
     }
 }

@@ -11,16 +11,21 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public class BcTlsDsaVerifier
         : BcTlsDssVerifier
     {
+        /// <summary>Create a new <see cref="BcTlsDsaVerifier"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="publicKey">The public key.</param>
         public BcTlsDsaVerifier(BcTlsCrypto crypto, DsaPublicKeyParameters publicKey)
             : base(crypto, publicKey)
         {
         }
 
+        /// <inheritdoc/>
         protected override IDsa CreateDsaImpl()
         {
             return new DsaSigner();
         }
 
+        /// <inheritdoc/>
         protected override short SignatureAlgorithm
         {
             get { return Tls.SignatureAlgorithm.dsa; }

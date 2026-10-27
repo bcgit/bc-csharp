@@ -12,14 +12,22 @@ namespace Org.BouncyCastle.Tls
     public abstract class AbstractTlsClient
         : AbstractTlsPeer, TlsClient
     {
+        /// <summary>The context.</summary>
         protected TlsClientContext m_context;
+        /// <summary>The protocol versions.</summary>
         protected ProtocolVersion[] m_protocolVersions;
+        /// <summary>The cipher suites.</summary>
         protected int[] m_cipherSuites;
 
+        /// <summary>The supported groups.</summary>
         protected IList<int> m_supportedGroups;
+        /// <summary>The supported signature algorithms.</summary>
         protected IList<SignatureAndHashAlgorithm> m_supportedSignatureAlgorithms;
+        /// <summary>The supported signature algorithms cert.</summary>
         protected IList<SignatureAndHashAlgorithm> m_supportedSignatureAlgorithmsCert;
 
+        /// <summary>Create a new <see cref="AbstractTlsClient"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
         protected AbstractTlsClient(TlsCrypto crypto)
             : base(crypto)
         {
@@ -53,6 +61,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Return the named group roles.</summary>
         protected virtual IList<int> GetNamedGroupRoles()
         {
             var namedGroupRoles = TlsUtilities.GetNamedGroupRoles(GetCipherSuites());
@@ -98,26 +107,31 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        /// <inheritdoc/>
         public virtual TlsDHGroupVerifier GetDHGroupVerifier()
         {
             return new DefaultTlsDHGroupVerifier();
         }
 
+        /// <inheritdoc/>
         public virtual TlsSrpConfigVerifier GetSrpConfigVerifier()
         {
             return new DefaultTlsSrpConfigVerifier();
         }
 
+        /// <summary>Return the certificate authorities.</summary>
         protected virtual IList<X509Name> GetCertificateAuthorities()
         {
             return null;
         }
 
+        /// <summary>Return the protocol names.</summary>
         protected virtual IList<ProtocolName> GetProtocolNames()
         {
             return null;
         }
 
+        /// <summary>Return the certificate status request.</summary>
         protected virtual CertificateStatusRequest GetCertificateStatusRequest()
         {
             return new CertificateStatusRequest(CertificateStatusType.ocsp, new OcspStatusRequest(null, null));
@@ -129,6 +143,7 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        /// <summary>Return the sni server names.</summary>
         protected virtual IList<ServerName> GetSniServerNames()
         {
             return null;
@@ -168,31 +183,37 @@ namespace Org.BouncyCastle.Tls
             return supportedGroups;
         }
 
+        /// <summary>Return the supported signature algorithms.</summary>
         protected virtual IList<SignatureAndHashAlgorithm> GetSupportedSignatureAlgorithms()
         {
             return TlsUtilities.GetDefaultSupportedSignatureAlgorithms(m_context);
         }
 
+        /// <summary>Return the supported signature algorithms cert.</summary>
         protected virtual IList<SignatureAndHashAlgorithm> GetSupportedSignatureAlgorithmsCert()
         {
             return null;
         }
 
+        /// <summary>Return the trusted CA indication.</summary>
         protected virtual IList<TrustedAuthority> GetTrustedCAIndication()
         {
             return null;
         }
 
+        /// <summary>Return the allowed client certificate types.</summary>
         protected virtual short[] GetAllowedClientCertificateTypes()
         {
             return null;
         }
 
+        /// <summary>Return the allowed server certificate types.</summary>
         protected virtual short[] GetAllowedServerCertificateTypes()
         {
             return null;
         }
 
+        /// <inheritdoc/>
         public virtual void Init(TlsClientContext context)
         {
             this.m_context = context;
@@ -201,11 +222,13 @@ namespace Org.BouncyCastle.Tls
             this.m_cipherSuites = GetSupportedCipherSuites();
         }
 
+        /// <inheritdoc/>
         public override ProtocolVersion[] GetProtocolVersions()
         {
             return m_protocolVersions;
         }
 
+        /// <inheritdoc/>
         public override int[] GetCipherSuites()
         {
             return m_cipherSuites;
@@ -221,16 +244,19 @@ namespace Org.BouncyCastle.Tls
             this.m_supportedSignatureAlgorithmsCert = null;
         }
 
+        /// <inheritdoc/>
         public virtual TlsSession GetSessionToResume()
         {
             return null;
         }
 
+        /// <inheritdoc/>
         public virtual IList<TlsPskExternal> GetExternalPsks()
         {
             return null;
         }
 
+        /// <inheritdoc/>
         public virtual bool IsFallback()
         {
             /*
@@ -399,6 +425,7 @@ namespace Org.BouncyCastle.Tls
             return clientExtensions;
         }
 
+        /// <inheritdoc/>
         public virtual IList<int> GetEarlyKeyShareGroups()
         {
             /*
@@ -420,6 +447,11 @@ namespace Org.BouncyCastle.Tls
             return TlsUtilities.VectorOfOne(m_supportedGroups[0]);
         }
 
+        /// <summary>
+        /// Determine whether to use the TLS 1.3 compatibility mode, in which a TLS 1.3 handshake imitates a TLS 1.2
+        /// one.
+        /// </summary>
+        /// <returns>true to use the compatibility mode, false otherwise.</returns>
         public virtual bool ShouldUseCompatibilityMode()
         {
             return true;
@@ -430,14 +462,17 @@ namespace Org.BouncyCastle.Tls
         {
         }
 
+        /// <inheritdoc/>
         public virtual void NotifySessionToResume(TlsSession session)
         {
         }
 
+        /// <inheritdoc/>
         public virtual void NotifySessionID(byte[] sessionID)
         {
         }
 
+        /// <inheritdoc/>
         public virtual void NotifySelectedCipherSuite(int selectedCipherSuite)
         {
         }
@@ -498,6 +533,7 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
         }
 
+        /// <inheritdoc/>
         public abstract TlsAuthentication GetAuthentication();
 
         /// <exception cref="IOException"/>

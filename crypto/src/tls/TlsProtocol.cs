@@ -13,38 +13,62 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Base class for the TLS client and server protocols.</summary>
     public abstract class TlsProtocol
         : TlsCloseable
     {
         /*
          * Connection States.
-         * 
+         *
          * NOTE: Redirection of handshake messages to TLS 1.3 handlers assumes CS_START, CS_CLIENT_HELLO
          * are lower than any of the other values.
          */
         protected const short CS_START = 0;
+        /// <summary>The <c>CS_CLIENT_HELLO</c> constant, with the value <c>1</c>.</summary>
         protected const short CS_CLIENT_HELLO = 1;
+        /// <summary>The <c>CS_SERVER_HELLO_RETRY_REQUEST</c> constant, with the value <c>2</c>.</summary>
         protected const short CS_SERVER_HELLO_RETRY_REQUEST = 2;
+        /// <summary>The <c>CS_CLIENT_HELLO_RETRY</c> constant, with the value <c>3</c>.</summary>
         protected const short CS_CLIENT_HELLO_RETRY = 3;
+        /// <summary>The <c>CS_SERVER_HELLO</c> constant, with the value <c>4</c>.</summary>
         protected const short CS_SERVER_HELLO = 4;
+        /// <summary>The <c>CS_SERVER_ENCRYPTED_EXTENSIONS</c> constant, with the value <c>5</c>.</summary>
         protected const short CS_SERVER_ENCRYPTED_EXTENSIONS = 5;
+        /// <summary>The <c>CS_SERVER_SUPPLEMENTAL_DATA</c> constant, with the value <c>6</c>.</summary>
         protected const short CS_SERVER_SUPPLEMENTAL_DATA = 6;
+        /// <summary>The <c>CS_SERVER_CERTIFICATE</c> constant, with the value <c>7</c>.</summary>
         protected const short CS_SERVER_CERTIFICATE = 7;
+        /// <summary>The <c>CS_SERVER_CERTIFICATE_STATUS</c> constant, with the value <c>8</c>.</summary>
         protected const short CS_SERVER_CERTIFICATE_STATUS = 8;
+        /// <summary>The <c>CS_SERVER_CERTIFICATE_VERIFY</c> constant, with the value <c>9</c>.</summary>
         protected const short CS_SERVER_CERTIFICATE_VERIFY = 9;
+        /// <summary>The <c>CS_SERVER_KEY_EXCHANGE</c> constant, with the value <c>10</c>.</summary>
         protected const short CS_SERVER_KEY_EXCHANGE = 10;
+        /// <summary>The <c>CS_SERVER_CERTIFICATE_REQUEST</c> constant, with the value <c>11</c>.</summary>
         protected const short CS_SERVER_CERTIFICATE_REQUEST = 11;
+        /// <summary>The <c>CS_SERVER_HELLO_DONE</c> constant, with the value <c>12</c>.</summary>
         protected const short CS_SERVER_HELLO_DONE = 12;
+        /// <summary>The <c>CS_CLIENT_END_OF_EARLY_DATA</c> constant, with the value <c>13</c>.</summary>
         protected const short CS_CLIENT_END_OF_EARLY_DATA = 13;
+        /// <summary>The <c>CS_CLIENT_SUPPLEMENTAL_DATA</c> constant, with the value <c>14</c>.</summary>
         protected const short CS_CLIENT_SUPPLEMENTAL_DATA = 14;
+        /// <summary>The <c>CS_CLIENT_CERTIFICATE</c> constant, with the value <c>15</c>.</summary>
         protected const short CS_CLIENT_CERTIFICATE = 15;
+        /// <summary>The <c>CS_CLIENT_KEY_EXCHANGE</c> constant, with the value <c>16</c>.</summary>
         protected const short CS_CLIENT_KEY_EXCHANGE = 16;
+        /// <summary>The <c>CS_CLIENT_CERTIFICATE_VERIFY</c> constant, with the value <c>17</c>.</summary>
         protected const short CS_CLIENT_CERTIFICATE_VERIFY = 17;
+        /// <summary>The <c>CS_CLIENT_FINISHED</c> constant, with the value <c>18</c>.</summary>
         protected const short CS_CLIENT_FINISHED = 18;
+        /// <summary>The <c>CS_SERVER_SESSION_TICKET</c> constant, with the value <c>19</c>.</summary>
         protected const short CS_SERVER_SESSION_TICKET = 19;
+        /// <summary>The <c>CS_SERVER_FINISHED</c> constant, with the value <c>20</c>.</summary>
         protected const short CS_SERVER_FINISHED = 20;
+        /// <summary>The <c>CS_END</c> constant, with the value <c>21</c>.</summary>
         protected const short CS_END = 21;
 
+        /// <summary>Determine whether the connection state is that of a protocol version before TLS 1.3.</summary>
+        /// <returns>true if the connection uses a legacy version, false otherwise.</returns>
         protected bool IsLegacyConnectionState()
         {
             switch (m_connectionState)
@@ -78,6 +102,8 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Determine whether the connection state is that of TLS 1.3.</summary>
+        /// <returns>true if the connection uses TLS 1.3, false otherwise.</returns>
         protected bool IsTlsV13ConnectionState()
         {
             switch (m_connectionState)
@@ -115,7 +141,9 @@ namespace Org.BouncyCastle.Tls
          * Different modes to handle the known IV weakness
          */
         protected const short ADS_MODE_1_Nsub1 = 0; // 1/n-1 record splitting
+        /// <summary>The <c>ADS_MODE_0_N</c> constant, with the value <c>1</c>.</summary>
         protected const short ADS_MODE_0_N = 1; // 0/n record splitting
+        /// <summary>The <c>ADS_MODE_0_N_FIRSTONLY</c> constant, with the value <c>2</c>.</summary>
         protected const short ADS_MODE_0_N_FIRSTONLY = 2; // 0/n record splitting on first data fragment only
 
         /*
@@ -150,25 +178,40 @@ namespace Org.BouncyCastle.Tls
         private volatile bool m_resumableHandshake = false;
         private volatile int m_appDataSplitMode = ADS_MODE_1_Nsub1;
 
+        /// <summary>The tls session.</summary>
         protected TlsSession m_tlsSession = null;
+        /// <summary>The session parameters.</summary>
         protected SessionParameters m_sessionParameters = null;
+        /// <summary>The session master secret.</summary>
         protected TlsSecret m_sessionMasterSecret = null;
 
+        /// <summary>The retry cookie.</summary>
         protected byte[] m_retryCookie = null;
+        /// <summary>The retry group.</summary>
         // TODO[api] Remove and manage via SecurityParameters.m_negotiatedGroup
         protected int m_retryGroup = -1;
+        /// <summary>The client extensions.</summary>
         protected IDictionary<int, byte[]> m_clientExtensions = null;
+        /// <summary>The server extensions.</summary>
         protected IDictionary<int, byte[]> m_serverExtensions = null;
 
+        /// <summary>The connection state.</summary>
         protected short m_connectionState = CS_START;
+        /// <summary>The selected psk 13.</summary>
         protected bool m_selectedPsk13 = false;
+        /// <summary>The received change cipher spec.</summary>
         protected bool m_receivedChangeCipherSpec = false;
+        /// <summary>The expect session ticket.</summary>
         protected bool m_expectSessionTicket = false;
 
+        /// <summary>The blocking.</summary>
         protected readonly bool m_blocking;
+        /// <summary>The input buffers.</summary>
         protected readonly ByteQueueInputStream m_inputBuffers;
+        /// <summary>The output buffer.</summary>
         protected readonly ByteQueueOutputStream m_outputBuffer;
 
+        /// <summary>Create a new <see cref="TlsProtocol"/>.</summary>
         protected TlsProtocol()
         {
             this.m_blocking = false;
@@ -177,11 +220,16 @@ namespace Org.BouncyCastle.Tls
             this.m_recordStream = new RecordStream(this, m_inputBuffers, m_outputBuffer);
         }
 
+        /// <summary>Create a new <see cref="TlsProtocol"/>.</summary>
+        /// <param name="stream">The stream.</param>
         public TlsProtocol(Stream stream)
             : this(stream, stream)
         {
         }
 
+        /// <summary>Create a new <see cref="TlsProtocol"/>.</summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="output">The buffer to write the output to.</param>
         public TlsProtocol(Stream input, Stream output)
         {
             this.m_blocking = true;
@@ -207,10 +255,12 @@ namespace Org.BouncyCastle.Tls
             m_recordStream.Close();
         }
 
+        /// <summary>Gets the context.</summary>
         protected abstract TlsContext Context { get; }
 
         internal abstract AbstractTlsContext ContextAdmin { get; }
 
+        /// <summary>Gets the peer.</summary>
         protected abstract TlsPeer Peer { get; }
 
         /// <exception cref="IOException"/>
@@ -410,6 +460,7 @@ namespace Org.BouncyCastle.Tls
             securityParameters.m_extendedPadding = peer.ShouldUseExtendedPadding();
         }
 
+        /// <summary>Clean up the state kept for the handshake once it has finished.</summary>
         protected virtual void CleanupHandshake()
         {
             TlsContext context = Context;
@@ -660,7 +711,7 @@ namespace Org.BouncyCastle.Tls
                     break;
 
                 /*
-                 * For all others we automatically update the transcript immediately. 
+                 * For all others we automatically update the transcript immediately.
                  */
                 default:
                 {
@@ -725,6 +776,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Gets the application data available.</summary>
         public virtual int ApplicationDataAvailable
         {
             get { return m_applicationDataQueue.Available; }
@@ -777,6 +829,10 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Read data from the network.</summary>
+        /// <param name="buffer">The buffer where the data will be copied to.</param>
+        /// <returns>The number of bytes read.</returns>
+        /// <exception cref="IOException">If something goes wrong during reading data.</exception>
         public virtual int ReadApplicationData(Span<byte> buffer)
         {
             if (!m_appDataReady)
@@ -1001,14 +1057,14 @@ namespace Org.BouncyCastle.Tls
                     /*
                      * RFC 5246 6.2.1. Zero-length fragments of Application data MAY be sent as they are
                      * potentially useful as a traffic analysis countermeasure.
-                     * 
+                     *
                      * NOTE: Actually, implementations appear to have settled on 1/n-1 record splitting.
                      */
                     if (m_appDataSplitEnabled)
                     {
                         /*
                          * Protect against known IV attack!
-                         * 
+                         *
                          * DO NOT REMOVE THIS CODE, EXCEPT YOU KNOW EXACTLY WHAT YOU ARE DOING HERE.
                          */
                         switch (m_appDataSplitMode)
@@ -1060,6 +1116,14 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Write some application data.</summary>
+        /// <param name="buffer">The buffer containing application data to send.</param>
+        /// <exception cref="InvalidOperationException">
+        /// If called before the initial handshake has completed.
+        /// </exception>
+        /// <exception cref="IOException">
+        /// If connection is already closed, or for encryption or transport errors.
+        /// </exception>
         public virtual void WriteApplicationData(ReadOnlySpan<byte> buffer)
         {
             if (!m_appDataReady)
@@ -1076,14 +1140,14 @@ namespace Org.BouncyCastle.Tls
                     /*
                      * RFC 5246 6.2.1. Zero-length fragments of Application data MAY be sent as they are
                      * potentially useful as a traffic analysis countermeasure.
-                     * 
+                     *
                      * NOTE: Actually, implementations appear to have settled on 1/n-1 record splitting.
                      */
                     if (m_appDataSplitEnabled)
                     {
                         /*
                          * Protect against known IV attack!
-                         * 
+                         *
                          * DO NOT REMOVE THIS CODE, EXCEPT YOU KNOW EXACTLY WHAT YOU ARE DOING HERE.
                          */
                         switch (m_appDataSplitMode)
@@ -1132,6 +1196,7 @@ namespace Org.BouncyCastle.Tls
         }
 #endif
 
+        /// <summary>Gets or sets the app data split mode.</summary>
         public virtual int AppDataSplitMode
         {
             get { return m_appDataSplitMode; }
@@ -1144,6 +1209,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Gets or sets a value indicating whether this is resumable handshake.</summary>
         public virtual bool IsResumableHandshake
         {
             get { return m_resumableHandshake; }
@@ -1187,7 +1253,7 @@ namespace Org.BouncyCastle.Tls
                 break;
 
             /*
-             * For all others we automatically update the transcript. 
+             * For all others we automatically update the transcript.
              */
             default:
             {
@@ -1265,6 +1331,9 @@ namespace Org.BouncyCastle.Tls
             return SafePreviewRecordHeader(recordHeader);
         }
 
+        /// <summary>Preview the size of the next complete record waiting in the output buffer.</summary>
+        /// <returns>The size in bytes of the next record, or 0 if there is no complete record to send.</returns>
+        /// <exception cref="InvalidOperationException">The connection is in blocking mode.</exception>
         public virtual int PreviewOutputRecord()
         {
             if (m_blocking)
@@ -1414,6 +1483,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Gets the application data limit.</summary>
         public virtual int ApplicationDataLimit
         {
             get { return m_recordStream.PlaintextLimit; }
@@ -1493,6 +1563,9 @@ namespace Org.BouncyCastle.Tls
             return bytesToRead;
         }
 
+        /// <summary>Establish the session of the handshake as resumable, if appropriate.</summary>
+        /// <param name="sessionToResume">The session that was resumed, if any.</param>
+        /// <returns>true if the session was established, false otherwise.</returns>
         protected virtual bool EstablishSession(TlsSession sessionToResume)
         {
             this.m_tlsSession = null;
@@ -1528,6 +1601,7 @@ namespace Org.BouncyCastle.Tls
             return true;
         }
 
+        /// <summary>Cancel the session of the handshake, so that it cannot be resumed.</summary>
         protected virtual void CancelSession()
         {
             if (m_sessionMasterSecret != null)
@@ -1545,6 +1619,7 @@ namespace Org.BouncyCastle.Tls
             this.m_tlsSession = null;
         }
 
+        /// <summary>Invalidate the session of the handshake after an error.</summary>
         protected virtual void InvalidateSession()
         {
             if (m_tlsSession != null)
@@ -1826,11 +1901,13 @@ namespace Org.BouncyCastle.Tls
             message.Send(this);
         }
 
+        /// <inheritdoc/>
         public virtual void Close()
         {
             HandleClose(true);
         }
 
+        /// <summary>Flush any buffered output to the transport.</summary>
         public virtual void Flush()
         {
         }
@@ -1840,8 +1917,10 @@ namespace Org.BouncyCastle.Tls
             get { return m_appDataReady; }
         }
 
+        /// <summary>Gets a value indicating whether this is closed.</summary>
         public virtual bool IsClosed => m_closed;
 
+        /// <summary>Gets a value indicating whether this is connected.</summary>
         public virtual bool IsConnected
         {
             get
@@ -1855,8 +1934,10 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Gets a value indicating whether this is failed.</summary>
         public virtual bool IsFailed => m_failed;
 
+        /// <summary>Gets a value indicating whether this is handshaking.</summary>
         public virtual bool IsHandshaking
         {
             get

@@ -238,6 +238,9 @@ namespace Org.BouncyCastle.Tls
         /// </summary>
         public const short certificate_required = 116;
 
+        /// <summary>Get the name of the given alert description.</summary>
+        /// <param name="alertDescription">The alert description.</param>
+        /// <returns>The name.</returns>
         public static string GetName(short alertDescription)
         {
             switch (alertDescription)
@@ -315,6 +318,11 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>
+        /// Get a textual representation of the given alert description, made up of its name and its numeric value.
+        /// </summary>
+        /// <param name="alertDescription">The alert description.</param>
+        /// <returns>The text.</returns>
         public static string GetText(short alertDescription)
         {
             return GetName(alertDescription) + "(" + alertDescription + ")";

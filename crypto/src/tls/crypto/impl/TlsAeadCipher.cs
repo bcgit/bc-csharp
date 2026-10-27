@@ -9,26 +9,40 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
     public class TlsAeadCipher
         : TlsCipher, TlsCipherExt
     {
+        /// <summary>The <c>AEAD_CCM</c> constant, with the value <c>1</c>.</summary>
         public const int AEAD_CCM = 1;
+        /// <summary>The <c>AEAD_CHACHA20_POLY1305</c> constant, with the value <c>2</c>.</summary>
         public const int AEAD_CHACHA20_POLY1305 = 2;
+        /// <summary>The <c>AEAD_GCM</c> constant, with the value <c>3</c>.</summary>
         public const int AEAD_GCM = 3;
 
         private const int NONCE_RFC5288 = 1;
         private const int NONCE_RFC7905 = 2;
         private const long SequenceNumberPlaceholder = -1L;
 
+        /// <summary>The crypto params.</summary>
         protected readonly TlsCryptoParameters m_cryptoParams;
+        /// <summary>The key size.</summary>
         protected readonly int m_keySize;
+        /// <summary>The mac size.</summary>
         protected readonly int m_macSize;
+        /// <summary>The fixed iv length.</summary>
         protected readonly int m_fixed_iv_length;
+        /// <summary>The record iv length.</summary>
         protected readonly int m_record_iv_length;
 
+        /// <summary>The encrypt cipher.</summary>
         protected readonly TlsAeadCipherImpl m_decryptCipher, m_encryptCipher;
+        /// <summary>The encrypt nonce.</summary>
         protected readonly byte[] m_decryptNonce, m_encryptNonce;
+        /// <summary>The encrypt connection ID.</summary>
         protected readonly byte[] m_decryptConnectionID, m_encryptConnectionID;
+        /// <summary>The encrypt use inner plaintext.</summary>
         protected readonly bool m_decryptUseInnerPlaintext, m_encryptUseInnerPlaintext;
 
+        /// <summary>The is tls v 13.</summary>
         protected readonly bool m_isTlsV13;
+        /// <summary>The nonce mode.</summary>
         protected readonly int m_nonceMode;
 
         /// <exception cref="IOException"/>
@@ -135,6 +149,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 #endif
         }
 
+        /// <inheritdoc/>
         public virtual int GetCiphertextDecodeLimit(int plaintextLimit)
         {
             int innerPlaintextLimit = plaintextLimit + (m_decryptUseInnerPlaintext ? 1 : 0);
@@ -142,6 +157,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return innerPlaintextLimit + m_macSize + m_record_iv_length;
         }
 
+        /// <inheritdoc/>
         public virtual int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit)
         {
             plaintextLimit = System.Math.Min(plaintextLength, plaintextLimit);
@@ -151,9 +167,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return innerPlaintextLimit + m_macSize + m_record_iv_length;
         }
 
+        /// <inheritdoc/>
         // TODO[api] Remove
         public virtual int GetPlaintextLimit(int ciphertextLimit) => GetPlaintextEncodeLimit(ciphertextLimit);
 
+        /// <inheritdoc/>
         public virtual int GetPlaintextDecodeLimit(int ciphertextLimit)
         {
             int innerPlaintextLimit = ciphertextLimit - m_macSize - m_record_iv_length;
@@ -161,6 +179,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return innerPlaintextLimit - (m_decryptUseInnerPlaintext ? 1 : 0);
         }
 
+        /// <inheritdoc/>
         public virtual int GetPlaintextEncodeLimit(int ciphertextLimit)
         {
             int innerPlaintextLimit = ciphertextLimit - m_macSize - m_record_iv_length;
@@ -168,6 +187,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return innerPlaintextLimit - (m_encryptUseInnerPlaintext ? 1 : 0);
         }
 
+        /// <inheritdoc/>
         public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, byte[] plaintext, int plaintextOffset, int plaintextLength)
         {
@@ -252,6 +272,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, ReadOnlySpan<byte> plaintext)
         {
@@ -331,6 +352,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
             byte[] ciphertext, int ciphertextOffset, int ciphertextLength)
         {
@@ -410,14 +432,24 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return new TlsDecodeResult(ciphertext, encryptionOffset, plaintextLength, contentType);
         }
 
+        /// <inheritdoc/>
         public virtual void RekeyDecoder() =>
             RekeyCipher(m_cryptoParams.SecurityParameters, m_decryptCipher, m_decryptNonce, !m_cryptoParams.IsServer);
 
+        /// <inheritdoc/>
         public virtual void RekeyEncoder() =>
             RekeyCipher(m_cryptoParams.SecurityParameters, m_encryptCipher, m_encryptNonce, m_cryptoParams.IsServer);
 
+        /// <inheritdoc/>
         public virtual bool UsesOpaqueRecordType => m_isTlsV13;
 
+        /// <summary>Calculate the additional authenticated data for a record.</summary>
+        /// <param name="seqNo">The record sequence number.</param>
+        /// <param name="recordType">The record type.</param>
+        /// <param name="recordVersion">The record version.</param>
+        /// <param name="ciphertextLength">The length of the ciphertext.</param>
+        /// <param name="plaintextLength">The length of the plaintext.</param>
+        /// <returns>The additional data.</returns>
         protected virtual byte[] GetAdditionalData(long seqNo, short recordType, ProtocolVersion recordVersion,
             int ciphertextLength, int plaintextLength)
         {
@@ -446,6 +478,14 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
         }
 
+        /// <summary>Calculate the additional authenticated data for a record.</summary>
+        /// <param name="seqNo">The record sequence number.</param>
+        /// <param name="recordType">The record type.</param>
+        /// <param name="recordVersion">The record version.</param>
+        /// <param name="ciphertextLength">The length of the ciphertext.</param>
+        /// <param name="plaintextLength">The length of the plaintext.</param>
+        /// <param name="connectionID">The connection ID, or null.</param>
+        /// <returns>The additional data.</returns>
         protected virtual byte[] GetAdditionalData(long seqNo, short recordType, ProtocolVersion recordVersion,
             int ciphertextLength, int plaintextLength, byte[] connectionID)
         {
@@ -469,6 +509,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return additional_data;
         }
 
+        /// <summary>Re-key a cipher using new traffic secrets.</summary>
+        /// <param name="securityParameters">The security parameters.</param>
+        /// <param name="cipher">The cipher to re-key.</param>
+        /// <param name="nonce">The nonce.</param>
+        /// <param name="serverSecret">true to use the server secret, false to use the client secret.</param>
         protected virtual void RekeyCipher(SecurityParameters securityParameters, TlsAeadCipherImpl cipher,
             byte[] nonce, bool serverSecret)
         {
@@ -486,6 +531,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             Setup13Cipher(cipher, nonce, secret, securityParameters.PrfCryptoHashAlgorithm);
         }
 
+        /// <summary>Set up a cipher for TLS 1.3 from a traffic secret.</summary>
+        /// <param name="cipher">The cipher.</param>
+        /// <param name="nonce">The nonce.</param>
+        /// <param name="secret">The traffic secret.</param>
+        /// <param name="cryptoHashAlgorithm">The crypto hash algorithm.</param>
         protected virtual void Setup13Cipher(TlsAeadCipherImpl cipher, byte[] nonce, TlsSecret secret,
             int cryptoHashAlgorithm)
         {

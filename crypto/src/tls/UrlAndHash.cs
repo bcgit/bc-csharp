@@ -11,6 +11,9 @@ namespace Org.BouncyCastle.Tls
         private readonly string m_url;
         private readonly byte[] m_sha1Hash;
 
+        /// <summary>Create a new <see cref="UrlAndHash"/>.</summary>
+        /// <param name="url">The url.</param>
+        /// <param name="sha1Hash">The sha 1 hash.</param>
         public UrlAndHash(string url, byte[] sha1Hash)
         {
             if (TlsUtilities.IsNullOrEmpty(url) || url.Length >= (1 << 16))
@@ -22,8 +25,10 @@ namespace Org.BouncyCastle.Tls
             m_sha1Hash = sha1Hash;
         }
 
+        /// <summary>Gets the url.</summary>
         public string Url => m_url;
 
+        /// <summary>Gets the sha 1 hash.</summary>
         public byte[] Sha1Hash => m_sha1Hash;
 
         /// <summary>Encode this <see cref="UrlAndHash"/> to a <see cref="Stream"/>.</summary>

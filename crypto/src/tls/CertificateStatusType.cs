@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Constants for the certificate status types of RFC 6066.</summary>
     public abstract class CertificateStatusType
     {
         /*

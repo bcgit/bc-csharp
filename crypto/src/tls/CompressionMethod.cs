@@ -5,6 +5,7 @@ namespace Org.BouncyCastle.Tls
     /// <summary>RFC 2246 6.1</summary>
     public abstract class CompressionMethod
     {
+        /// <summary>The <c>cls_null</c> constant, with the value <c>0</c>.</summary>
         public const short cls_null = 0;
 
         /*

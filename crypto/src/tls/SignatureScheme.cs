@@ -6,59 +6,85 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Constants for the TLS 1.3 signature schemes.</summary>
     public abstract class SignatureScheme
     {
         /*
          * RFC 8446
          */
 
+        /// <summary>The <c>rsa_pkcs1_sha1</c> constant, with the value <c>0x0201</c>.</summary>
         public const int rsa_pkcs1_sha1 = 0x0201;
+        /// <summary>The <c>ecdsa_sha1</c> constant, with the value <c>0x0203</c>.</summary>
         public const int ecdsa_sha1 = 0x0203;
 
+        /// <summary>The <c>rsa_pkcs1_sha256</c> constant, with the value <c>0x0401</c>.</summary>
         public const int rsa_pkcs1_sha256 = 0x0401;
+        /// <summary>The <c>rsa_pkcs1_sha384</c> constant, with the value <c>0x0501</c>.</summary>
         public const int rsa_pkcs1_sha384 = 0x0501;
+        /// <summary>The <c>rsa_pkcs1_sha512</c> constant, with the value <c>0x0601</c>.</summary>
         public const int rsa_pkcs1_sha512 = 0x0601;
 
+        /// <summary>The <c>ecdsa_secp256r1_sha256</c> constant, with the value <c>0x0403</c>.</summary>
         public const int ecdsa_secp256r1_sha256 = 0x0403;
+        /// <summary>The <c>ecdsa_secp384r1_sha384</c> constant, with the value <c>0x0503</c>.</summary>
         public const int ecdsa_secp384r1_sha384 = 0x0503;
+        /// <summary>The <c>ecdsa_secp521r1_sha512</c> constant, with the value <c>0x0603</c>.</summary>
         public const int ecdsa_secp521r1_sha512 = 0x0603;
 
+        /// <summary>The <c>rsa_pss_rsae_sha256</c> constant, with the value <c>0x0804</c>.</summary>
         public const int rsa_pss_rsae_sha256 = 0x0804;
+        /// <summary>The <c>rsa_pss_rsae_sha384</c> constant, with the value <c>0x0805</c>.</summary>
         public const int rsa_pss_rsae_sha384 = 0x0805;
+        /// <summary>The <c>rsa_pss_rsae_sha512</c> constant, with the value <c>0x0806</c>.</summary>
         public const int rsa_pss_rsae_sha512 = 0x0806;
 
+        /// <summary>The <c>ed25519</c> constant, with the value <c>0x0807</c>.</summary>
         public const int ed25519 = 0x0807;
+        /// <summary>The <c>ed448</c> constant, with the value <c>0x0808</c>.</summary>
         public const int ed448 = 0x0808;
 
+        /// <summary>The <c>rsa_pss_pss_sha256</c> constant, with the value <c>0x0809</c>.</summary>
         public const int rsa_pss_pss_sha256 = 0x0809;
+        /// <summary>The <c>rsa_pss_pss_sha384</c> constant, with the value <c>0x080A</c>.</summary>
         public const int rsa_pss_pss_sha384 = 0x080A;
+        /// <summary>The <c>rsa_pss_pss_sha512</c> constant, with the value <c>0x080B</c>.</summary>
         public const int rsa_pss_pss_sha512 = 0x080B;
 
         /*
          * RFC 8734
          */
 
+        /// <summary>The <c>ecdsa_brainpoolP256r1tls13_sha256</c> constant, with the value <c>0x081A</c>.</summary>
         public const int ecdsa_brainpoolP256r1tls13_sha256 = 0x081A;
+        /// <summary>The <c>ecdsa_brainpoolP384r1tls13_sha384</c> constant, with the value <c>0x081B</c>.</summary>
         public const int ecdsa_brainpoolP384r1tls13_sha384 = 0x081B;
+        /// <summary>The <c>ecdsa_brainpoolP512r1tls13_sha512</c> constant, with the value <c>0x081C</c>.</summary>
         public const int ecdsa_brainpoolP512r1tls13_sha512 = 0x081C;
 
         /*
          * RFC 8998
          */
 
+        /// <summary>The <c>sm2sig_sm3</c> constant, with the value <c>0x0708</c>.</summary>
         public const int sm2sig_sm3 = 0x0708;
 
         /*
          * draft-ietf-tls-mldsa-00
          */
         public const int mldsa44 = 0x0904;
+        /// <summary>The <c>mldsa65</c> constant, with the value <c>0x0905</c>.</summary>
         public const int mldsa65 = 0x0905;
+        /// <summary>The <c>mldsa87</c> constant, with the value <c>0x0906</c>.</summary>
         public const int mldsa87 = 0x0906;
 
+        /// <summary>Alias for <c>mldsa44</c>, retained for compatibility with the draft names.</summary>
         [Obsolete("Use 'mldsa44' instead")]
         public static readonly int DRAFT_mldsa44 = mldsa44;
+        /// <summary>Alias for <c>mldsa65</c>, retained for compatibility with the draft names.</summary>
         [Obsolete("Use 'mldsa65' instead")]
         public static readonly int DRAFT_mldsa65 = mldsa65;
+        /// <summary>Alias for <c>mldsa87</c>, retained for compatibility with the draft names.</summary>
         [Obsolete("Use 'mldsa87' instead")]
         public static readonly int DRAFT_mldsa87 = mldsa87;
 
@@ -78,23 +104,38 @@ namespace Org.BouncyCastle.Tls
         internal const int slhdsa_shake_256s = 0x091B;
         internal const int slhdsa_shake_256f = 0x091C;
 
+        /// <summary>Alias for <c>slhdsa_sha2_128s</c>, retained for compatibility with the draft names.</summary>
         public static readonly int DRAFT_slhdsa_sha2_128s = slhdsa_sha2_128s;
+        /// <summary>Alias for <c>slhdsa_sha2_128f</c>, retained for compatibility with the draft names.</summary>
         public static readonly int DRAFT_slhdsa_sha2_128f = slhdsa_sha2_128f;
+        /// <summary>Alias for <c>slhdsa_sha2_192s</c>, retained for compatibility with the draft names.</summary>
         public static readonly int DRAFT_slhdsa_sha2_192s = slhdsa_sha2_192s;
+        /// <summary>Alias for <c>slhdsa_sha2_192f</c>, retained for compatibility with the draft names.</summary>
         public static readonly int DRAFT_slhdsa_sha2_192f = slhdsa_sha2_192f;
+        /// <summary>Alias for <c>slhdsa_sha2_256s</c>, retained for compatibility with the draft names.</summary>
         public static readonly int DRAFT_slhdsa_sha2_256s = slhdsa_sha2_256s;
+        /// <summary>Alias for <c>slhdsa_sha2_256f</c>, retained for compatibility with the draft names.</summary>
         public static readonly int DRAFT_slhdsa_sha2_256f = slhdsa_sha2_256f;
+        /// <summary>Alias for <c>slhdsa_shake_128s</c>, retained for compatibility with the draft names.</summary>
         public static readonly int DRAFT_slhdsa_shake_128s = slhdsa_shake_128s;
+        /// <summary>Alias for <c>slhdsa_shake_128f</c>, retained for compatibility with the draft names.</summary>
         public static readonly int DRAFT_slhdsa_shake_128f = slhdsa_shake_128f;
+        /// <summary>Alias for <c>slhdsa_shake_192s</c>, retained for compatibility with the draft names.</summary>
         public static readonly int DRAFT_slhdsa_shake_192s = slhdsa_shake_192s;
+        /// <summary>Alias for <c>slhdsa_shake_192f</c>, retained for compatibility with the draft names.</summary>
         public static readonly int DRAFT_slhdsa_shake_192f = slhdsa_shake_192f;
+        /// <summary>Alias for <c>slhdsa_shake_256s</c>, retained for compatibility with the draft names.</summary>
         public static readonly int DRAFT_slhdsa_shake_256s = slhdsa_shake_256s;
+        /// <summary>Alias for <c>slhdsa_shake_256f</c>, retained for compatibility with the draft names.</summary>
         public static readonly int DRAFT_slhdsa_shake_256f = slhdsa_shake_256f;
 
         /*
          * RFC 8446 reserved for private use (0xFE00..0xFFFF)
          */
 
+        /// <summary>Combine a hash algorithm and a signature algorithm into a signature scheme value.</summary>
+        /// <param name="sigAndHashAlg">The sig and hash alg.</param>
+        /// <returns>The signature scheme.</returns>
         public static int From(SignatureAndHashAlgorithm sigAndHashAlg)
         {
             if (null == sigAndHashAlg)
@@ -103,11 +144,18 @@ namespace Org.BouncyCastle.Tls
             return From(sigAndHashAlg.Hash, sigAndHashAlg.Signature);
         }
 
+        /// <summary>Combine a hash algorithm and a signature algorithm into a signature scheme value.</summary>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="signatureAlgorithm">The signature algorithm.</param>
+        /// <returns>The signature scheme.</returns>
         public static int From(short hashAlgorithm, short signatureAlgorithm)
         {
             return ((hashAlgorithm & 0xFF) << 8) | (signatureAlgorithm & 0xFF);
         }
 
+        /// <summary>Get the crypto hash algorithm that a signature scheme uses.</summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>The crypto hash algorithm, or -1 if there is none.</returns>
         public static int GetCryptoHashAlgorithm(int signatureScheme)
         {
             switch (signatureScheme)
@@ -155,11 +203,17 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the crypto hash algorithm that a signature scheme uses.</summary>
+        /// <param name="signatureAndHashAlgorithm">The signature and hash algorithm.</param>
+        /// <returns>The crypto hash algorithm, or -1 if there is none.</returns>
         public static int GetCryptoHashAlgorithm(SignatureAndHashAlgorithm signatureAndHashAlgorithm)
         {
             return GetCryptoHashAlgorithm(From(signatureAndHashAlgorithm));
         }
 
+        /// <summary>Get the name of the given signature scheme.</summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>The name.</returns>
         public static string GetName(int signatureScheme)
         {
             switch (signatureScheme)
@@ -266,10 +320,19 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the hash algorithm component of a signature scheme.</summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>The hash algorithm.</returns>
         public static short GetHashAlgorithm(int signatureScheme) => (short)((signatureScheme >> 8) & 0xFF);
 
+        /// <summary>Get the signature algorithm component of a signature scheme.</summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>The signature algorithm.</returns>
         public static short GetSignatureAlgorithm(int signatureScheme) => (short)(signatureScheme & 0xFF);
 
+        /// <summary>Get the signature and hash algorithm that corresponds to a signature scheme.</summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>The signature and hash algorithm.</returns>
         public static SignatureAndHashAlgorithm GetSignatureAndHashAlgorithm(int signatureScheme)
         {
             switch (signatureScheme)
@@ -317,17 +380,28 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>
+        /// Get a textual representation of the given signature scheme, made up of its name and its numeric value.
+        /// </summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>The text.</returns>
         public static string GetText(int signatureScheme)
         {
             string hex = Convert.ToString(signatureScheme, 16).ToUpperInvariant();
             return GetName(signatureScheme) + "(0x" + hex + ")";
         }
 
+        /// <summary>Determine whether the given signature scheme is in the range reserved for private use.</summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>true if the value is in the private-use range, false otherwise.</returns>
         public static bool IsPrivate(int signatureScheme)
         {
             return (signatureScheme >> 9) == 0xFE;
         }
 
+        /// <summary>Determine whether a signature scheme uses ECDSA.</summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>true if the scheme uses ECDSA, false otherwise.</returns>
         public static bool IsECDsa(int signatureScheme)
         {
             switch (signatureScheme)
@@ -341,9 +415,15 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Determine whether a signature scheme is one of the ML-DSA schemes.</summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>true if the scheme is an ML-DSA scheme, false otherwise.</returns>
         [Obsolete("Use 'IsMLDsaScheme' instead")]
         public static bool isMLDsa(int signatureScheme) => IsMLDsaScheme(signatureScheme);
 
+        /// <summary>Determine whether a signature scheme is one of the ML-DSA schemes.</summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>true if the scheme is an ML-DSA scheme, false otherwise.</returns>
         public static bool IsMLDsaScheme(int signatureScheme)
         {
             switch (signatureScheme)
@@ -357,6 +437,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Determine whether a signature scheme is one of the RSASSA-PSS schemes.</summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>true if the scheme is an RSASSA-PSS scheme, false otherwise.</returns>
         public static bool IsRsaPss(int signatureScheme)
         {
             switch (signatureScheme)
@@ -373,6 +456,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Determine whether a signature scheme is one of the SLH-DSA schemes.</summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>true if the scheme is an SLH-DSA scheme, false otherwise.</returns>
         public static bool IsSlhDsa(int signatureScheme)
         {
             switch (signatureScheme)

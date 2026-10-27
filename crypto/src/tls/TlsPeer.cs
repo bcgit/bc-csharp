@@ -8,15 +8,20 @@ namespace Org.BouncyCastle.Tls
     /// <summary>Base interface for a (D)TLS endpoint.</summary>
     public interface TlsPeer
     {
+        /// <summary>Gets the crypto.</summary>
         TlsCrypto Crypto { get; }
 
+        /// <summary>Notify the peer of an object that must be closed when the connection is closed.</summary>
+        /// <param name="closehandle">The object to close.</param>
         void NotifyCloseHandle(TlsCloseable closehandle);
 
         /// <exception cref="IOException"/>
         void Cancel();
 
+        /// <summary>Return the protocol versions.</summary>
         ProtocolVersion[] GetProtocolVersions();
 
+        /// <summary>Return the cipher suites.</summary>
         int[] GetCipherSuites();
 
         /// <summary>Notifies the peer that a new handshake is about to begin.</summary>
@@ -44,12 +49,20 @@ namespace Org.BouncyCastle.Tls
         int GetHandshakeResendTimeMillis();
         */
 
+        /// <summary>
+        /// Determine whether a session established without the extended master secret may be resumed where the extended
+        /// master secret would otherwise be used (see RFC 7627).
+        /// </summary>
+        /// <returns>true if such a legacy session may be resumed, false otherwise.</returns>
         bool AllowLegacyResumption();
 
+        /// <summary>Return the max certificate chain length.</summary>
         int GetMaxCertificateChainLength();
 
+        /// <summary>Return the max handshake message size.</summary>
         int GetMaxHandshakeMessageSize();
 
+        /// <summary>Return the psk key exchange modes.</summary>
         short[] GetPskKeyExchangeModes();
 
         /// <remarks>
@@ -68,6 +81,8 @@ namespace Org.BouncyCastle.Tls
         /// extended_master_secret extension, or <c>false</c> to support legacy interoperability.</returns>
         bool RequiresExtendedMasterSecret();
 
+        /// <summary>Determine whether the extended master secret should be used (see RFC 7627).</summary>
+        /// <returns>true if the extended master secret should be used, false otherwise.</returns>
         bool ShouldUseExtendedMasterSecret();
 
         /// <summary>See RFC 5246 6.2.3.2. Controls whether block cipher encryption may randomly add extra padding

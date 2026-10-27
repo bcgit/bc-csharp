@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Tls
         {
         }
 
-        // TODO[tls13] Prefer to manage the certificateRequestContext internally only? 
+        // TODO[tls13] Prefer to manage the certificateRequestContext internally only?
         /// <exception cref="IOException"/>
         public CertificateRequest(byte[] certificateRequestContext,
             IList<SignatureAndHashAlgorithm> supportedSignatureAlgorithms,
@@ -96,6 +96,7 @@ namespace Org.BouncyCastle.Tls
             m_certificateAuthorities = certificateAuthorities;
         }
 
+        /// <summary>Return the certificate request context.</summary>
         public byte[] GetCertificateRequestContext() => TlsUtilities.Clone(m_certificateRequestContext);
 
         /// <returns>an array of certificate types</returns>
@@ -113,6 +114,9 @@ namespace Org.BouncyCastle.Tls
         /// <returns>an <see cref="IList{T}"/> of <see cref="X509Name"/>.</returns>
         public IList<X509Name> CertificateAuthorities => m_certificateAuthorities;
 
+        /// <summary>Determine whether this request has the given certificate request context.</summary>
+        /// <param name="certificateRequestContext">The context to compare with.</param>
+        /// <returns>true if the contexts are equal, false otherwise.</returns>
         public bool HasCertificateRequestContext(byte[] certificateRequestContext) =>
             Arrays.AreEqual(m_certificateRequestContext, certificateRequestContext);
 

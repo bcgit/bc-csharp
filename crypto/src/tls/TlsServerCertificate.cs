@@ -6,6 +6,7 @@ namespace Org.BouncyCastle.Tls
     // TODO[api] Turn this into a concrete sealed class (record)
     public interface TlsServerCertificate
     {
+        /// <summary>Gets the certificate chain of the server.</summary>
         Certificate Certificate { get; }
 
         /// <summary>

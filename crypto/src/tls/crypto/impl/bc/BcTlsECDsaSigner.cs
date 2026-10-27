@@ -11,16 +11,21 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public class BcTlsECDsaSigner
         : BcTlsDssSigner
     {
+        /// <summary>Create a new <see cref="BcTlsECDsaSigner"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="privateKey">The private key.</param>
         public BcTlsECDsaSigner(BcTlsCrypto crypto, ECPrivateKeyParameters privateKey)
             : base(crypto, privateKey)
         {
         }
 
+        /// <inheritdoc/>
         protected override IDsa CreateDsaImpl(int cryptoHashAlgorithm)
         {
             return new ECDsaSigner(new HMacDsaKCalculator(m_crypto.CreateDigest(cryptoHashAlgorithm)));
         }
 
+        /// <inheritdoc/>
         protected override short SignatureAlgorithm
         {
             get { return Tls.SignatureAlgorithm.ecdsa; }

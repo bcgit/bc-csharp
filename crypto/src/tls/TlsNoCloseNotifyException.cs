@@ -17,11 +17,15 @@ namespace Org.BouncyCastle.Tls
     public class TlsNoCloseNotifyException
         : EndOfStreamException
     {
+        /// <summary>Create a new <see cref="TlsNoCloseNotifyException"/>.</summary>
         public TlsNoCloseNotifyException()
             : base("No close_notify alert received before connection closed")
         {
         }
 
+        /// <summary>Create a new <see cref="TlsNoCloseNotifyException"/>.</summary>
+        /// <param name="info">The serialization information.</param>
+        /// <param name="context">The streaming context.</param>
 #if NET8_0_OR_GREATER
         [Obsolete(Exceptions.SYSLIB0051_Message, DiagnosticId="SYSLIB0051", UrlFormat="https://aka.ms/dotnet-warnings/{0}")]
 #endif

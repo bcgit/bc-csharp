@@ -5,6 +5,9 @@ using Org.BouncyCastle.Tls.Crypto;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>
+    /// A stream over the body of a handshake message that also keeps track of the data for the handshake hash.
+    /// </summary>
     // TODO Rewrite without MemoryStream
     public sealed class HandshakeMessageInput
         : MemoryStream
@@ -17,6 +20,8 @@ namespace Org.BouncyCastle.Tls
             m_offset = offset;
         }
 
+        /// <summary>Update a hash with the data of the message.</summary>
+        /// <param name="hash">The hash to update.</param>
         public void UpdateHash(TlsHash hash)
         {
             WriteTo(new TlsHashSink(hash));
