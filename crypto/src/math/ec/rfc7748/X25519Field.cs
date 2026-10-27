@@ -33,13 +33,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         private static readonly int[] RootNegOne = { -0x01F15F50, -0x0079362D, 0x00478C4F, 0x0035697F, 0x005E8630,
             0x01FBD7A7, -0x00BFD9B1, -0x000F4D4B, 0x00027E0F, 0x00570649 };
 
-#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
         /// <summary>Calculate z = x + y.</summary>
         /// <param name="x">The first operand.</param>
         /// <param name="y">The second operand.</param>
         /// <param name="z">The result.</param>
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         public static void Add(int[] x, int[] y, int[] z)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -126,14 +126,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[zOff] += 1;
         }
 
-#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
         /// <summary>Calculate both the sum and the difference of two values.</summary>
         /// <param name="x">The first operand.</param>
         /// <param name="y">The second operand.</param>
         /// <param name="zp">The result x + y.</param>
         /// <param name="zm">The result x - y.</param>
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         public static void Apm(int[] x, int[] y, int[] zp, int[] zm)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -1309,13 +1309,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             return false;
         }
 
-#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
         /// <summary>Calculate z = x - y.</summary>
         /// <param name="x">The first operand.</param>
         /// <param name="y">The second operand.</param>
         /// <param name="z">The difference.</param>
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         public static void Sub(int[] x, int[] y, int[] z)
         {
 #if NETCOREAPP3_0_OR_GREATER
