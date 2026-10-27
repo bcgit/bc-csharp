@@ -3,6 +3,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Utilities.Encoders
 {
+    /// <summary>A hexadecimal encoder and decoder, implementing <see cref="IEncoder"/>.</summary>
     public class HexEncoder
         : IEncoder
     {
@@ -45,6 +46,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
         }
 #endif
 
+        /// <summary>The table mapping 4-bit values to the characters used to encode them.</summary>
         protected readonly byte[] encodingTable =
         {
             (byte)'0', (byte)'1', (byte)'2', (byte)'3', (byte)'4', (byte)'5', (byte)'6', (byte)'7',
@@ -56,6 +58,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
          */
         protected readonly byte[] decodingTable = new byte[128];
 
+        /// <summary>Populate the decoding table from the encoding table.</summary>
         protected void InitialiseDecodingTable()
         {
             Arrays.Fill(decodingTable, (byte)0xff);
@@ -73,11 +76,19 @@ namespace Org.BouncyCastle.Utilities.Encoders
             decodingTable['F'] = decodingTable['f'];
         }
 
+        /// <summary>Create a new <see cref="HexEncoder"/>.</summary>
         public HexEncoder()
         {
             InitialiseDecodingTable();
         }
 
+        /// <summary>Encode bytes to hexadecimal, writing the encoded characters (as ASCII bytes) to a buffer.</summary>
+        /// <param name="inBuf">The input buffer.</param>
+        /// <param name="inOff">The offset into <paramref name="inBuf"/> at which the data starts.</param>
+        /// <param name="inLen">The number of bytes to encode.</param>
+        /// <param name="outBuf">The output buffer.</param>
+        /// <param name="outOff">The offset into <paramref name="outBuf"/> at which to start writing.</param>
+        /// <returns>The number of bytes written to <paramref name="outBuf"/>.</returns>
         public int Encode(byte[] inBuf, int inOff, int inLen, byte[] outBuf, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -100,6 +111,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int Encode(ReadOnlySpan<byte> input, Span<byte> output)
         {
             int inPos = 0;
@@ -146,6 +158,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int Encode(ReadOnlySpan<byte> data, Stream outStream)
         {
             Span<byte> tmp = stackalloc byte[72];
@@ -232,6 +245,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int Decode(ReadOnlySpan<byte> data, Stream outStream)
         {
             byte b1, b2;

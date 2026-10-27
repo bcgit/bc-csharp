@@ -31,7 +31,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Utilities.Bzip2
 {
-	/**
+    /**
     * An output stream that compresses into the BZip2 format (with the file
     * header chars) into another stream.
     *
@@ -42,13 +42,19 @@ namespace Org.BouncyCastle.Utilities.Bzip2
     * start of the BZIP2 stream to make it compatible with other PGP programs.
     */
     public class CBZip2OutputStream
-        : BaseOutputStream 
-	{
+        : BaseOutputStream
+    {
+        /// <summary>The mask for the flag bit set on quadrant entries.</summary>
         protected const int SETMASK = 1 << 21;
+        /// <summary>The mask that clears the flag bit on quadrant entries.</summary>
         protected const int CLEARMASK = ~SETMASK;
+        /// <summary>The <c>GREATER_ICOST</c> constant, with the value <c>15</c>.</summary>
         protected const int GREATER_ICOST = 15;
+        /// <summary>The <c>LESSER_ICOST</c> constant, with the value <c>0</c>.</summary>
         protected const int LESSER_ICOST = 0;
+        /// <summary>The <c>SMALL_THRESH</c> constant, with the value <c>20</c>.</summary>
         protected const int SMALL_THRESH = 20;
+        /// <summary>The <c>DEPTH_THRESH</c> constant, with the value <c>10</c>.</summary>
         protected const int DEPTH_THRESH = 10;
 
         internal static readonly ushort[] RNums = {
@@ -86,6 +92,11 @@ namespace Org.BouncyCastle.Utilities.Bzip2
 
         private bool finished;
 
+        /// <summary>Calculate the code lengths of a Huffman code limited to a maximum length.</summary>
+        /// <param name="len">The array to receive the code lengths.</param>
+        /// <param name="freq">The symbol frequencies.</param>
+        /// <param name="alphaSize">The number of symbols.</param>
+        /// <param name="maxLen">The maximum code length.</param>
         protected static void HbMakeCodeLengths(byte[] len, int[] freq, int alphaSize, int maxLen)
         {
             /*
@@ -135,7 +146,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
                     {
                         int zz = 1;
                         int tmp = heap[zz];
-                        while (true) 
+                        while (true)
                         {
                             int yy = zz << 1;
                             if (yy > nHeap)
@@ -288,11 +299,16 @@ namespace Org.BouncyCastle.Utilities.Bzip2
         private int runLength = 0;
         private int m_streamCrc;
 
+        /// <summary>Create a new <see cref="CBZip2OutputStream"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
         public CBZip2OutputStream(Stream outStream)
             : this(outStream, 9)
         {
         }
 
+        /// <summary>Create a new <see cref="CBZip2OutputStream"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
+        /// <param name="blockSize">The block size in bytes.</param>
         public CBZip2OutputStream(Stream outStream, int blockSize)
         {
             blockBytes = null;
@@ -420,6 +436,8 @@ namespace Org.BouncyCastle.Utilities.Bzip2
 
         bool closed = false;
 
+        /// <summary>Dispose of this stream without disposing of the underlying stream.</summary>
+        /// <param name="disposing">true when called from <c>Dispose</c>, false when called from a finalizer.</param>
         protected void Detach(bool disposing)
         {
             if (disposing)
@@ -429,6 +447,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
             base.Dispose(disposing);
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -451,6 +470,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
             }
         }
 
+        /// <summary>Finish writing the compressed data without closing the stream.</summary>
         public void Finish()
         {
             if (finished)
@@ -469,7 +489,8 @@ namespace Org.BouncyCastle.Utilities.Bzip2
             finished = true;
             Flush();
         }
-        
+
+        /// <inheritdoc/>
         public override void Flush()
         {
             bsStream.Flush();
@@ -845,7 +866,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
                     }
                 }
 
-				for (i = 0; i < 16; i++)
+                for (i = 0; i < 16; i++)
                 {
                     BsPutBit(inUse16[i] ? 1 : 0);
                 }
@@ -1602,19 +1623,28 @@ namespace Org.BouncyCastle.Utilities.Bzip2
         }
     }
 
+    /// <summary>
+    /// A <see cref="CBZip2OutputStream"/> that leaves the underlying stream open when it is disposed.
+    /// </summary>
     public class CBZip2OutputStreamLeaveOpen
         : CBZip2OutputStream
     {
+        /// <summary>Create a new <see cref="CBZip2OutputStreamLeaveOpen"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
         public CBZip2OutputStreamLeaveOpen(Stream outStream)
             : base(outStream)
         {
         }
 
+        /// <summary>Create a new <see cref="CBZip2OutputStreamLeaveOpen"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
+        /// <param name="blockSize">The block size in bytes.</param>
         public CBZip2OutputStreamLeaveOpen(Stream outStream, int blockSize)
             : base(outStream, blockSize)
         {
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             Detach(disposing);

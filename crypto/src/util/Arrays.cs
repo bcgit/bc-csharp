@@ -13,9 +13,19 @@ namespace Org.BouncyCastle.Utilities
     /// <summary> General array utilities.</summary>
     public static class Arrays
     {
+        /// <summary>An empty <see cref="byte"/> array, shared to avoid allocations.</summary>
         public static readonly byte[] EmptyBytes = Array.Empty<byte>();
+        /// <summary>An empty <see cref="int"/> array, shared to avoid allocations.</summary>
         public static readonly int[] EmptyInts = Array.Empty<int>();
 
+        /// <summary>
+        /// Determine whether every byte in a range of a buffer is zero, without exiting early on the first non-zero
+        /// byte.
+        /// </summary>
+        /// <param name="buf">The buffer to examine.</param>
+        /// <param name="off">The offset into <paramref name="buf"/> at which the range starts.</param>
+        /// <param name="len">The number of bytes in the range.</param>
+        /// <returns>true if all bytes in the range are zero, false otherwise.</returns>
         public static bool AreAllZeroes(byte[] buf, int off, int len)
         {
             uint bits = 0;
@@ -27,6 +37,12 @@ namespace Org.BouncyCastle.Utilities
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Determine whether every byte in a range of a buffer is zero, without exiting early on the first non-zero
+        /// byte.
+        /// </summary>
+        /// <param name="buf">The buffer to examine.</param>
+        /// <returns>true if all bytes in the range are zero, false otherwise.</returns>
         public static bool AreAllZeroes(ReadOnlySpan<byte> buf)
         {
             uint bits = 0;
@@ -38,6 +54,10 @@ namespace Org.BouncyCastle.Utilities
         }
 #endif
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="b">Right side.</param>
+        /// <returns>True if equal.</returns>
         public static bool AreEqual(bool[] a, bool[] b)
         {
             if (a == b)
@@ -49,6 +69,10 @@ namespace Org.BouncyCastle.Utilities
             return HaveSameContents(a, b);
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="b">Right side.</param>
+        /// <returns>True if equal.</returns>
         public static bool AreEqual(char[] a, char[] b)
         {
             if (a == b)
@@ -77,6 +101,14 @@ namespace Org.BouncyCastle.Utilities
             return HaveSameContents(a, b);
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="aFromIndex">The a from index.</param>
+        /// <param name="aToIndex">The a to index.</param>
+        /// <param name="b">Right side.</param>
+        /// <param name="bFromIndex">The b from index.</param>
+        /// <param name="bToIndex">The b to index.</param>
+        /// <returns>True if equal.</returns>
         public static bool AreEqual(byte[] a, int aFromIndex, int aToIndex, byte[] b, int bFromIndex, int bToIndex)
         {
             int aLength = aToIndex - aFromIndex;
@@ -94,6 +126,14 @@ namespace Org.BouncyCastle.Utilities
             return true;
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="aFromIndex">The a from index.</param>
+        /// <param name="aToIndex">The a to index.</param>
+        /// <param name="b">Right side.</param>
+        /// <param name="bFromIndex">The b from index.</param>
+        /// <param name="bToIndex">The b to index.</param>
+        /// <returns>True if equal.</returns>
         [CLSCompliant(false)]
         public static bool AreEqual(ulong[] a, int aFromIndex, int aToIndex, ulong[] b, int bFromIndex, int bToIndex)
         {
@@ -112,6 +152,10 @@ namespace Org.BouncyCastle.Utilities
             return true;
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="b">Right side.</param>
+        /// <returns>True if equal.</returns>
         public static bool AreEqual(object[] a, object[] b)
         {
             if (a == b)
@@ -133,6 +177,14 @@ namespace Org.BouncyCastle.Utilities
             return true;
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="aFromIndex">The a from index.</param>
+        /// <param name="aToIndex">The a to index.</param>
+        /// <param name="b">Right side.</param>
+        /// <param name="bFromIndex">The b from index.</param>
+        /// <param name="bToIndex">The b to index.</param>
+        /// <returns>True if equal.</returns>
         public static bool AreEqual(object[] a, int aFromIndex, int aToIndex, object[] b, int bFromIndex, int bToIndex)
         {
             int aLength = aToIndex - aFromIndex;
@@ -150,13 +202,31 @@ namespace Org.BouncyCastle.Utilities
             return true;
         }
 
+        /// <summary>Compare two byte arrays (or segments of them) in fixed time.</summary>
+        /// <param name="a">The first array.</param>
+        /// <param name="b">The second array.</param>
+        /// <returns>true if the contents are equal, false otherwise.</returns>
         [Obsolete("Use 'FixedTimeEquals' instead")]
         public static bool ConstantTimeAreEqual(byte[] a, byte[] b) => FixedTimeEquals(a, b);
 
+        /// <summary>Compare two byte arrays (or segments of them) in fixed time.</summary>
+        /// <param name="len">The number of bytes to compare.</param>
+        /// <param name="a">The first array.</param>
+        /// <param name="aOff">The offset into <paramref name="a"/> at which to start comparing.</param>
+        /// <param name="b">The second array.</param>
+        /// <param name="bOff">The offset into <paramref name="b"/> at which to start comparing.</param>
+        /// <returns>true if the contents are equal, false otherwise.</returns>
         [Obsolete("Use 'FixedTimeEquals' instead")]
         public static bool ConstantTimeAreEqual(int len, byte[] a, int aOff, byte[] b, int bOff) =>
             FixedTimeEquals(len, a, aOff, b, bOff);
 
+        /// <summary>
+        /// Compare two arrays (or segments of them) for equal contents, in time that depends only on the length and not
+        /// on the contents.
+        /// </summary>
+        /// <param name="a">The first array.</param>
+        /// <param name="b">The second array.</param>
+        /// <returns>true if the contents are equal, false otherwise (including when either array is null).</returns>
         public static bool FixedTimeEquals(byte[] a, byte[] b)
         {
             if (null == a || null == b)
@@ -165,6 +235,16 @@ namespace Org.BouncyCastle.Utilities
             return InternalFixedTimeEquals(a, b);
         }
 
+        /// <summary>
+        /// Compare two arrays (or segments of them) for equal contents, in time that depends only on the length and not
+        /// on the contents.
+        /// </summary>
+        /// <param name="len">The number of elements to compare.</param>
+        /// <param name="a">The first array.</param>
+        /// <param name="aOff">The offset into <paramref name="a"/> at which to start comparing.</param>
+        /// <param name="b">The second array.</param>
+        /// <param name="bOff">The offset into <paramref name="b"/> at which to start comparing.</param>
+        /// <returns>true if the contents are equal, false otherwise (including when either array is null).</returns>
         public static bool FixedTimeEquals(int len, byte[] a, int aOff, byte[] b, int bOff)
         {
             if (len < 0)
@@ -176,6 +256,16 @@ namespace Org.BouncyCastle.Utilities
             return InternalFixedTimeEquals(len, a, aOff, b, bOff);
         }
 
+        /// <summary>
+        /// Compare two arrays (or segments of them) for equal contents, in time that depends only on the length and not
+        /// on the contents.
+        /// </summary>
+        /// <param name="len">The number of elements to compare.</param>
+        /// <param name="a">The first array.</param>
+        /// <param name="aOff">The offset into <paramref name="a"/> at which to start comparing.</param>
+        /// <param name="b">The second array.</param>
+        /// <param name="bOff">The offset into <paramref name="b"/> at which to start comparing.</param>
+        /// <returns>true if the contents are equal, false otherwise (including when either array is null).</returns>
         [CLSCompliant(false)]
         public static bool FixedTimeEquals(int len, ulong[] a, int aOff, ulong[] b, int bOff)
         {
@@ -188,6 +278,10 @@ namespace Org.BouncyCastle.Utilities
             return InternalFixedTimeEquals(len, a, aOff, b, bOff);
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="b">Right side.</param>
+        /// <returns>True if equal.</returns>
         public static bool AreEqual(int[] a, int[] b)
         {
             if (a == b)
@@ -199,6 +293,10 @@ namespace Org.BouncyCastle.Utilities
             return HaveSameContents(a, b);
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="b">Right side.</param>
+        /// <returns>True if equal.</returns>
         [CLSCompliant(false)]
         public static bool AreEqual(uint[] a, uint[] b)
         {
@@ -211,6 +309,10 @@ namespace Org.BouncyCastle.Utilities
             return HaveSameContents(a, b);
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="b">Right side.</param>
+        /// <returns>True if equal.</returns>
         public static bool AreEqual(long[] a, long[] b)
         {
             if (a == b)
@@ -222,6 +324,10 @@ namespace Org.BouncyCastle.Utilities
             return HaveSameContents(a, b);
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="b">Right side.</param>
+        /// <returns>True if equal.</returns>
         [CLSCompliant(false)]
         public static bool AreEqual(ulong[] a, ulong[] b)
         {
@@ -332,6 +438,9 @@ namespace Org.BouncyCastle.Utilities
             return true;
         }
 
+        /// <summary>Format the elements of an array as a comma-separated list enclosed in square brackets.</summary>
+        /// <param name="a">The array to format.</param>
+        /// <returns>The string representation of the array.</returns>
         public static string ToString(object[] a)
         {
             StringBuilder sb = new StringBuilder("[");
@@ -347,6 +456,9 @@ namespace Org.BouncyCastle.Utilities
             return sb.ToString();
         }
 
+        /// <summary>Calculate a hash code from the contents of an array (or a range of it).</summary>
+        /// <param name="data">The array to hash.</param>
+        /// <returns>The content-based hash code, or 0 if <paramref name="data"/> is null.</returns>
         public static int GetHashCode(byte[] data)
         {
             if (data == null)
@@ -370,6 +482,11 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Calculate a hash code from the contents of an array (or a range of it).</summary>
+        /// <param name="data">The array to hash.</param>
+        /// <param name="off">The offset into <paramref name="data"/> at which the range starts.</param>
+        /// <param name="len">The number of elements in the range.</param>
+        /// <returns>The content-based hash code, or 0 if <paramref name="data"/> is null.</returns>
         public static int GetHashCode(byte[] data, int off, int len)
         {
             if (data == null)
@@ -393,6 +510,9 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Calculate a hash code from the contents of an array (or a range of it).</summary>
+        /// <param name="data">The array to hash.</param>
+        /// <returns>The content-based hash code, or 0 if <paramref name="data"/> is null.</returns>
         public static int GetHashCode(int[] data)
         {
             if (data == null)
@@ -416,6 +536,9 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Calculate a hash code from the contents of an array (or a range of it).</summary>
+        /// <param name="data">The array to hash.</param>
+        /// <returns>The content-based hash code, or 0 if <paramref name="data"/> is null.</returns>
         [CLSCompliant(false)]
         public static int GetHashCode(ushort[] data)
         {
@@ -440,6 +563,11 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Calculate a hash code from the contents of an array (or a range of it).</summary>
+        /// <param name="data">The array to hash.</param>
+        /// <param name="off">The offset into <paramref name="data"/> at which the range starts.</param>
+        /// <param name="len">The number of elements in the range.</param>
+        /// <returns>The content-based hash code, or 0 if <paramref name="data"/> is null.</returns>
         public static int GetHashCode(int[] data, int off, int len)
         {
             if (data == null)
@@ -463,6 +591,9 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Calculate a hash code from the contents of an array (or a range of it).</summary>
+        /// <param name="data">The array to hash.</param>
+        /// <returns>The content-based hash code, or 0 if <paramref name="data"/> is null.</returns>
         [CLSCompliant(false)]
         public static int GetHashCode(uint[] data)
         {
@@ -487,6 +618,11 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Calculate a hash code from the contents of an array (or a range of it).</summary>
+        /// <param name="data">The array to hash.</param>
+        /// <param name="off">The offset into <paramref name="data"/> at which the range starts.</param>
+        /// <param name="len">The number of elements in the range.</param>
+        /// <returns>The content-based hash code, or 0 if <paramref name="data"/> is null.</returns>
         [CLSCompliant(false)]
         public static int GetHashCode(uint[] data, int off, int len)
         {
@@ -511,6 +647,9 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Calculate a hash code from the contents of an array (or a range of it).</summary>
+        /// <param name="data">The array to hash.</param>
+        /// <returns>The content-based hash code, or 0 if <paramref name="data"/> is null.</returns>
         [CLSCompliant(false)]
         public static int GetHashCode(ulong[] data)
         {
@@ -538,6 +677,11 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Calculate a hash code from the contents of an array (or a range of it).</summary>
+        /// <param name="data">The array to hash.</param>
+        /// <param name="off">The offset into <paramref name="data"/> at which the range starts.</param>
+        /// <param name="len">The number of elements in the range.</param>
+        /// <returns>The content-based hash code, or 0 if <paramref name="data"/> is null.</returns>
         [CLSCompliant(false)]
         public static int GetHashCode(ulong[] data, int off, int len)
         {
@@ -565,6 +709,9 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Calculate a hash code from the contents of an array (or a range of it).</summary>
+        /// <param name="data">The array to hash.</param>
+        /// <returns>The content-based hash code, or 0 if <paramref name="data"/> is null.</returns>
         public static int GetHashCode(object[] data)
         {
             if (data == null)
@@ -590,6 +737,11 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Calculate a hash code from the contents of an array (or a range of it).</summary>
+        /// <param name="data">The array to hash.</param>
+        /// <param name="off">The offset into <paramref name="data"/> at which the range starts.</param>
+        /// <param name="len">The number of elements in the range.</param>
+        /// <returns>The content-based hash code, or 0 if <paramref name="data"/> is null.</returns>
         public static int GetHashCode(object[] data, int off, int len)
         {
             if (data == null)
@@ -613,6 +765,11 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Create a copy of an array.</summary>
+        /// <param name="data">The array to copy.</param>
+        /// <returns>
+        /// A new array with the same contents as <paramref name="data"/>, or null if <paramref name="data"/> is null.
+        /// </returns>
         public static bool[] Clone(bool[] data)
         {
             if (data == null)
@@ -627,6 +784,11 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>Create a copy of an array.</summary>
+        /// <param name="data">The array to copy.</param>
+        /// <returns>
+        /// A new array with the same contents as <paramref name="data"/>, or null if <paramref name="data"/> is null.
+        /// </returns>
         public static byte[] Clone(byte[] data)
         {
             if (data == null)
@@ -641,6 +803,11 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>Create a copy of an array.</summary>
+        /// <param name="data">The array to copy.</param>
+        /// <returns>
+        /// A new array with the same contents as <paramref name="data"/>, or null if <paramref name="data"/> is null.
+        /// </returns>
         public static short[] Clone(short[] data)
         {
             if (data == null)
@@ -655,6 +822,11 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>Create a copy of an array.</summary>
+        /// <param name="data">The array to copy.</param>
+        /// <returns>
+        /// A new array with the same contents as <paramref name="data"/>, or null if <paramref name="data"/> is null.
+        /// </returns>
         [CLSCompliant(false)]
         public static ushort[] Clone(ushort[] data)
         {
@@ -670,6 +842,11 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>Create a copy of an array.</summary>
+        /// <param name="data">The array to copy.</param>
+        /// <returns>
+        /// A new array with the same contents as <paramref name="data"/>, or null if <paramref name="data"/> is null.
+        /// </returns>
         public static int[] Clone(int[] data)
         {
             if (data == null)
@@ -684,6 +861,11 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>Create a copy of an array.</summary>
+        /// <param name="data">The array to copy.</param>
+        /// <returns>
+        /// A new array with the same contents as <paramref name="data"/>, or null if <paramref name="data"/> is null.
+        /// </returns>
         [CLSCompliant(false)]
         public static uint[] Clone(uint[] data)
         {
@@ -699,6 +881,11 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>Create a copy of an array.</summary>
+        /// <param name="data">The array to copy.</param>
+        /// <returns>
+        /// A new array with the same contents as <paramref name="data"/>, or null if <paramref name="data"/> is null.
+        /// </returns>
         public static long[] Clone(long[] data)
         {
             if (data == null)
@@ -713,6 +900,11 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>Create a copy of an array.</summary>
+        /// <param name="data">The array to copy.</param>
+        /// <returns>
+        /// A new array with the same contents as <paramref name="data"/>, or null if <paramref name="data"/> is null.
+        /// </returns>
         [CLSCompliant(false)]
         public static ulong[] Clone(ulong[] data)
         {
@@ -728,6 +920,13 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>Copy an array, reusing an existing array for the result when its length matches.</summary>
+        /// <param name="data">The array to copy.</param>
+        /// <param name="existing">An array that may be overwritten with the copy, or null.</param>
+        /// <returns>
+        /// <paramref name="existing"/> filled with the contents of <paramref name="data"/> if the lengths match,
+        /// otherwise a new copy, or null if <paramref name="data"/> is null.
+        /// </returns>
         public static byte[] Clone(byte[] data, byte[] existing)
         {
             if (data == null)
@@ -738,6 +937,13 @@ namespace Org.BouncyCastle.Utilities
             return existing;
         }
 
+        /// <summary>Copy an array, reusing an existing array for the result when its length matches.</summary>
+        /// <param name="data">The array to copy.</param>
+        /// <param name="existing">An array that may be overwritten with the copy, or null.</param>
+        /// <returns>
+        /// <paramref name="existing"/> filled with the contents of <paramref name="data"/> if the lengths match,
+        /// otherwise a new copy, or null if <paramref name="data"/> is null.
+        /// </returns>
         [CLSCompliant(false)]
         public static ulong[] Clone(ulong[] data, ulong[] existing)
         {
@@ -749,6 +955,10 @@ namespace Org.BouncyCastle.Utilities
             return existing;
         }
 
+        /// <summary>Determine whether an array contains a given value.</summary>
+        /// <param name="a">The array to search.</param>
+        /// <param name="n">The value to look for.</param>
+        /// <returns>true if the value is present in the array, false otherwise.</returns>
         public static bool Contains(byte[] a, byte n)
         {
             for (int i = 0; i < a.Length; ++i)
@@ -759,6 +969,10 @@ namespace Org.BouncyCastle.Utilities
             return false;
         }
 
+        /// <summary>Determine whether an array contains a given value.</summary>
+        /// <param name="a">The array to search.</param>
+        /// <param name="n">The value to look for.</param>
+        /// <returns>true if the value is present in the array, false otherwise.</returns>
         public static bool Contains(short[] a, short n)
         {
             for (int i = 0; i < a.Length; ++i)
@@ -769,6 +983,10 @@ namespace Org.BouncyCastle.Utilities
             return false;
         }
 
+        /// <summary>Determine whether an array contains a given value.</summary>
+        /// <param name="a">The array to search.</param>
+        /// <param name="n">The value to look for.</param>
+        /// <returns>true if the value is present in the array, false otherwise.</returns>
         public static bool Contains(int[] a, int n)
         {
             for (int i = 0; i < a.Length; ++i)
@@ -779,16 +997,30 @@ namespace Org.BouncyCastle.Utilities
             return false;
         }
 
+        /// <summary>Fill an array (or a range of it) with a given value.</summary>
+        /// <param name="buf">The array to fill.</param>
+        /// <param name="b">The value to store.</param>
         // TODO[api] Redundant with generic version
         public static void Fill(byte[] buf, byte b) => Fill<byte>(buf, b);
 
+        /// <summary>Fill an array (or a range of it) with a given value.</summary>
+        /// <param name="buf">The array to fill.</param>
+        /// <param name="b">The value to store.</param>
         // TODO[api] Redundant with generic version
         [CLSCompliant(false)]
         public static void Fill(ulong[] buf, ulong b) => Fill<ulong>(buf, b);
 
+        /// <summary>Fill an array (or a range of it) with a given value.</summary>
+        /// <param name="buf">The array to fill.</param>
+        /// <param name="from">The index at which to start filling (inclusive).</param>
+        /// <param name="to">The index at which to stop filling (exclusive).</param>
+        /// <param name="b">The value to store.</param>
         // TODO[api] Redundant with generic version
         public static void Fill(byte[] buf, int from, int to, byte b) => Fill<byte>(buf, from, to, b);
 
+        /// <summary>Fill an array (or a range of it) with a given value.</summary>
+        /// <param name="ts">The array to fill.</param>
+        /// <param name="t">The value to store.</param>
         public static void Fill<T>(T[] ts, T t)
         {
 #if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -802,6 +1034,11 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Fill an array (or a range of it) with a given value.</summary>
+        /// <param name="ts">The array to fill.</param>
+        /// <param name="from">The index at which to start filling (inclusive).</param>
+        /// <param name="to">The index at which to stop filling (exclusive).</param>
+        /// <param name="t">The value to store.</param>
         public static void Fill<T>(T[] ts, int from, int to, T t)
         {
 #if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -815,6 +1052,12 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>
+        /// Create a copy of an array with a new length, truncating or padding with default values as needed.
+        /// </summary>
+        /// <param name="data">The array to copy.</param>
+        /// <param name="newLength">The length of the new array.</param>
+        /// <returns>The new array.</returns>
         public static byte[] CopyOf(byte[] data, int newLength)
         {
             byte[] tmp = new byte[newLength];
@@ -822,6 +1065,12 @@ namespace Org.BouncyCastle.Utilities
             return tmp;
         }
 
+        /// <summary>
+        /// Create a copy of an array with a new length, truncating or padding with default values as needed.
+        /// </summary>
+        /// <param name="data">The array to copy.</param>
+        /// <param name="newLength">The length of the new array.</param>
+        /// <returns>The new array.</returns>
         public static char[] CopyOf(char[] data, int newLength)
         {
             char[] tmp = new char[newLength];
@@ -829,6 +1078,12 @@ namespace Org.BouncyCastle.Utilities
             return tmp;
         }
 
+        /// <summary>
+        /// Create a copy of an array with a new length, truncating or padding with default values as needed.
+        /// </summary>
+        /// <param name="data">The array to copy.</param>
+        /// <param name="newLength">The length of the new array.</param>
+        /// <returns>The new array.</returns>
         public static int[] CopyOf(int[] data, int newLength)
         {
             int[] tmp = new int[newLength];
@@ -836,6 +1091,12 @@ namespace Org.BouncyCastle.Utilities
             return tmp;
         }
 
+        /// <summary>
+        /// Create a copy of an array with a new length, truncating or padding with default values as needed.
+        /// </summary>
+        /// <param name="data">The array to copy.</param>
+        /// <param name="newLength">The length of the new array.</param>
+        /// <returns>The new array.</returns>
         [CLSCompliant(false)]
         public static uint[] CopyOf(uint[] data, int newLength)
         {
@@ -844,6 +1105,12 @@ namespace Org.BouncyCastle.Utilities
             return tmp;
         }
 
+        /// <summary>
+        /// Create a copy of an array with a new length, truncating or padding with default values as needed.
+        /// </summary>
+        /// <param name="data">The array to copy.</param>
+        /// <param name="newLength">The length of the new array.</param>
+        /// <returns>The new array.</returns>
         public static long[] CopyOf(long[] data, int newLength)
         {
             long[] tmp = new long[newLength];
@@ -851,6 +1118,12 @@ namespace Org.BouncyCastle.Utilities
             return tmp;
         }
 
+        /// <summary>
+        /// Create a copy of an array with a new length, truncating or padding with default values as needed.
+        /// </summary>
+        /// <param name="data">The array to copy.</param>
+        /// <param name="newLength">The length of the new array.</param>
+        /// <returns>The new array.</returns>
         public static BigInteger[] CopyOf(BigInteger[] data, int newLength)
         {
             BigInteger[] tmp = new BigInteger[newLength];
@@ -877,6 +1150,13 @@ namespace Org.BouncyCastle.Utilities
             return tmp;
         }
 
+        /// <summary>
+        /// Create a copy of an array with a new length, truncating or padding with default values as needed.
+        /// </summary>
+        /// <param name="data">The array to copy.</param>
+        /// <param name="from">The from.</param>
+        /// <param name="to">The to.</param>
+        /// <returns>The new array.</returns>
         public static int[] CopyOfRange(int[] data, int from, int to)
         {
             int newLength = GetLength(from, to);
@@ -885,6 +1165,13 @@ namespace Org.BouncyCastle.Utilities
             return tmp;
         }
 
+        /// <summary>
+        /// Create a copy of an array with a new length, truncating or padding with default values as needed.
+        /// </summary>
+        /// <param name="data">The array to copy.</param>
+        /// <param name="from">The from.</param>
+        /// <param name="to">The to.</param>
+        /// <returns>The new array.</returns>
         public static long[] CopyOfRange(long[] data, int from, int to)
         {
             int newLength = GetLength(from, to);
@@ -893,6 +1180,13 @@ namespace Org.BouncyCastle.Utilities
             return tmp;
         }
 
+        /// <summary>
+        /// Create a copy of an array with a new length, truncating or padding with default values as needed.
+        /// </summary>
+        /// <param name="data">The array to copy.</param>
+        /// <param name="from">The from.</param>
+        /// <param name="to">The to.</param>
+        /// <returns>The new array.</returns>
         public static BigInteger[] CopyOfRange(BigInteger[] data, int from, int to)
         {
             int newLength = GetLength(from, to);
@@ -909,6 +1203,13 @@ namespace Org.BouncyCastle.Utilities
             return newLength;
         }
 
+        /// <summary>Create a copy of an array with an extra element added at the end.</summary>
+        /// <param name="a">The array to extend, or null.</param>
+        /// <param name="b">The element to append.</param>
+        /// <returns>
+        /// A new array one element longer than <paramref name="a"/>; if <paramref name="a"/> is null, an array
+        /// containing only <paramref name="b"/>.
+        /// </returns>
         public static byte[] Append(byte[] a, byte b)
         {
             if (a == null)
@@ -921,6 +1222,13 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>Create a copy of an array with an extra element added at the end.</summary>
+        /// <param name="a">The array to extend, or null.</param>
+        /// <param name="b">The element to append.</param>
+        /// <returns>
+        /// A new array one element longer than <paramref name="a"/>; if <paramref name="a"/> is null, an array
+        /// containing only <paramref name="b"/>.
+        /// </returns>
         public static short[] Append(short[] a, short b)
         {
             if (a == null)
@@ -933,6 +1241,13 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>Create a copy of an array with an extra element added at the end.</summary>
+        /// <param name="a">The array to extend, or null.</param>
+        /// <param name="b">The element to append.</param>
+        /// <returns>
+        /// A new array one element longer than <paramref name="a"/>; if <paramref name="a"/> is null, an array
+        /// containing only <paramref name="b"/>.
+        /// </returns>
         public static int[] Append(int[] a, int b)
         {
             if (a == null)
@@ -945,6 +1260,13 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>Concatenate two arrays.</summary>
+        /// <param name="a">The first array, or null.</param>
+        /// <param name="b">The second array, or null.</param>
+        /// <returns>
+        /// A new array holding the elements of <paramref name="a"/> followed by those of <paramref name="b"/>; null
+        /// arrays are treated as empty.
+        /// </returns>
         public static byte[] Concatenate(byte[] a, byte[] b)
         {
             if (a == null)
@@ -958,6 +1280,13 @@ namespace Org.BouncyCastle.Utilities
             return rv;
         }
 
+        /// <summary>Concatenate two arrays.</summary>
+        /// <param name="a">The first array, or null.</param>
+        /// <param name="b">The second array, or null.</param>
+        /// <returns>
+        /// A new array holding the elements of <paramref name="a"/> followed by those of <paramref name="b"/>; null
+        /// arrays are treated as empty.
+        /// </returns>
         [CLSCompliant(false)]
         public static ushort[] Concatenate(ushort[] a, ushort[] b)
         {
@@ -972,6 +1301,9 @@ namespace Org.BouncyCastle.Utilities
             return rv;
         }
 
+        /// <summary>Concatenate any number of arrays, ignoring null entries.</summary>
+        /// <param name="vs">The arrays to concatenate.</param>
+        /// <returns>A new array holding the elements of all the non-null arrays, in order.</returns>
         public static byte[] ConcatenateAll(params byte[][] vs)
         {
             byte[][] nonNull = new byte[vs.Length][];
@@ -1001,6 +1333,13 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>Concatenate two arrays.</summary>
+        /// <param name="a">The first array, or null.</param>
+        /// <param name="b">The second array, or null.</param>
+        /// <returns>
+        /// A new array holding the elements of <paramref name="a"/> followed by those of <paramref name="b"/>; null
+        /// arrays are treated as empty.
+        /// </returns>
         public static int[] Concatenate(int[] a, int[] b)
         {
             if (a == null)
@@ -1014,6 +1353,13 @@ namespace Org.BouncyCastle.Utilities
             return rv;
         }
 
+        /// <summary>Concatenate two arrays.</summary>
+        /// <param name="a">The first array, or null.</param>
+        /// <param name="b">The second array, or null.</param>
+        /// <returns>
+        /// A new array holding the elements of <paramref name="a"/> followed by those of <paramref name="b"/>; null
+        /// arrays are treated as empty.
+        /// </returns>
         [CLSCompliant(false)]
         public static uint[] Concatenate(uint[] a, uint[] b)
         {
@@ -1028,6 +1374,13 @@ namespace Org.BouncyCastle.Utilities
             return rv;
         }
 
+        /// <summary>Create a copy of an array with an extra element added at the start.</summary>
+        /// <param name="a">The array to extend, or null.</param>
+        /// <param name="b">The element to prepend.</param>
+        /// <returns>
+        /// A new array one element longer than <paramref name="a"/>; if <paramref name="a"/> is null, an array
+        /// containing only <paramref name="b"/>.
+        /// </returns>
         public static byte[] Prepend(byte[] a, byte b)
         {
             if (a == null)
@@ -1040,6 +1393,13 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>Create a copy of an array with an extra element added at the start.</summary>
+        /// <param name="a">The array to extend, or null.</param>
+        /// <param name="b">The element to prepend.</param>
+        /// <returns>
+        /// A new array one element longer than <paramref name="a"/>; if <paramref name="a"/> is null, an array
+        /// containing only <paramref name="b"/>.
+        /// </returns>
         public static short[] Prepend(short[] a, short b)
         {
             if (a == null)
@@ -1052,6 +1412,13 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>Create a copy of an array with an extra element added at the start.</summary>
+        /// <param name="a">The array to extend, or null.</param>
+        /// <param name="b">The element to prepend.</param>
+        /// <returns>
+        /// A new array one element longer than <paramref name="a"/>; if <paramref name="a"/> is null, an array
+        /// containing only <paramref name="b"/>.
+        /// </returns>
         public static int[] Prepend(int[] a, int b)
         {
             if (a == null)
@@ -1064,6 +1431,13 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>Create a copy of an array with an extra element added at the start.</summary>
+        /// <param name="a">The array to extend, or null.</param>
+        /// <param name="b">The element to prepend.</param>
+        /// <returns>
+        /// A new array one element longer than <paramref name="a"/>; if <paramref name="a"/> is null, an array
+        /// containing only <paramref name="b"/>.
+        /// </returns>
         public static T[] Prepend<T>(T[] a, T b)
         {
             if (a == null)
@@ -1075,6 +1449,9 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>Create a copy of an array with the order of the elements reversed.</summary>
+        /// <param name="a">The array to reverse.</param>
+        /// <returns>A new array with the elements in reverse order, or null if <paramref name="a"/> is null.</returns>
         public static byte[] Reverse(byte[] a)
         {
             if (a == null)
@@ -1091,6 +1468,9 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>Create a copy of an array with the order of the elements reversed.</summary>
+        /// <param name="a">The array to reverse.</param>
+        /// <returns>A new array with the elements in reverse order, or null if <paramref name="a"/> is null.</returns>
         public static int[] Reverse(int[] a)
         {
             if (a == null)
@@ -1116,6 +1496,9 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 
+        /// <summary>Reverse the order of the elements of an array in place.</summary>
+        /// <param name="array">The array to reverse.</param>
+        /// <returns>The same array, or null if <paramref name="array"/> is null.</returns>
         public static T[] ReverseInPlace<T>(T[] array)
         {
             if (null == array)
@@ -1125,11 +1508,17 @@ namespace Org.BouncyCastle.Utilities
             return array;
         }
 
+        /// <summary>Reverse the order of a range of elements of an array in place.</summary>
+        /// <param name="array">The array to modify.</param>
+        /// <param name="index">The index of the first element of the range.</param>
+        /// <param name="length">The number of elements in the range.</param>
         public static void ReverseInPlace<T>(T[] array, int index, int length)
         {
             Array.Reverse(array, index, length);
         }
 
+        /// <summary>Set all the elements of an array to zero. Does nothing if the array is null.</summary>
+        /// <param name="data">The array to clear.</param>
         public static void Clear(byte[] data)
         {
             if (null != data)
@@ -1138,6 +1527,8 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 
+        /// <summary>Set all the elements of an array to zero. Does nothing if the array is null.</summary>
+        /// <param name="data">The array to clear.</param>
         public static void Clear(int[] data)
         {
             if (null != data)
@@ -1146,6 +1537,9 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 
+        /// <summary>Determine whether an array is null or has a null element.</summary>
+        /// <param name="array">The array to examine.</param>
+        /// <returns>true if the array is null or any element is null, false otherwise.</returns>
         public static bool IsNullOrContainsNull(object[] array)
         {
             if (null == array)
@@ -1160,22 +1554,47 @@ namespace Org.BouncyCastle.Utilities
             return false;
         }
 
+        /// <summary>Determine whether an array is null or empty.</summary>
+        /// <param name="array">The array to examine.</param>
+        /// <returns>true if the array is null or has no elements, false otherwise.</returns>
         public static bool IsNullOrEmpty(byte[] array)
         {
             return null == array || array.Length < 1;
         }
 
+        /// <summary>Determine whether an array is null or empty.</summary>
+        /// <param name="array">The array to examine.</param>
+        /// <returns>true if the array is null or has no elements, false otherwise.</returns>
         public static bool IsNullOrEmpty(object[] array)
         {
             return null == array || array.Length < 1;
         }
 
+        /// <summary>Create a copy of a whole buffer after checking it is not null.</summary>
+        /// <param name="buf">The buffer to copy.</param>
+        /// <returns>A new array with the same contents.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="buf"/> is null.</exception>
         public static T[] CopyBuffer<T>(T[] buf)
         {
             ValidateBuffer(buf);
             return InternalCopyBuffer(buf);
         }
 
+        /// <summary>
+        /// Copy a whole buffer into a segment of another buffer, which must be the same length as the source.
+        /// </summary>
+        /// <param name="srcBuf">The buffer to copy from.</param>
+        /// <param name="dstBuf">The buffer to copy into.</param>
+        /// <param name="dstOff">The offset into <paramref name="dstBuf"/> at which to start writing.</param>
+        /// <param name="dstLen">
+        /// The length of the destination segment, which must equal the length of <paramref name="srcBuf"/>.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="srcBuf"/> or <paramref name="dstBuf"/> is null.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// The destination segment is invalid or its length does not match the source.
+        /// </exception>
         public static void CopyBufferToSegment<T>(T[] srcBuf, T[] dstBuf, int dstOff, int dstLen)
         {
             ValidateBuffer(srcBuf);
@@ -1183,12 +1602,23 @@ namespace Org.BouncyCastle.Utilities
             InternalCopyBufferToSegment(srcBuf, dstBuf, dstOff, dstLen);
         }
 
+        /// <summary>Create a copy of a segment of a buffer after validating the segment.</summary>
+        /// <param name="buf">The buffer to copy from.</param>
+        /// <param name="off">The offset into <paramref name="buf"/> at which the segment starts.</param>
+        /// <param name="len">The length of the segment.</param>
+        /// <returns>A new array holding the segment.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="buf"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">The segment is not within <paramref name="buf"/>.</exception>
         public static T[] CopySegment<T>(T[] buf, int off, int len)
         {
             ValidateSegment(buf, off, len);
             return InternalCopySegment(buf, off, len);
         }
 
+        /// <summary>Create a new buffer of the given length after validating the length.</summary>
+        /// <param name="len">The length of the new buffer.</param>
+        /// <returns>A new array of <paramref name="len"/> elements.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="len"/> is negative.</exception>
         public static T[] CreateBuffer<T>(int len)
         {
             ValidateBufferLength(len);
@@ -1226,11 +1656,19 @@ namespace Org.BouncyCastle.Utilities
         }
 
 #if NET6_0_OR_GREATER
+        /// <summary>Gets the max length.</summary>
         public static int MaxLength => Array.MaxLength;
 #else
+        /// <summary>Gets the max length.</summary>
         public static int MaxLength => 0X7FFFFFC7;
 #endif
 
+        /// <summary>Determine whether two segments (each given as an offset and a length) overlap.</summary>
+        /// <param name="aOff">The offset of the first segment.</param>
+        /// <param name="aLen">The length of the first segment.</param>
+        /// <param name="bOff">The offset of the second segment.</param>
+        /// <param name="bLen">The length of the second segment.</param>
+        /// <returns>true if both segments are non-empty and share at least one position, false otherwise.</returns>
         public static bool SegmentsOverlap(int aOff, int aLen, int bOff, int bLen)
         {
             return aLen > 0
@@ -1239,6 +1677,9 @@ namespace Org.BouncyCastle.Utilities
                 && bOff - aOff < aLen;
         }
 
+        /// <summary>Check that a buffer is not null.</summary>
+        /// <param name="buf">The buffer to check.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="buf"/> is null.</exception>
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
@@ -1248,6 +1689,9 @@ namespace Org.BouncyCastle.Utilities
                 throw new ArgumentNullException(nameof(buf));
         }
 
+        /// <summary>Check that a buffer length is not negative.</summary>
+        /// <param name="len">The length to check.</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="len"/> is negative.</exception>
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
@@ -1257,6 +1701,12 @@ namespace Org.BouncyCastle.Utilities
                 throw new ArgumentOutOfRangeException(nameof(len));
         }
 
+        /// <summary>Check that a range of a buffer is valid.</summary>
+        /// <param name="buf">The buffer to check.</param>
+        /// <param name="from">The index at which the range starts (inclusive).</param>
+        /// <param name="to">The index at which the range ends (exclusive).</param>
+        /// <exception cref="ArgumentNullException"><paramref name="buf"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">The range is not within <paramref name="buf"/>.</exception>
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
@@ -1270,6 +1720,12 @@ namespace Org.BouncyCastle.Utilities
                 throw new ArgumentOutOfRangeException(nameof(from));
         }
 
+        /// <summary>Check that a segment of a buffer is valid.</summary>
+        /// <param name="buf">The buffer to check.</param>
+        /// <param name="off">The offset into <paramref name="buf"/> at which the segment starts.</param>
+        /// <param name="len">The length of the segment.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="buf"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">The segment is not within <paramref name="buf"/>.</exception>
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
@@ -1283,18 +1739,35 @@ namespace Org.BouncyCastle.Utilities
                 throw new ArgumentOutOfRangeException(nameof(len));
         }
 
+        /// <summary>
+        /// Overwrite a buffer (or a segment of it) with zeros in a way that the compiler is not allowed to optimize
+        /// away.
+        /// </summary>
+        /// <param name="buf">The buffer to wipe.</param>
         public static void ZeroMemory(byte[] buf)
         {
             ValidateBuffer(buf);
             InternalZeroMemory(buf);
         }
 
+        /// <summary>
+        /// Overwrite a buffer (or a segment of it) with zeros in a way that the compiler is not allowed to optimize
+        /// away.
+        /// </summary>
+        /// <param name="buf">The buffer to wipe.</param>
+        /// <param name="off">The offset into <paramref name="buf"/> at which the segment starts.</param>
+        /// <param name="len">The length of the segment.</param>
         public static void ZeroMemory(byte[] buf, int off, int len)
         {
             ValidateSegment(buf, off, len);
             InternalZeroMemory(buf, off, len);
         }
 
+        /// <summary>
+        /// Overwrite a buffer (or a segment of it) with zeros in a way that the compiler is not allowed to optimize
+        /// away.
+        /// </summary>
+        /// <param name="buf">The buffer to wipe.</param>
         public static void ZeroMemory(char[] buf)
         {
             ValidateBuffer(buf);
@@ -1338,6 +1811,10 @@ namespace Org.BouncyCastle.Utilities
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Concatenate several spans into a new array.</summary>
+        /// <param name="a">The first span.</param>
+        /// <param name="b">The second span.</param>
+        /// <returns>A new array holding the contents of the spans, in order.</returns>
         public static byte[] Concatenate(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b)
         {
             byte[] rv = new byte[a.Length + b.Length];
@@ -1346,6 +1823,11 @@ namespace Org.BouncyCastle.Utilities
             return rv;
         }
 
+        /// <summary>Concatenate several spans into a new array.</summary>
+        /// <param name="a">The first span.</param>
+        /// <param name="b">The second span.</param>
+        /// <param name="c">The third span.</param>
+        /// <returns>A new array holding the contents of the spans, in order.</returns>
         public static byte[] Concatenate(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b, ReadOnlySpan<byte> c)
         {
             byte[] rv = new byte[a.Length + b.Length + c.Length];
@@ -1355,6 +1837,12 @@ namespace Org.BouncyCastle.Utilities
             return rv;
         }
 
+        /// <summary>Concatenate several spans into a new array.</summary>
+        /// <param name="a">The first span.</param>
+        /// <param name="b">The second span.</param>
+        /// <param name="c">The third span.</param>
+        /// <param name="d">The fourth span.</param>
+        /// <returns>A new array holding the contents of the spans, in order.</returns>
         public static byte[] Concatenate(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b, ReadOnlySpan<byte> c,
             ReadOnlySpan<byte> d)
         {
@@ -1366,11 +1854,25 @@ namespace Org.BouncyCastle.Utilities
             return rv;
         }
 
+        /// <summary>Compare two spans for equal contents, in fixed time.</summary>
+        /// <param name="a">The first span.</param>
+        /// <param name="b">The second span.</param>
+        /// <returns>true if the contents are equal, false otherwise.</returns>
         [Obsolete("Use 'FixedTimeEquals' instead")]
         public static bool ConstantTimeAreEqual(Span<byte> a, Span<byte> b) => FixedTimeEquals(a, b);
 
+        /// <summary>Fill an array (or a range of it) with a given value.</summary>
+        /// <param name="ts">The array to fill.</param>
+        /// <param name="t">The value to store.</param>
         public static void Fill<T>(Span<T> ts, T t) => ts.Fill(t);
 
+        /// <summary>
+        /// Compare two arrays (or segments of them) for equal contents, in time that depends only on the length and not
+        /// on the contents.
+        /// </summary>
+        /// <param name="a">The first array.</param>
+        /// <param name="b">The second array.</param>
+        /// <returns>true if the contents are equal, false otherwise (including when either array is null).</returns>
         public static bool FixedTimeEquals(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b) =>
             CryptographicOperations.FixedTimeEquals(a, b);
 
@@ -1407,6 +1909,10 @@ namespace Org.BouncyCastle.Utilities
 
         internal static void InternalZeroMemory(ulong[] buf, int off, int len) => ZeroMemory(buf.AsSpan(off, len));
 
+        /// <summary>Create a new array with an extra element added at the start of a span's contents.</summary>
+        /// <param name="a">The span holding the existing elements.</param>
+        /// <param name="b">The element to prepend.</param>
+        /// <returns>A new array one element longer than <paramref name="a"/>.</returns>
         public static T[] Prepend<T>(ReadOnlySpan<T> a, T b)
         {
             T[] result = new T[1 + a.Length];
@@ -1415,6 +1921,11 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        /// <summary>
+        /// Overwrite a buffer (or a segment of it) with zeros in a way that the compiler is not allowed to optimize
+        /// away.
+        /// </summary>
+        /// <param name="buffer">The buffer to wipe.</param>
         public static void ZeroMemory(Span<byte> buffer) => CryptographicOperations.ZeroMemory(buffer);
 
         internal static void ZeroMemory(Span<uint> buffer) =>

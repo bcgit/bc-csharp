@@ -2,6 +2,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Utilities.IO.Pem
 {
+    /// <summary>Implemented by parsers that can create an object from a <see cref="PemObject"/>.</summary>
     public interface PemObjectParser
     {
         /// <param name="obj">

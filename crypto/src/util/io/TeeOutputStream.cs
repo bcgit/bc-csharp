@@ -4,20 +4,25 @@ using System.IO;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
+    /// <summary>An output stream that writes everything to two underlying streams.</summary>
     public class TeeOutputStream
-		: BaseOutputStream
-	{
-		private readonly Stream output, tee;
+        : BaseOutputStream
+    {
+        private readonly Stream output, tee;
 
-		public TeeOutputStream(Stream output, Stream tee)
-		{
-			Debug.Assert(output.CanWrite);
-			Debug.Assert(tee.CanWrite);
+        /// <summary>Create a new <see cref="TeeOutputStream"/>.</summary>
+        /// <param name="output">The buffer to write the output to.</param>
+        /// <param name="tee">The tee.</param>
+        public TeeOutputStream(Stream output, Stream tee)
+        {
+            Debug.Assert(output.CanWrite);
+            Debug.Assert(tee.CanWrite);
 
-			this.output = output;
-			this.tee = tee;
-		}
+            this.output = output;
+            this.tee = tee;
+        }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -28,13 +33,15 @@ namespace Org.BouncyCastle.Utilities.IO
             base.Dispose(disposing);
         }
 
+        /// <inheritdoc/>
         public override void Write(byte[] buffer, int offset, int count)
-		{
-			output.Write(buffer, offset, count);
-			tee.Write(buffer, offset, count);
-		}
+        {
+            output.Write(buffer, offset, count);
+            tee.Write(buffer, offset, count);
+        }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override void Write(ReadOnlySpan<byte> buffer)
         {
             output.Write(buffer);
@@ -42,10 +49,11 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 #endif
 
+        /// <inheritdoc/>
         public override void WriteByte(byte value)
-		{
-			output.WriteByte(value);
-			tee.WriteByte(value);
-		}
-	}
+        {
+            output.WriteByte(value);
+            tee.WriteByte(value);
+        }
+    }
 }

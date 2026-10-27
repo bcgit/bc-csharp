@@ -7,35 +7,40 @@ using System.Threading.Tasks;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
-	public class PushbackStream
-		: FilterStream
-	{
-		private int m_buf = -1;
+    /// <summary>A stream that allows a single byte to be pushed back so that it is returned by the next read.</summary>
+    public class PushbackStream
+        : FilterStream
+    {
+        private int m_buf = -1;
 
-		public PushbackStream(Stream s)
-			: base(s)
-		{
-		}
+        /// <summary>Create a new <see cref="PushbackStream"/>.</summary>
+        /// <param name="s">The s.</param>
+        public PushbackStream(Stream s)
+            : base(s)
+        {
+        }
 
 #if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override void CopyTo(Stream destination, int bufferSize)
         {
-			if (m_buf != -1)
-			{
-				destination.WriteByte((byte)m_buf);
+            if (m_buf != -1)
+            {
+                destination.WriteByte((byte)m_buf);
                 m_buf = -1;
             }
 
-			Streams.CopyTo(s, destination, bufferSize);
+            Streams.CopyTo(s, destination, bufferSize);
         }
 #endif
 
 #if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        /// <inheritdoc/>
         public override async Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
         {
             if (m_buf != -1)
             {
-				byte[] buffer = new byte[1]{ (byte)m_buf };
+                byte[] buffer = new byte[1]{ (byte)m_buf };
                 await destination.WriteAsync(buffer, 0, 1, cancellationToken).ConfigureAwait(false);
                 m_buf = -1;
             }
@@ -44,28 +49,30 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 #endif
 
+        /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
-		{
-			Streams.ValidateBufferArguments(buffer, offset, count);
+        {
+            Streams.ValidateBufferArguments(buffer, offset, count);
 
-			if (m_buf != -1)
-			{
-				if (count < 1)
-					return 0;
+            if (m_buf != -1)
+            {
+                if (count < 1)
+                    return 0;
 
-				buffer[offset] = (byte)m_buf;
-				m_buf = -1;
-				return 1;
-			}
+                buffer[offset] = (byte)m_buf;
+                m_buf = -1;
+                return 1;
+            }
 
-			return s.Read(buffer, offset, count);
-		}
+            return s.Read(buffer, offset, count);
+        }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int Read(Span<byte> buffer)
         {
-			if (m_buf != -1)
-			{
+            if (m_buf != -1)
+            {
                 if (buffer.IsEmpty)
                     return 0;
 
@@ -77,6 +84,7 @@ namespace Org.BouncyCastle.Utilities.IO
             return s.Read(buffer);
         }
 
+        /// <inheritdoc/>
         public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
         {
             if (m_buf != -1)
@@ -93,24 +101,30 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 #endif
 
+        /// <inheritdoc/>
         public override int ReadByte()
-		{
-			if (m_buf != -1)
-			{
-				int tmp = m_buf;
-				m_buf = -1;
-				return tmp;
-			}
+        {
+            if (m_buf != -1)
+            {
+                int tmp = m_buf;
+                m_buf = -1;
+                return tmp;
+            }
 
-			return s.ReadByte();
-		}
+            return s.ReadByte();
+        }
 
-		public virtual void Unread(int b)
-		{
-			if (m_buf != -1)
-				throw new InvalidOperationException("Can only push back one byte");
+        /// <summary>Push a byte back onto the stream, to be returned by the next read.</summary>
+        /// <param name="b">The byte to push back; only the low 8 bits are used.</param>
+        /// <exception cref="InvalidOperationException">
+        /// A byte has already been pushed back and not yet read.
+        /// </exception>
+        public virtual void Unread(int b)
+        {
+            if (m_buf != -1)
+                throw new InvalidOperationException("Can only push back one byte");
 
-			m_buf = b & 0xFF;
-		}
-	}
+            m_buf = b & 0xFF;
+        }
+    }
 }

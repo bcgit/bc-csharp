@@ -1,5 +1,6 @@
 namespace Org.BouncyCastle.Utilities.IO.Pem
 {
+    /// <summary>Implemented by objects that can generate a <see cref="PemObject"/>.</summary>
     public interface PemObjectGenerator
     {
         /// <returns>
