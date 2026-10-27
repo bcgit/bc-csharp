@@ -20,8 +20,8 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-    [Obsolete("Use 'Org.BouncyCastle.Operators.Utilities.DefaultSignatureAlgorithmFinder' instead")]
     /// <summary>Finds the signature AlgorithmIdentifier for a signature algorithm name.</summary>
+    [Obsolete("Use 'Org.BouncyCastle.Operators.Utilities.DefaultSignatureAlgorithmFinder' instead")]
     public class DefaultSignatureAlgorithmIdentifierFinder
         : Operators.Utilities.ISignatureAlgorithmFinder
     {
@@ -32,8 +32,8 @@ namespace Org.BouncyCastle.Cms
             Operators.Utilities.DefaultSignatureAlgorithmFinder.Instance.Find(sigAlgName);
     }
 
-    [Obsolete("Use 'Org.BouncyCastle.Operators.Utilities.DefaultDigestAlgorithmFinder' instead")]
     /// <summary>Finds the digest AlgorithmIdentifier for a signature or digest algorithm.</summary>
+    [Obsolete("Use 'Org.BouncyCastle.Operators.Utilities.DefaultDigestAlgorithmFinder' instead")]
     public class DefaultDigestAlgorithmIdentifierFinder
         : Operators.Utilities.IDigestAlgorithmFinder
     {
@@ -156,11 +156,11 @@ namespace Org.BouncyCastle.Cms
 
         // TODO[api] After removing this, SignatureAlgorithmIdentifier can be assumed present in
         // DefaultSignedAttributeTableGenerator.AddMissingStandardAttributes
-        [Obsolete("Will be removed")]
         /// <summary>Return the base parameters for attribute generation.</summary>
         /// <param name="contentType">The content type, or null.</param>
         /// <param name="digAlgId">The digest algorithm identifier.</param>
         /// <param name="hash">The digest of the content.</param>
+        [Obsolete("Will be removed")]
         protected internal virtual IDictionary<CmsAttributeTableParameter, object> GetBaseParameters(
             DerObjectIdentifier contentType, AlgorithmIdentifier digAlgId, byte[] hash)
         {
@@ -289,16 +289,16 @@ namespace Org.BouncyCastle.Cms
             return result;
         }
 
-        [Obsolete("Will be removed. Replaced in CmsSignedDataGenerator by the similar 'UseDefiniteLength' property")]
         /// <summary>Gets or sets whether the certificates are DER encoded.</summary>
+        [Obsolete("Will be removed. Replaced in CmsSignedDataGenerator by the similar 'UseDefiniteLength' property")]
         public bool UseDerForCerts
         {
             get { return _useDerForCerts; }
             set { this._useDerForCerts = value; }
         }
 
-        [Obsolete("Will be removed. Replaced in CmsSignedDataGenerator by the similar 'UseDefiniteLength' property")]
         /// <summary>Gets or sets whether the CRLs are DER encoded.</summary>
+        [Obsolete("Will be removed. Replaced in CmsSignedDataGenerator by the similar 'UseDefiniteLength' property")]
         public bool UseDerForCrls
         {
             get { return _useDerForCrls; }

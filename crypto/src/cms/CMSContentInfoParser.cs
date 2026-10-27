@@ -40,8 +40,8 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-        [Obsolete("Dispose instead")]
         /// <summary>Dispose of the parser and its stream.</summary>
+        [Obsolete("Dispose instead")]
         public void Close()
         {
             Dispose();
