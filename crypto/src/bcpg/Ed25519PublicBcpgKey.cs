@@ -16,13 +16,18 @@
     public sealed class Ed25519PublicBcpgKey
         : OctetArrayBcpgKey
     {
+        /// <summary>The length in bytes of the key.</summary>
         public static readonly int Length = 32;
 
+        /// <summary>Create a new <see cref="Ed25519PublicBcpgKey"/>.</summary>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         public Ed25519PublicBcpgKey(BcpgInputStream bcpgIn)
             : base(Length, bcpgIn)
         {
         }
 
+        /// <summary>Create a new <see cref="Ed25519PublicBcpgKey"/>.</summary>
+        /// <param name="key">The key.</param>
         public Ed25519PublicBcpgKey(byte[] key)
             : base(Length, key)
         {

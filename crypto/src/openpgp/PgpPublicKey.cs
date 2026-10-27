@@ -31,6 +31,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         private static readonly PgpKdfParameters DefaultKdfParameters = new PgpKdfParameters(HashAlgorithmTag.Sha256,
             SymmetricKeyAlgorithmTag.Aes128);
 
+        /// <summary>Calculate the fingerprint of a public key packet.</summary>
+        /// <param name="publicPk">The packet.</param>
+        /// <returns>The fingerprint.</returns>
         public static byte[] CalculateFingerprint(PublicKeyPacket publicPk)
         {
             IBcpgKey key = publicPk.Key;
@@ -115,8 +118,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpSignature.DirectKey,
         };
 
-        internal PublicKeyPacket	publicPk;
-        internal TrustPacket		trustPk;
+        internal PublicKeyPacket publicPk;
+        internal TrustPacket trustPk;
         internal IList<PgpSignature> keySigs = new List<PgpSignature>();
         internal IList<IUserDataPacket> ids = new List<IUserDataPacket>();
         internal IList<TrustPacket> idTrusts = new List<TrustPacket>();
@@ -297,6 +300,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+        /// <summary>Create a new <see cref="PgpPublicKey"/>.</summary>
+        /// <param name="publicPk">The public pk.</param>
         public PgpPublicKey(PublicKeyPacket publicPk)
             : this(publicPk, new List<IUserDataPacket>(), new List<IList<PgpSignature>>())
         {
@@ -313,8 +318,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         internal PgpPublicKey(
-            PgpPublicKey	key,
-            TrustPacket		trust,
+            PgpPublicKey key,
+            TrustPacket trust,
             IList<PgpSignature> subSigs)
         {
             this.publicPk = key.publicPk;
@@ -354,8 +359,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         internal PgpPublicKey(
-            PublicKeyPacket	publicPk,
-            TrustPacket		trustPk,
+            PublicKeyPacket publicPk,
+            TrustPacket trustPk,
             IList<PgpSignature> keySigs,
             IList<IUserDataPacket> ids,
             IList<TrustPacket> idTrusts,
@@ -372,7 +377,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         internal PgpPublicKey(
-            PublicKeyPacket	publicPk,
+            PublicKeyPacket publicPk,
             IList<IUserDataPacket> ids,
             IList<IList<PgpSignature>> idSigs)
         {
@@ -621,6 +626,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return (byte[]) fingerprint.Clone();
         }
 
+        /// <summary>Determine whether the key has the given fingerprint.</summary>
+        /// <param name="fingerprint">The fingerprint.</param>
+        /// <returns>true if the fingerprint matches, false otherwise.</returns>
         public bool HasFingerprint(byte[] fingerprint)
         {
             return Arrays.AreEqual(this.fingerprint, fingerprint);
@@ -773,7 +781,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                             Arrays.CopyOfRange(pEnc, 1, pEnc.Length)));
 #endif
                     }
-                    else 
+                    else
                     {
                         throw new InvalidOperationException();
                     }
@@ -879,6 +887,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return GetSignaturesForId(new UserIdPacket(id));
         }
 
+        /// <summary>Allows enumeration of any signatures associated with the passed in id.</summary>
+        /// <param name="rawId">The raw id.</param>
+        /// <returns>An <c>IEnumerable</c> of <c>PgpSignature</c> objects.</returns>
         public IEnumerable<PgpSignature> GetSignaturesForId(byte[] rawId)
         {
             if (rawId == null)
@@ -995,11 +1006,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return CollectionUtilities.Proxy(result);
         }
 
+        /// <summary>Gets the public key packet.</summary>
         public PublicKeyPacket PublicKeyPacket
         {
             get { return publicPk; }
         }
 
+        /// <summary>Return the encoded.</summary>
         public byte[] GetEncoded()
         {
             MemoryStream bOut = new MemoryStream();
@@ -1007,6 +1020,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return bOut.ToArray();
         }
 
+        /// <summary>Return the encoded.</summary>
+        /// <param name="outStr">The output stream.</param>
         public void Encode(Stream outStr)
         {
             Encode(outStr, false);
@@ -1119,9 +1134,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="certification">The new certification.</param>
         /// <returns>The re-certified key.</returns>
         public static PgpPublicKey AddCertification(
-            PgpPublicKey	key,
-            string			id,
-            PgpSignature	certification)
+            PgpPublicKey key,
+            string id,
+            PgpSignature certification)
         {
             return AddCert(key, new UserIdPacket(id), certification);
         }
@@ -1132,17 +1147,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="certification">The new certification.</param>
         /// <returns>The re-certified key.</returns>
         public static PgpPublicKey AddCertification(
-            PgpPublicKey					key,
-            PgpUserAttributeSubpacketVector	userAttributes,
-            PgpSignature					certification)
+            PgpPublicKey key,
+            PgpUserAttributeSubpacketVector userAttributes,
+            PgpSignature certification)
         {
             return AddCert(key, userAttributes, certification);
         }
 
         private static PgpPublicKey AddCert(
-            PgpPublicKey	key,
+            PgpPublicKey key,
             IUserDataPacket id,
-            PgpSignature	certification)
+            PgpSignature certification)
         {
             PgpPublicKey returnKey = new PgpPublicKey(key);
             IList<PgpSignature> sigList = null;
@@ -1180,7 +1195,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// The re-certified key, or null if the user attribute subpacket was not found on the key.
         /// </returns>
         public static PgpPublicKey RemoveCertification(PgpPublicKey key,
-            PgpUserAttributeSubpacketVector	userAttributes)
+            PgpUserAttributeSubpacketVector userAttributes)
         {
             return RemoveCert(key, userAttributes);
         }
@@ -1189,7 +1204,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="key">The key the certifications are to be removed from.</param>
         /// <param name="id">The ID that is to be removed.</param>
         /// <returns>The re-certified key, or null if the ID was not found on the key.</returns>
-        public static PgpPublicKey RemoveCertification(PgpPublicKey	key, string id)
+        public static PgpPublicKey RemoveCertification(PgpPublicKey key, string id)
         {
             return RemoveCert(key, new UserIdPacket(id));
         }
@@ -1203,7 +1218,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return RemoveCert(key, new UserIdPacket(rawId));
         }
 
-        private static PgpPublicKey RemoveCert(PgpPublicKey	key, IUserDataPacket id)
+        private static PgpPublicKey RemoveCert(PgpPublicKey key, IUserDataPacket id)
         {
             PgpPublicKey returnKey = new PgpPublicKey(key);
             bool found = false;
@@ -1237,7 +1252,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="id">The ID that the certfication is to be removed from.</param>
         /// <param name="certification">The certfication to be removed.</param>
         /// <returns>The re-certified key, or null if the certification was not found.</returns>
-        public static PgpPublicKey RemoveCertification(PgpPublicKey	key, string id, PgpSignature certification)
+        public static PgpPublicKey RemoveCertification(PgpPublicKey key, string id, PgpSignature certification)
         {
             return RemoveCert(key, new UserIdPacket(id), certification);
         }
@@ -1253,7 +1268,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return RemoveCert(key, userAttributes, certification);
         }
 
-        private static PgpPublicKey RemoveCert(PgpPublicKey	key, IUserDataPacket id, PgpSignature certification)
+        private static PgpPublicKey RemoveCert(PgpPublicKey key, IUserDataPacket id, PgpSignature certification)
         {
             PgpPublicKey returnKey = new PgpPublicKey(key);
             bool found = false;
@@ -1298,7 +1313,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="key">The key the certifications are to be removed from.</param>
         /// <param name="certification">The certfication to be removed.</param>
         /// <returns>The modified key, null if the certification was not found.</returns>
-        public static PgpPublicKey RemoveCertification(PgpPublicKey	key, PgpSignature certification)
+        public static PgpPublicKey RemoveCertification(PgpPublicKey key, PgpSignature certification)
         {
             var returnKey = new PgpPublicKey(key);
             var sigs = returnKey.subSigs ?? returnKey.keySigs;

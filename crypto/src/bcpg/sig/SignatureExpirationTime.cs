@@ -17,14 +17,24 @@ namespace Org.BouncyCastle.Bcpg.Sig
     public class SignatureExpirationTime
         : SignatureSubpacket
     {
+        /// <summary>Convert a time in seconds to its encoding.</summary>
+        /// <param name="t">The time in seconds.</param>
+        /// <returns>The encoding.</returns>
         [Obsolete("Will be removed")]
         protected static byte[] TimeToBytes(long t) => Utilities.TimeToBytes((uint)t);
 
+        /// <summary>Create a new <see cref="SignatureExpirationTime"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="isLongLength">true if the long length form is used, false otherwise.</param>
+        /// <param name="data">The data.</param>
         public SignatureExpirationTime(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.ExpireTime, critical, isLongLength, VerifyData(data))
         {
         }
 
+        /// <summary>Create a new <see cref="SignatureExpirationTime"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="seconds">The seconds.</param>
         public SignatureExpirationTime(bool critical, long seconds)
             : base(SignatureSubpacketTag.ExpireTime, critical, isLongLength: false,
                 Utilities.TimeToBytes((uint)seconds))

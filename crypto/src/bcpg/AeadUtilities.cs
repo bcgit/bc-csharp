@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Bcpg
 {
+    /// <summary>Utility methods for the AEAD algorithms of OpenPGP.</summary>
     public static class AeadUtilities
     {
         /// <summary>Return the length of the IV used by the given AEAD algorithm, in octets.</summary>

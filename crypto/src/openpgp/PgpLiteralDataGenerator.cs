@@ -10,8 +10,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     public class PgpLiteralDataGenerator
         : IStreamGenerator
     {
+        /// <summary>The format value for binary data.</summary>
         public const char Binary = PgpLiteralData.Binary;
+        /// <summary>The format value for text data.</summary>
         public const char Text = PgpLiteralData.Text;
+        /// <summary>The format value for UTF-8 text data.</summary>
         public const char Utf8 = PgpLiteralData.Utf8;
 
         /// <summary>The special name indicating a "for your eyes only" packet.</summary>
@@ -21,6 +24,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         private BcpgOutputStream pkOut;
 
+        /// <summary>Create a new <see cref="PgpLiteralDataGenerator"/>.</summary>
         public PgpLiteralDataGenerator()
         {
         }
@@ -138,6 +142,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public Stream Open(Stream outStr, char format, FileInfo file) =>
             Open(outStr, format, file.Name, file.Length, file.LastWriteTime);
 
+        /// <inheritdoc/>
         [Obsolete("Dispose any opened Stream directly")]
         public void Close()
         {

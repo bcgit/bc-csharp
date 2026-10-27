@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Bcpg
     public class PublicKeyPacket
         : ContainedPacket //, PublicKeyAlgorithmTag
     {
+        /// <summary>The maximum length of a public key packet body that is accepted.</summary>
         public static readonly int MaxLength = 2 * 1024 * 1024; // 2MiB; e.g. McEliece keys can get ~1MiB in size
 
         /// <summary>OpenPGP v3 keys are deprecated. They can only be used with RSA.</summary>
@@ -147,6 +148,11 @@ namespace Org.BouncyCastle.Bcpg
         {
         }
 
+        /// <summary>Create a new <see cref="PublicKeyPacket"/>.</summary>
+        /// <param name="version">The version.</param>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="time">The time.</param>
+        /// <param name="key">The key.</param>
         public PublicKeyPacket(byte version, PublicKeyAlgorithmTag algorithm, DateTime time,
             IBcpgKey key)
             : this(PacketTag.PublicKey, version, algorithm, time, key)
@@ -163,18 +169,25 @@ namespace Org.BouncyCastle.Bcpg
             m_key = key;
         }
 
+        /// <summary>Gets the version.</summary>
         public virtual int Version => m_version;
 
+        /// <summary>Gets the version byte.</summary>
         public virtual byte VersionByte => m_version;
 
+        /// <summary>Gets the algorithm.</summary>
         public virtual PublicKeyAlgorithmTag Algorithm => m_algorithm;
 
+        /// <summary>Gets the valid days.</summary>
         public virtual int ValidDays => m_validDays;
 
+        /// <summary>Return the time.</summary>
         public virtual DateTime GetTime() => DateTimeUtilities.UnixMsToDateTime(m_time * 1000L);
 
+        /// <summary>Gets the key.</summary>
         public virtual IBcpgKey Key => m_key;
 
+        /// <summary>Return the encoded contents.</summary>
         public virtual byte[] GetEncodedContents()
         {
             MemoryStream bOut = new MemoryStream();
@@ -204,9 +217,14 @@ namespace Org.BouncyCastle.Bcpg
             return bOut.ToArray();
         }
 
+        /// <inheritdoc/>
         public override void Encode(BcpgOutputStream bcpgOut) =>
             bcpgOut.WritePacket(HasNewPacketFormat, PacketTag, GetEncodedContents());
 
+        /// <summary>Calculate the key ID of a public key packet.</summary>
+        /// <param name="publicPk">The packet.</param>
+        /// <param name="fingerprint">The fingerprint of the key.</param>
+        /// <returns>The key ID.</returns>
         public static long GetKeyID(PublicKeyPacket publicPk, byte[] fingerprint)
         {
             byte version = publicPk.VersionByte;

@@ -21,11 +21,14 @@ namespace Org.BouncyCastle.Bcpg
             m_contents = bcpgIn.ReadAll();
         }
 
+        /// <summary>Gets the tag.</summary>
         [Obsolete("Use 'PacketTag' instead")]
         public PacketTag Tag => PacketTag;
 
+        /// <summary>Return the contents.</summary>
         public byte[] GetContents() => Arrays.Clone(m_contents);
 
+        /// <inheritdoc/>
         public override void Encode(BcpgOutputStream bcpgOut) =>
             bcpgOut.WritePacket(HasNewPacketFormat, PacketTag, m_contents);
     }

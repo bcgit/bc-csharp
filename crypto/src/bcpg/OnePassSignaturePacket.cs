@@ -8,7 +8,9 @@ namespace Org.BouncyCastle.Bcpg
     public class OnePassSignaturePacket
         : ContainedPacket
     {
+        /// <summary>The <c>Version3</c> constant, with the value <c>3</c>.</summary>
         public const int Version3 = 3;
+        /// <summary>The <c>Version6</c> constant, with the value <c>6</c>.</summary>
         public const int Version6 = 6;
 
         private readonly int m_version;
@@ -34,6 +36,12 @@ namespace Org.BouncyCastle.Bcpg
             m_nested = bcpgIn.RequireByte();
         }
 
+        /// <summary>Create a new <see cref="OnePassSignaturePacket"/>.</summary>
+        /// <param name="sigType">The sig type.</param>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="keyAlgorithm">The key algorithm.</param>
+        /// <param name="keyId">The key id.</param>
+        /// <param name="isNested">true if is nested, false otherwise.</param>
         public OnePassSignaturePacket(int sigType, HashAlgorithmTag hashAlgorithm, PublicKeyAlgorithmTag keyAlgorithm,
             long keyId, bool isNested)
             : base(PacketTag.OnePassSignature)
@@ -46,6 +54,7 @@ namespace Org.BouncyCastle.Bcpg
             m_nested = isNested ? 0 : 1;
         }
 
+        /// <summary>Gets the signature type.</summary>
         public int SignatureType => m_sigType;
 
         /// <summary>The encryption algorithm tag.</summary>
@@ -59,6 +68,7 @@ namespace Org.BouncyCastle.Bcpg
         /// </remarks>
         public long KeyId => (long)m_keyID;
 
+        /// <inheritdoc/>
         public override void Encode(BcpgOutputStream bcpgOut)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

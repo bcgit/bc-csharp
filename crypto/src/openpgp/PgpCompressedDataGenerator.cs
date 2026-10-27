@@ -16,11 +16,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         private Stream dOut;
         private BcpgOutputStream pkOut;
 
+        /// <summary>Create a new <see cref="PgpCompressedDataGenerator"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
         public PgpCompressedDataGenerator(CompressionAlgorithmTag algorithm)
             : this(algorithm, JZlib.Z_DEFAULT_COMPRESSION)
         {
         }
 
+        /// <summary>Create a new <see cref="PgpCompressedDataGenerator"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="compression">The compression.</param>
         public PgpCompressedDataGenerator(CompressionAlgorithmTag algorithm, int compression)
         {
             switch (algorithm)
@@ -142,6 +147,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+        /// <inheritdoc/>
         [Obsolete("Dispose any opened Stream directly")]
         public void Close()
         {

@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
+    /// <summary>An unknown packet, kept as raw data.</summary>
     public class PgpUnknown
         : PgpObject
     {
@@ -19,8 +20,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             m_packet = unknownPacket;
         }
 
+        /// <summary>Gets a value indicating whether this is critical.</summary>
         public bool IsCritical => m_packet.IsCritical;
 
+        /// <summary>Gets the packet tag.</summary>
         public PacketTag PacketTag => m_packet.PacketTag;
     }
 }

@@ -33,8 +33,10 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>The modification time of the file in milli-seconds (since Jan 1, 1970 UTC)</summary>
         public long ModificationTime => m_modDate;
 
+        /// <summary>Gets the file name.</summary>
         public string FileName => Strings.FromUtf8ByteArray(m_fileName);
 
+        /// <summary>Return the raw file name.</summary>
         public byte[] GetRawFileName() => Arrays.Clone(m_fileName);
     }
 }
