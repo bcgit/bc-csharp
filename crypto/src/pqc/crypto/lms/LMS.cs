@@ -12,9 +12,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <param name="lmOtsParameters">The LM-OTS parameter set.</param>
         /// <param name="q">The index of the next signature to produce.</param>
         /// <param name="I">The key identifier.</param>
-        /// <param name="rootSeed">The root seed.</param>
+        /// <param name="masterSecret">The master secret.</param>
         /// <returns>The private key.</returns>
-        /// <exception cref="ArgumentException">The root seed is too short.</exception>
+        /// <exception cref="System.ArgumentException">The master secret is too short.</exception>
         public static LmsPrivateKeyParameters GenerateKeys(LMSigParameters parameterSet,
             LMOtsParameters lmOtsParameters, int q, byte[] I, byte[] masterSecret)
         {
