@@ -55,6 +55,9 @@ namespace Org.BouncyCastle.Tsp
         private readonly TimeStampResp m_resp;
         private readonly TimeStampToken m_timeStampToken;
 
+        /// <summary>Create from an existing ASN.1 TimeStampResp structure.</summary>
+        /// <param name="resp">The ASN.1 structure.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="resp"/> is null.</exception>
         public TimeStampResponse(TimeStampResp resp)
         {
             m_resp = resp ?? throw new ArgumentNullException(nameof(resp));
@@ -102,10 +105,13 @@ namespace Org.BouncyCastle.Tsp
             }
         }
 
+        /// <summary>Gets the status information of the response.</summary>
         public PkiStatusInfo StatusInfo => m_resp.Status;
 
+        /// <summary>Gets the status of the response; see <see cref="PkiStatus"/> for the possible values.</summary>
         public int Status => StatusInfo.StatusObject.IntValueExact;
 
+        /// <summary>Return the status strings concatenated, or null if there are none.</summary>
         public string GetStatusString()
         {
             if (m_resp.Status.StatusString == null)
@@ -120,6 +126,7 @@ namespace Org.BouncyCastle.Tsp
             return sb.ToString();
         }
 
+        /// <summary>Return the failure information, or null if the response does not carry any.</summary>
         public PkiFailureInfo GetFailInfo()
         {
             if (m_resp.Status.FailInfo == null)
@@ -128,8 +135,10 @@ namespace Org.BouncyCastle.Tsp
             return new PkiFailureInfo(m_resp.Status.FailInfo);
         }
 
+        /// <summary>Return the underlying ASN.1 structure.</summary>
         public TimeStampResp TimeStampResp => m_resp;
 
+        /// <summary>Gets the time-stamp token, or null if the response does not contain one.</summary>
         public TimeStampToken TimeStampToken => m_timeStampToken;
 
         /// <summary>
