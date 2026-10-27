@@ -38,8 +38,8 @@ namespace Org.BouncyCastle.Pkix
         /// <summary>Create parameters with constraints on the target certificate.</summary>
         /// <param name="trustAnchors">A set of <see cref="TrustAnchor"/>s.</param>
         /// <param name="targetConstraintsCert">A selector for the target certificate (or null for none).</param>
-        /// <exception cref="ArgumentNullException"><paramref name="trustAnchors"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="trustAnchors"/> contains no trust anchors.</exception>
+        /// <exception cref="System.ArgumentNullException"><paramref name="trustAnchors"/> is null.</exception>
+        /// <exception cref="System.ArgumentException"><paramref name="trustAnchors"/> contains no trust anchors.</exception>
         public PkixBuilderParameters(ISet<TrustAnchor> trustAnchors, ISelector<X509Certificate> targetConstraintsCert)
             : this(trustAnchors, targetConstraintsCert, targetConstraintsAttrCert: null)
         {
@@ -50,8 +50,8 @@ namespace Org.BouncyCastle.Pkix
         /// <param name="trustAnchors">A set of <see cref="TrustAnchor"/>s.</param>
         /// <param name="targetConstraintsCert">A selector for the target certificate (or null for none).</param>
         /// <param name="targetConstraintsAttrCert">A selector for the target attribute certificate (or null).</param>
-        /// <exception cref="ArgumentNullException"><paramref name="trustAnchors"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="trustAnchors"/> contains no trust anchors.</exception>
+        /// <exception cref="System.ArgumentNullException"><paramref name="trustAnchors"/> is null.</exception>
+        /// <exception cref="System.ArgumentException"><paramref name="trustAnchors"/> contains no trust anchors.</exception>
         public PkixBuilderParameters(ISet<TrustAnchor> trustAnchors, ISelector<X509Certificate> targetConstraintsCert,
             ISelector<X509V2AttributeCertificate> targetConstraintsAttrCert)
             : base(trustAnchors)
