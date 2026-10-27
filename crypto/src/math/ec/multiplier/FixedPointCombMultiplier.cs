@@ -4,9 +4,13 @@ using Org.BouncyCastle.Math.Raw;
 
 namespace Org.BouncyCastle.Math.EC.Multiplier
 {
+    /// <summary>
+    /// A multiplier using a fixed-point comb method, which suits repeated multiplication of the same point.
+    /// </summary>
     public class FixedPointCombMultiplier
         : AbstractECMultiplier
     {
+        /// <inheritdoc/>
         protected override ECPoint MultiplyPositive(ECPoint p, BigInteger k)
         {
             ECCurve c = p.Curve;

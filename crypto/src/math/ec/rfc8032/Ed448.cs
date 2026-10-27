@@ -32,12 +32,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
     {
         // x^2 + y^2 == 1 - 39081 * x^2 * y^2
 
+        /// <summary>
+        /// The variants of the signature algorithm: the pure algorithm, the context-aware variant and the pre-hashed
+        /// variant.
+        /// </summary>
         public enum Algorithm
         {
+            /// <summary>Pure Ed448.</summary>
             Ed448 = 0,
+            /// <summary>Pre-hashed Ed448 (Ed448ph).</summary>
             Ed448ph = 1,
         }
 
+        /// <summary>
+        /// A public key held as a decoded point, which allows repeated verification without decoding the key again.
+        /// </summary>
         public sealed class PublicPoint
         {
             internal readonly uint[] m_data;
@@ -54,9 +63,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private const int ScalarBytes = ScalarUints * 4 + 1;
 
         private const int XofSize = ScalarBytes * 2;
+        /// <summary>The size in bytes of a pre-hashed message.</summary>
         public static readonly int PrehashSize = 64;
+        /// <summary>The size in bytes of a public key.</summary>
         public static readonly int PublicKeySize = PointBytes;
+        /// <summary>The size in bytes of a private key.</summary>
         public static readonly int SecretKeySize = 57;
+        /// <summary>The size in bytes of a signature.</summary>
         public static readonly int SignatureSize = PointBytes + ScalarBytes;
 
         // "SigEd448"
@@ -330,6 +343,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return result;
         }
 
+        /// <summary>Create a digest for pre-hashing a message.</summary>
+        /// <returns>A new digest.</returns>
         public static IXof CreatePrehash() => CreateXof();
 
         private static IXof CreateXof() => new ShakeDigest(256);
@@ -408,6 +423,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
+        /// <summary>Encode a public point as a public key.</summary>
+        /// <param name="publicPoint">The public point.</param>
+        /// <param name="pk">The buffer to receive the public key.</param>
+        /// <param name="pkOff">The offset into <paramref name="pk"/> at which to start writing.</param>
         public static void EncodePublicPoint(PublicPoint publicPoint, byte[] pk, int pkOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -423,6 +442,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Encode a public point as a public key.</summary>
+        /// <param name="publicPoint">The public point.</param>
+        /// <param name="pk">The buffer to receive the public key.</param>
         public static void EncodePublicPoint(PublicPoint publicPoint, Span<byte> pk)
         {
             if (publicPoint == null)
@@ -493,6 +515,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return new PublicPoint(data);
         }
 
+        /// <summary>Generate a random private key.</summary>
+        /// <param name="random">The source of randomness.</param>
+        /// <param name="k">The private key (scalar).</param>
         // TODO[api] Rename k to sk
         public static void GeneratePrivateKey(SecureRandom random, byte[] k)
         {
@@ -511,6 +536,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Generate a random private key.</summary>
+        /// <param name="random">The source of randomness.</param>
+        /// <param name="k">The private key (scalar).</param>
         // TODO[api] Rename k to sk
         public static void GeneratePrivateKey(SecureRandom random, Span<byte> k)
         {
@@ -523,6 +551,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
+        /// <summary>Generate the public key for a private key.</summary>
+        /// <param name="sk">The private key (seed).</param>
+        /// <param name="skOff">The offset into <paramref name="sk"/> at which the private key starts.</param>
+        /// <param name="pk">The public key.</param>
+        /// <param name="pkOff">The offset into <paramref name="pk"/> at which the public key starts.</param>
         public static void GeneratePublicKey(byte[] sk, int skOff, byte[] pk, int pkOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -542,6 +575,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Generate the public key for a private key.</summary>
+        /// <param name="sk">The private key (seed).</param>
+        /// <param name="pk">The public key.</param>
         public static void GeneratePublicKey(ReadOnlySpan<byte> sk, Span<byte> pk)
         {
             // TODO[api] Exact length check
@@ -561,6 +597,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
+        /// <summary>Generate the public point for a private key.</summary>
+        /// <param name="sk">The private key (seed).</param>
+        /// <param name="skOff">The offset into <paramref name="sk"/> at which the private key starts.</param>
+        /// <returns>The public point.</returns>
         public static PublicPoint GeneratePublicKey(byte[] sk, int skOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -576,6 +616,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Generate the public point for a private key.</summary>
+        /// <param name="sk">The private key (seed).</param>
+        /// <returns>The public point.</returns>
         public static PublicPoint GeneratePublicKey(ReadOnlySpan<byte> sk)
         {
             // TODO[api] Exact length check
@@ -1418,6 +1461,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.One(p.z);
         }
 
+        /// <summary>
+        /// Perform the precomputation needed for fast signing and verification, which is otherwise done on first use.
+        /// </summary>
         public static void Precompute()
         {
             lock (PrecompLock)
@@ -1749,7 +1795,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #else
             sbyte[] ws_p = new sbyte[447];
 #endif
-            // NOTE: WnafWidth225 because of the special structure of the order 
+            // NOTE: WnafWidth225 because of the special structure of the order
             Scalar448.GetOrderWnafVar(WnafWidth225, ws_p);
 
             int count = 1 << (WnafWidth225 - 2);
@@ -1859,6 +1905,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             PointDouble(ref r, ref t);
         }
 
+        /// <summary>Sign a message.</summary>
+        /// <param name="sk">The private key (seed).</param>
+        /// <param name="skOff">The offset into <paramref name="sk"/> at which the private key starts.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="m">The message.</param>
+        /// <param name="mOff">The offset into <paramref name="m"/> at which the message starts.</param>
+        /// <param name="mLen">The length of the message.</param>
+        /// <param name="sig">The signature.</param>
+        /// <param name="sigOff">The offset into <paramref name="sig"/> at which the signature starts.</param>
         public static void Sign(byte[] sk, int skOff, byte[] ctx, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
         {
             byte phflag = 0x00;
@@ -1866,6 +1921,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(sk, skOff, ctx, phflag, m, mOff, mLen, sig, sigOff);
         }
 
+        /// <summary>Sign a message.</summary>
+        /// <param name="sk">The private key (seed).</param>
+        /// <param name="skOff">The offset into <paramref name="sk"/> at which the private key starts.</param>
+        /// <param name="pk">The public key.</param>
+        /// <param name="pkOff">The offset into <paramref name="pk"/> at which the public key starts.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="m">The message.</param>
+        /// <param name="mOff">The offset into <paramref name="m"/> at which the message starts.</param>
+        /// <param name="mLen">The length of the message.</param>
+        /// <param name="sig">The signature.</param>
+        /// <param name="sigOff">The offset into <paramref name="sig"/> at which the signature starts.</param>
         public static void Sign(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte[] m, int mOff, int mLen,
             byte[] sig, int sigOff)
         {
@@ -1875,6 +1941,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Sign a message.</summary>
+        /// <param name="sk">The private key (seed).</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="m">The message.</param>
+        /// <param name="sig">The signature.</param>
         public static void Sign(ReadOnlySpan<byte> sk, byte[] ctx, ReadOnlySpan<byte> m, Span<byte> sig)
         {
             if (sk.Length != SecretKeySize)
@@ -1885,6 +1956,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(sk, ctx, phflag: 0x00, m, sig);
         }
 
+        /// <summary>Sign a message.</summary>
+        /// <param name="sk">The private key (seed).</param>
+        /// <param name="pk">The public key.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="m">The message.</param>
+        /// <param name="sig">The signature.</param>
         public static void Sign(ReadOnlySpan<byte> sk, ReadOnlySpan<byte> pk, byte[] ctx, ReadOnlySpan<byte> m,
             Span<byte> sig)
         {
@@ -1899,6 +1976,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
+        /// <summary>Sign a message that has already been hashed (the pre-hashed variant of the algorithm).</summary>
+        /// <param name="sk">The private key (seed).</param>
+        /// <param name="skOff">The offset into <paramref name="sk"/> at which the private key starts.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="ph">The pre-hashed message, or a digest holding it.</param>
+        /// <param name="phOff">The offset into <paramref name="ph"/> at which the pre-hashed message starts.</param>
+        /// <param name="sig">The signature.</param>
+        /// <param name="sigOff">The offset into <paramref name="sig"/> at which the signature starts.</param>
         public static void SignPrehash(byte[] sk, int skOff, byte[] ctx, byte[] ph, int phOff, byte[] sig, int sigOff)
         {
             byte phflag = 0x01;
@@ -1906,6 +1991,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(sk, skOff, ctx, phflag, ph, phOff, PrehashSize, sig, sigOff);
         }
 
+        /// <summary>Sign a message that has already been hashed (the pre-hashed variant of the algorithm).</summary>
+        /// <param name="sk">The private key (seed).</param>
+        /// <param name="skOff">The offset into <paramref name="sk"/> at which the private key starts.</param>
+        /// <param name="pk">The public key.</param>
+        /// <param name="pkOff">The offset into <paramref name="pk"/> at which the public key starts.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="ph">The pre-hashed message, or a digest holding it.</param>
+        /// <param name="phOff">The offset into <paramref name="ph"/> at which the pre-hashed message starts.</param>
+        /// <param name="sig">The signature.</param>
+        /// <param name="sigOff">The offset into <paramref name="sig"/> at which the signature starts.</param>
         public static void SignPrehash(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte[] ph, int phOff,
             byte[] sig, int sigOff)
         {
@@ -1914,6 +2009,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(sk, skOff, pk, pkOff, ctx, phflag, ph, phOff, PrehashSize, sig, sigOff);
         }
 
+        /// <summary>Sign a message that has already been hashed (the pre-hashed variant of the algorithm).</summary>
+        /// <param name="sk">The private key (seed).</param>
+        /// <param name="skOff">The offset into <paramref name="sk"/> at which the private key starts.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="ph">The pre-hashed message, or a digest holding it.</param>
+        /// <param name="sig">The signature.</param>
+        /// <param name="sigOff">The offset into <paramref name="sig"/> at which the signature starts.</param>
         public static void SignPrehash(byte[] sk, int skOff, byte[] ctx, IXof ph, byte[] sig, int sigOff)
         {
             byte[] m = new byte[PrehashSize];
@@ -1925,6 +2027,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(sk, skOff, ctx, phflag, m, 0, m.Length, sig, sigOff);
         }
 
+        /// <summary>Sign a message that has already been hashed (the pre-hashed variant of the algorithm).</summary>
+        /// <param name="sk">The private key (seed).</param>
+        /// <param name="skOff">The offset into <paramref name="sk"/> at which the private key starts.</param>
+        /// <param name="pk">The public key.</param>
+        /// <param name="pkOff">The offset into <paramref name="pk"/> at which the public key starts.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="ph">The pre-hashed message, or a digest holding it.</param>
+        /// <param name="sig">The signature.</param>
+        /// <param name="sigOff">The offset into <paramref name="sig"/> at which the signature starts.</param>
         public static void SignPrehash(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, IXof ph, byte[] sig,
             int sigOff)
         {
@@ -1938,6 +2049,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Sign a message that has already been hashed (the pre-hashed variant of the algorithm).</summary>
+        /// <param name="sk">The private key (seed).</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="ph">The pre-hashed message, or a digest holding it.</param>
+        /// <param name="sig">The signature.</param>
         public static void SignPrehash(ReadOnlySpan<byte> sk, byte[] ctx, ReadOnlySpan<byte> ph, Span<byte> sig)
         {
             if (sk.Length != SecretKeySize)
@@ -1950,6 +2066,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(sk, ctx, phflag: 0x01, m: ph, sig);
         }
 
+        /// <summary>Sign a message that has already been hashed (the pre-hashed variant of the algorithm).</summary>
+        /// <param name="sk">The private key (seed).</param>
+        /// <param name="pk">The public key.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="ph">The pre-hashed message, or a digest holding it.</param>
+        /// <param name="sig">The signature.</param>
         public static void SignPrehash(ReadOnlySpan<byte> sk, ReadOnlySpan<byte> pk, byte[] ctx, ReadOnlySpan<byte> ph,
             Span<byte> sig)
         {
@@ -1965,6 +2087,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(sk, pk, ctx, phflag: 0x01, m: ph, sig);
         }
 
+        /// <summary>Sign a message that has already been hashed (the pre-hashed variant of the algorithm).</summary>
+        /// <param name="sk">The private key (seed).</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="ph">The pre-hashed message, or a digest holding it.</param>
+        /// <param name="sig">The signature.</param>
         public static void SignPrehash(ReadOnlySpan<byte> sk, byte[] ctx, IDigest ph, Span<byte> sig)
         {
             if (sk.Length != SecretKeySize)
@@ -1979,6 +2106,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(sk, ctx, phflag: 0x01, m, sig);
         }
 
+        /// <summary>Sign a message that has already been hashed (the pre-hashed variant of the algorithm).</summary>
+        /// <param name="sk">The private key (seed).</param>
+        /// <param name="pk">The public key.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="ph">The pre-hashed message, or a digest holding it.</param>
+        /// <param name="sig">The signature.</param>
         public static void SignPrehash(ReadOnlySpan<byte> sk, ReadOnlySpan<byte> pk, byte[] ctx, IDigest ph,
             Span<byte> sig)
         {
@@ -1997,6 +2130,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
+        /// <summary>
+        /// Fully validate a public key: that it is a valid encoding of a point on the curve in the correct subgroup.
+        /// </summary>
+        /// <param name="pk">The public key.</param>
+        /// <param name="pkOff">The offset into <paramref name="pk"/> at which the public key starts.</param>
+        /// <returns>true if the public key is valid, false otherwise.</returns>
         public static bool ValidatePublicKeyFull(byte[] pk, int pkOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -2018,6 +2157,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Fully validate a public key: that it is a valid encoding of a point on the curve in the correct subgroup.
+        /// </summary>
+        /// <param name="pk">The public key.</param>
+        /// <returns>true if the public key is valid, false otherwise.</returns>
         public static bool ValidatePublicKeyFull(ReadOnlySpan<byte> pk)
         {
             // TODO[api] Exact length check
@@ -2038,6 +2182,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
+        /// <summary>Fully validate a public key, returning the decoded point if it is valid.</summary>
+        /// <param name="pk">The public key.</param>
+        /// <param name="pkOff">The offset into <paramref name="pk"/> at which the public key starts.</param>
+        /// <returns>The decoded point, or null if the public key is not valid.</returns>
         public static PublicPoint ValidatePublicKeyFullExport(byte[] pk, int pkOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -2062,6 +2210,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Fully validate a public key, returning the decoded point if it is valid.</summary>
+        /// <param name="pk">The public key.</param>
+        /// <returns>The decoded point, or null if the public key is not valid.</returns>
         public static PublicPoint ValidatePublicKeyFullExport(ReadOnlySpan<byte> pk)
         {
             // TODO[api] Exact length check
@@ -2085,6 +2236,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
+        /// <summary>
+        /// Partially validate a public key: that it is a valid encoding of a point on the curve, without checking the
+        /// subgroup.
+        /// </summary>
+        /// <param name="pk">The public key.</param>
+        /// <param name="pkOff">The offset into <paramref name="pk"/> at which the public key starts.</param>
+        /// <returns>true if the public key is valid, false otherwise.</returns>
         public static bool ValidatePublicKeyPartial(byte[] pk, int pkOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -2103,6 +2261,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Partially validate a public key: that it is a valid encoding of a point on the curve, without checking the
+        /// subgroup.
+        /// </summary>
+        /// <param name="pk">The public key.</param>
+        /// <returns>true if the public key is valid, false otherwise.</returns>
         public static bool ValidatePublicKeyPartial(ReadOnlySpan<byte> pk)
         {
             // TODO[api] Exact length check
@@ -2120,6 +2284,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
+        /// <summary>Partially validate a public key, returning the decoded point if it is valid.</summary>
+        /// <param name="pk">The public key.</param>
+        /// <param name="pkOff">The offset into <paramref name="pk"/> at which the public key starts.</param>
+        /// <returns>The decoded point, or null if the public key is not valid.</returns>
         public static PublicPoint ValidatePublicKeyPartialExport(byte[] pk, int pkOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -2141,6 +2309,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Partially validate a public key, returning the decoded point if it is valid.</summary>
+        /// <param name="pk">The public key.</param>
+        /// <returns>The decoded point, or null if the public key is not valid.</returns>
         public static PublicPoint ValidatePublicKeyPartialExport(ReadOnlySpan<byte> pk)
         {
             // TODO[api] Exact length check
@@ -2161,6 +2332,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
+        /// <summary>Verify a signature.</summary>
+        /// <param name="sig">The signature.</param>
+        /// <param name="sigOff">The offset into <paramref name="sig"/> at which the signature starts.</param>
+        /// <param name="pk">The public key.</param>
+        /// <param name="pkOff">The offset into <paramref name="pk"/> at which the public key starts.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="m">The message.</param>
+        /// <param name="mOff">The offset into <paramref name="m"/> at which the message starts.</param>
+        /// <param name="mLen">The length of the message.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
         public static bool Verify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte[] m, int mOff,
             int mLen)
         {
@@ -2169,6 +2350,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return ImplVerify(sig, sigOff, pk, pkOff, ctx, phflag, m, mOff, mLen);
         }
 
+        /// <summary>Verify a signature.</summary>
+        /// <param name="sig">The signature.</param>
+        /// <param name="sigOff">The offset into <paramref name="sig"/> at which the signature starts.</param>
+        /// <param name="publicPoint">The public key as a decoded point.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="m">The message.</param>
+        /// <param name="mOff">The offset into <paramref name="m"/> at which the message starts.</param>
+        /// <param name="mLen">The length of the message.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
         public static bool Verify(byte[] sig, int sigOff, PublicPoint publicPoint, byte[] ctx, byte[] m, int mOff,
             int mLen)
         {
@@ -2178,6 +2368,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Verify a signature.</summary>
+        /// <param name="sig">The signature.</param>
+        /// <param name="pk">The public key.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="m">The message.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
         public static bool Verify(ReadOnlySpan<byte> sig, ReadOnlySpan<byte> pk, byte[] ctx, ReadOnlySpan<byte> m)
         {
             if (sig.Length != SignatureSize)
@@ -2188,6 +2384,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return ImplVerify(sig, pk, ctx, phflag: 0x00, m);
         }
 
+        /// <summary>Verify a signature.</summary>
+        /// <param name="sig">The signature.</param>
+        /// <param name="publicPoint">The public key as a decoded point.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="m">The message.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
         public static bool Verify(ReadOnlySpan<byte> sig, PublicPoint publicPoint, byte[] ctx, ReadOnlySpan<byte> m)
         {
             if (sig.Length != SignatureSize)
@@ -2199,6 +2401,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
+        /// <summary>
+        /// Verify a signature of a message that has already been hashed (the pre-hashed variant of the algorithm).
+        /// </summary>
+        /// <param name="sig">The signature.</param>
+        /// <param name="sigOff">The offset into <paramref name="sig"/> at which the signature starts.</param>
+        /// <param name="pk">The public key.</param>
+        /// <param name="pkOff">The offset into <paramref name="pk"/> at which the public key starts.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="ph">The pre-hashed message, or a digest holding it.</param>
+        /// <param name="phOff">The offset into <paramref name="ph"/> at which the pre-hashed message starts.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
         public static bool VerifyPrehash(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte[] ph, int phOff)
         {
             byte phflag = 0x01;
@@ -2206,6 +2419,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return ImplVerify(sig, sigOff, pk, pkOff, ctx, phflag, ph, phOff, PrehashSize);
         }
 
+        /// <summary>
+        /// Verify a signature of a message that has already been hashed (the pre-hashed variant of the algorithm).
+        /// </summary>
+        /// <param name="sig">The signature.</param>
+        /// <param name="sigOff">The offset into <paramref name="sig"/> at which the signature starts.</param>
+        /// <param name="publicPoint">The public key as a decoded point.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="ph">The pre-hashed message, or a digest holding it.</param>
+        /// <param name="phOff">The offset into <paramref name="ph"/> at which the pre-hashed message starts.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
         public static bool VerifyPrehash(byte[] sig, int sigOff, PublicPoint publicPoint, byte[] ctx, byte[] ph,
             int phOff)
         {
@@ -2214,6 +2437,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return ImplVerify(sig, sigOff, publicPoint, ctx, phflag, ph, phOff, PrehashSize);
         }
 
+        /// <summary>
+        /// Verify a signature of a message that has already been hashed (the pre-hashed variant of the algorithm).
+        /// </summary>
+        /// <param name="sig">The signature.</param>
+        /// <param name="sigOff">The offset into <paramref name="sig"/> at which the signature starts.</param>
+        /// <param name="pk">The public key.</param>
+        /// <param name="pkOff">The offset into <paramref name="pk"/> at which the public key starts.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="ph">The pre-hashed message, or a digest holding it.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
         public static bool VerifyPrehash(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, IXof ph)
         {
             byte[] m = new byte[PrehashSize];
@@ -2225,6 +2458,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return ImplVerify(sig, sigOff, pk, pkOff, ctx, phflag, m, 0, m.Length);
         }
 
+        /// <summary>
+        /// Verify a signature of a message that has already been hashed (the pre-hashed variant of the algorithm).
+        /// </summary>
+        /// <param name="sig">The signature.</param>
+        /// <param name="sigOff">The offset into <paramref name="sig"/> at which the signature starts.</param>
+        /// <param name="publicPoint">The public key as a decoded point.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="ph">The pre-hashed message, or a digest holding it.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
         public static bool VerifyPrehash(byte[] sig, int sigOff, PublicPoint publicPoint, byte[] ctx, IXof ph)
         {
             byte[] m = new byte[PrehashSize];
@@ -2237,6 +2479,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Verify a signature of a message that has already been hashed (the pre-hashed variant of the algorithm).
+        /// </summary>
+        /// <param name="sig">The signature.</param>
+        /// <param name="pk">The public key.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="ph">The pre-hashed message, or a digest holding it.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
         public static bool VerifyPrehash(ReadOnlySpan<byte> sig, ReadOnlySpan<byte> pk, byte[] ctx,
             ReadOnlySpan<byte> ph)
         {
@@ -2250,6 +2500,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return ImplVerify(sig, pk, ctx, phflag: 0x01, m: ph);
         }
 
+        /// <summary>
+        /// Verify a signature of a message that has already been hashed (the pre-hashed variant of the algorithm).
+        /// </summary>
+        /// <param name="sig">The signature.</param>
+        /// <param name="publicPoint">The public key as a decoded point.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="ph">The pre-hashed message, or a digest holding it.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
         public static bool VerifyPrehash(ReadOnlySpan<byte> sig, PublicPoint publicPoint, byte[] ctx,
             ReadOnlySpan<byte> ph)
         {
@@ -2263,6 +2521,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return ImplVerify(sig, publicPoint, ctx, phflag: 0x01, m: ph);
         }
 
+        /// <summary>
+        /// Verify a signature of a message that has already been hashed (the pre-hashed variant of the algorithm).
+        /// </summary>
+        /// <param name="sig">The signature.</param>
+        /// <param name="pk">The public key.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="ph">The pre-hashed message, or a digest holding it.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
         public static bool VerifyPrehash(ReadOnlySpan<byte> sig, ReadOnlySpan<byte> pk, byte[] ctx, IXof ph)
         {
             if (sig.Length != SignatureSize)
@@ -2277,6 +2543,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return ImplVerify(sig, pk, ctx, phflag: 0x01, m);
         }
 
+        /// <summary>
+        /// Verify a signature of a message that has already been hashed (the pre-hashed variant of the algorithm).
+        /// </summary>
+        /// <param name="sig">The signature.</param>
+        /// <param name="publicPoint">The public key as a decoded point.</param>
+        /// <param name="ctx">The context, which may be empty.</param>
+        /// <param name="ph">The pre-hashed message, or a digest holding it.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
         public static bool VerifyPrehash(ReadOnlySpan<byte> sig, PublicPoint publicPoint, byte[] ctx, IXof ph)
         {
             if (sig.Length != SignatureSize)

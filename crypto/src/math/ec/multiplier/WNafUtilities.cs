@@ -4,8 +4,10 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC.Multiplier
 {
+    /// <summary>Utility methods for window NAF (non-adjacent form) multiplication.</summary>
     public abstract class WNafUtilities
     {
+        /// <summary>The name under which window NAF precomputation data is stored.</summary>
         public static readonly string PRECOMP_NAME = "bc_wnaf";
 
         private static readonly int[] DEFAULT_WINDOW_SIZE_CUTOFFS = new int[]{ 13, 41, 121, 337, 897, 2305 };
@@ -13,6 +15,8 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
         private static readonly ECPoint[] EMPTY_POINTS = new ECPoint[0];
 
+        /// <summary>Configure the precomputation of a base point for repeated use.</summary>
+        /// <param name="p">The base point.</param>
         public static void ConfigureBasepoint(ECPoint p)
         {
             ECCurve c = p.Curve;
@@ -26,6 +30,9 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             c.Precompute(p, PRECOMP_NAME, new ConfigureBasepointCallback(c, confWidth));
         }
 
+        /// <summary>Generate the compact non-adjacent form of a scalar.</summary>
+        /// <param name="k">The scalar.</param>
+        /// <returns>The compact NAF.</returns>
         public static int[] GenerateCompactNaf(BigInteger k)
         {
             if ((k.BitLength >> 16) != 0)
@@ -65,6 +72,10 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             return naf;
         }
 
+        /// <summary>Generate the compact window NAF of a scalar.</summary>
+        /// <param name="width">The window width.</param>
+        /// <param name="k">The scalar.</param>
+        /// <returns>The compact window NAF.</returns>
         public static int[] GenerateCompactWindowNaf(int width, BigInteger k)
         {
             if (width == 2)
@@ -125,6 +136,10 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             return wnaf;
         }
 
+        /// <summary>Generate the joint sparse form of two scalars.</summary>
+        /// <param name="g">The first scalar.</param>
+        /// <param name="h">The second scalar.</param>
+        /// <returns>The joint sparse form.</returns>
         public static byte[] GenerateJsf(BigInteger g, BigInteger h)
         {
             int digits = System.Math.Max(g.BitLength, h.BitLength) + 1;
@@ -187,6 +202,9 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             return jsf;
         }
 
+        /// <summary>Generate the non-adjacent form of a scalar.</summary>
+        /// <param name="k">The scalar.</param>
+        /// <returns>The NAF.</returns>
         public static byte[] GenerateNaf(BigInteger k)
         {
             if (k.SignValue == 0)
@@ -279,10 +297,13 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             {
                 wnaf = Trim(wnaf, length);
             }
-        
+
             return wnaf;
         }
 
+        /// <summary>Get the weight (number of non-zero digits) of the non-adjacent form of a scalar.</summary>
+        /// <param name="k">The scalar.</param>
+        /// <returns>The weight.</returns>
         public static int GetNafWeight(BigInteger k)
         {
             if (k.SignValue == 0)
@@ -294,11 +315,17 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             return diff.BitCount;
         }
 
+        /// <summary>Get the window NAF precomputation data of a point.</summary>
+        /// <param name="p">The point.</param>
+        /// <returns>The precomputation data.</returns>
         public static WNafPreCompInfo GetWNafPreCompInfo(ECPoint p)
         {
             return GetWNafPreCompInfo(p.Curve.GetPreCompInfo(p, PRECOMP_NAME));
         }
 
+        /// <summary>Get window NAF precomputation data from generic precomputation data.</summary>
+        /// <param name="preCompInfo">The data, or null.</param>
+        /// <returns>The window NAF data, or a new empty instance if there is none.</returns>
         public static WNafPreCompInfo GetWNafPreCompInfo(PreCompInfo preCompInfo)
         {
             return preCompInfo as WNafPreCompInfo;
@@ -306,7 +333,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
         /**
          * Determine window width to use for a scalar multiplication of the given size.
-         * 
+         *
          * @param bits the bit-length of the scalar to multiply by
          * @return the window size to use
          */
@@ -317,9 +344,9 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
         /**
          * Determine window width to use for a scalar multiplication of the given size.
-         * 
+         *
          * @param bits the bit-length of the scalar to multiply by
-         * @param maxWidth the maximum window width to return 
+         * @param maxWidth the maximum window width to return
          * @return the window size to use
          */
         public static int GetWindowSize(int bits, int maxWidth)
@@ -329,7 +356,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
         /**
          * Determine window width to use for a scalar multiplication of the given size.
-         * 
+         *
          * @param bits the bit-length of the scalar to multiply by
          * @param windowSizeCutoffs a monotonically increasing list of bit sizes at which to increment the window width
          * @return the window size to use
@@ -341,10 +368,10 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
         /**
          * Determine window width to use for a scalar multiplication of the given size.
-         * 
+         *
          * @param bits the bit-length of the scalar to multiply by
          * @param windowSizeCutoffs a monotonically increasing list of bit sizes at which to increment the window width
-         * @param maxWidth the maximum window width to return 
+         * @param maxWidth the maximum window width to return
          * @return the window size to use
          */
         public static int GetWindowSize(int bits, int[] windowSizeCutoffs, int maxWidth)
@@ -361,12 +388,25 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             return System.Math.Max(2, System.Math.Min(maxWidth, w + 2));
         }
 
+        /// <summary>Precompute the data for window NAF multiplication of a point.</summary>
+        /// <param name="p">The point.</param>
+        /// <param name="minWidth">The minimum window width.</param>
+        /// <param name="includeNegated">true to include the negated points.</param>
+        /// <returns>The precomputation data.</returns>
         public static WNafPreCompInfo Precompute(ECPoint p, int minWidth, bool includeNegated)
         {
             return (WNafPreCompInfo)p.Curve.Precompute(p, PRECOMP_NAME,
                 new PrecomputeCallback(p, minWidth, includeNegated));
         }
 
+        /// <summary>
+        /// Precompute window NAF data for a point using a point map to derive it from the data of another point.
+        /// </summary>
+        /// <param name="p">The point.</param>
+        /// <param name="pointMap">The point map.</param>
+        /// <param name="fromWNaf">The window NAF data of the source point.</param>
+        /// <param name="includeNegated">true to include the negated points.</param>
+        /// <returns>The precomputation data.</returns>
         public static WNafPreCompInfo PrecomputeWithPointMap(ECPoint p, ECPointMap pointMap, WNafPreCompInfo fromWNaf,
             bool includeNegated)
         {
@@ -579,7 +619,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                                  * where 'twiceP' is "affine", so that the subsequent additions are cheaper. This
                                  * also requires scaling the initial point's X, Y coordinates, and reversing the
                                  * isomorphism as part of the subsequent normalization.
-                                 * 
+                                 *
                                  *  NOTE: The correctness of this optimization depends on:
                                  *      1) additions do not use the curve's A, B coefficients.
                                  *      2) no special cases (i.e. Q +/- Q) when calculating 1P, 3P, 5P, ...
@@ -633,7 +673,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                     if (null == preCompNeg)
                     {
                         pos = 0;
-                        preCompNeg = new ECPoint[reqPreCompLen]; 
+                        preCompNeg = new ECPoint[reqPreCompLen];
                     }
                     else
                     {
@@ -661,7 +701,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             private bool CheckExisting(WNafPreCompInfo existingWNaf, int width, int reqPreCompLen, bool includeNegated)
             {
                 return null != existingWNaf
-                    && existingWNaf.Width >= System.Math.Max(existingWNaf.ConfWidth, width) 
+                    && existingWNaf.Width >= System.Math.Max(existingWNaf.ConfWidth, width)
                     && CheckTable(existingWNaf.PreComp, reqPreCompLen)
                     && (!includeNegated || CheckTable(existingWNaf.PreCompNeg, reqPreCompLen));
             }

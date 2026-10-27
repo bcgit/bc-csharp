@@ -7,39 +7,90 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC
 {
+    /// <summary>Base class for elements of the field underlying an elliptic curve.</summary>
     public abstract class ECFieldElement
     {
+        /// <summary>Return the value of the element as a BigInteger.</summary>
+        /// <returns>The value.</returns>
         public abstract BigInteger ToBigInteger();
+        /// <summary>Gets the field name.</summary>
         public abstract string FieldName { get; }
+        /// <summary>Gets the field size.</summary>
         public abstract int FieldSize { get; }
+        /// <summary>Return the sum of this element and another.</summary>
+        /// <param name="b">The other element.</param>
+        /// <returns>The sum.</returns>
         public abstract ECFieldElement Add(ECFieldElement b);
+        /// <summary>Return this element plus one.</summary>
+        /// <returns>The result.</returns>
         public abstract ECFieldElement AddOne();
+        /// <summary>Return the difference of this element and another.</summary>
+        /// <param name="b">The element to subtract.</param>
+        /// <returns>The difference.</returns>
         public abstract ECFieldElement Subtract(ECFieldElement b);
+        /// <summary>Return the product of this element and another.</summary>
+        /// <param name="b">The other element.</param>
+        /// <returns>The product.</returns>
         public abstract ECFieldElement Multiply(ECFieldElement b);
+        /// <summary>Return the quotient of this element and another.</summary>
+        /// <param name="b">The divisor.</param>
+        /// <returns>The quotient.</returns>
         public abstract ECFieldElement Divide(ECFieldElement b);
+        /// <summary>Return the negation of this element.</summary>
+        /// <returns>The negation.</returns>
         public abstract ECFieldElement Negate();
+        /// <summary>Return the square of this element.</summary>
+        /// <returns>The square.</returns>
         public abstract ECFieldElement Square();
+        /// <summary>Return the multiplicative inverse of this element.</summary>
+        /// <returns>The inverse.</returns>
         public abstract ECFieldElement Invert();
+        /// <summary>Return a square root of this element, if there is one.</summary>
+        /// <returns>A square root, or null if there is none.</returns>
         public abstract ECFieldElement Sqrt();
 
+        /// <summary>Gets the bit length.</summary>
         public virtual int BitLength => ToBigInteger().BitLength;
 
+        /// <summary>Gets a value indicating whether this is one.</summary>
         public virtual bool IsOne => BitLength == 1;
 
+        /// <summary>Gets a value indicating whether this is zero.</summary>
         public virtual bool IsZero => 0 == ToBigInteger().SignValue;
 
+        /// <summary>Calculate this * b - x * y.</summary>
+        /// <param name="b">The second factor of the first product.</param>
+        /// <param name="x">The first factor of the second product.</param>
+        /// <param name="y">The second factor of the second product.</param>
+        /// <returns>The result.</returns>
         public virtual ECFieldElement MultiplyMinusProduct(ECFieldElement b, ECFieldElement x, ECFieldElement y) =>
             Multiply(b).Subtract(x.Multiply(y));
 
+        /// <summary>Calculate this * b + x * y.</summary>
+        /// <param name="b">The second factor of the first product.</param>
+        /// <param name="x">The first factor of the second product.</param>
+        /// <param name="y">The second factor of the second product.</param>
+        /// <returns>The result.</returns>
         public virtual ECFieldElement MultiplyPlusProduct(ECFieldElement b, ECFieldElement x, ECFieldElement y) =>
             Multiply(b).Add(x.Multiply(y));
 
+        /// <summary>Calculate this^2 - x * y.</summary>
+        /// <param name="x">The first factor of the product.</param>
+        /// <param name="y">The second factor of the product.</param>
+        /// <returns>The result.</returns>
         public virtual ECFieldElement SquareMinusProduct(ECFieldElement x, ECFieldElement y) =>
             Square().Subtract(x.Multiply(y));
 
+        /// <summary>Calculate this^2 + x * y.</summary>
+        /// <param name="x">The first factor of the product.</param>
+        /// <param name="y">The second factor of the product.</param>
+        /// <returns>The result.</returns>
         public virtual ECFieldElement SquarePlusProduct(ECFieldElement x, ECFieldElement y) =>
             Square().Add(x.Multiply(y));
 
+        /// <summary>Raise this element to the power 2^pow, by repeated squaring.</summary>
+        /// <param name="pow">The number of squarings.</param>
+        /// <returns>The result.</returns>
         public virtual ECFieldElement SquarePow(int pow)
         {
             ECFieldElement r = this;
@@ -50,10 +101,16 @@ namespace Org.BouncyCastle.Math.EC
             return r;
         }
 
+        /// <summary>Determine whether the least significant bit of the element is set.</summary>
+        /// <returns>true if the bit is set, false otherwise.</returns>
         public virtual bool TestBitZero() => ToBigInteger().TestBit(0);
 
+        /// <inheritdoc/>
         public override bool Equals(object obj) => Equals(obj as ECFieldElement);
 
+        /// <summary>Determine whether this element is equal to another.</summary>
+        /// <param name="other">The element to compare with.</param>
+        /// <returns>true if the elements are equal, false otherwise.</returns>
         public virtual bool Equals(ECFieldElement other)
         {
             if (this == other)
@@ -63,10 +120,13 @@ namespace Org.BouncyCastle.Math.EC
                 && ToBigInteger().Equals(other.ToBigInteger());
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode() => ToBigInteger().GetHashCode();
 
+        /// <inheritdoc/>
         public override string ToString() => ToBigInteger().ToString(16);
 
+        /// <summary>Return the encoded.</summary>
         public virtual byte[] GetEncoded()
         {
             byte[] buf = new byte[GetEncodedLength()];
@@ -74,22 +134,30 @@ namespace Org.BouncyCastle.Math.EC
             return buf;
         }
 
+        /// <summary>Return the encoded length.</summary>
         public virtual int GetEncodedLength() => (FieldSize + 7) / 8;
 
+        /// <summary>Write the fixed-length encoding of this element.</summary>
+        /// <param name="buf">The buffer to write to.</param>
+        /// <param name="off">The offset into <paramref name="buf"/> at which to write.</param>
         public virtual void EncodeTo(byte[] buf, int off) =>
             BigIntegers.AsUnsignedByteArray(ToBigInteger(), buf, off, GetEncodedLength());
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Write the fixed-length encoding of this element.</summary>
+        /// <param name="buf">The buffer to write to.</param>
         public virtual void EncodeTo(Span<byte> buf) =>
             BigIntegers.AsUnsignedByteArray(ToBigInteger(), buf[..GetEncodedLength()]);
 #endif
     }
 
+    /// <summary>Base class for elements of a prime field.</summary>
     public abstract class AbstractFpFieldElement
         : ECFieldElement
     {
     }
 
+    /// <summary>An element of a prime field.</summary>
     public class FpFieldElement
         : AbstractFpFieldElement
     {
@@ -118,17 +186,23 @@ namespace Org.BouncyCastle.Math.EC
             m_x = x;
         }
 
+        /// <inheritdoc/>
         public override BigInteger ToBigInteger() => m_x;
 
+        /// <inheritdoc/>
         public override string FieldName => "Fp";
 
+        /// <inheritdoc/>
         public override int FieldSize => m_q.BitLength;
 
+        /// <summary>Gets the q.</summary>
         public BigInteger Q => m_q;
 
+        /// <inheritdoc/>
         public override ECFieldElement Add(ECFieldElement b) =>
             new FpFieldElement(m_q, m_r, ModAdd(m_x, b.ToBigInteger()));
 
+        /// <inheritdoc/>
         public override ECFieldElement AddOne()
         {
             BigInteger x2 = m_x.Add(BigInteger.One);
@@ -139,12 +213,15 @@ namespace Org.BouncyCastle.Math.EC
             return new FpFieldElement(m_q, m_r, x2);
         }
 
+        /// <inheritdoc/>
         public override ECFieldElement Subtract(ECFieldElement b) =>
             new FpFieldElement(m_q, m_r, ModSubtract(m_x, b.ToBigInteger()));
 
+        /// <inheritdoc/>
         public override ECFieldElement Multiply(ECFieldElement b) =>
             new FpFieldElement(m_q, m_r, ModMult(m_x, b.ToBigInteger()));
 
+        /// <inheritdoc/>
         public override ECFieldElement MultiplyMinusProduct(ECFieldElement b, ECFieldElement x, ECFieldElement y)
         {
             BigInteger ax = m_x, bx = b.ToBigInteger(), xx = x.ToBigInteger(), yx = y.ToBigInteger();
@@ -153,6 +230,7 @@ namespace Org.BouncyCastle.Math.EC
             return new FpFieldElement(m_q, m_r, ModReduce(ab.Subtract(xy)));
         }
 
+        /// <inheritdoc/>
         public override ECFieldElement MultiplyPlusProduct(ECFieldElement b, ECFieldElement x, ECFieldElement y)
         {
             BigInteger ax = m_x, bx = b.ToBigInteger(), xx = x.ToBigInteger(), yx = y.ToBigInteger();
@@ -166,15 +244,19 @@ namespace Org.BouncyCastle.Math.EC
             return new FpFieldElement(m_q, m_r, ModReduce(sum));
         }
 
+        /// <inheritdoc/>
         public override ECFieldElement Divide(ECFieldElement b) =>
             new FpFieldElement(m_q, m_r, ModMult(m_x, ModInverse(b.ToBigInteger())));
 
+        /// <inheritdoc/>
         public override ECFieldElement Negate() =>
             m_x.SignValue == 0 ? this : new FpFieldElement(m_q, m_r, m_q.Subtract(m_x));
 
+        /// <inheritdoc/>
         public override ECFieldElement Square() =>
             new FpFieldElement(m_q, m_r, ModMult(m_x, m_x));
 
+        /// <inheritdoc/>
         public override ECFieldElement SquareMinusProduct(ECFieldElement x, ECFieldElement y)
         {
             BigInteger ax = m_x, xx = x.ToBigInteger(), yx = y.ToBigInteger();
@@ -183,6 +265,7 @@ namespace Org.BouncyCastle.Math.EC
             return new FpFieldElement(m_q, m_r, ModReduce(aa.Subtract(xy)));
         }
 
+        /// <inheritdoc/>
         public override ECFieldElement SquarePlusProduct(ECFieldElement x, ECFieldElement y)
         {
             BigInteger ax = m_x, xx = x.ToBigInteger(), yx = y.ToBigInteger();
@@ -196,6 +279,7 @@ namespace Org.BouncyCastle.Math.EC
             return new FpFieldElement(m_q, m_r, ModReduce(sum));
         }
 
+        /// <inheritdoc/>
         public override ECFieldElement Invert()
         {
             // TODO Modular inversion can be faster for a (Generalized) Mersenne Prime.
@@ -324,6 +408,10 @@ namespace Org.BouncyCastle.Math.EC
             return new BigInteger[] { Uh, Vl };
         }
 
+        /// <summary>Add two values modulo the field prime.</summary>
+        /// <param name="x1">The first value.</param>
+        /// <param name="x2">The second value.</param>
+        /// <returns>The sum modulo the prime.</returns>
         protected virtual BigInteger ModAdd(BigInteger x1, BigInteger x2)
         {
             BigInteger x3 = x1.Add(x2);
@@ -334,6 +422,9 @@ namespace Org.BouncyCastle.Math.EC
             return x3;
         }
 
+        /// <summary>Double a value modulo the field prime.</summary>
+        /// <param name="x">The value.</param>
+        /// <returns>The result.</returns>
         protected virtual BigInteger ModDouble(BigInteger x)
         {
             BigInteger _2x = x.ShiftLeft(1);
@@ -344,6 +435,9 @@ namespace Org.BouncyCastle.Math.EC
             return _2x;
         }
 
+        /// <summary>Halve a value modulo the field prime.</summary>
+        /// <param name="x">The value.</param>
+        /// <returns>The result.</returns>
         protected virtual BigInteger ModHalf(BigInteger x)
         {
             if (x.TestBit(0))
@@ -353,6 +447,11 @@ namespace Org.BouncyCastle.Math.EC
             return x.ShiftRight(1);
         }
 
+        /// <summary>
+        /// Halve a value modulo the field prime, returning the representative that is less than half the prime.
+        /// </summary>
+        /// <param name="x">The value.</param>
+        /// <returns>The result.</returns>
         protected virtual BigInteger ModHalfAbs(BigInteger x)
         {
             if (x.TestBit(0))
@@ -362,10 +461,20 @@ namespace Org.BouncyCastle.Math.EC
             return x.ShiftRight(1);
         }
 
+        /// <summary>Invert a value modulo the field prime.</summary>
+        /// <param name="x">The value.</param>
+        /// <returns>The inverse.</returns>
         protected virtual BigInteger ModInverse(BigInteger x) => BigIntegers.ModOddInverse(m_q, x);
 
+        /// <summary>Multiply two values modulo the field prime.</summary>
+        /// <param name="x1">The first value.</param>
+        /// <param name="x2">The second value.</param>
+        /// <returns>The product modulo the prime.</returns>
         protected virtual BigInteger ModMult(BigInteger x1, BigInteger x2) => ModReduce(x1.Multiply(x2));
 
+        /// <summary>Reduce a value modulo the field prime.</summary>
+        /// <param name="x">The value.</param>
+        /// <returns>The reduced value.</returns>
         protected virtual BigInteger ModReduce(BigInteger x)
         {
             if (m_r == null)
@@ -423,6 +532,10 @@ namespace Org.BouncyCastle.Math.EC
             return x;
         }
 
+        /// <summary>Subtract two values modulo the field prime.</summary>
+        /// <param name="x1">The first value.</param>
+        /// <param name="x2">The second value.</param>
+        /// <returns>The difference modulo the prime.</returns>
         protected virtual BigInteger ModSubtract(BigInteger x1, BigInteger x2)
         {
             BigInteger x3 = x1.Subtract(x2);
@@ -433,8 +546,12 @@ namespace Org.BouncyCastle.Math.EC
             return x3;
         }
 
+        /// <inheritdoc/>
         public override bool Equals(object obj) => Equals(obj as FpFieldElement);
 
+        /// <summary>Determine whether this element is equal to another.</summary>
+        /// <param name="other">The element to compare with.</param>
+        /// <returns>true if the elements are equal, false otherwise.</returns>
         public virtual bool Equals(FpFieldElement other)
         {
             if (this == other)
@@ -445,6 +562,7 @@ namespace Org.BouncyCastle.Math.EC
                 && m_x.Equals(other.m_x);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -455,9 +573,14 @@ namespace Org.BouncyCastle.Math.EC
         }
     }
 
+    /// <summary>Base class for elements of a binary field.</summary>
     public abstract class AbstractF2mFieldElement
         :   ECFieldElement
     {
+        /// <summary>
+        /// Compute a solution of the quadratic equation z^2 + z = this (the half-trace), for fields of odd degree.
+        /// </summary>
+        /// <returns>The half-trace.</returns>
         public virtual ECFieldElement HalfTrace()
         {
             int m = FieldSize;
@@ -488,8 +611,11 @@ namespace Org.BouncyCastle.Math.EC
             return ht;
         }
 
+        /// <summary>Gets a value indicating whether this has fast trace.</summary>
         public virtual bool HasFastTrace => false;
 
+        /// <summary>Compute the trace of this element.</summary>
+        /// <returns>The trace, 0 or 1.</returns>
         public virtual int Trace()
         {
             int m = FieldSize;
@@ -557,18 +683,25 @@ namespace Org.BouncyCastle.Math.EC
             m_x = x ?? throw new ArgumentNullException(nameof(x));
         }
 
+        /// <inheritdoc/>
         public override int BitLength => BinPolys.BitLengthVar(m_x.Length, m_x, 0);
 
+        /// <inheritdoc/>
         public override bool IsOne => BinPolys.EqualToOne(m_x.Length, m_x, 0) != 0UL;
 
+        /// <inheritdoc/>
         public override bool IsZero => BinPolys.EqualToZero(m_x.Length, m_x, 0) != 0UL;
 
+        /// <inheritdoc/>
         public override bool TestBitZero() => (m_x[0] & 1UL) != 0UL;
 
+        /// <inheritdoc/>
         public override BigInteger ToBigInteger() => Nat.ToBigInteger64(m_x.Length, m_x);
 
+        /// <inheritdoc/>
         public override string FieldName => "F2m";
 
+        /// <inheritdoc/>
         public override int FieldSize => M;
 
         /**
@@ -591,6 +724,7 @@ namespace Org.BouncyCastle.Math.EC
                 throw new ArgumentException("Field elements are not elements of the same field F2m");
         }
 
+        /// <inheritdoc/>
         public override ECFieldElement Add(ECFieldElement b)
         {
             F2mFieldElement bF2m = (F2mFieldElement)b;
@@ -600,6 +734,7 @@ namespace Org.BouncyCastle.Math.EC
             return new F2mFieldElement(m_f2mFieldData, z);
         }
 
+        /// <inheritdoc/>
         public override ECFieldElement AddOne()
         {
             ulong[] z = BinPolys.Create(m_x.Length);
@@ -608,8 +743,10 @@ namespace Org.BouncyCastle.Math.EC
             return new F2mFieldElement(m_f2mFieldData, z);
         }
 
+        /// <inheritdoc/>
         public override ECFieldElement Subtract(ECFieldElement b) => Add(b);
 
+        /// <inheritdoc/>
         public override ECFieldElement Multiply(ECFieldElement b)
         {
             F2mFieldElement bF2m = (F2mFieldElement)b;
@@ -618,9 +755,11 @@ namespace Org.BouncyCastle.Math.EC
             return new F2mFieldElement(m_f2mFieldData, z);
         }
 
+        /// <inheritdoc/>
         public override ECFieldElement MultiplyMinusProduct(ECFieldElement b, ECFieldElement x, ECFieldElement y) =>
             MultiplyPlusProduct(b, x, y);
 
+        /// <inheritdoc/>
         public override ECFieldElement Divide(ECFieldElement b)
         {
             // There may be more efficient implementations
@@ -628,12 +767,14 @@ namespace Org.BouncyCastle.Math.EC
             return Multiply(bInv);
         }
 
+        /// <inheritdoc/>
         public override ECFieldElement Negate()
         {
             // -x == x holds for all x in F2m
             return this;
         }
 
+        /// <inheritdoc/>
         public override ECFieldElement Square()
         {
             int size = m_x.Length;
@@ -642,9 +783,11 @@ namespace Org.BouncyCastle.Math.EC
             return new F2mFieldElement(m_f2mFieldData, z);
         }
 
+        /// <inheritdoc/>
         public override ECFieldElement SquareMinusProduct(ECFieldElement x, ECFieldElement y) =>
             SquarePlusProduct(x, y);
 
+        /// <inheritdoc/>
         public override ECFieldElement SquarePow(int pow)
         {
             if (pow < 1)
@@ -656,6 +799,7 @@ namespace Org.BouncyCastle.Math.EC
             return new F2mFieldElement(m_f2mFieldData, z);
         }
 
+        /// <inheritdoc/>
         public override ECFieldElement Invert()
         {
             // TODO Intentional fast-path in otherwise constant-time implementation (for performance) - review.
@@ -667,6 +811,7 @@ namespace Org.BouncyCastle.Math.EC
             return new F2mFieldElement(m_f2mFieldData, z);
         }
 
+        /// <inheritdoc/>
         public override ECFieldElement Sqrt()
         {
             // TODO Intentional fast-path in otherwise constant-time implementation (for performance) - review.
@@ -676,18 +821,27 @@ namespace Org.BouncyCastle.Math.EC
             return SquarePow(M - 1);
         }
 
+        /// <summary>Gets the representation.</summary>
         public int Representation => m_f2mFieldData._ks.Length == 1 ? Tpb : Ppb;
 
+        /// <summary>Gets the m.</summary>
         public int M => m_f2mFieldData._m;
 
+        /// <summary>Gets the k 1.</summary>
         public int K1 => m_f2mFieldData.K1;
 
+        /// <summary>Gets the k 2.</summary>
         public int K2 => m_f2mFieldData.K2;
 
+        /// <summary>Gets the k 3.</summary>
         public int K3 => m_f2mFieldData.K3;
 
+        /// <inheritdoc/>
         public override bool Equals(object obj) => Equals(obj as F2mFieldElement);
 
+        /// <summary>Determine whether this element is equal to another.</summary>
+        /// <param name="other">The element to compare with.</param>
+        /// <returns>true if the elements are equal, false otherwise.</returns>
         public virtual bool Equals(F2mFieldElement other)
         {
             if (this == other)
@@ -699,6 +853,7 @@ namespace Org.BouncyCastle.Math.EC
                 && BinPolys.EqualTo(m_x.Length, m_x, 0, other.m_x, 0) != 0UL;
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode() => Arrays.GetHashCode(m_x) ^ F2mFieldData.GetHashCode(m_f2mFieldData);
     }
 }
