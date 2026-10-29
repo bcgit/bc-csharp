@@ -168,7 +168,8 @@ namespace Org.BouncyCastle.Asn1
          * return true if the passed in String can be represented without
          * loss as an IA5String, false otherwise.
          *
-         * @return true if in printable set, false otherwise.
+         * @param str the string to check.
+         * @return true if character set in IA5String set, false otherwise.
          */
         public static bool IsIA5String(string str)
         {
