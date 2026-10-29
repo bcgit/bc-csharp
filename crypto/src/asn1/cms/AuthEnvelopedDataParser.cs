@@ -3,7 +3,7 @@ using System;
 namespace Org.BouncyCastle.Asn1.Cms
 {
 	/**
-	 * Produce an object suitable for an Asn1OutputStream.
+	 * Parse AuthEnvelopedData input stream.
 	 * 
 	 * <pre>
 	 * AuthEnvelopedData ::= SEQUENCE {
