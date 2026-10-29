@@ -48,11 +48,11 @@ namespace Org.BouncyCastle.Cms
 
         /// <summary>
         /// Create a standard attribute table from the passed in parameters - this will normally include contentType,
-        /// signingTime, and messageDigest.
+        /// signingTime, messageDigest, and cmsAlgorithmProtect.
         /// </summary>
         /// <remarks>
-        /// If the constructor using an AttributeTable was used, entries in it for contentType, signingTime, and
-        /// messageDigest will override the generated ones.
+        /// If the constructor using an AttributeTable was used, entries in it for contentType, signingTime,
+        /// messageDigest, and cmsAlgorithmProtect will override the generated ones.
         /// </remarks>
         /// <returns>A filled-in dictionary of attributes.</returns>
         protected virtual IDictionary<DerObjectIdentifier, object> CreateStandardAttributeTable(
