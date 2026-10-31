@@ -71,7 +71,7 @@ namespace Org.BouncyCastle.Utilities.Net
 		 *
 		 * @param address the IP address as a string.
 		 *
-		 * @return true if a valid IPv4 address, false otherwise
+		 * @return true if a valid IPv6 address, false otherwise
 		 */
 		public static bool IsValidIPv6(string address)
 		{

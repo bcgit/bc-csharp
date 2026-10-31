@@ -18,9 +18,9 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
         * Multiplies a {@link Org.BouncyCastle.Math.EC.AbstractF2mPoint AbstractF2mPoint}
         * by <code>k</code> using the reduced <code>&#964;</code>-adic NAF (RTNAF)
         * method.
-        * @param p The AbstractF2mPoint to multiply.
-        * @param k The integer by which to multiply <code>k</code>.
-        * @return <code>p</code> multiplied by <code>k</code>.
+        * @param point The AbstractF2mPoint to multiply.
+        * @param k The integer by which to multiply <code>point</code>.
+        * @return <code>point</code> multiplied by <code>k</code>.
         */
         protected override ECPoint MultiplyPositive(ECPoint point, BigInteger k)
         {
