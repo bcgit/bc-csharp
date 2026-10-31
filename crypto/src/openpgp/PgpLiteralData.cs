@@ -55,7 +55,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             m_data = literalDataPacket;
         }
 
-        /// <summary>The format of the data stream - Binary or Text</summary>
+        /// <summary>The format of the data packet. One of <see cref="Binary"/>, <see cref="Text"/>,
+        /// <see cref="Mime"/> or <see cref="Utf8"/>.</summary>
         public int Format => m_data.Format;
 
         /// <summary>The file name that's associated with the data stream.</summary>

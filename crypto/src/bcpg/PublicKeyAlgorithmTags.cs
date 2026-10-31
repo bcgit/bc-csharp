@@ -12,10 +12,11 @@ namespace Org.BouncyCastle.Bcpg
         RsaSign = 3,			// RSA Sign-Only
         ElGamalEncrypt = 16,	// Elgamal (Encrypt-Only), see [ELGAMAL]
         Dsa = 17,				// DSA (Digital Signature Standard)
-        ECDH = 18,              // Reserved for Elliptic Curve (actual algorithm name)
-        ECDsa = 19,				// Reserved for ECDSA
-        /// <remarks>Use ElGamalEncrypt instead</remarks>
-        ElGamalGeneral = 20,	// Elgamal (Encrypt or Sign)
+        ECDH = 18,              // Elliptic Curve Diffie-Hellman
+        ECDsa = 19,				// Elliptic Curve Digital Signing Algorithm
+        /// <remarks>Reserved for sign+encrypt ElGamal. MUST NOT be generated.
+        /// Use ElGamalEncrypt instead.</remarks>
+        ElGamalGeneral = 20,	// Reserved Elgamal (Encrypt or Sign)
         DiffieHellman = 21,		// Reserved for Diffie-Hellman (X9.42, as defined for IETF-S/MIME)
 
         [Obsolete("Use 'EdDsa_Legacy' instead")]
