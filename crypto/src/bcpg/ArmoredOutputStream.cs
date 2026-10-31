@@ -22,6 +22,11 @@ namespace Org.BouncyCastle.Bcpg
     /// Note 2: As multiple PGP blobs are often written to the same stream, <see cref="IDisposable">disposing</see> (or
     /// closing) does not dispose/close the underlying stream.
     /// </para>
+    /// <para>
+    /// Note 3: Unless <see cref="Builder.EnableCrc(bool)"/> says otherwise, the checksum is left out where RFC 9580
+    /// 6.1 forbids it: for an encrypted message that ends in a version 2 SEIPD packet, for version 6 signatures only
+    /// and for version 6 keys only. Other data still gets it, for implementations that require it.
+    /// </para>
     /// </remarks>
     public class ArmoredOutputStream
         : BaseOutputStream
@@ -147,6 +152,7 @@ namespace Org.BouncyCastle.Bcpg
         private byte[] buf = new byte[3];
         private int bufPtr = 0;
         private Crc24 crc = new Crc24();
+        private PacketSequence m_packets = new PacketSequence();
         private int chunkCount = 0;
         private int lastb;
 
@@ -192,9 +198,14 @@ namespace Org.BouncyCastle.Bcpg
         internal ArmoredOutputStream(Stream outStream, Builder builder)
             : this(outStream)
         {
-            if (!builder.m_computeCrcSum)
+            if (builder.m_computeCrcSum.HasValue)
             {
-                crc = null;
+                // an explicit choice applies to all data
+                m_packets = null;
+                if (!builder.m_computeCrcSum.Value)
+                {
+                    crc = null;
+                }
             }
 
             m_headers.Clear();
@@ -440,6 +451,8 @@ namespace Org.BouncyCastle.Bcpg
                 start = false;
             }
 
+            m_packets?.Update(value);
+
             if (bufPtr == 3)
             {
                 crc?.Update3(buf, 0);
@@ -489,7 +502,7 @@ namespace Org.BouncyCastle.Bcpg
 
             DoWrite(NewLine);
 
-            if (crc != null)
+            if (crc != null && (m_packets == null || !m_packets.ForbidsCrc()))
             {
                 m_outStream.WriteByte((byte)'=');
 
@@ -508,6 +521,185 @@ namespace Org.BouncyCastle.Bcpg
 
             type = null;
             start = true;
+            if (m_packets != null)
+            {
+                m_packets = new PacketSequence();
+            }
+        }
+
+        /// <summary>
+        /// Follows the packet headers of the armored data, to find out whether RFC 9580 6.1 forbids its checksum.
+        /// </summary>
+        private sealed class PacketSequence
+        {
+            private enum State { Header, NewLength, MoreLength, Body, Invalid }
+
+            private State m_state = State.Header;
+            private int m_lengthOctets;
+            private long m_length;
+            private int m_lengthBias;
+            private bool m_partial;
+
+            // the current packet, until it is counted
+            private bool m_pending = false;
+            private int m_tag;
+
+            private int m_count = 0;
+            private int m_lastTag = -1, m_lastVersion = -1;
+            private bool m_firstIsKey = false;
+            private bool m_onlySignatures = true, m_onlyV6Signatures = true, m_onlyV6Keys = true;
+
+            internal void Update(byte b)
+            {
+                switch (m_state)
+                {
+                case State.Header:
+                {
+                    if ((b & 0x80) == 0)
+                    {
+                        m_state = State.Invalid;
+                        break;
+                    }
+
+                    // a packet without a body has no version
+                    Count(-1);
+
+                    m_pending = true;
+                    if ((b & 0x40) != 0)
+                    {
+                        m_tag = b & 0x3F;
+                        m_state = State.NewLength;
+                    }
+                    else
+                    {
+                        m_tag = (b >> 2) & 0x0F;
+                        int lengthType = b & 0x03;
+                        if (lengthType == 3)
+                        {
+                            // indeterminate length: the packet extends to the end of the data
+                            m_length = long.MaxValue;
+                            BeginBody(partial: false);
+                        }
+                        else
+                        {
+                            m_lengthOctets = 1 << lengthType;
+                            m_length = 0;
+                            m_lengthBias = 0;
+                            m_state = State.MoreLength;
+                        }
+                    }
+                    break;
+                }
+                case State.NewLength:
+                {
+                    if (b < 192)
+                    {
+                        m_length = b;
+                        BeginBody(partial: false);
+                    }
+                    else if (b < 224)
+                    {
+                        m_length = b - 192;
+                        m_lengthOctets = 1;
+                        m_lengthBias = 192;
+                        m_state = State.MoreLength;
+                    }
+                    else if (b < 255)
+                    {
+                        m_length = 1L << (b & 0x1F);
+                        BeginBody(partial: true);
+                    }
+                    else
+                    {
+                        m_length = 0;
+                        m_lengthOctets = 4;
+                        m_lengthBias = 0;
+                        m_state = State.MoreLength;
+                    }
+                    break;
+                }
+                case State.MoreLength:
+                {
+                    m_length = (m_length << 8) | b;
+                    if (--m_lengthOctets == 0)
+                    {
+                        m_length += m_lengthBias;
+                        BeginBody(partial: false);
+                    }
+                    break;
+                }
+                case State.Body:
+                {
+                    // the first octet of the body is the version of the packets that have one
+                    Count(b);
+
+                    if (--m_length == 0)
+                    {
+                        m_state = m_partial ? State.NewLength : State.Header;
+                    }
+                    break;
+                }
+                default:
+                    break;
+                }
+            }
+
+            private void BeginBody(bool partial)
+            {
+                m_partial = partial;
+                m_state = m_length > 0 ? State.Body : State.Header;
+            }
+
+            private void Count(int version)
+            {
+                if (!m_pending)
+                    return;
+
+                m_pending = false;
+                if (m_tag == (int)PacketTag.Padding || m_tag == (int)PacketTag.Marker)
+                    return;
+
+                bool isKey = m_tag == (int)PacketTag.PublicKey || m_tag == (int)PacketTag.SecretKey;
+                if (++m_count == 1)
+                {
+                    m_firstIsKey = isKey;
+                }
+                if (isKey && version != 6)
+                {
+                    m_onlyV6Keys = false;
+                }
+                if (m_tag != (int)PacketTag.Signature)
+                {
+                    m_onlySignatures = false;
+                }
+                else if (version != 6)
+                {
+                    m_onlyV6Signatures = false;
+                }
+                m_lastTag = m_tag;
+                m_lastVersion = version;
+            }
+
+            /// <summary>
+            /// Whether the packets so far are an encrypted message that ends in a version 2 SEIPD packet, version 6
+            /// signatures only, or version 6 (public or secret) keys only.
+            /// </summary>
+            internal bool ForbidsCrc()
+            {
+                if (m_state == State.Invalid)
+                    return false;
+
+                Count(-1);
+
+                if (m_count == 0)
+                    return false;
+                if (m_lastTag == (int)PacketTag.SymmetricEncryptedIntegrityProtected && m_lastVersion == 2)
+                    return true;
+                if (m_onlySignatures)
+                    return m_onlyV6Signatures;
+
+                return m_firstIsKey && m_onlyV6Keys;
+            }
         }
 
         private void DoWrite(string s)
@@ -521,7 +713,7 @@ namespace Org.BouncyCastle.Bcpg
         public sealed class Builder
         {
             internal readonly Dictionary<string, List<string>> m_headers = new Dictionary<string, List<string>>();
-            internal bool m_computeCrcSum = true;
+            internal bool? m_computeCrcSum = null;
 
             internal Builder()
             {
@@ -718,11 +910,15 @@ namespace Org.BouncyCastle.Bcpg
                 return this;
             }
 
-            /**
-             * Enable calculation and inclusion of the CRC check sum (default is true).
-             * @param doComputeCRC true if CRC to be included, false otherwise.
-             * @return the current builder instance.
-             */
+            /// <summary>Include the CRC checksum always, or never.</summary>
+            /// <remarks>
+            /// Without this choice the checksum is included unless RFC 9580 6.1 forbids it: for an encrypted message
+            /// that ends in a version 2 SEIPD packet, for version 6 signatures only and for version 6 keys only.
+            /// </remarks>
+            /// <param name="doComputeCrc">
+            /// <c>true</c> if the checksum is to be included, <c>false</c> otherwise.
+            /// </param>
+            /// <returns>The current builder instance.</returns>
             public Builder EnableCrc(bool doComputeCrc)
             {
                 m_computeCrcSum = doComputeCrc;

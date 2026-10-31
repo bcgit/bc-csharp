@@ -16,6 +16,11 @@ namespace Org.BouncyCastle.Bcpg
         {
         }
 
+        internal PublicSubkeyPacket(BcpgInputStream bcpgIn, bool newPacketFormat, bool insideSecretKey)
+            : base(PacketTag.PublicSubkey, bcpgIn, newPacketFormat, insideSecretKey)
+        {
+        }
+
         /// <summary>Construct a version 4 public subkey packet.</summary>
         [Obsolete("Use constructor with additional 'version' parameter instead")]
         public PublicSubkeyPacket(PublicKeyAlgorithmTag algorithm, DateTime time, IBcpgKey key)

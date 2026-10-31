@@ -14,6 +14,11 @@ namespace Org.BouncyCastle.Bcpg
         {
         }
 
+        internal ECDsaPublicBcpgKey(BcpgInputStream bcpgIn, bool strict)
+            : base(bcpgIn, strict)
+        {
+        }
+
         public ECDsaPublicBcpgKey(DerObjectIdentifier oid, ECPoint point)
             : base(oid, point)
         {

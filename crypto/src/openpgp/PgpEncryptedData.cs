@@ -127,6 +127,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             m_encData = encData;
         }
 
+        /// <summary>The packet of the encrypted data.</summary>
+        internal InputStreamPacket EncryptedPacket => m_encData;
+
         /// <summary>Return the raw input stream for the data stream.</summary>
         public virtual Stream GetInputStream() => m_encData.GetInputStream();
 
@@ -135,12 +138,50 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// with this stream.</returns>
         public bool IsIntegrityProtected() => m_encData is SymmetricEncIntegrityPacket;
 
+        /// <summary>True if the payload is a v1 SEIPD packet.</summary>
+        internal bool IsSeipdV1() =>
+            m_encData is SymmetricEncIntegrityPacket seipd && seipd.Version == SymmetricEncIntegrityPacket.Version1;
+
+        /// <summary>
+        /// True if the payload is a v2 SEIPD packet, i.e. protected by chunked AEAD encryption (RFC 9580 5.13.2).
+        /// </summary>
+        public bool IsAead => IsSeipdV2();
+
+        /// <summary>True if the payload is a v2 SEIPD packet.</summary>
+        internal bool IsSeipdV2() =>
+            m_encData is SymmetricEncIntegrityPacket seipd && seipd.Version == SymmetricEncIntegrityPacket.Version2;
+
+        /// <summary>True if the payload is a SEIPD packet of a version other than 1 and 2.</summary>
+        internal bool IsSeipdOtherVersion() =>
+            m_encData is SymmetricEncIntegrityPacket seipd
+                && seipd.Version != SymmetricEncIntegrityPacket.Version1
+                && seipd.Version != SymmetricEncIntegrityPacket.Version2;
+
         /// <summary>Note: This can only be called after the message has been read.</summary>
+        /// <remarks>
+        /// For an AEAD (v2 SEIPD) message, the rest of the message is read if necessary, and the result tells whether
+        /// all of it, including the final authentication tag, has been authenticated. Earlier chunks may have been
+        /// released to the reader before a later chunk failed to authenticate.
+        /// </remarks>
         /// <returns>True, if the message verifies, false otherwise</returns>
         public bool Verify()
         {
             if (!IsIntegrityProtected())
                 throw new PgpException("data not integrity protected.");
+
+            if (m_decStream is PgpAeadInputStream aeadStream)
+            {
+                try
+                {
+                    Streams.Drain(aeadStream);
+                }
+                catch (PgpDataValidationException)
+                {
+                    return false;
+                }
+
+                return aeadStream.IsVerified;
+            }
 
             DigestStream digestStream = (DigestStream)m_decStream;
 
@@ -159,6 +200,48 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             string mode = IsIntegrityProtected() ? "CFB" : "OpenPGPCFB";
             string algorithm = $"{cipherName}/{mode}/NoPadding";
             return CipherUtilities.GetCipher(algorithm);
+        }
+
+        /// <summary>Start decrypting a v2 SEIPD payload with the given session key.</summary>
+        /// <remarks>The caller remains responsible for wiping <paramref name="sessionKey"/>.</remarks>
+        /// <exception cref="PgpException">If the payload cannot be decrypted with this session key.</exception>
+        internal Stream InitAeadDecStream(byte[] sessionKey)
+        {
+            if (!(m_encData is SymmetricEncIntegrityPacket seipd) ||
+                seipd.Version != SymmetricEncIntegrityPacket.Version2)
+            {
+                throw new PgpException("not a version 2 SEIPD packet");
+            }
+
+            SymmetricKeyAlgorithmTag symmetricAlgorithm = seipd.CipherAlgorithm;
+            AeadAlgorithmTag aeadAlgorithm = seipd.AeadAlgorithm;
+
+            if (!PgpAead.IsSupportedCipher(symmetricAlgorithm))
+                throw new PgpException("unsupported symmetric algorithm in SEIPD packet: " + symmetricAlgorithm);
+            if (aeadAlgorithm != AeadAlgorithmTag.Eax && aeadAlgorithm != AeadAlgorithmTag.Ocb &&
+                aeadAlgorithm != AeadAlgorithmTag.Gcm)
+            {
+                throw new PgpException("unsupported AEAD algorithm in SEIPD packet: " + aeadAlgorithm);
+            }
+            if (sessionKey.Length != SymmetricKeyUtilities.GetKeyLengthInOctets(symmetricAlgorithm))
+                throw new PgpException("session key length does not match the symmetric algorithm");
+
+            byte[] aad = seipd.GetAAData();
+            byte[][] keyAndIv = PgpAead.DeriveMessageKeyAndIv(symmetricAlgorithm, aeadAlgorithm, sessionKey,
+                seipd.GetSalt(), aad);
+            try
+            {
+                var stream = new PgpAeadInputStream(GetInputStream(), symmetricAlgorithm, aeadAlgorithm, keyAndIv[0],
+                    keyAndIv[1], aad, seipd.ChunkSize);
+
+                m_decStream = stream;
+                return stream;
+            }
+            finally
+            {
+                Arrays.ZeroMemory(keyAndIv[0]);
+                Arrays.ZeroMemory(keyAndIv[1]);
+            }
         }
 
         internal Stream InitDecStream(Stream decStream)

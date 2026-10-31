@@ -31,6 +31,7 @@ namespace Org.BouncyCastle.Bcpg
             m_idData = Arrays.Clone(rawId);
         }
 
+        // TODO[api] Decode the user ID as UTF-8 (RFC 9580 5.11); see GetRawId() meanwhile
         public string GetId() => Strings.FromByteArray(m_idData, 0, m_idData.Length);
 
         public byte[] GetRawId() => Arrays.Clone(m_idData);

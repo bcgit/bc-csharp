@@ -92,6 +92,8 @@ namespace Org.BouncyCastle.Bcpg
         /// <param name="outStr">Output stream to write to.</param>
         /// <param name="tag">Packet tag.</param>
         /// <param name="length">Size of chunks making up the packet.</param>
+        private const int MinFirstPartialLength = 512;
+
         public BcpgOutputStream(Stream outStr, PacketTag tag, long length)
         {
             m_outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
@@ -101,6 +103,10 @@ namespace Org.BouncyCastle.Bcpg
         }
 
         /// <summary>Create a new style partial input stream buffered into chunks.</summary>
+        /// <remarks>
+        /// RFC 9580 4.2.1.4: partial body lengths are only for literal, compressed and encrypted data packets, and the
+        /// first partial length is at least 512 octets, so a smaller buffer is replaced by one of 512 octets.
+        /// </remarks>
         /// <param name="outStr">Output stream to write to.</param>
         /// <param name="tag">Packet tag.</param>
         /// <param name="buffer">Buffer to use for collecting chunks.</param>
@@ -109,9 +115,19 @@ namespace Org.BouncyCastle.Bcpg
             m_outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
             m_packetFormat = PacketFormat.Current;
 
+            if (buffer == null)
+                throw new ArgumentNullException(nameof(buffer));
+            if (tag != PacketTag.LiteralData && tag != PacketTag.CompressedData &&
+                tag != PacketTag.SymmetricKeyEncrypted && tag != PacketTag.SymmetricEncryptedIntegrityProtected &&
+                tag != PacketTag.AeadEncData)
+            {
+                throw new ArgumentException("partial body lengths are not allowed for " + tag + " packets",
+                    nameof(tag));
+            }
+
             WriteHeader(tag, oldFormat: false, partial: true, bodyLen: 0L);
 
-            this.partialBuffer = buffer;
+            this.partialBuffer = buffer.Length >= MinFirstPartialLength ? buffer : new byte[MinFirstPartialLength];
 
             uint length = (uint)partialBuffer.Length;
             for (partialPower = 0; length != 1; partialPower++)

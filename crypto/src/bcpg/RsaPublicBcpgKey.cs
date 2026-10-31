@@ -10,9 +10,14 @@ namespace Org.BouncyCastle.Bcpg
 
         /// <summary>Construct an RSA public key from the passed in stream.</summary>
         public RsaPublicBcpgKey(BcpgInputStream bcpgIn)
+            : this(bcpgIn, strict: false)
         {
-            m_n = new MPInteger(bcpgIn);
-            m_e = new MPInteger(bcpgIn);
+        }
+
+        internal RsaPublicBcpgKey(BcpgInputStream bcpgIn, bool strict)
+        {
+            m_n = new MPInteger(bcpgIn, strict);
+            m_e = new MPInteger(bcpgIn, strict);
         }
 
         /// <param name="n">The modulus.</param>

@@ -128,6 +128,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         private byte[] fingerprint;
         private int keyStrength;
 
+        // the key parameters, made once: validating them can be costly (large RSA moduli are tested for primality)
+        private AsymmetricKeyParameter m_key;
+
         private void Init()
         {
             IBcpgKey key = publicPk.Key;
@@ -143,7 +146,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
             else
             {
-                this.keyId = (long)Pack.BE_To_UInt64(fingerprint, fingerprint.Length - 8);
+                this.keyId = PublicKeyPacket.GetKeyID(publicPk, fingerprint);
 
                 if (key is RsaPublicBcpgKey)
                 {
@@ -191,6 +194,22 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         this.keyStrength = -1; // unknown
                     }
                 }
+                else if (key is X25519PublicBcpgKey || key is Ed25519PublicBcpgKey ||
+                    key is MLKem768X25519PublicBcpgKey || key is MLDsa65Ed25519PublicBcpgKey)
+                {
+                    // the curve, also for the composite keys of RFC 9980 that are built on it
+                    this.keyStrength = 256;
+                }
+                else if (key is X448PublicBcpgKey || key is Ed448PublicBcpgKey ||
+                    key is MLKem1024X448PublicBcpgKey || key is MLDsa87Ed448PublicBcpgKey)
+                {
+                    this.keyStrength = 448;
+                }
+                else if (key is SlhDsaPublicBcpgKey slhDsaK)
+                {
+                    // the size of the public key, 2n octets
+                    this.keyStrength = slhDsaK.Key.Length * 8;
+                }
             }
         }
 
@@ -207,23 +226,102 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <exception cref="ArgumentException">If <c>pubKey</c> is not public.</exception>
         /// <exception cref="PgpException">On key creation problem.</exception>
         public PgpPublicKey(PublicKeyAlgorithmTag algorithm, AsymmetricKeyParameter pubKey, DateTime time)
+            : this(PublicKeyPacket.Version4, algorithm, pubKey, time)
         {
+        }
+
+        /// <summary>
+        /// Create a PgpPublicKey of the given version from the passed in lightweight one.
+        /// </summary>
+        /// <remarks>
+        /// Note: the time passed in affects the value of the key's keyId, so you probably only want
+        /// to do this once for a lightweight key, or make sure you keep track of the time you used.
+        /// <para>
+        /// Version 6 keys cannot use DSA, ElGamal, EdDSALegacy or Curve25519Legacy (RFC 9580 12.5, 12.6), and their ECDH
+        /// keys have the KDF parameters that are prescribed for the curve (RFC 9580 9.2).
+        /// </para>
+        /// </remarks>
+        /// <param name="version">The version of the key: 4 or 6.</param>
+        /// <param name="algorithm">Asymmetric algorithm type representing the public key.</param>
+        /// <param name="pubKey">Actual public key to associate.</param>
+        /// <param name="time">Date of creation.</param>
+        /// <exception cref="ArgumentException">
+        /// If <c>pubKey</c> is not public, or does not fit <c>algorithm</c> or <c>version</c>.
+        /// </exception>
+        /// <exception cref="PgpException">On key creation problem.</exception>
+        public PgpPublicKey(int version, PublicKeyAlgorithmTag algorithm, AsymmetricKeyParameter pubKey, DateTime time)
+        {
+            if (version != PublicKeyPacket.Version4 && version != PublicKeyPacket.Version6)
+                throw new ArgumentException("The version has to be 4 or 6", nameof(version));
             if (pubKey.IsPrivate)
                 throw new ArgumentException("Expected a public key", nameof(pubKey));
+            if ((algorithm == PublicKeyAlgorithmTag.MLKem768_X25519) != (pubKey is MLKem768X25519PublicKeyParameters))
+                throw new ArgumentException("Algorithm does not match the key type", nameof(algorithm));
+            if ((algorithm == PublicKeyAlgorithmTag.MLKem1024_X448) != (pubKey is MLKem1024X448PublicKeyParameters))
+                throw new ArgumentException("Algorithm does not match the key type", nameof(algorithm));
+            if ((algorithm == PublicKeyAlgorithmTag.MLDsa65_Ed25519) != (pubKey is MLDsa65Ed25519PublicKeyParameters))
+                throw new ArgumentException("Algorithm does not match the key type", nameof(algorithm));
+            if ((algorithm == PublicKeyAlgorithmTag.MLDsa87_Ed448) != (pubKey is MLDsa87Ed448PublicKeyParameters))
+                throw new ArgumentException("Algorithm does not match the key type", nameof(algorithm));
+            if (PgpUtilities.IsSlhDsaAlgorithm(algorithm) != (pubKey is SlhDsaPublicKeyParameters))
+                throw new ArgumentException("Algorithm does not match the key type", nameof(algorithm));
 
             IBcpgKey bcpgKey;
-            if (pubKey is RsaKeyParameters rK)
+            if (pubKey is SlhDsaPublicKeyParameters slhDsaKey)
+            {
+                // RFC 9980 6.2: only defined for version 6 keys, and the parameter set is fixed by the algorithm
+                if (version != PublicKeyPacket.Version6)
+                    throw new ArgumentException("SLH-DSA can only be used in version 6 keys");
+                if (slhDsaKey.Parameters != PgpUtilities.GetSlhDsaParameters(algorithm))
+                    throw new ArgumentException("Algorithm does not match the key type", nameof(algorithm));
+
+                bcpgKey = new SlhDsaPublicBcpgKey(algorithm, slhDsaKey.GetEncoded());
+            }
+            else if (pubKey is MLDsa65Ed25519PublicKeyParameters mlDsaEd25519Key)
+            {
+                // RFC 9980 5.3: only defined for version 6 keys
+                if (version != PublicKeyPacket.Version6)
+                    throw new ArgumentException("ML-DSA-65+Ed25519 can only be used in version 6 keys");
+
+                bcpgKey = new MLDsa65Ed25519PublicBcpgKey(Arrays.Concatenate(mlDsaEd25519Key.Ed25519Key.GetEncoded(),
+                    mlDsaEd25519Key.MLDsaKey.GetEncoded()));
+            }
+            else if (pubKey is MLDsa87Ed448PublicKeyParameters mlDsaEd448Key)
+            {
+                if (version != PublicKeyPacket.Version6)
+                    throw new ArgumentException("ML-DSA-87+Ed448 can only be used in version 6 keys");
+
+                bcpgKey = new MLDsa87Ed448PublicBcpgKey(Arrays.Concatenate(mlDsaEd448Key.Ed448Key.GetEncoded(),
+                    mlDsaEd448Key.MLDsaKey.GetEncoded()));
+            }
+            else if (pubKey is MLKem1024X448PublicKeyParameters mlKemX448Key)
+            {
+                // RFC 9980 3.5: only defined for version 6 keys
+                if (version != PublicKeyPacket.Version6)
+                    throw new ArgumentException("ML-KEM-1024+X448 can only be used in version 6 keys");
+
+                bcpgKey = new MLKem1024X448PublicBcpgKey(Arrays.Concatenate(mlKemX448Key.X448Key.GetEncoded(),
+                    mlKemX448Key.MLKemKey.GetEncoded()));
+            }
+            else if (pubKey is MLKem768X25519PublicKeyParameters mlKemX25519Key)
+            {
+                bcpgKey = new MLKem768X25519PublicBcpgKey(Arrays.Concatenate(mlKemX25519Key.X25519Key.GetEncoded(),
+                    mlKemX25519Key.MLKemKey.GetEncoded()));
+            }
+            else if (pubKey is RsaKeyParameters rK)
             {
                 bcpgKey = new RsaPublicBcpgKey(rK.Modulus, rK.Exponent);
             }
             else if (pubKey is DsaPublicKeyParameters dK)
             {
+                RequireVersion4(version, "DSA");
                 DsaParameters dP = dK.Parameters;
 
                 bcpgKey = new DsaPublicBcpgKey(dP.P, dP.Q, dP.G, dK.Y);
             }
             else if (pubKey is ElGamalPublicKeyParameters eK)
             {
+                RequireVersion4(version, "ElGamal");
                 ElGamalParameters eS = eK.Parameters;
 
                 bcpgKey = new ElGamalPublicBcpgKey(eS.P, eS.G, eK.Y);
@@ -232,8 +330,18 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 if (algorithm == PublicKeyAlgorithmTag.ECDH)
                 {
-                    bcpgKey = new ECDHPublicBcpgKey(ecK.PublicKeyParamSet, ecK.Q, HashAlgorithmTag.Sha256,
+                    // RFC 9580 9.2: the KDF and KEK parameters of version 6 keys depend on the curve
+                    PgpKdfParameters kdfParams = new PgpKdfParameters(HashAlgorithmTag.Sha256,
                         SymmetricKeyAlgorithmTag.Aes128);
+                    if (version == PublicKeyPacket.Version6)
+                    {
+                        kdfParams = PgpUtilities.GetMandatedEcdhKdfParameters(ecK.PublicKeyParamSet)
+                            ?? throw new ArgumentException("This curve cannot be used for ECDH in version 6 keys",
+                                nameof(pubKey));
+                    }
+
+                    bcpgKey = new ECDHPublicBcpgKey(ecK.PublicKeyParamSet, ecK.Q, kdfParams.HashAlgorithm,
+                        kdfParams.SymmetricWrapAlgorithm);
                 }
                 else if (algorithm == PublicKeyAlgorithmTag.ECDsa)
                 {
@@ -246,44 +354,92 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
             else if (pubKey is Ed25519PublicKeyParameters ed25519PubKey)
             {
-                byte[] pointEnc = new byte[1 + Ed25519PublicKeyParameters.KeySize];
-                pointEnc[0] = 0x40;
-                ed25519PubKey.Encode(pointEnc, 1);
-                bcpgKey = new EdDsaPublicBcpgKey(GnuObjectIdentifiers.Ed25519, new BigInteger(1, pointEnc));
+                if (algorithm == PublicKeyAlgorithmTag.Ed25519)
+                {
+                    bcpgKey = new Ed25519PublicBcpgKey(ed25519PubKey.GetEncoded());
+                }
+                else if (algorithm == PublicKeyAlgorithmTag.EdDsa_Legacy)
+                {
+                    RequireVersion4(version, "EdDSALegacy");
+                    byte[] pointEnc = new byte[1 + Ed25519PublicKeyParameters.KeySize];
+                    pointEnc[0] = 0x40;
+                    ed25519PubKey.Encode(pointEnc, 1);
+                    bcpgKey = new EdDsaPublicBcpgKey(GnuObjectIdentifiers.Ed25519, new BigInteger(1, pointEnc));
+                }
+                else
+                {
+                    throw new ArgumentException("Algorithm does not match the key type", nameof(algorithm));
+                }
             }
             else if (pubKey is Ed448PublicKeyParameters ed448PubKey)
             {
-                byte[] pointEnc = new byte[Ed448PublicKeyParameters.KeySize];
-                ed448PubKey.Encode(pointEnc, 0);
-                bcpgKey = new EdDsaPublicBcpgKey(EdECObjectIdentifiers.id_Ed448, new BigInteger(1, pointEnc));
+                if (algorithm == PublicKeyAlgorithmTag.Ed448)
+                {
+                    bcpgKey = new Ed448PublicBcpgKey(ed448PubKey.GetEncoded());
+                }
+                else if (algorithm == PublicKeyAlgorithmTag.EdDsa_Legacy)
+                {
+                    RequireVersion4(version, "EdDSALegacy");
+                    byte[] pointEnc = new byte[Ed448PublicKeyParameters.KeySize];
+                    ed448PubKey.Encode(pointEnc, 0);
+                    bcpgKey = new EdDsaPublicBcpgKey(EdECObjectIdentifiers.id_Ed448, new BigInteger(1, pointEnc));
+                }
+                else
+                {
+                    throw new ArgumentException("Algorithm does not match the key type", nameof(algorithm));
+                }
             }
             else if (pubKey is X25519PublicKeyParameters x25519PubKey)
             {
-                byte[] pointEnc = new byte[1 + X25519PublicKeyParameters.KeySize];
-                pointEnc[0] = 0x40;
-                x25519PubKey.Encode(pointEnc, 1);
+                if (algorithm == PublicKeyAlgorithmTag.X25519)
+                {
+                    bcpgKey = new X25519PublicBcpgKey(x25519PubKey.GetEncoded());
+                }
+                else if (algorithm == PublicKeyAlgorithmTag.ECDH)
+                {
+                    RequireVersion4(version, "Curve25519Legacy");
+                    byte[] pointEnc = new byte[1 + X25519PublicKeyParameters.KeySize];
+                    pointEnc[0] = 0x40;
+                    x25519PubKey.Encode(pointEnc, 1);
 
-                PgpKdfParameters kdfParams = DefaultKdfParameters;
+                    PgpKdfParameters kdfParams = DefaultKdfParameters;
 
-                bcpgKey = new ECDHPublicBcpgKey(CryptlibObjectIdentifiers.curvey25519, new BigInteger(1, pointEnc),
-                    kdfParams.HashAlgorithm, kdfParams.SymmetricWrapAlgorithm);
+                    bcpgKey = new ECDHPublicBcpgKey(CryptlibObjectIdentifiers.curvey25519,
+                        new BigInteger(1, pointEnc), kdfParams.HashAlgorithm, kdfParams.SymmetricWrapAlgorithm);
+                }
+                else
+                {
+                    throw new ArgumentException("Algorithm does not match the key type", nameof(algorithm));
+                }
             }
             else if (pubKey is X448PublicKeyParameters x448PubKey)
             {
-                byte[] pointEnc = new byte[X448PublicKeyParameters.KeySize];
-                x448PubKey.Encode(pointEnc, 0);
+                if (algorithm == PublicKeyAlgorithmTag.X448)
+                {
+                    bcpgKey = new X448PublicBcpgKey(x448PubKey.GetEncoded());
+                }
+                else if (algorithm == PublicKeyAlgorithmTag.ECDH)
+                {
+                    RequireVersion4(version, "ECDH over X448");
+                    byte[] pointEnc = new byte[X448PublicKeyParameters.KeySize];
+                    x448PubKey.Encode(pointEnc, 0);
 
-                PgpKdfParameters kdfParams = DefaultKdfParameters;
+                    PgpKdfParameters kdfParams = DefaultKdfParameters;
 
-                bcpgKey = new ECDHPublicBcpgKey(EdECObjectIdentifiers.id_X448, new BigInteger(1, pointEnc),
-                    kdfParams.HashAlgorithm, kdfParams.SymmetricWrapAlgorithm);
+                    bcpgKey = new ECDHPublicBcpgKey(EdECObjectIdentifiers.id_X448, new BigInteger(1, pointEnc),
+                        kdfParams.HashAlgorithm, kdfParams.SymmetricWrapAlgorithm);
+                }
+                else
+                {
+                    throw new ArgumentException("Algorithm does not match the key type", nameof(algorithm));
+                }
             }
             else
             {
                 throw new PgpException("unknown key class");
             }
 
-            this.publicPk = new PublicKeyPacket(PublicKeyPacket.Version4, algorithm, time, bcpgKey);
+            this.publicPk = new PublicKeyPacket((byte)version, algorithm, time, bcpgKey);
             this.ids = new List<IUserDataPacket>();
             this.idSigs = new List<IList<PgpSignature>>();
 
@@ -295,6 +451,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 throw new PgpException("exception calculating keyId", e);
             }
+        }
+
+        private static void RequireVersion4(int version, string algorithm)
+        {
+            if (version != PublicKeyPacket.Version4)
+                throw new ArgumentException(algorithm + " cannot be used in version " + version + " keys");
         }
 
         public PgpPublicKey(PublicKeyPacket publicPk)
@@ -324,6 +486,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             this.fingerprint = key.fingerprint;
             this.keyId = key.keyId;
             this.keyStrength = key.keyStrength;
+            this.m_key = key.m_key;
         }
 
         /// <summary>Copy constructor.</summary>
@@ -351,6 +514,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             this.fingerprint = pubKey.fingerprint;
             this.keyId = pubKey.keyId;
             this.keyStrength = pubKey.keyStrength;
+            this.m_key = pubKey.m_key;
         }
 
         internal PgpPublicKey(
@@ -394,6 +558,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             this.fingerprint = original.fingerprint;
             this.keyStrength = original.keyStrength;
             this.keyId = original.keyId;
+            this.m_key = original.m_key;
 
             this.trustPk = trustPk;
             this.keySigs = keySigs;
@@ -429,10 +594,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>The number of valid seconds from creation time - zero means no expiry.</summary>
         /// <remarks>
         /// WARNING: for a subkey this value is derived from subkey binding signature packets that have
-        /// NOT been cryptographically verified against the primary key, so it must not be relied on as a
-        /// security boundary - a forged, unverified binding packet can alter the result. When the expiry
-        /// drives a trust decision, use <see cref="GetValidSeconds(PgpPublicKey)"/> (which verifies the
-        /// binding signatures against the primary key) or verify the binding signatures yourself.
+        /// NOT been cryptographically verified against the primary key, and for a version 4 primary key from
+        /// self-signatures that have not been verified, so it must not be relied on as a security boundary - a
+        /// forged, unverified signature packet can alter the result. When the expiry drives a trust decision, use
+        /// <see cref="GetValidSeconds(PgpPublicKey)"/> (which verifies the signatures) or verify the signatures
+        /// yourself. For a version 6 primary key only direct-key signatures that verify count (RFC 9580 5.2.3.10).
         /// </remarks>
         public long GetValidSeconds()
         {
@@ -443,6 +609,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             if (IsMasterKey)
             {
+                long directKeySeconds = GetVersion6DirectKeyExpirationTime();
+                if (directKeySeconds >= 0)
+                    return directKeySeconds;
+
                 for (int i = 0; i != MasterKeyCertificationTypes.Length; i++)
                 {
                     long seconds = GetExpirationTimeFromSig(true, MasterKeyCertificationTypes[i]);
@@ -479,8 +649,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// Prefer this overload over <see cref="GetValidSeconds()"/> when the expiry of a subkey is used
         /// for a security decision: any binding signature packet that does not verify against the primary
         /// key is ignored, so an appended forged binding packet cannot influence the reported expiry.
-        /// For a (v4+) master key the expiry still comes from its own self-signatures and
-        /// <paramref name="masterKey"/> is not consulted.
+        /// For a (v4+) master key the expiry comes from its newest self-signature that verifies and is in effect now,
+        /// whatever its certification type (RFC 9580 5.2.3.10), and <paramref name="masterKey"/> is not consulted.
+        /// Likewise only binding signatures in effect now count for a subkey.
         /// </remarks>
         /// <param name="masterKey">The primary key that binds this key; required when this is a subkey.</param>
         /// <exception cref="ArgumentNullException">If this is a subkey and <paramref name="masterKey"/> is null.
@@ -494,15 +665,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             if (IsMasterKey)
             {
-                // A master key's expiry comes from its own self-signatures (see GetValidSeconds()).
-                for (int i = 0; i != MasterKeyCertificationTypes.Length; i++)
-                {
-                    long seconds = GetExpirationTimeFromSig(true, MasterKeyCertificationTypes[i]);
-                    if (seconds >= 0)
-                        return seconds;
-                }
-
-                return 0;
+                // A master key's expiry comes from its newest self-signature that verifies and is in effect
+                PgpSignature newest = GetNewestVerifiedSelfSignature(DateTime.UtcNow);
+                return newest == null ? 0L : GetKeyExpirationTime(newest);
             }
 
             if (masterKey == null)
@@ -530,7 +695,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                  * signature's claimed issuer Key ID is not relied on (verification uses masterKey), so a
                  * forged packet cannot slip through by advertising any particular issuer.
                  */
-                if (!VerifyBindingSignature(sig, masterKey))
+                if (!IsInEffect(sig, DateTime.UtcNow) || !VerifyBindingSignature(sig, masterKey))
                     continue;
 
                 /*
@@ -562,6 +727,155 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 // Any failure (malformed packet, unsupported/invalid signature, key mismatch) is treated
                 // as "not verified" so a forged binding packet cannot influence the computed expiry.
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// The expiry of a version 6 primary key is kept in its direct-key signature (RFC 9580 10.1.1), and the
+        /// newest one that verifies and is in effect wins (5.2.3.10). Returns -1 for other keys or if there is
+        /// none.
+        /// </summary>
+        private long GetVersion6DirectKeyExpirationTime()
+        {
+            if (publicPk.Version != PublicKeyPacket.Version6)
+                return -1L;
+
+            PgpSignature newest = GetNewestVerifiedDirectKeySignature(DateTime.UtcNow);
+            return newest == null ? -1L : GetKeyExpirationTime(newest);
+        }
+
+        /// <summary>
+        /// The newest self-signature with the properties of the key that verifies and is in effect at the given
+        /// time (RFC 9580 5.2.3.10): the direct-key signature of a version 6 key that has one, else the newest of
+        /// the direct-key signatures and of the current certifications of the user IDs and user attributes that are
+        /// not revoked, whatever their certification type. Null if there is none.
+        /// </summary>
+        private PgpSignature GetNewestVerifiedSelfSignature(DateTime at)
+        {
+            PgpSignature newest = GetNewestVerifiedDirectKeySignature(at);
+            if (newest != null && publicPk.Version == PublicKeyPacket.Version6)
+                return newest;
+
+            // user attributes have self-signatures like user IDs (RFC 9580 5.12)
+            for (int i = 0; i < ids.Count; ++i)
+            {
+                PgpSignature current = GetCurrentSelfCertification(idSigs[i], ids[i], at);
+                if (current != null && IsNewerSelfSignature(current, newest))
+                {
+                    newest = current;
+                }
+            }
+            return newest;
+        }
+
+        /// <summary>
+        /// The current self-signature of a user ID or user attribute: its newest certification that verifies and is
+        /// in effect, or null if there is none or a newer certification revocation retires the user ID. Such a
+        /// revocation spares only the non-revocable certifications (RFC 9580 5.2.3.20), the newest of which then
+        /// applies, without the properties of the newer certifications that it revokes.
+        /// </summary>
+        private PgpSignature GetCurrentSelfCertification(IEnumerable<PgpSignature> sigs, IUserDataPacket id,
+            DateTime at)
+        {
+            PgpSignature certification = null, revocation = null;
+            PgpSignature irrevocable = null;
+            foreach (PgpSignature sig in sigs)
+            {
+                if (!IsSelfCertificationType(sig.SignatureType) || sig.KeyId != KeyId || !IsInEffect(sig, at) ||
+                    !VerifySelfSignature(sig, id))
+                {
+                    continue;
+                }
+
+                if (sig.SignatureType == PgpSignature.CertificationRevocation)
+                {
+                    if (IsNewerSelfSignature(sig, revocation))
+                    {
+                        revocation = sig;
+                    }
+                    continue;
+                }
+
+                if (IsNewerSelfSignature(sig, certification))
+                {
+                    certification = sig;
+                }
+                if (sig.GetHashedSubPackets()?.IsRevocable() == false && IsNewerSelfSignature(sig, irrevocable))
+                {
+                    irrevocable = sig;
+                }
+            }
+
+            bool revoked = revocation != null && IsNewerSelfSignature(revocation, certification);
+            return revoked ? irrevocable : certification;
+        }
+
+        private PgpSignature GetNewestVerifiedDirectKeySignature(DateTime at)
+        {
+            PgpSignature newest = null;
+            foreach (PgpSignature sig in GetSignaturesOfType(PgpSignature.DirectKey))
+            {
+                if (IsNewerSelfSignature(sig, newest) && IsInEffect(sig, at) && VerifySelfSignature(sig, null))
+                {
+                    newest = sig;
+                }
+            }
+            return newest;
+        }
+
+        /// <summary>A certification of a user ID (0x10-0x13), or its revocation.</summary>
+        private static bool IsSelfCertificationType(int signatureType) =>
+            signatureType == PgpSignature.CertificationRevocation ||
+            (signatureType >= PgpSignature.DefaultCertification && signatureType <= PgpSignature.PositiveCertification);
+
+        /// <summary>Whether the signature is made by the given time, and not expired (RFC 9580 5.2.3.18).</summary>
+        private static bool IsInEffect(PgpSignature sig, DateTime at)
+        {
+            if (sig.CreationTime > at)
+                return false;
+
+            long seconds = sig.GetHashedSubPackets()?.GetSignatureExpirationTime() ?? 0L;
+            return seconds <= 0 || sig.CreationTime.AddSeconds(seconds) > at;
+        }
+
+        /// <summary>
+        /// The key expiration time of a self-signature or binding signature; the newest one wins even if it omits
+        /// the Key Expiration Time, which removes the expiry.
+        /// </summary>
+        private static long GetKeyExpirationTime(PgpSignature sig)
+        {
+            PgpSignatureSubpacketVector hashed = sig.GetHashedSubPackets();
+            return hashed == null ? 0L : hashed.GetKeyExpirationTime();
+        }
+
+        private bool IsNewerSelfSignature(PgpSignature sig, PgpSignature than) =>
+            sig.KeyId == KeyId && (than == null || sig.CreationTime > than.CreationTime);
+
+        /// <summary>
+        /// Whether a direct-key signature (no user ID), or a certification of a user ID or user attribute, verifies.
+        /// </summary>
+        private bool VerifySelfSignature(PgpSignature sig, IUserDataPacket id)
+        {
+            try
+            {
+                sig.InitVerify(this);
+                switch (id)
+                {
+                case null:
+                    return sig.VerifyCertification(this);
+                // the raw user ID, since the string of GetId() is not decoded as UTF-8
+                case UserIdPacket userId:
+                    return sig.VerifyCertification(userId.GetRawId(), this);
+                case PgpUserAttributeSubpacketVector attributes:
+                    return sig.VerifyCertification(attributes, this);
+                default:
+                    return false;
+                }
+            }
+            catch (Exception)
+            {
+                // a self-signature that cannot be verified does not count
                 return false;
             }
         }
@@ -650,6 +964,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 case PublicKeyAlgorithmTag.RsaGeneral:
                 case PublicKeyAlgorithmTag.X25519:
                 case PublicKeyAlgorithmTag.X448:
+                case PublicKeyAlgorithmTag.MLKem768_X25519:
+                case PublicKeyAlgorithmTag.MLKem1024_X448:
                     return true;
                 default:
                     return false;
@@ -675,6 +991,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         /// <summary>The strength of the key in bits.</summary>
+        /// <remarks>
+        /// For RSA, DSA and ElGamal keys this is the size of the modulus, and for elliptic curve keys the size of the
+        /// curve. The composite keys of RFC 9980 have the size of their elliptic curve, and SLH-DSA keys the size of
+        /// their public key. It is 0 or -1 if it is not known.
+        /// </remarks>
         public int BitStrength
         {
             get { return keyStrength; }
@@ -683,7 +1004,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>The public key contained in the object.</summary>
         /// <returns>A lightweight public key.</returns>
         /// <exception cref="PgpException">If the key algorithm is not recognised.</exception>
-        public AsymmetricKeyParameter GetKey()
+        public AsymmetricKeyParameter GetKey() =>
+            m_key ?? (m_key = CreateKey());
+
+        private AsymmetricKeyParameter CreateKey()
         {
             try
             {
@@ -782,6 +1106,49 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 case PublicKeyAlgorithmTag.ElGamalGeneral:
                     ElGamalPublicBcpgKey elK = (ElGamalPublicBcpgKey)publicPk.Key;
                     return new ElGamalPublicKeyParameters(elK.Y, new ElGamalParameters(elK.P, elK.G));
+                case PublicKeyAlgorithmTag.X25519:
+                    return new X25519PublicKeyParameters(((X25519PublicBcpgKey)publicPk.Key).GetKey());
+                case PublicKeyAlgorithmTag.X448:
+                    return new X448PublicKeyParameters(((X448PublicBcpgKey)publicPk.Key).GetKey());
+                case PublicKeyAlgorithmTag.Ed25519:
+                    return new Ed25519PublicKeyParameters(((Ed25519PublicBcpgKey)publicPk.Key).GetKey());
+                case PublicKeyAlgorithmTag.Ed448:
+                    return new Ed448PublicKeyParameters(((Ed448PublicBcpgKey)publicPk.Key).GetKey());
+                case PublicKeyAlgorithmTag.MLKem768_X25519:
+                {
+                    var mlKemX25519Key = (MLKem768X25519PublicBcpgKey)publicPk.Key;
+                    return new MLKem768X25519PublicKeyParameters(
+                        new X25519PublicKeyParameters(mlKemX25519Key.GetX25519PublicKey()),
+                        MLKemPublicKeyParameters.FromEncoding(MLKemParameters.ml_kem_768,
+                            mlKemX25519Key.GetMLKemPublicKey()));
+                }
+                case PublicKeyAlgorithmTag.SlhDsa_Shake128s:
+                case PublicKeyAlgorithmTag.SlhDsa_Shake128f:
+                case PublicKeyAlgorithmTag.SlhDsa_Shake256s:
+                    return SlhDsaPublicKeyParameters.FromEncoding(PgpUtilities.GetSlhDsaParameters(Algorithm),
+                        ((SlhDsaPublicBcpgKey)publicPk.Key).GetKey());
+                case PublicKeyAlgorithmTag.MLDsa65_Ed25519:
+                {
+                    var mlDsaKey = (MLDsa65Ed25519PublicBcpgKey)publicPk.Key;
+                    return new MLDsa65Ed25519PublicKeyParameters(
+                        new Ed25519PublicKeyParameters(mlDsaKey.GetEd25519PublicKey()),
+                        MLDsaPublicKeyParameters.FromEncoding(MLDsaParameters.ml_dsa_65, mlDsaKey.GetMLDsaPublicKey()));
+                }
+                case PublicKeyAlgorithmTag.MLDsa87_Ed448:
+                {
+                    var mlDsaKey = (MLDsa87Ed448PublicBcpgKey)publicPk.Key;
+                    return new MLDsa87Ed448PublicKeyParameters(
+                        new Ed448PublicKeyParameters(mlDsaKey.GetEd448PublicKey()),
+                        MLDsaPublicKeyParameters.FromEncoding(MLDsaParameters.ml_dsa_87, mlDsaKey.GetMLDsaPublicKey()));
+                }
+                case PublicKeyAlgorithmTag.MLKem1024_X448:
+                {
+                    var mlKemX448Key = (MLKem1024X448PublicBcpgKey)publicPk.Key;
+                    return new MLKem1024X448PublicKeyParameters(
+                        new X448PublicKeyParameters(mlKemX448Key.GetX448PublicKey()),
+                        MLKemPublicKeyParameters.FromEncoding(MLKemParameters.ml_kem_1024,
+                            mlKemX448Key.GetMLKemPublicKey()));
+                }
                 default:
                     throw new PgpException("unknown public key algorithm encountered");
                 }
@@ -817,7 +1184,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         /// <summary>Allows enumeration of any user IDs associated with the key.</summary>
+        /// <remarks>
+        /// The user IDs are not decoded as UTF-8 (RFC 9580 5.11), so one with other than ASCII characters does not
+        /// find its signatures again through <see cref="GetSignaturesForId(string)"/>; use
+        /// <see cref="GetRawUserIds"/> with <see cref="GetSignaturesForId(byte[])"/> and
+        /// <see cref="PgpSignature.VerifyCertification(byte[], PgpPublicKey)"/> instead.
+        /// </remarks>
         /// <returns>An <c>IEnumerable</c> of <c>string</c> objects.</returns>
+        // TODO[api] Decode the user IDs as UTF-8
         public IEnumerable<string> GetUserIds()
         {
             var result = new List<string>();
@@ -1125,6 +1499,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             return AddCert(key, new UserIdPacket(id), certification);
         }
+
+        internal static PgpPublicKey AddRawIdCertification(PgpPublicKey key, byte[] rawId,
+            PgpSignature certification) =>
+            AddCert(key, new UserIdPacket(rawId), certification);
 
         /// <summary>Add a certification for the given UserAttributeSubpackets to the given public key.</summary>
         /// <param name="key">The key the certification is to be added to.</param>

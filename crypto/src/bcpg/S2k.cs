@@ -94,7 +94,14 @@ namespace Org.BouncyCastle.Bcpg
                 byte passes = StreamUtilities.RequireByte(inStr);
                 byte parallelism = StreamUtilities.RequireByte(inStr);
                 byte memorySizeExponent = StreamUtilities.RequireByte(inStr);
-                m_argon2Config = new Argon2Params(salt, passes, parallelism, memorySizeExponent);
+                try
+                {
+                    m_argon2Config = new Argon2Params(salt, passes, parallelism, memorySizeExponent);
+                }
+                catch (ArgumentException e)
+                {
+                    throw new MalformedPacketException("invalid Argon2 parameters: " + e.Message);
+                }
                 break;
             }
             case GnuDummyS2K:

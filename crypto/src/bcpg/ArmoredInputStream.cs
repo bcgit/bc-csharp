@@ -12,13 +12,19 @@ namespace Org.BouncyCastle.Bcpg
     /// Reader for Base64 armored objects - read the headers and then start returning bytes when the data is reached.
     /// </summary>
     /// <remarks>
-    /// An IOException is thrown if the CRC check is detected and fails. By default a missing CRC will not cause an
-    /// exception. To force CRC detection use <see cref="Builder.SetDetectMissingCrc(bool)"/>.
+    /// By default a missing, malformed or wrong CRC checksum does not cause an exception (RFC 9580 6.1). Strict
+    /// checking with <see cref="Builder.SetDetectMissingCrc(bool)"/> throws an IOException for all three.
     /// <para>
     /// By default a cleartext-signed(CSF) message whose payload contains a malformed dash - prefixed line(a leading
     /// dash that is neither a "-----" armor header nor a "- " dash-escape, contrary to RFC 4880 7.1) is rejected with
     /// an <see cref="ArmoredInputException"/>. Use <see cref="Builder.SetRejectPrefixedDashesInCsfMessages(bool)"/> to
     /// relax this.
+    /// </para>
+    /// <para>
+    /// The signatures of a cleartext signed message with an armor header other than a "Hash" header that is a
+    /// comma-separated list of hash algorithm names are not handed out: reading them throws an
+    /// <see cref="ArmoredInputException"/>, so that they cannot be validated (RFC 9580 6.2.2.3, 7.1). The text of
+    /// the message can still be read.
     /// </para>
     /// </remarks>
     public class ArmoredInputStream
@@ -94,8 +100,8 @@ namespace Org.BouncyCastle.Bcpg
         }
 
         /*
-         * Ignore missing CRC checksums.
-         * https://tests.sequoia-pgp.org/#ASCII_Armor suggests that missing CRC sums do not invalidate the message.
+         * Strict checking of CRC checksums: a missing, malformed or wrong one is an error. RFC 9580 6.1 says that
+         * none of them invalidates the data, see also https://tests.sequoia-pgp.org/#ASCII_Armor.
          */
         private bool m_detectMissingCrc = false;
 
@@ -116,6 +122,7 @@ namespace Org.BouncyCastle.Bcpg
         private int m_lastC = 0;
         private int m_lookAhead = -1;
         private bool m_isEndOfStream;
+        private bool m_forbiddenCleartextHeader = false;
 
         private readonly bool m_validateAllowedHeaders;
         private readonly bool m_csfRejectPrefixedDashes;
@@ -319,7 +326,48 @@ namespace Org.BouncyCastle.Bcpg
             m_clearText = "-----BEGIN PGP SIGNED MESSAGE-----".Equals(m_header);
             m_newLineFound = true;
 
+            // RFC 9580 6.2.2.3, 7.1: the signatures of a cleartext signed message with any other armor header than a
+            // well-formed Hash header must not be validated
+            if (m_clearText)
+            {
+                m_forbiddenCleartextHeader = HasForbiddenCleartextHeader(m_headerList);
+            }
+            else if (m_forbiddenCleartextHeader)
+            {
+                throw new ArmoredInputException(
+                    "signatures of a cleartext signed message with an armor header other than a well-formed Hash");
+            }
+
             return headerFound;
+        }
+
+        // The names of RFC 9580 (table of hash algorithms), those of RFC 4880 and those that ArmoredOutputStream writes
+        private static readonly HashSet<string> HashHeaderNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "MD5", "SHA1", "RIPEMD160", "SHA256", "SHA384", "SHA512", "SHA224", "SHA3-256", "SHA3-512",
+            "MD2", "TIGER192", "HAVAL-5-160", "SHA3-224", "SHA3-384",
+        };
+
+        /// <summary>
+        /// Whether there is an armor header that is not a "Hash" header with a comma-separated list of hash algorithms.
+        /// </summary>
+        private static bool HasForbiddenCleartextHeader(IList<string> headerLines)
+        {
+            // the first line is the armor header line
+            for (int i = 1; i < headerLines.Count; ++i)
+            {
+                string line = headerLines[i];
+                int colon = line.IndexOf(':');
+                if (colon < 0 || !ArmoredOutputStream.HeaderHash.Equals(line.Substring(0, colon).Trim()))
+                    return true;
+
+                foreach (string name in line.Substring(colon + 1).Split(','))
+                {
+                    if (!HashHeaderNames.Contains(name.Trim()))
+                        return true;
+                }
+            }
+            return false;
         }
 
         /// <returns><c>true</c> if we are inside the clear text section of a PGP signed message.</returns>
@@ -492,36 +540,17 @@ namespace Org.BouncyCastle.Bcpg
 
                 if (c == '\r' || c == '\n')
                 {
-                    c = ReadIgnoreSpace();
-
-                    while (c == '\n' || c == '\r')
-                    {
-                        c = ReadIgnoreSpace();
-                    }
+                    c = SkipLineBreaks();
 
                     if (c == '=')            // crc reached
                     {
-                        // RFC 9580 6.2: the checksum appears once, immediately before the armor tail.
-                        // A second one is malformed, and because the running crc is not reset between
-                        // lines the same four characters keep matching - and each match recursed into
-                        // ReadByte() below, so repeating one line drove the stack down until it overflowed.
-                        if (m_crcFound)
-                            throw new ArmoredInputException("multiple crc values found in armored message");
-
-                        m_bufPtr = Decode(ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), m_outBuf);
-                        if (m_bufPtr != 0)
-                            throw new ArmoredInputException("malformed crc in armored message.");
-
+                        ReadChecksum();
                         m_crcFound = true;
 
-                        if (m_crc != null)
-                        {
-                            int i = (int)Pack.BE_To_UInt24(m_outBuf);
-                            if (i != m_crc.Value)
-                                throw new ArmoredInputException("crc check failed in armored message.");
-                        }
-
-                        return ReadByte();
+                        // RFC 9580 6.1: the checksum appears once, immediately before the armor tail
+                        c = SkipLineBreaks();
+                        if (c == '=')
+                            throw new ArmoredInputException("multiple crc values found in armored message");
                     }
 
                     if (c == '-')        // end of record reached
@@ -575,6 +604,59 @@ namespace Org.BouncyCastle.Bcpg
             return (int)m_outBuf[m_bufPtr++];
         }
 
+        private int SkipLineBreaks()
+        {
+            int c;
+            do
+            {
+                c = ReadIgnoreSpace();
+            }
+            while (c == '\n' || c == '\r');
+
+            return c;
+        }
+
+        /// <summary>Read the rest of the checksum line, up to and including the line break.</summary>
+        /// <remarks>
+        /// RFC 9580 6.1: a malformed or wrong checksum does not invalidate the data, so only strict checking rejects
+        /// it.
+        /// </remarks>
+        private void ReadChecksum()
+        {
+            int[] chars = new int[4];
+            int count = 0, c;
+            while ((c = m_input.ReadByte()) >= 0 && c != '\r' && c != '\n')
+            {
+                if (c == ' ' || c == '\t' || c == '\f' || c == '\v')
+                    continue;
+
+                if (count < chars.Length)
+                {
+                    chars[count] = c;
+                }
+                ++count;
+            }
+
+            if (!m_detectMissingCrc)
+                return;
+
+            bool wellFormed = count == chars.Length;
+            for (int i = 0; wellFormed && i < chars.Length; ++i)
+            {
+                wellFormed = chars[i] < 128 && DecodingTable[chars[i]] < 64;
+            }
+            if (!wellFormed)
+                throw new ArmoredInputException("malformed crc in armored message.");
+
+            if (m_crc != null)
+            {
+                byte[] crc = new byte[3];
+                Decode(chars[0], chars[1], chars[2], chars[3], crc);
+                if ((int)Pack.BE_To_UInt24(crc) != m_crc.Value)
+                    throw new ArmoredInputException("crc check failed in armored message.");
+            }
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -584,12 +666,12 @@ namespace Org.BouncyCastle.Bcpg
             base.Dispose(disposing);
         }
 
-        /// <summary>Change how the stream should react if it encounters a missing CRC checksum.</summary>
+        /// <summary>Turn strict checking of the CRC checksum on or off.</summary>
         /// <remarks>
-        /// The default value is <c>false</c> (ignore missing CRC checksums). If the behavior is set to <c>true</c>, an
-        /// <see cref="IOException"/> will be thrown when a missing CRC checksum is encountered.
+        /// The default value is <c>false</c>: a missing, malformed or wrong checksum is ignored (RFC 9580 6.1). If the
+        /// behavior is set to <c>true</c>, an <see cref="IOException"/> will be thrown for each of them.
         /// </remarks>
-        /// <param name="detectMissing">ignore missing CRC sums</param>
+        /// <param name="detectMissing"><c>true</c> for strict checking.</param>
         [Obsolete("Configure via 'Build()' instead")]
         public virtual void SetDetectMissingCrc(bool detectMissing)
         {
@@ -671,14 +753,12 @@ namespace Org.BouncyCastle.Bcpg
                 return this;
             }
 
-            /// <summary>Change how the stream should react if it encounters a missing CRC checksum.</summary>
+            /// <summary>Turn strict checking of the CRC checksum on or off.</summary>
             /// <remarks>
-            /// The default value is <c>false</c> (ignore missing CRC checksums). If the behavior is set to <c>true</c>,
-            /// an <see cref="IOException"/> will be thrown when a missing CRC checksum is encountered.
+            /// The default value is <c>false</c>: a missing, malformed or wrong checksum is ignored (RFC 9580 6.1). If
+            /// the behavior is set to <c>true</c>, an <see cref="IOException"/> will be thrown for each of them.
             /// </remarks>
-            /// <param name="detectMissingCrc">
-            /// <c>false</c> if ignore missing CRC sums, <c>true</c> for exception.
-            /// </param>
+            /// <param name="detectMissingCrc"><c>true</c> for strict checking.</param>
             /// <returns>the current <see cref="Builder"/> instance.</returns>
             public Builder SetDetectMissingCrc(bool detectMissingCrc)
             {

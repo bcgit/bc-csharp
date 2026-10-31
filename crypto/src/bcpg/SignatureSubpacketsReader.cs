@@ -27,15 +27,35 @@ namespace Org.BouncyCastle.Bcpg
             m_limit = limit;
         }
 
+        /// <summary>
+        /// Whether the last subpacket read was shorter than its length said, and taken at its fixed length (a
+        /// repair for implementations that write wrong lengths, which RFC 9580 5.2.5 calls malformed).
+        /// </summary>
+        internal bool IsLastRepaired { get; private set; }
+
         // TODO[api] Make virtual?
         public SignatureSubpacket ReadPacket()
         {
-            uint bodyLen = StreamUtilities.ReadBodyLen(m_input, out var streamFlags);
-            if (streamFlags.HasFlag(StreamUtilities.StreamFlags.Eof))
+            // RFC 9580 5.2.3.7: unlike packet lengths, subpacket lengths have no partial lengths, and a first octet
+            // from 192 to 254 starts a two-octet length
+            int b0 = m_input.ReadByte();
+            if (b0 < 0)
                 return null;
 
-            if (streamFlags.HasFlag(StreamUtilities.StreamFlags.Partial))
-                throw new MalformedPacketException("unrecognised length reading signature sub packet");
+            uint bodyLen;
+            bool isLongLength = b0 == 255;
+            if (b0 < 192)
+            {
+                bodyLen = (uint)b0;
+            }
+            else if (!isLongLength)
+            {
+                bodyLen = (uint)(((b0 - 192) << 8) + StreamUtilities.RequireByte(m_input) + 192);
+            }
+            else
+            {
+                bodyLen = StreamUtilities.RequireUInt32BE(m_input);
+            }
 
             if (bodyLen < 1U)
                 throw new MalformedPacketException("Body length octet too small.");
@@ -51,8 +71,6 @@ namespace Org.BouncyCastle.Bcpg
             //if (bodyLen < 1U || (bodyLen > m_limit && bodyLen > 2048))
             //    throw new EndOfStreamException("out of range data found in signature subpacket");
 
-            bool isLongLength = streamFlags.HasFlag(StreamUtilities.StreamFlags.LongLength);
-
             int tag = StreamUtilities.RequireByte(m_input);
             byte[] data = new byte[bodyLen - 1];
 
@@ -66,7 +84,8 @@ namespace Org.BouncyCastle.Bcpg
             bool isCritical = (tag & 0x80) != 0;
             SignatureSubpacketTag type = (SignatureSubpacketTag)(tag & 0x7F);
 
-            if (bytesRead != data.Length)
+            IsLastRepaired = bytesRead != data.Length;
+            if (IsLastRepaired)
             {
                 switch (type)
                 {
@@ -112,8 +131,17 @@ namespace Org.BouncyCastle.Bcpg
                 case SignatureSubpacketTag.PreferredCompressionAlgorithms:
                 case SignatureSubpacketTag.PreferredHashAlgorithms:
                 case SignatureSubpacketTag.PreferredSymmetricAlgorithms:
-                case SignatureSubpacketTag.PreferredAeadAlgorithms:
                     return new PreferredAlgorithms(type, isCritical, isLongLength, data);
+                case SignatureSubpacketTag.PreferredAeadAlgorithms:
+                    try
+                    {
+                        return new PreferredAeadCiphersuites(isCritical, isLongLength, data);
+                    }
+                    catch (ArgumentException)
+                    {
+                        // Not a list of pairs; keep the subpacket so that the signature can still be parsed
+                        return new PreferredAlgorithms(type, isCritical, isLongLength, data);
+                    }
                 case SignatureSubpacketTag.KeyFlags:
                     return new KeyFlags(isCritical, isLongLength, data);
                 case SignatureSubpacketTag.PolicyUrl:

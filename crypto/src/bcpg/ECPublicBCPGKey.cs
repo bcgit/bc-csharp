@@ -15,9 +15,14 @@ namespace Org.BouncyCastle.Bcpg
 
         /// <param name="bcpgIn">The stream to read the packet from.</param>
         protected ECPublicBcpgKey(BcpgInputStream bcpgIn)
+            : this(bcpgIn, strict: false)
+        {
+        }
+
+        internal ECPublicBcpgKey(BcpgInputStream bcpgIn, bool strict)
         {
             m_oid = DerObjectIdentifier.GetInstance(ReadBytesOfEncodedLength(bcpgIn));
-            m_point = new MPInteger(bcpgIn).Value;
+            m_point = new MPInteger(bcpgIn, strict).Value;
         }
 
         protected ECPublicBcpgKey(DerObjectIdentifier oid, ECPoint point)

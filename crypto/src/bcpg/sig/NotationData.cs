@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
@@ -44,14 +45,16 @@ namespace Org.BouncyCastle.Bcpg.Sig
             os.WriteByte(0x0);
             os.WriteByte(0x0);
 
-            byte[] nameData, valueData = null;
-            int nameLength, valueLength;
+            // RFC 9580 5.2.3.24: the lengths of the UTF-8 name and value are two octets each
+            byte[] nameData = Strings.ToUtf8ByteArray(notationName);
+            int nameLength = nameData.Length;
+            if (nameLength > 0xFFFF)
+                throw new ArgumentException("Notation name longer than 65535 octets", nameof(notationName));
 
-            nameData = Strings.ToUtf8ByteArray(notationName);
-            nameLength = System.Math.Min(nameData.Length, 0xFF);
-
-            valueData = Strings.ToUtf8ByteArray(notationValue);
-            valueLength = System.Math.Min(valueData.Length, 0xFF);
+            byte[] valueData = Strings.ToUtf8ByteArray(notationValue);
+            int valueLength = valueData.Length;
+            if (valueLength > 0xFFFF)
+                throw new ArgumentException("Notation value longer than 65535 octets", nameof(notationValue));
 
             // name length
             os.WriteByte((byte)(nameLength >> 8));
@@ -98,7 +101,8 @@ namespace Org.BouncyCastle.Bcpg.Sig
             int nameLength = ((data[HeaderFlagLength] << 8) + (data[HeaderFlagLength + 1] << 0));
             int namePos = HeaderFlagLength + HeaderNameLength + HeaderValueLength;
 
-            return Strings.FromByteArray(data, namePos, nameLength);
+            // RFC 9580 5.2.3.24: names are UTF-8 (decoded leniently, so that a malformed one does not throw)
+            return Encoding.UTF8.GetString(data, namePos, nameLength);
         }
 
         public string GetNotationValue()
@@ -108,7 +112,8 @@ namespace Org.BouncyCastle.Bcpg.Sig
             int valueLength = ((data[HeaderFlagLength + HeaderNameLength] << 8) + (data[HeaderFlagLength + HeaderNameLength + 1] << 0));
             int valuePos = HeaderFlagLength + HeaderNameLength + HeaderValueLength + nameLength;
 
-            return Strings.FromByteArray(data, valuePos, valueLength);
+            // the value as text, in UTF-8 as the constructor writes it; see GetNotationValueBytes() for binary values
+            return Encoding.UTF8.GetString(data, valuePos, valueLength);
         }
 
         public byte[] GetNotationValueBytes()

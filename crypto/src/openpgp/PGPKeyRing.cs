@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         internal static TrustPacket ReadOptionalTrustPacket(BcpgInputStream pIn)
 		{
-            PacketTag tag = pIn.SkipMarkerPackets();
+            PacketTag tag = pIn.SkipIgnoredPackets();
 
             return tag == PacketTag.Trust ? (TrustPacket)pIn.ReadPacket() : null;
 		}
@@ -26,9 +26,22 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
 				var sigList = new List<PgpSignature>();
 
-				while (pIn.SkipMarkerPackets() == PacketTag.Signature)
+				while (pIn.SkipIgnoredPackets() == PacketTag.Signature)
 				{
-					SignaturePacket signaturePacket = (SignaturePacket)pIn.ReadPacket();
+					SignaturePacket signaturePacket;
+					try
+					{
+						signaturePacket = (SignaturePacket)pIn.ReadPacket();
+					}
+					catch (Exception e) when (e is UnsupportedPacketVersionException ||
+						e is MalformedSignaturePacketException)
+					{
+						// Signatures of unsupported versions, and malformed ones, are ignored (RFC 9580 5.2.5); the
+						// packet has already been consumed
+						ReadOptionalTrustPacket(pIn);
+						continue;
+					}
+
 					TrustPacket trustPacket = ReadOptionalTrustPacket(pIn);
 
 					sigList.Add(new PgpSignature(signaturePacket, trustPacket));
@@ -49,7 +62,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			idTrusts = new List<TrustPacket>();
 			idSigs = new List<IList<PgpSignature>>();
 
-            while (IsUserTag(pIn.SkipMarkerPackets()))
+            while (IsUserTag(pIn.SkipIgnoredPackets()))
 			{
 				Packet obj = pIn.ReadPacket();
 				if (obj is UserIdPacket id)

@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             BcpgInputStream bcpgInput = BcpgInputStream.Wrap(inputStream);
 
-            PacketTag initialTag = bcpgInput.SkipMarkerPackets();
+            PacketTag initialTag = bcpgInput.SkipIgnoredPackets();
             if (initialTag != PacketTag.SecretKey && initialTag != PacketTag.SecretSubkey)
             {
                 throw new IOException("secret key ring doesn't start with secret key tag: "
@@ -76,7 +76,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 new PgpPublicKey(secret.PublicKeyPacket, trust, keySigs, ids, idTrusts, idSigs)));
 
             // Read subkeys
-            while (bcpgInput.NextPacketTag() == PacketTag.SecretSubkey
+            while (bcpgInput.SkipIgnoredPackets() == PacketTag.SecretSubkey
                 || bcpgInput.NextPacketTag() == PacketTag.PublicSubkey)
             {
                 if (bcpgInput.NextPacketTag() == PacketTag.SecretSubkey)

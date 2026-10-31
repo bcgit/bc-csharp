@@ -22,6 +22,9 @@ namespace Org.BouncyCastle.Bcpg
         private S2k s2k;
         private byte[] iv;
 
+        // Set when the S2K parameters violate RFC 9580 3.7.2.1; such a key cannot be used, but it can be skipped.
+        internal bool IsMalformed { get; private set; }
+
         internal SecretKeyPacket(BcpgInputStream bcpgIn)
             : this(bcpgIn, newPacketFormat: false)
         {
@@ -37,11 +40,11 @@ namespace Org.BouncyCastle.Bcpg
         {
             if (this is SecretSubkeyPacket)
             {
-                pubKeyPacket = new PublicSubkeyPacket(bcpgIn, newPacketFormat);
+                pubKeyPacket = new PublicSubkeyPacket(bcpgIn, newPacketFormat, insideSecretKey: true);
             }
             else
             {
-                pubKeyPacket = new PublicKeyPacket(bcpgIn, newPacketFormat);
+                pubKeyPacket = new PublicKeyPacket(PacketTag.PublicKey, bcpgIn, newPacketFormat, insideSecretKey: true);
             }
 
             byte version = pubKeyPacket.VersionByte;
@@ -83,10 +86,19 @@ namespace Org.BouncyCastle.Bcpg
                 {
                     throw new MalformedPacketException("Unsupported S2K type", e);
                 }
+
+                if (s2k.GetEncoded().Length != s2KLen)
+                    throw new MalformedPacketException("Invalid S2K length in version 6 secret key");
             }
             else if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1 || s2kUsage == UsageAead)
             {
                 s2k = new S2k(bcpgIn);
+            }
+
+            // RFC 9580 3.7.2.1: Argon2 is only allowed together with AEAD protection
+            if (s2k != null && s2k.Type == S2k.Argon2 && s2kUsage != UsageAead)
+            {
+                IsMalformed = true;
             }
 
             if (s2kUsage == UsageAead)
@@ -123,6 +135,24 @@ namespace Org.BouncyCastle.Bcpg
                         bcpgIn.ReadFully(iv);
                     }
                 }
+            }
+
+            if (version == PublicKeyPacket.Version6 && s2kUsage != UsageNone && s2kUsage != UsageChecksum)
+            {
+                // RFC 9580 5.5.3: the count octet covers the symmetric algorithm, the AEAD algorithm, the S2K
+                // specifier (with its length octet) and the IV
+                int consumed = (iv == null ? 0 : iv.Length);
+                if (s2kUsage == UsageSha1 || s2kUsage == UsageAead)
+                {
+                    consumed += 1 + 1 + s2k.GetEncoded().Length;
+                }
+                if (s2kUsage == UsageAead)
+                {
+                    consumed += 1;
+                }
+
+                if (consumed != conditionalParameterLength)
+                    throw new MalformedPacketException("Invalid conditional parameter count in version 6 secret key");
             }
 
             if (version == PublicKeyPacket.LibrePgp5)
