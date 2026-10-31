@@ -3,7 +3,7 @@ using System;
 namespace Org.BouncyCastle.Asn1.Cms
 {
 	/**
-	* Produce an object suitable for an Asn1OutputStream.
+	* RFC 5652 ContentInfo object parser.
 	* <pre>
 	* ContentInfo ::= SEQUENCE {
 	*          contentType ContentType,
