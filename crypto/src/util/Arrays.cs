@@ -1307,6 +1307,12 @@ namespace Org.BouncyCastle.Utilities
             InternalZeroMemory(buf);
         }
 
+        internal static void ZeroMemory(int[] buf, int off, int len)
+        {
+            ValidateSegment(buf, off, len);
+            InternalZeroMemory(buf, off, len);
+        }
+
         internal static void ZeroMemory(uint[] buf)
         {
             ValidateBuffer(buf);
@@ -1398,6 +1404,9 @@ namespace Org.BouncyCastle.Utilities
 
         internal static void InternalZeroMemory(ushort[] buf) =>
             CryptographicOperations.ZeroMemory(MemoryMarshal.AsBytes(buf.AsSpan()));
+
+        internal static void InternalZeroMemory(int[] buf, int off, int len) =>
+            CryptographicOperations.ZeroMemory(MemoryMarshal.AsBytes(buf.AsSpan(off, len)));
 
         internal static void InternalZeroMemory(uint[] buf) => ZeroMemory(buf.AsSpan());
 
@@ -1502,6 +1511,15 @@ namespace Org.BouncyCastle.Utilities
             for (int i = 0; i < buf.Length; ++i)
             {
                 buf[i] = 0;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        internal static void InternalZeroMemory(int[] buf, int off, int len)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                buf[off + i] = 0;
             }
         }
 
