@@ -1,4 +1,9 @@
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Buffers;
+#endif
 using System.Diagnostics;
+
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
@@ -224,67 +229,168 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         // h = f * g in the ring Rq
         internal static void RqMult(short[] h, short[] f, sbyte[] g, int p, int q)
         {
-            int[] a = new int[p];
-            int[] b = new int[p];
-            for (int i = 0; i < p; ++i)
+            int n = GetKaratsubaLength(p);
+            int[] buf = RentMultiplicationBuffer(n);
+            try
             {
-                a[i] = f[i];
-                b[i] = g[i];
+                for (int i = 0; i < p; ++i)
+                {
+                    buf[i] = f[i];
+                    buf[n + i] = g[i];
+                }
+
+                ProductModXpX1(buf, n, p);
+
+                int barrett = GetBarrettFactor(q);
+                for (int i = 0; i < p; ++i)
+                {
+                    h[i] = (short)Freeze(buf[2 * n + i], q, barrett);
+                }
             }
-
-            int[] fg = ProductModXpX1(a, b, p);
-
-            int barrett = GetBarrettFactor(q);
-            for (int i = 0; i < p; ++i)
+            finally
             {
-                h[i] = (short)Freeze(fg[i], q, barrett);
+                ReturnMultiplicationBuffer(buf, n);
             }
         }
 
         // h = f * g in the ring R3
         internal static void R3Mult(sbyte[] h, sbyte[] f, sbyte[] g, int p)
         {
-            int[] a = new int[p];
-            int[] b = new int[p];
-            for (int i = 0; i < p; ++i)
+            int n = GetKaratsubaLength(p);
+            int[] buf = RentMultiplicationBuffer(n);
+            try
             {
-                a[i] = f[i];
-                b[i] = g[i];
+                for (int i = 0; i < p; ++i)
+                {
+                    buf[i] = f[i];
+                    buf[n + i] = g[i];
+                }
+
+                ProductModXpX1(buf, n, p);
+
+                for (int i = 0; i < p; ++i)
+                {
+                    h[i] = (sbyte)Freeze3(buf[2 * n + i]);
+                }
             }
-
-            int[] fg = ProductModXpX1(a, b, p);
-
-            for (int i = 0; i < p; ++i)
+            finally
             {
-                h[i] = (sbyte)Freeze3(fg[i]);
+                ReturnMultiplicationBuffer(buf, n);
             }
         }
 
-        // Returns the exact product of a and b, both of degree < p, reduced modulo x^p - x - 1, in its first p words.
-        //
-        // One factor is always reduced, |coefficients| <= (q - 1) / 2, and the other small: in {-1, 0, 1}, or up to 2
-        // from a decoded small polynomial. The product's coefficients are then below p * ((q - 1) / 2) * 2, and the
-        // reduced ones below 3 times that, at most 3 * 1277 * 3939 * 2 < 2^25 (sntrup1277), so int arithmetic is exact
-        // for every parameter set and each coefficient is reduced modulo q (or 3) only once.
-        private static int[] ProductModXpX1(int[] a, int[] b, int p)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static readonly ArrayPool<int> MultiplicationBufferPool = ArrayPool<int>.Create();
+#endif
+
+        // A multiplication's buffer, for Karatsuba length n: the operands at 0 and n, the product at 2n and Karatsuba's
+        // scratch at 4n, 6n words in all. It holds secret values, so is wiped before it is returned.
+        private static int[] RentMultiplicationBuffer(int n)
         {
-            int[] fg = new int[p + p - 1];
-            for (int i = 0; i < p; ++i)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return MultiplicationBufferPool.Rent(6 * n);
+#else
+            return new int[6 * n];
+#endif
+        }
+
+        private static void ReturnMultiplicationBuffer(int[] buf, int n)
+        {
+            Arrays.ZeroMemory(buf, 0, 6 * n);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            MultiplicationBufferPool.Return(buf);
+#endif
+        }
+
+        private const int KaratsubaThreshold = 32;
+
+        // The length the Karatsuba recursion runs at for degree p: the smallest c * 2^k >= p with
+        // c <= KaratsubaThreshold, so that every level splits evenly. The operands are padded with zeros to it.
+        private static int GetKaratsubaLength(int p)
+        {
+            int k = 0;
+            while (((p - 1) >> k) + 1 > KaratsubaThreshold)
             {
-                int ai = a[i];
-                for (int j = 0; j < p; ++j)
+                k++;
+            }
+            return (((p - 1) >> k) + 1) << k;
+        }
+
+        // r[rOff .. rOff + 2n - 1] = a * b for operands of length n = c * 2^k (the product's top word is zero), using
+        // t from tOff as scratch: 2m words for each level of the recursion, fewer than 2n in all. The inputs must not
+        // overlap r or t. The control flow depends on n alone. Each level at most doubles the bounds on the operands'
+        // coefficients, so for |a| <= A and |b| <= B every intermediate value is at most n * 2^k * A * B in magnitude.
+        private static void Karatsuba(int[] a, int aOff, int[] b, int bOff, int n, int[] r, int rOff, int[] t,
+            int tOff)
+        {
+            if (n <= KaratsubaThreshold)
+            {
+                for (int i = 0; i < 2 * n; ++i)
                 {
-                    fg[i + j] += ai * b[j];
+                    r[rOff + i] = 0;
                 }
+                for (int i = 0; i < n; ++i)
+                {
+                    int ai = a[aOff + i];
+                    for (int j = 0; j < n; ++j)
+                    {
+                        r[rOff + i + j] += ai * b[bOff + j];
+                    }
+                }
+                return;
             }
 
+            int m = n >> 1;
+
+            // zMid = (a0 + a1) * (b0 + b1) -> t[tOff .. tOff + 2m - 1], with the sums held in r where z0 will go
+            for (int i = 0; i < m; ++i)
+            {
+                r[rOff + i] = a[aOff + i] + a[aOff + m + i];
+                r[rOff + m + i] = b[bOff + i] + b[bOff + m + i];
+            }
+            Karatsuba(r, rOff, r, rOff + m, m, t, tOff, t, tOff + 2 * m);
+
+            // z0 = a0 * b0 and z2 = a1 * b1, straight into place
+            Karatsuba(a, aOff, b, bOff, m, r, rOff, t, tOff + 2 * m);
+            Karatsuba(a, aOff + m, b, bOff + m, m, r, rOff + 2 * m, t, tOff + 2 * m);
+
+            // Add zMid - z0 - z2 at m, where it overlaps the top half of z0 and the bottom half of z2. With
+            // u = z0[m + i] - z2[i], those words become u + zMid[i] - z0[i] and zMid[m + i] - z2[m + i] - u. Each partial
+            // sum is the final value plus z0[i] or u, so stays within twice the bound on this level's product.
+            for (int i = 0; i < m; ++i)
+            {
+                int u = r[rOff + m + i] - r[rOff + 2 * m + i];
+                r[rOff + m + i] = u + t[tOff + i] - r[rOff + i];
+                r[rOff + 2 * m + i] = t[tOff + m + i] - r[rOff + 3 * m + i] - u;
+            }
+        }
+
+        // Computes the exact product of the operands in buf (see RentMultiplicationBuffer), both of degree < p,
+        // reduced modulo x^p - x - 1, into buf[2n .. 2n + p - 1].
+        //
+        // One factor is always reduced, |coefficients| <= (q - 1) / 2, and the other small: in {-1, 0, 1}, or up to 2
+        // from a decoded small polynomial. The recursion's intermediates are then below n * 2^k * ((q - 1) / 2) * 2,
+        // at most 1280 * 64 * 3939 * 2 < 2^30 (sntrup1277), and the reduced coefficients below
+        // 3 * p * ((q - 1) / 2) * 2, so int arithmetic is exact for every parameter set and each coefficient is
+        // reduced modulo q (or 3) only once.
+        private static void ProductModXpX1(int[] buf, int n, int p)
+        {
+            // a pooled buffer is not zeroed
+            for (int i = p; i < n; ++i)
+            {
+                buf[i] = 0;
+                buf[n + i] = 0;
+            }
+
+            Karatsuba(buf, 0, buf, n, n, buf, 2 * n, buf, 4 * n);
+
             // x^p = x + 1
+            int r = 2 * n;
             for (int i = p + p - 2; i >= p; --i)
             {
-                fg[i - p] += fg[i];
-                fg[i - p + 1] += fg[i];
+                buf[r + i - p] += buf[r + i];
+                buf[r + i - p + 1] += buf[r + i];
             }
-            return fg;
         }
 
         // crypto_sort_uint32: a sorting network, so the sequence of comparisons depends only on the length
