@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
@@ -67,57 +68,56 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
             int delta = 1;
 
-            int sign, swap, t;
-
+            // Each step multiplies v by x, conditionally swaps f with g and v with r, adds sign * f to g and sign * v to
+            // r, and divides g by x. The loops below fuse those passes, running in the direction that reads each word
+            // before overwriting it. input is small, so f, g, r, v and sign all stay in {-1, 0, 1} and the sums in
+            // [-2, 2].
             for (int i = 0; i < 2 * p - 1; ++i)
             {
-                for (int j = p; j > 0; --j)
-                {
-                    v[j] = v[j - 1];
-                }
+                // symmetric in f and g, so the same before or after the swap
+                int sign = -g[0] * f[0];
 
-                v[0] = 0;
-
-                sign = -g[0] * f[0];
-
-                swap = NegativeMask(-delta) & NonZeroMask(g[0]);
+                int swap = NegativeMask(-delta) & NonZeroMask(g[0]);
 
                 delta ^= swap & (delta ^ -delta);
                 delta += 1;
 
-                for (int j = 0; j < p + 1; ++j)
-                {
-                    t = swap & (f[j] ^ g[j]);
-                    f[j] ^= (sbyte)t;
-                    g[j] ^= (sbyte)t;
-                    t = swap & (v[j] ^ r[j]);
-                    v[j] ^= (sbyte)t;
-                    r[j] ^= (sbyte)t;
-                }
-
-                // input is small, so f, g, r, v and sign all stay in {-1, 0, 1} and the sums in [-2, 2]
-                for (int j = 0; j < p + 1; ++j)
-                {
-                    g[j] = (sbyte)SmallFreeze3(g[j] + sign * f[j]);
-                }
-
-                for (int j = 0; j < p + 1; ++j)
-                {
-                    r[j] = (sbyte)SmallFreeze3(r[j] + sign * v[j]);
-                }
+                // g's constant term becomes g[0] + sign * f[0] = g[0] * (1 - f[0]^2) = 0, since f[0] stays +-1, and the
+                // division by x drops it, so at index 0 only f needs the swap
+                int t = swap & (f[0] ^ g[0]);
+                f[0] ^= (sbyte)t;
+                Debug.Assert(f[0] == 1 || f[0] == -1);
 
                 for (int j = 0; j < p; ++j)
                 {
-                    g[j] = g[j + 1];
+                    int fj = f[j + 1], gj = g[j + 1];
+                    t = swap & (fj ^ gj);
+                    fj ^= t;
+                    f[j + 1] = (sbyte)fj;
+                    g[j] = (sbyte)SmallFreeze3((gj ^ t) + sign * fj);
                 }
                 g[p] = 0;
+
+                for (int j = p; j > 0; --j)
+                {
+                    int vj = v[j - 1], rj = r[j];
+                    t = swap & (vj ^ rj);
+                    vj ^= t;
+                    v[j] = (sbyte)vj;
+                    r[j] = (sbyte)SmallFreeze3((rj ^ t) + sign * vj);
+                }
+
+                // index 0, where x * v has a zero
+                t = swap & r[0];
+                v[0] = (sbyte)t;
+                r[0] = (sbyte)SmallFreeze3((r[0] ^ t) + sign * t);
             }
 
-            sign = f[0];
+            int scale = f[0];
 
             for (int i = 0; i < p; ++i)
             {
-                output[i] = (sbyte)(sign * v[p - 1 - i]);
+                output[i] = (sbyte)(scale * v[p - 1 - i]);
             }
 
             return NonZeroMask(delta);
@@ -132,9 +132,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             short[] g = new short[p + 1];
             short[] v = new short[p + 1];
             short[] r = new short[p + 1];
-            int swap, t;
-            int scale;
-            int f0, g0;
 
             r[0] = (short)FqRecip(3, q);
 
@@ -150,52 +147,49 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
             int delta = 1;
 
+            // Each step multiplies v by x, conditionally swaps f with g and v with r, sets g = f[0] * g - g[0] * f and
+            // r = f[0] * r - g[0] * v, and divides g by x. The loops below fuse those passes, running in the direction
+            // that reads each word before overwriting it.
             for (int i = 0; i < 2 * p - 1; ++i)
             {
-                for (int j = p; j > 0; --j)
-                {
-                    v[j] = v[j - 1];
-                }
-
-                v[0] = 0;
-
-                swap = NegativeMask(-delta) & NonZeroMask(g[0]);
+                int swap = NegativeMask(-delta) & NonZeroMask(g[0]);
 
                 delta ^= swap & (delta ^ -delta);
                 delta += 1;
 
-                for (int j = 0; j < p + 1; ++j)
-                {
-                    t = swap & (f[j] ^ g[j]);
-                    f[j] ^= (short)t;
-                    g[j] ^= (short)t;
-                    t = swap & (v[j] ^ r[j]);
-                    v[j] ^= (short)t;
-                    r[j] ^= (short)t;
-                }
-
-                f0 = f[0];
-                g0 = g[0];
-
-                for (int j = 0; j < p + 1; ++j)
-                {
-                    g[j] = (short)Freeze(f0 * g[j] - g0 * f[j], q, barrett);
-                }
-
-                for (int j = 0; j < p + 1; ++j)
-                {
-                    r[j] = (short)Freeze(f0 * r[j] - g0 * v[j], q, barrett);
-                }
+                // g's constant term becomes f0 * g0 - g0 * f0 = 0 and the division by x drops it, so at index 0 only f
+                // needs the swap. f[0] is only ever replaced by a nonzero g[0], so stays nonzero.
+                int t = swap & (f[0] ^ g[0]);
+                int f0 = f[0] ^ t, g0 = g[0] ^ t;
+                f[0] = (short)f0;
+                Debug.Assert(f0 != 0);
 
                 for (int j = 0; j < p; ++j)
                 {
-                    g[j] = g[j + 1];
+                    int fj = f[j + 1], gj = g[j + 1];
+                    t = swap & (fj ^ gj);
+                    fj ^= t;
+                    f[j + 1] = (short)fj;
+                    g[j] = (short)Freeze(f0 * (gj ^ t) - g0 * fj, q, barrett);
+                }
+                g[p] = 0;
+
+                for (int j = p; j > 0; --j)
+                {
+                    int vj = v[j - 1], rj = r[j];
+                    t = swap & (vj ^ rj);
+                    vj ^= t;
+                    v[j] = (short)vj;
+                    r[j] = (short)Freeze(f0 * (rj ^ t) - g0 * vj, q, barrett);
                 }
 
-                g[p] = 0;
+                // index 0, where x * v has a zero
+                t = swap & r[0];
+                v[0] = (short)t;
+                r[0] = (short)Freeze(f0 * (r[0] ^ t) - g0 * t, q, barrett);
             }
 
-            scale = FqRecip(f[0], q);
+            int scale = FqRecip(f[0], q);
 
             for (int i = 0; i < p; ++i)
             {
