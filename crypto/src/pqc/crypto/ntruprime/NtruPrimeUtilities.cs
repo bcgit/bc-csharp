@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 
 namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
@@ -225,73 +224,67 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         // h = f * g in the ring Rq
         internal static void RqMult(short[] h, short[] f, sbyte[] g, int p, int q)
         {
-            int barrett = GetBarrettFactor(q);
-
-            short[] fg = new short[p + p - 1];
-            int result;
-
+            int[] a = new int[p];
+            int[] b = new int[p];
             for (int i = 0; i < p; ++i)
             {
-                result = 0;
-                for (int j = 0; j <= i; ++j)
-                {
-                    result = Freeze(result + f[j] * g[i - j], q, barrett);
-                }
-                fg[i] = (short)result;
+                a[i] = f[i];
+                b[i] = g[i];
             }
 
-            for (int i = p; i < p + p - 1; ++i)
+            int[] fg = ProductModXpX1(a, b, p);
+
+            int barrett = GetBarrettFactor(q);
+            for (int i = 0; i < p; ++i)
             {
-                result = 0;
-                for (int j = i - p + 1; j < p; ++j)
-                {
-                    result = Freeze(result + f[j] * g[i - j], q, barrett);
-                }
-                fg[i] = (short)result;
+                h[i] = (short)Freeze(fg[i], q, barrett);
             }
-
-            for (int i = p + p - 2; i >= p; --i)
-            {
-                fg[i - p] = (short)Freeze(fg[i - p] + fg[i], q, barrett);
-                fg[i - p + 1] = (short)Freeze(fg[i - p + 1] + fg[i], q, barrett);
-            }
-
-            Array.Copy(fg, 0, h, 0, p);
         }
 
         // h = f * g in the ring R3
         internal static void R3Mult(sbyte[] h, sbyte[] f, sbyte[] g, int p)
         {
-            sbyte[] fg = new sbyte[p + p - 1];
-            int result;
+            int[] a = new int[p];
+            int[] b = new int[p];
+            for (int i = 0; i < p; ++i)
+            {
+                a[i] = f[i];
+                b[i] = g[i];
+            }
+
+            int[] fg = ProductModXpX1(a, b, p);
 
             for (int i = 0; i < p; ++i)
             {
-                result = 0;
-                for (int j = 0; j <= i; ++j)
-                {
-                    result = Freeze3(result + f[j] * g[i - j]);
-                }
-                fg[i] = (sbyte)result;
+                h[i] = (sbyte)Freeze3(fg[i]);
             }
+        }
 
-            for (int i = p; i < p + p - 1; ++i)
+        // Returns the exact product of a and b, both of degree < p, reduced modulo x^p - x - 1, in its first p words.
+        //
+        // One factor is always reduced, |coefficients| <= (q - 1) / 2, and the other small: in {-1, 0, 1}, or up to 2
+        // from a decoded small polynomial. The product's coefficients are then below p * ((q - 1) / 2) * 2, and the
+        // reduced ones below 3 times that, at most 3 * 1277 * 3939 * 2 < 2^25 (sntrup1277), so int arithmetic is exact
+        // for every parameter set and each coefficient is reduced modulo q (or 3) only once.
+        private static int[] ProductModXpX1(int[] a, int[] b, int p)
+        {
+            int[] fg = new int[p + p - 1];
+            for (int i = 0; i < p; ++i)
             {
-                result = 0;
-                for (int j = i - p + 1; j < p; ++j)
+                int ai = a[i];
+                for (int j = 0; j < p; ++j)
                 {
-                    result = Freeze3(result + f[j] * g[i - j]);
+                    fg[i + j] += ai * b[j];
                 }
-                fg[i] = (sbyte)result;
             }
 
+            // x^p = x + 1
             for (int i = p + p - 2; i >= p; --i)
             {
-                fg[i - p] = (sbyte)Freeze3(fg[i - p] + fg[i]);
-                fg[i - p + 1] = (sbyte)Freeze3(fg[i - p + 1] + fg[i]);
+                fg[i - p] += fg[i];
+                fg[i - p + 1] += fg[i];
             }
-
-            Array.Copy(fg, 0, h, 0, p);
+            return fg;
         }
 
         // crypto_sort_uint32: a sorting network, so the sequence of comparisons depends only on the length
