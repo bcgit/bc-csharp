@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pqc.Crypto.NtruPrime;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -73,8 +74,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] sk = Hex.Decode(data["sk"]);
             byte[] ss = Hex.Decode(data["ss"]);
 
-            NistSecureRandom random = new NistSecureRandom(seed, null);
             NtruLPRimeParameters ntruPParameters = ParametersNtruLP[path];
+            SecureRandom random = new ReferenceDrawsRandom(new NistSecureRandom(seed, null), ntruPParameters.P);
 
             NtruLPRimeKeyPairGenerator kpGen = new NtruLPRimeKeyPairGenerator();
             NtruLPRimeKeyGenerationParameters genParams = new NtruLPRimeKeyGenerationParameters(random, ntruPParameters);
@@ -121,8 +122,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] sk = Hex.Decode(data["sk"]);
             byte[] ss = Hex.Decode(data["ss"]);
 
-            NistSecureRandom random = new NistSecureRandom(seed, null);
             SNtruPrimeParameters ntruPParameters = ParametersSNtruP[path];
+            SecureRandom random = new ReferenceDrawsRandom(new NistSecureRandom(seed, null), ntruPParameters.P);
 
             SNtruPrimeKeyPairGenerator kpGen = new SNtruPrimeKeyPairGenerator();
             SNtruPrimeKeyGenerationParameters genParams = new SNtruPrimeKeyGenerationParameters(random, ntruPParameters);
@@ -158,6 +159,66 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             Assert.True(ntruPParameters.DefaultKeySize == dec_key.Length * 8);
             Assert.True(Arrays.AreEqual(dec_key, 0, dec_key.Length, ss, 0, dec_key.Length), $"{path} {count}: kem_dec ss");
             Assert.True(Arrays.AreEqual(dec_key, 0, dec_key.Length, secret, 0, secret.Length), $"{path} {count}: kem_dec key");
+        }
+
+        /// <summary>
+        /// Reproduces the reference implementation's pattern of random-byte requests, so that the KATs' generator
+        /// yields the same bytes for the engine as it did for the reference.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The KAT files (the NTRU Prime submission's own, generated with NIST's PQCgenKAT harness) record a seed
+        /// per vector, not the random bytes. <see cref="NistSecureRandom"/> re-creates NIST's AES-256 CTR DRBG from
+        /// that seed, and the bytes it returns depend on how they are requested, not just how many: each call
+        /// produces whole 16-byte blocks, returns the bytes asked for, discards the rest of the last block and then
+        /// re-keys. One call for 8 bytes therefore differs from two calls for 4.
+        /// </para>
+        /// <para>
+        /// The reference draws the p uint32s behind each random small or short polynomial (Small_random,
+        /// Short_random) by p separate 4-byte calls (urandom32). The engine makes one 4p-byte call instead, which is
+        /// several times faster with a typical generator; this wrapper splits that call back into the reference's
+        /// p 4-byte calls. Every other request passes through unchanged. They are recognised by length alone: the
+        /// engine's other requests are 32 bytes (NTRU LPRime seeds and inputs) or (p + 3) / 4 bytes (SNTRU Prime's
+        /// rho), never 4p.
+        /// </para>
+        /// <para>
+        /// Where spans are available the engine requests the uint32s as a span. Like any SecureRandom constructed
+        /// without a generator, this one serves span requests through <see cref="NextBytes(byte[])"/>, so they are
+        /// split too.
+        /// </para>
+        /// <para>
+        /// Only replaying the KATs needs this. Otherwise the engine's single call is just as good as the reference's
+        /// many: the bytes differ, but they are equally random.
+        /// </para>
+        /// </remarks>
+        private sealed class ReferenceDrawsRandom
+            : SecureRandom
+        {
+            private readonly SecureRandom m_random;
+            private readonly int m_drawsLength;
+
+            internal ReferenceDrawsRandom(SecureRandom random, int p)
+                : base(null)
+            {
+                m_random = random;
+                m_drawsLength = 4 * p;
+            }
+
+            public override void NextBytes(byte[] buf) => NextBytes(buf, 0, buf.Length);
+
+            public override void NextBytes(byte[] buf, int off, int len)
+            {
+                if (len != m_drawsLength)
+                {
+                    m_random.NextBytes(buf, off, len);
+                    return;
+                }
+
+                for (int i = 0; i < len; i += 4)
+                {
+                    m_random.NextBytes(buf, off + i, 4);
+                }
+            }
         }
     }
 }

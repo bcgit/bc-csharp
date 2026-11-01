@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Runtime.InteropServices;
+#endif
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
@@ -254,14 +257,33 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
         //----------------------- Streamlined --------------------------------
 
+        // Small_random
         private void ByteRandom(sbyte[] output, SecureRandom random)
         {
-            byte[] smallRandom = new byte[4];
-            for (int i = 0;i < _p;++i)
+            uint[] L = RandomUInt32s(random);
+            for (int i = 0; i < _p; ++i)
             {
-                random.NextBytes(smallRandom);
-                output[i] = (sbyte)((((BitConverter.ToUInt32(smallRandom, 0) & 0x3fffffff) * 3) >> 30)-1);
-            };
+                output[i] = (sbyte)((((L[i] & 0x3fffffff) * 3) >> 30) - 1);
+            }
+        }
+
+        // p uniform random uint32s, decoded little-endian. The reference draws each by its own 4-byte call
+        // (urandom32), so with a deterministic generator such as the KATs' its bytes differ from this single call's;
+        // the KAT test splits this request to match.
+        private uint[] RandomUInt32s(SecureRandom random)
+        {
+            uint[] L = new uint[_p];
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (BitConverter.IsLittleEndian)
+            {
+                random.NextBytes(MemoryMarshal.AsBytes(L.AsSpan()));
+                return L;
+            }
+#endif
+            byte[] bytes = new byte[_p * 4];
+            random.NextBytes(bytes);
+            Pack.LE_To_UInt32(bytes, 0, L);
+            return L;
         }
 
         private void RqEncode(byte[] output, short[] r)
@@ -629,31 +651,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             return Pack.LE_To_UInt32(data, 0, _p);
         }
 
+        // Short_random
         private void ShortRandom(sbyte[] output, SecureRandom random)
         {
-            uint[] L = new uint[_p];
-            byte[] shortRandom = new byte[4];
-
-            for (int i = 0; i < _p; ++i)
-            {
-                random.NextBytes(shortRandom);
-                L[i] = BitConverter.ToUInt32(shortRandom, 0);
-            }
-            ShortFromList(output, L);
+            ShortFromList(output, RandomUInt32s(random));
         }
 
-        private void ShortFromList(sbyte[] output, uint[] L_in)
+        // Overwrites L, which the callers discard
+        private void ShortFromList(sbyte[] output, uint[] L)
         {
-            uint[] L = new uint[_p];
-
             for (int i = 0; i < _w; ++i)
             {
-                L[i] = (uint)(L_in[i] & -2);
+                L[i] &= ~1U;
             }
 
             for (int i = _w; i < _p; ++i)
             {
-                L[i] = (uint)(L_in[i] & -3) | 1;
+                L[i] = (L[i] & ~3U) | 1U;
             }
 
             NtruPrimeUtilities.SortUInt32(L);
@@ -786,11 +800,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         {
             byte[] s = new byte[_inputsBytes];
             byte[] h = new byte[_hashBytes];
-            uint[] L = new uint[_p];
-
             InputsEncode(s, r);
             HashPrefix(h, 5, s, s.Length);
-            L = Expand(h);
+            uint[] L = Expand(h);
             ShortFromList(output, L);
         }
 
