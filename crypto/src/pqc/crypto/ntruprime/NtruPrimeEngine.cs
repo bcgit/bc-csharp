@@ -48,6 +48,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         private readonly int _I;
 
         private readonly int _q12;
+        private readonly uint _q31Div, _q31Mod; // 0x80000000 / q, 0x80000000 % q
 
         public int PrivateKeySize => _skBytes;
         public int PublicKeySize => _pkBytes;
@@ -78,6 +79,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
             _smallBytes = ((p + 3) / 4);
             _q12 = ((q - 1) / 2);
+            _q31Div = 0x80000000U / (uint)q;
+            _q31Mod = 0x80000000U % (uint)q;
             _hashBytes = 32;
 
             if (lpr)
@@ -307,7 +310,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
                 sign = -g[0] * f[0];
 
-                swap = NegativeMask((short)-delta) & ((g[0] != 0) ? -1 : 0);
+                swap = NegativeMask((short)-delta) & NonZeroMask(g[0]);
 
                 delta ^= swap & (delta ^ -delta);
                 delta +=1;
@@ -324,12 +327,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
                 }
                 for (int j = 0; j < _p+1; ++j)
                 {
-                    g[j] =(sbyte)(Mod(((g[j] + sign * f[j]) + 1), 3) - 1);
+                    g[j] = (sbyte)ArithmeticMod_3(g[j] + sign * f[j]);
                 }
 
                 for (int j = 0; j < _p+1; ++j)
                 {
-                    r[j] =(sbyte)(Mod(((r[j] + sign * v[j]) + 1), 3) - 1);
+                    r[j] = (sbyte)ArithmeticMod_3(r[j] + sign * v[j]);
                 }
 
                 for (int j = 0; j < _p; ++j)
@@ -346,7 +349,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
                 output[i] = (sbyte)(sign * v[_p - 1 - i]);
             }
 
-            return (delta != 0) ? -1 : 0;
+            return NonZeroMask((short)delta);
         }
 
         private int RqRecip3(short[] output, sbyte[] input)
@@ -393,7 +396,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
                 v[0] = 0;
 
-                swap = NegativeMask((short)-delta) & ((g[0] != 0) ? -1 : 0);
+                swap = NegativeMask((short)-delta) & NonZeroMask(g[0]);
 
                 delta ^= swap & (delta ^ -delta);
                 delta += 1;
@@ -436,7 +439,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
                 output[i] = ArithmeticMod_q(scale * v[_p - 1 - i]);
             }
 
-            return (delta != 0) ? -1 : 0;
+            return NonZeroMask((short)delta);
         }
 
         private short FqRecip(short a1)
@@ -587,10 +590,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             return NonZeroMask((short)(weight - _w));
         }
 
-        private int NonZeroMask(short x)
+        private int NonZeroMask(int x)
         {
             /* return -1 if x!=0; else return 0 */
-            return (x == 0) ? 0 : -1;
+            return (-x | x) >> 31;
         }
 
         //---------------------------------------------------------------------
@@ -680,7 +683,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
                 while (m > 1)
                 {
-                    output[outputPos++] = Decimal.ToByte(r % 256);
+                    output[outputPos++] = (byte)r;
                     r >>= 8;
                     m = (ushort)((m + 255) >> 8);
                 }
@@ -700,7 +703,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
                     while (m >= limit)
                     {
-                        output[outputPos++] = Decimal.ToByte(r % 256);
+                        output[outputPos++] = (byte)r;
                         r >>= 8;
                         m = (m + 255) >> 8;
                     }
@@ -805,8 +808,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
                 for (int i = 0; i < _I; ++i)
                 {
-                    int freeze = Right(T[i]) - aB[i] + 4 * _w + 1;
-                    output[i] = (sbyte)(-NegativeMask((short)(Mod(freeze + _q12, _q) - _q12)));
+                    output[i] = (sbyte)(-NegativeMask(ArithmeticMod_q(Right(T[i]) - aB[i] + 4 * _w + 1)));
                 }
                 // END: XDecrypt
             }
@@ -922,12 +924,62 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
                 L[i] = (uint)(L_in[i] & -3) | 1;
             }
 
-            Array.Sort(L);
+            SortUInt32(L);
 
             for (int i = 0; i < _p; ++i)
             {
                 output[i] = (sbyte)((L[i] & 3) - 1);
             }
+        }
+
+        // crypto_sort_uint32: a sorting network, so the sequence of comparisons depends only on the length
+        private static void SortUInt32(uint[] x)
+        {
+            int n = x.Length;
+            if (n < 2)
+                return;
+
+            int top = 1;
+            while (top < n - top)
+            {
+                top += top;
+            }
+
+            for (int p = top; p > 0; p >>= 1)
+            {
+                for (int i = 0; i < n - p; ++i)
+                {
+                    if ((i & p) == 0)
+                    {
+                        MinMax(ref x[i], ref x[i + p]);
+                    }
+                }
+
+                int j = 0;
+                for (int q = top; q > p; q >>= 1)
+                {
+                    for (; j < n - q; ++j)
+                    {
+                        if ((j & p) == 0)
+                        {
+                            uint a = x[j + p];
+                            for (int r = q; r > p; r >>= 1)
+                            {
+                                MinMax(ref a, ref x[j + r]);
+                            }
+                            x[j + p] = a;
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void MinMax(ref uint a, ref uint b)
+        {
+            // all ones if b < a
+            uint c = (uint)(((long)b - a) >> 63) & (a ^ b);
+            a ^= c;
+            b ^= c;
         }
 
         private void RqMult(ref short[] output, short[] G, ref sbyte[] a) // aG, G, a -> h, f, g
@@ -1175,10 +1227,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             }
 
             // Return 0 if matching, else -1
-            return x == 0 ? 0 : -1;
+            return (-x | x) >> 31;
         }
 
         // Arithmetics
+
+        // For public values only (decoding); secret values go through Int32ModUInt14
         private double Mod(double a, double b)
         {
             return a - b * System.Math.Floor(a / b);
@@ -1186,12 +1240,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
         private short ArithmeticMod_q(int x)  // Fq_freeze
         {
-            return (short)((Mod(x + _q12, _q)) - _q12);
+            return (short)(Int32ModUInt14(x + _q12, (uint)_q, _q31Div, _q31Mod) - _q12);
         }
 
         private short ArithmeticMod_3(int x) // F3_freeze
         {
-            return (short)(Mod(x + 1, 3) - 1);
+            return (short)(Int32ModUInt14(x + 1, 3U, 0x80000000U / 3U, 0x80000000U % 3U) - 1);
+        }
+
+        // int32_mod_uint14: x mod m for 0 < m < 16384, without branches or divisions; v and r are the reference
+        // implementation's compile-time constants 0x80000000 / m and 0x80000000 % m
+        private static int Int32ModUInt14(int x, uint m, uint v, uint r)
+        {
+            int d = (int)UInt32ModUInt14(0x80000000U + (uint)x, m, v) - (int)r;
+            return d + ((int)m & (d >> 31));
+        }
+
+        // uint32_divmod_uint14, remainder only
+        private static uint UInt32ModUInt14(uint x, uint m, uint v)
+        {
+            x -= (uint)((x * (ulong)v) >> 31) * m;
+            x -= (uint)((x * (ulong)v) >> 31) * m;
+            x -= m;
+            return x + (m & (0U - (x >> 31)));
         }
 
         private sbyte Top(int C)
@@ -1201,8 +1272,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
         private short Right(sbyte T)
         {
-            int freeze = _tau3 * T - _tau2;
-            return (short)(Mod(freeze + _q12, _q) - _q12);
+            return ArithmeticMod_q(_tau3 * T - _tau2);
         }
     }
 }
