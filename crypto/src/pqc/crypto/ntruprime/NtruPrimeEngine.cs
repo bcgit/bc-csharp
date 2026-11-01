@@ -21,14 +21,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         private readonly int _secretKeyBytes; // C Reference: SecretKey_bytes
         private readonly int _publicKeyBytes; // C Reference: PublicKey_bytes
         private readonly int _ciphertextsBytes; // C Reference: Ciphertext_bytes
-        
+
         private readonly int _confirmBytes;
         private readonly int _inputsBytes; // For encoding _I-bit inputs
         private readonly int _topBytes;
         private readonly int _seedBytes;
         private readonly int _smallBytes;
         private readonly int _hashBytes;
-        
+
         private readonly int SessionKeyBytes;
 
         // Parameters for NTRU
@@ -119,12 +119,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             {
                 inputs = new sbyte[_p];
             }
-            
+
             byte[] r_enc = new byte[_inputsBytes];
             byte[] cache = new byte[_hashBytes];
-            
+
             HashPrefix(cache, 4, pk, _publicKeyBytes);
-            
+
             if (_lpr)
             {
                 InputsRandom(inputs, random);
@@ -133,7 +133,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             {
                 ShortRandom(inputs, random);
             }
-            
+
             Hide(ct, r_enc, inputs, pk, cache);
             HashSession(ss, 1, r_enc, ct);
         }
@@ -187,7 +187,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             HashSession(ss, 1 + mask, r_enc, ct);
         }
 
-        // ---------------------------------------------------------------------    
+        // ---------------------------------------------------------------------
 
         private void KeyGen(SecureRandom random, byte[] pk, byte[] sk) // ZKeyGen
         {
@@ -281,7 +281,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             {
                 f[i] = 0;
             }
-            
+
             f[0] = 1;
             f[_p - 1] = f[_p] = -1;
 
@@ -315,10 +315,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
                 for (int j = 0; j < _p + 1; ++j)
                 {
                     t = swap&(f[j]^g[j]);
-                    f[j] ^= (sbyte)t; 
+                    f[j] ^= (sbyte)t;
                     g[j] ^= (sbyte)t;
-                    t = swap&(v[j]^r[j]); 
-                    v[j] ^= (sbyte)t; 
+                    t = swap&(v[j]^r[j]);
+                    v[j] ^= (sbyte)t;
                     r[j] ^= (sbyte)t;
 
                 }
@@ -594,7 +594,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         }
 
         //---------------------------------------------------------------------
-        
+
         private List<ushort> Decode(List<byte> S, List<ushort> M)
         {
             int limit = 16384;
@@ -760,7 +760,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
                 }
                 // END: Encrypt
                 // END: XEncrypt
-            
+
                 RoundedEncode(output, B);
                 byte[] topEncOut = new byte[output.Length];
                 TopEncode(topEncOut, T);
@@ -916,7 +916,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             {
                 L[i] = (uint)(L_in[i] & -2);
             }
-            
+
             for (int i = _w; i < _p; ++i)
             {
                 L[i] = (uint)(L_in[i] & -3) | 1;
@@ -976,7 +976,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
                 output[i] = (short)(aG[i] - ArithmeticMod_3(aG[i]));
             }
         }
-        
+
         private void InputsRandom(sbyte[] output, SecureRandom random)
         {
             byte[] s = new byte[_inputsBytes];
