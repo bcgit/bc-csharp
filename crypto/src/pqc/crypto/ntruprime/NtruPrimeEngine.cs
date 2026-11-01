@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Runtime.InteropServices;
 #endif
@@ -40,7 +39,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
         private readonly int _roundedBytes; // Defined in params.h
 
-        // private readonly int _rqBytes; // Defined in params.h - Public key bytes for streamlined nTRU
+        private readonly int _rqBytes; // Defined in params.h - Public key bytes for streamlined nTRU
         private readonly bool _lpr;
         private readonly int _w;
         private readonly int _tau0;
@@ -71,6 +70,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
             // KEM parameters
             this._roundedBytes = roundedBytes;
+            this._rqBytes = rqBytes;
             this._skBytes = skBytes;
             this._pkBytes = pkBytes;
             this._ctBytes = ctBytes;
@@ -289,35 +289,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         private void RqEncode(byte[] output, short[] r)
         {
             ushort[] R = new ushort[_p];
-            ushort[] M = new ushort[_p];
 
             for (int i = 0; i < _p; ++i)
             {
                 R[i] = (ushort)(r[i] + _q12);
-                M[i] = (ushort)_q;
             }
 
-            Encode(output, 0, R, M, _p);
+            Encode(output, R, _p, _q, _q);
         }
 
         private void RqDecode(short[] output, byte[] s)
         {
-            ushort[] R = new ushort[_p];
-            ushort[] M = new ushort[_p];
+            // Truncated input used to fail with this exception inside the List-based decoder this one replaced
+            if (s.Length < _rqBytes)
+                throw new ArgumentOutOfRangeException(nameof(s));
+
+            Decode(output, s, 0, _p, _q, _q);
 
             for (int i = 0; i < _p; ++i)
             {
-                M[i] = (ushort)_q;
-            }
-
-            List<byte> rList = new List<byte>(s);
-            List<ushort> mList = new List<ushort>(M);
-
-            List<ushort> decoded = Decode(rList, mList);
-
-            for (int i = 0; i < _p; ++i)
-            {
-                output[i] = (short)(decoded[i] - _q12);
+                output[i] = (short)(output[i] - _q12);
             }
         }
 
@@ -351,130 +342,136 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
         //---------------------------------------------------------------------
 
-        private List<ushort> Decode(List<byte> S, List<ushort> M)
+        // The reference's Decode and Encode handle a list of values, each with its own modulus. Each level combines
+        // neighbouring values in pairs, takes bytes from the bottom of each pair's combined value while its combined
+        // modulus is at least 16384, and leaves the rest to the next level, carrying an unpaired last value over
+        // unchanged. Here all the moduli are equal at the top level, and pairing keeps them equal except for the last
+        // (only the last pair, or the unpaired last value, involves it), so a level is described by its count n, the
+        // common modulus m and the last value's modulus mLast.
+
+        // The number of bytes taken from the bottom of a pair's combined value, for combined modulus mm; leaves mm as
+        // the modulus of what remains
+        private static int PairBytes(ref int mm)
         {
-            int limit = 16384;
-
-            if (M.Count == 0)
+            int bytes = 0;
+            while (mm >= 16384)
             {
-                return new List<ushort>();
+                mm = (mm + 255) >> 8;
+                ++bytes;
             }
-
-            if (M.Count == 1)
-            {
-                if (M[0] == 1)
-                {
-                    return new List<ushort>() { 0 };
-                }
-                if (M[0] <= 256)
-                {
-                    return new List<ushort>() { (ushort)Mod(S[0], M[0]) };
-                } else
-                {
-                    return new List<ushort>() { (ushort)Mod(S[0] + (((uint)S[1]) << 8), M[0]) };
-                }
-            }
-
-            int k = 0;
-            List<ushort> bottomr = new List<ushort>();
-            List<uint> bottomt = new List<uint>();
-            List<ushort> M2 = new List<ushort>();
-
-            for (int i = 0; i < M.Count - 1; i += 2)
-            {
-                uint m = (uint)(M[i] * M[i + 1]);
-                ushort r = 0;
-                uint t = 1;
-
-                while (m >= limit)
-                {
-                    r = (ushort)(r + S[k] * t);
-                    t = t * 256;
-                    k = k + 1;
-                    m = (uint)System.Math.Floor((double)((m + 255) / 256));
-                }
-                bottomr.Add(r);
-                bottomt.Add(t);
-                M2.Add((ushort)m);
-            }
-
-            if (M.Count % 2 != 0)
-            {
-                M2.Add(M[M.Count - 1]);
-            }
-
-            List<byte> S2 = new List<byte>();
-
-            S2 = S.GetRange(k, S.Count - k);
-
-            List<ushort> R2 = Decode(S2, M2);
-
-            List<ushort> R = new List<ushort>();
-
-            for (int i = 0; i < M.Count - 1; i += 2)
-            {
-                uint r = bottomr[i / 2];
-                uint t = bottomt[i / 2];
-                r += (uint)(t * R2[i / 2]);
-                R.Add((ushort)Mod(r, M[i]));
-                R.Add((ushort)(Mod(System.Math.Floor((double)r / M[i]), M[i + 1])));
-            }
-            if (M.Count % 2 != 0)
-            {
-                R.Add(R2[M2.Count - 1]);
-            }
-            return R;
+            return bytes;
         }
 
-        private int Encode(byte[] output, int outputPos, ushort[] R, ushort[] M, long len)
+        // Decodes n values from s at sOff into output[0 .. n - 1]: the last below mLast, the others below m. The input
+        // is public (a public key or ciphertext), so the divisions are fine.
+        private static void Decode(short[] output, byte[] s, int sOff, int n, int m, int mLast)
         {
-            int limit = 16384;
-            if (len == 1)
+            if (n == 1)
             {
-                ushort r = R[0];
-                ushort m = M[0];
-
-                while (m > 1)
+                if (mLast == 1)
                 {
-                    output[outputPos++] = (byte)r;
-                    r >>= 8;
-                    m = (ushort)((m + 255) >> 8);
+                    output[0] = 0;
                 }
+                else if (mLast <= 256)
+                {
+                    output[0] = (short)(s[sOff] % mLast);
+                }
+                else
+                {
+                    output[0] = (short)((s[sOff] | s[sOff + 1] << 8) % mLast);
+                }
+                return;
             }
 
-            if (len > 1)
+            int pairs = n >> 1;
+            bool lastPaired = (n & 1) == 0;
+
+            int m2 = m * m, b = PairBytes(ref m2);
+            int m2Last = mLast, bLast = 0;
+            if (lastPaired)
             {
-                ushort[] R2 = new ushort[(len + 1) / 2];
-                ushort[] M2 = new ushort[(len + 1) / 2];
+                m2Last = m * mLast;
+                bLast = PairBytes(ref m2Last);
+            }
 
-                int i;
-                for (i = 0; i < len - 1; i += 2)
+            // The pairs' bottom bytes come first, then the next level's encoding, which is decoded into the start of
+            // output and then expanded in place, from the end down so that no value is overwritten before it is read.
+            int bottomBytes = (lastPaired ? pairs - 1 : pairs) * b + bLast;
+            Decode(output, s, sOff + bottomBytes, pairs + (n & 1), m2, m2Last);
+
+            if (!lastPaired)
+            {
+                output[n - 1] = output[pairs];
+            }
+
+            for (int j = pairs - 1; j >= 0; --j)
+            {
+                bool last = lastPaired && j == pairs - 1;
+                int bj = last ? bLast : b;
+                int bOff = sOff + j * b;
+
+                uint r = (uint)output[j] << (8 * bj);
+                for (int k = 0; k < bj; ++k)
                 {
-                    uint m0 = M[i];
-                    uint r = R[i] + R[i + 1] * m0;
-                    uint m = M[i + 1] * m0;
+                    r |= (uint)s[bOff + k] << (8 * k);
+                }
 
-                    while (m >= limit)
+                output[2 * j] = (short)(r % (uint)m);
+                // the reduction is only needed for invalid inputs
+                output[2 * j + 1] = (short)(r / (uint)m % (uint)(last ? mLast : m));
+            }
+        }
+
+        // Encodes n values from R into output: the last below mLast, the others below m. Overwrites R. The sequence of
+        // operations depends only on n, m and mLast.
+        private static void Encode(byte[] output, ushort[] R, int n, int m, int mLast)
+        {
+            int pos = 0;
+
+            while (n > 1)
+            {
+                int pairs = n >> 1;
+                bool lastPaired = (n & 1) == 0;
+
+                int m2 = m * m, b = PairBytes(ref m2);
+                int m2Last = mLast, bLast = 0;
+                if (lastPaired)
+                {
+                    m2Last = m * mLast;
+                    bLast = PairBytes(ref m2Last);
+                }
+
+                // Pair j's combined value replaces R[j], which has been read by then
+                for (int j = 0; j < pairs; ++j)
+                {
+                    int bj = lastPaired && j == pairs - 1 ? bLast : b;
+
+                    uint r = R[2 * j] + R[2 * j + 1] * (uint)m;
+                    for (int k = 0; k < bj; ++k)
                     {
-                        output[outputPos++] = (byte)r;
+                        output[pos++] = (byte)r;
                         r >>= 8;
-                        m = (m + 255) >> 8;
                     }
-
-                    R2[i / 2] = (ushort)r;
-                    M2[i / 2] = (ushort)m;
+                    R[j] = (ushort)r;
                 }
 
-                if (i < len)
+                if (!lastPaired)
                 {
-                    R2[i / 2] = R[i];
-                    M2[i / 2] = M[i];
+                    R[pairs] = R[n - 1];
                 }
 
-                outputPos = Encode(output, outputPos, R2, M2, (len + 1) / 2);
+                n = pairs + (n & 1);
+                m = m2;
+                mLast = m2Last;
             }
 
-            return outputPos;
+            uint r0 = R[0];
+            while (mLast > 1)
+            {
+                output[pos++] = (byte)r0;
+                r0 >>= 8;
+                mLast = (mLast + 255) >> 8;
+            }
         }
 
         private void Encrypt(byte[] output, sbyte[] r, byte[] pk) // ZEncrypt
@@ -712,36 +709,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         private void RoundedEncode(byte[] output, short[] A)
         {
             ushort[] R = new ushort[_p];
-            ushort[] M = new ushort[_p];
 
             for (int i = 0; i < _p; ++i)
             {
                 R[i] = (ushort)(((A[i] + _q12) * 10923) >> 15);
             }
 
-            for (int i = 0; i < _p; ++i)
-            {
-                M[i] = (ushort)((_q + 2) / 3);
-            }
-
-            Encode(output, 0, R, M, _p);
+            int m = (_q + 2) / 3;
+            Encode(output, R, _p, m, m);
         }
 
         private void RoundedDecode(short[] output, byte[] s)
         {
-            List<ushort> M = new List<ushort>(_p);
-            List<byte> S = new List<byte>(s);
+            // Truncated input used to fail with this exception inside the List-based decoder this one replaced
+            if (s.Length < _roundedBytes)
+                throw new ArgumentOutOfRangeException(nameof(s));
+
+            int m = (_q + 2) / 3;
+            Decode(output, s, 0, _p, m, m);
 
             for (int i = 0; i < _p; ++i)
             {
-                M.Add((ushort)((_q + 2) / 3));
-            }
-
-            List<ushort> decoded = Decode(S, M);
-
-            for (int i = 0; i < _p; ++i)
-            {
-                output[i] = (short)((decoded[i] * 3) - _q12);
+                output[i] = (short)(output[i] * 3 - _q12);
             }
         }
 
@@ -881,12 +870,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         }
 
         // Arithmetics
-
-        // For public values only (decoding); secret values go through NtruPrimeUtilities.Freeze
-        private double Mod(double a, double b)
-        {
-            return a - b * System.Math.Floor(a / b);
-        }
 
         private short ArithmeticMod_q(int x)  // Fq_freeze
         {
