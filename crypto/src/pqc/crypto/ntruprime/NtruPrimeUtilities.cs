@@ -4,37 +4,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
     internal static class NtruPrimeUtilities
     {
-        // int32_mod_uint14 constants for modulus 3 (see Freeze)
-        internal const uint V3 = 0x80000000U / 3U, R3 = 0x80000000U % 3U;
+        // GetBarrettFactor(3)
+        internal const int Barrett3 = (int)(0x100000000L / 3);
 
-        // Fq_freeze, F3_freeze: x mod n in [-(n - 1) / 2, (n - 1) / 2], for 0 < n < 16384 and any x with
-        // x + (n - 1) / 2 in the int range; v and r are 0x80000000 / n and 0x80000000 % n
-        internal static int Freeze(int x, int n, uint v, uint r)
+        // floor(2^32 / n), the factor Freeze takes for modulus n. The modulus is public, so dividing by it here is
+        // safe; callers compute the factor once, outside their loops. It is below 2^31 for n >= 3, and an int so that
+        // Freeze's product is a 32x32 -> 64-bit multiplication even on 32-bit platforms.
+        internal static int GetBarrettFactor(int n) =>
+            (int)(0x100000000L / n);
+
+        // Fq_freeze, F3_freeze: x mod n in [-(n - 1) / 2, (n - 1) / 2], for n = 3 or q and any x with
+        // x + (n - 1) / 2 in the int range, without branches or divisions. The multiply-shift estimate of the quotient
+        // is the true quotient or one off it either way, leaving a remainder in [-n, 2n) that two masked corrections
+        // bring into [0, n).
+        internal static int Freeze(int x, int n, int barrett)
         {
-            return Int32ModUInt14(x + (n - 1) / 2, (uint)n, v, r) - (n - 1) / 2;
+            int y = x + (n - 1) / 2;
+            int r = y - n * (int)(((long)y * barrett) >> 32);
+            r += n & (r >> 31);
+            r -= n;
+            r += n & (r >> 31);
+            return r - (n - 1) / 2;
         }
 
-        internal static int Freeze3(int x)
-        {
-            return Freeze(x, 3, V3, R3);
-        }
+        internal static int Freeze3(int x) =>
+            Freeze(x, 3, Barrett3);
 
-        // int32_mod_uint14: x mod m for 0 < m < 16384, without branches or divisions; v and r are the reference
-        // implementation's compile-time constants 0x80000000 / m and 0x80000000 % m
-        private static int Int32ModUInt14(int x, uint m, uint v, uint r)
-        {
-            int d = (int)UInt32ModUInt14(0x80000000U + (uint)x, m, v) - (int)r;
-            return d + ((int)m & (d >> 31));
-        }
-
-        // uint32_divmod_uint14, remainder only
-        private static uint UInt32ModUInt14(uint x, uint m, uint v)
-        {
-            x -= (uint)((x * (ulong)v) >> 31) * m;
-            x -= (uint)((x * (ulong)v) >> 31) * m;
-            x -= m;
-            return x + (m & (0U - (x >> 31)));
-        }
+        // x mod 3 in {-1, 0, 1} for x in [-2, 2], without branches
+        private static int SmallFreeze3(int x) =>
+            x + 3 * (((1 - x) >> 31) - ((x + 1) >> 31));
 
         internal static int NegativeMask(int x)
         {
@@ -47,7 +45,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             return (-x | x) >> 31;
         }
 
-        // Returns 0 if input is invertible in R3, -1 otherwise
+        // Returns 0 if input (coefficients in {-1, 0, 1}) is invertible in R3, -1 otherwise
         internal static int R3Recip(sbyte[] output, sbyte[] input, int p)
         {
             sbyte[] f = new sbyte[p + 1];
@@ -97,14 +95,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
                     r[j] ^= (sbyte)t;
                 }
 
+                // input is small, so f, g, r, v and sign all stay in {-1, 0, 1} and the sums in [-2, 2]
                 for (int j = 0; j < p + 1; ++j)
                 {
-                    g[j] = (sbyte)Freeze3(g[j] + sign * f[j]);
+                    g[j] = (sbyte)SmallFreeze3(g[j] + sign * f[j]);
                 }
 
                 for (int j = 0; j < p + 1; ++j)
                 {
-                    r[j] = (sbyte)Freeze3(r[j] + sign * v[j]);
+                    r[j] = (sbyte)SmallFreeze3(r[j] + sign * v[j]);
                 }
 
                 for (int j = 0; j < p; ++j)
@@ -127,7 +126,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         // output = 1 / (3 * input) in Rq; returns 0 if input is invertible, -1 otherwise
         internal static int RqRecip3(short[] output, sbyte[] input, int p, int q)
         {
-            uint qv = 0x80000000U / (uint)q, qr = 0x80000000U % (uint)q;
+            int barrett = GetBarrettFactor(q);
 
             short[] f = new short[p + 1];
             short[] g = new short[p + 1];
@@ -180,12 +179,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
                 for (int j = 0; j < p + 1; ++j)
                 {
-                    g[j] = (short)Freeze(f0 * g[j] - g0 * f[j], q, qv, qr);
+                    g[j] = (short)Freeze(f0 * g[j] - g0 * f[j], q, barrett);
                 }
 
                 for (int j = 0; j < p + 1; ++j)
                 {
-                    r[j] = (short)Freeze(f0 * r[j] - g0 * v[j], q, qv, qr);
+                    r[j] = (short)Freeze(f0 * r[j] - g0 * v[j], q, barrett);
                 }
 
                 for (int j = 0; j < p; ++j)
@@ -200,33 +199,39 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
             for (int i = 0; i < p; ++i)
             {
-                output[i] = (short)Freeze(scale * v[p - 1 - i], q, qv, qr);
+                output[i] = (short)Freeze(scale * v[p - 1 - i], q, barrett);
             }
 
             return NonZeroMask(delta);
         }
 
-        // 1 / a in Fq (0 for a = 0), for a in [-(q - 1) / 2, (q - 1) / 2]
+        // 1 / a in Fq (0 for a = 0), for a in [-(q - 1) / 2, (q - 1) / 2]: a^(q - 2) by square-and-multiply. The
+        // exponent is public, so the sequence of operations depends on q alone.
         internal static int FqRecip(int a, int q)
         {
-            uint qv = 0x80000000U / (uint)q, qr = 0x80000000U % (uint)q;
-
-            int i = 1;
-            int ai = a;
-
-            while (i < q - 2)
+            int barrett = GetBarrettFactor(q);
+            int e = q - 2, bit = 0;
+            while ((e >> bit) > 1)
             {
-                ai = Freeze(a * ai, q, qv, qr);
-                i++;
+                bit++;
             }
 
+            int ai = a;
+            while (--bit >= 0)
+            {
+                ai = Freeze(ai * ai, q, barrett);
+                if (((e >> bit) & 1) != 0)
+                {
+                    ai = Freeze(ai * a, q, barrett);
+                }
+            }
             return ai;
         }
 
         // h = f * g in the ring Rq
         internal static void RqMult(short[] h, short[] f, sbyte[] g, int p, int q)
         {
-            uint qv = 0x80000000U / (uint)q, qr = 0x80000000U % (uint)q;
+            int barrett = GetBarrettFactor(q);
 
             short[] fg = new short[p + p - 1];
             int result;
@@ -236,7 +241,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
                 result = 0;
                 for (int j = 0; j <= i; ++j)
                 {
-                    result = Freeze(result + f[j] * g[i - j], q, qv, qr);
+                    result = Freeze(result + f[j] * g[i - j], q, barrett);
                 }
                 fg[i] = (short)result;
             }
@@ -246,15 +251,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
                 result = 0;
                 for (int j = i - p + 1; j < p; ++j)
                 {
-                    result = Freeze(result + f[j] * g[i - j], q, qv, qr);
+                    result = Freeze(result + f[j] * g[i - j], q, barrett);
                 }
                 fg[i] = (short)result;
             }
 
             for (int i = p + p - 2; i >= p; --i)
             {
-                fg[i - p] = (short)Freeze(fg[i - p] + fg[i], q, qv, qr);
-                fg[i - p + 1] = (short)Freeze(fg[i - p + 1] + fg[i], q, qv, qr);
+                fg[i - p] = (short)Freeze(fg[i - p] + fg[i], q, barrett);
+                fg[i - p + 1] = (short)Freeze(fg[i - p + 1] + fg[i], q, barrett);
             }
 
             Array.Copy(fg, 0, h, 0, p);

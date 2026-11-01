@@ -34,28 +34,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             foreach (int n in moduli)
             {
-                uint v = 0x80000000U / (uint)n, r = 0x80000000U % (uint)n;
+                int barrett = NtruPrimeUtilities.GetBarrettFactor(n);
                 int max = int.MaxValue - (n - 1) / 2;
 
                 for (int x = -(1 << 18); x <= (1 << 18); x++)
                 {
-                    CheckFreeze(x, n, v, r);
+                    CheckFreeze(x, n, barrett);
                 }
                 for (int i = 0; i < 1000; i++)
                 {
-                    CheckFreeze(int.MinValue + i, n, v, r);
-                    CheckFreeze(max - i, n, v, r);
+                    CheckFreeze(int.MinValue + i, n, barrett);
+                    CheckFreeze(max - i, n, barrett);
                 }
                 for (int i = 0; i < 200000; i++)
                 {
                     int x = (int)NextUInt32();
                     if (x <= max)
                     {
-                        CheckFreeze(x, n, v, r);
+                        CheckFreeze(x, n, barrett);
                     }
                 }
             }
 
+            Assert.AreEqual(NtruPrimeUtilities.GetBarrettFactor(3), NtruPrimeUtilities.Barrett3);
             for (int x = -1000; x <= 1000; x++)
             {
                 Assert.AreEqual(CentredMod(x, 3), NtruPrimeUtilities.Freeze3(x));
@@ -278,10 +279,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             }
         }
 
-        private static void CheckFreeze(int x, int n, uint v, uint r)
+        private static void CheckFreeze(int x, int n, int barrett)
         {
             int expected = CentredMod(x, n);
-            int actual = NtruPrimeUtilities.Freeze(x, n, v, r);
+            int actual = NtruPrimeUtilities.Freeze(x, n, barrett);
             if (actual != expected)
             {
                 Assert.Fail("Freeze(" + x + ", " + n + ") = " + actual + ", expected " + expected);

@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         private readonly int _I;
 
         private readonly int _q12;
-        private readonly uint _q31Div, _q31Mod; // 0x80000000 / q, 0x80000000 % q
+        private readonly int _qBarrett;
 
         public int PrivateKeySize => _skBytes;
         public int PublicKeySize => _pkBytes;
@@ -79,8 +79,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
             _smallBytes = ((p + 3) / 4);
             _q12 = ((q - 1) / 2);
-            _q31Div = 0x80000000U / (uint)q;
-            _q31Mod = 0x80000000U % (uint)q;
+            _qBarrett = NtruPrimeUtilities.GetBarrettFactor(q);
             _hashBytes = 32;
 
             if (lpr)
@@ -879,7 +878,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 
         private short ArithmeticMod_q(int x)  // Fq_freeze
         {
-            return (short)NtruPrimeUtilities.Freeze(x, _q, _q31Div, _q31Mod);
+            return (short)NtruPrimeUtilities.Freeze(x, _q, _qBarrett);
         }
 
         private short ArithmeticMod_3(int x) // F3_freeze
