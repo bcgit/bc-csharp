@@ -2,6 +2,13 @@
 using System.Buffers;
 #endif
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+#if NETCOREAPP3_0_OR_GREATER
+using System;
+using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+#endif
 
 using Org.BouncyCastle.Utilities;
 
@@ -302,7 +309,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 #endif
         }
 
-        private const int KaratsubaThreshold = 32;
+        // The largest product Karatsuba leaves to its base case. Measured over all parameter sets, the AVX2 base case
+        // does best on products of about 30 to 48 coefficients and the scalar one on about 10 to 16.
+        private const int KaratsubaThresholdAvx2 = 48, KaratsubaThresholdScalar = 16;
+
+        private static int KaratsubaThreshold
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => IsAvx2Enabled ? KaratsubaThresholdAvx2 : KaratsubaThresholdScalar;
+        }
+
+        private static bool IsAvx2Enabled
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#if NETCOREAPP3_0_OR_GREATER
+            get => Org.BouncyCastle.Runtime.Intrinsics.X86.Avx2.IsEnabled &&
+                Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian;
+#else
+            get => false;
+#endif
+        }
 
         // The length the Karatsuba recursion runs at for degree p: the smallest c * 2^k >= p with
         // c <= KaratsubaThreshold, so that every level splits evenly. The operands are padded with zeros to it.
@@ -325,6 +351,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         {
             if (n <= KaratsubaThreshold)
             {
+#if NETCOREAPP3_0_OR_GREATER
+                if (IsAvx2Enabled)
+                {
+                    KaratsubaBaseAvx2(a, aOff, b, bOff, n, r, rOff);
+                    return;
+                }
+#endif
+
                 for (int i = 0; i < 2 * n; ++i)
                 {
                     r[rOff + i] = 0;
@@ -340,10 +374,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
                 return;
             }
 
-            int m = n >> 1;
+            int m = n >> 1, done = 0;
 
             // zMid = (a0 + a1) * (b0 + b1) -> t[tOff .. tOff + 2m - 1], with the sums held in r where z0 will go
-            for (int i = 0; i < m; ++i)
+#if NETCOREAPP3_0_OR_GREATER
+            if (IsAvx2Enabled)
+            {
+                done = KaratsubaSumsAvx2(a, aOff, b, bOff, m, r, rOff);
+            }
+#endif
+            for (int i = done; i < m; ++i)
             {
                 r[rOff + i] = a[aOff + i] + a[aOff + m + i];
                 r[rOff + m + i] = b[bOff + i] + b[bOff + m + i];
@@ -357,13 +397,116 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             // Add zMid - z0 - z2 at m, where it overlaps the top half of z0 and the bottom half of z2. With
             // u = z0[m + i] - z2[i], those words become u + zMid[i] - z0[i] and zMid[m + i] - z2[m + i] - u. Each partial
             // sum is the final value plus z0[i] or u, so stays within twice the bound on this level's product.
-            for (int i = 0; i < m; ++i)
+            done = 0;
+#if NETCOREAPP3_0_OR_GREATER
+            if (IsAvx2Enabled)
+            {
+                done = KaratsubaCombineAvx2(m, r, rOff, t, tOff);
+            }
+#endif
+            for (int i = done; i < m; ++i)
             {
                 int u = r[rOff + m + i] - r[rOff + 2 * m + i];
                 r[rOff + m + i] = u + t[tOff + i] - r[rOff + i];
                 r[rOff + 2 * m + i] = t[tOff + m + i] - r[rOff + 3 * m + i] - u;
             }
         }
+
+#if NETCOREAPP3_0_OR_GREATER
+        // Karatsuba's base case with AVX2: r[rOff .. rOff + 2n - 1] = a * b for n <= KaratsubaThresholdAvx2. Each block
+        // of eight outputs, from k, accumulates a[i] * b[k - i .. k - i + 7] over the i for which that window meets b,
+        // reading b from a copy with zeros on either side. The control flow depends on n alone.
+        private static void KaratsubaBaseAvx2(int[] a, int aOff, int[] b, int bOff, int n, int[] r, int rOff)
+        {
+            // bz[8 + j] = b[j], with (stackalloc's) zeros around it: the windows start from b[-7] to b[n - 1]
+            Span<int> bz = stackalloc int[KaratsubaThresholdAvx2 + 16];
+            b.AsSpan(bOff, n).CopyTo(bz.Slice(8));
+            Span<int> tail = stackalloc int[8];
+
+            var A = a.AsSpan(aOff, n);
+            var B = MemoryMarshal.AsBytes(bz);
+            var R = MemoryMarshal.AsBytes(r.AsSpan(rOff, 2 * n));
+
+            for (int k = 0; k < 2 * n; k += 8)
+            {
+                int lo = System.Math.Max(0, k - n + 1), hi = System.Math.Min(n - 1, k + 7);
+
+                var acc = Vector256<int>.Zero;
+                for (int i = lo; i <= hi; ++i)
+                {
+                    var bv = Read256(B.Slice((8 + k - i) * 4));
+                    acc = Avx2.Add(acc, Avx2.MultiplyLow(Vector256.Create(A[i]), bv));
+                }
+
+                if (k + 8 <= 2 * n)
+                {
+                    Write256(R.Slice(k * 4), acc);
+                }
+                else
+                {
+                    // the last block, when 2n is not a multiple of 8
+                    Write256(MemoryMarshal.AsBytes(tail), acc);
+                    tail.Slice(0, 2 * n - k).CopyTo(r.AsSpan(rOff + k, 2 * n - k));
+                }
+            }
+        }
+
+        // Karatsuba's operand sums with AVX2, for the largest multiple of 8 below m; returns that count
+        private static int KaratsubaSumsAvx2(int[] a, int aOff, int[] b, int bOff, int m, int[] r, int rOff)
+        {
+            int len = m & ~7;
+
+            var A0 = MemoryMarshal.AsBytes(a.AsSpan(aOff, len));
+            var A1 = MemoryMarshal.AsBytes(a.AsSpan(aOff + m, len));
+            var B0 = MemoryMarshal.AsBytes(b.AsSpan(bOff, len));
+            var B1 = MemoryMarshal.AsBytes(b.AsSpan(bOff + m, len));
+            var SA = MemoryMarshal.AsBytes(r.AsSpan(rOff, len));
+            var SB = MemoryMarshal.AsBytes(r.AsSpan(rOff + m, len));
+
+            for (int i = 0; i < SA.Length; i += 32)
+            {
+                Write256(SA.Slice(i), Avx2.Add(Read256(A0.Slice(i)), Read256(A1.Slice(i))));
+                Write256(SB.Slice(i), Avx2.Add(Read256(B0.Slice(i)), Read256(B1.Slice(i))));
+            }
+            return len;
+        }
+
+        // Karatsuba's combine (see Karatsuba) with AVX2, for the largest multiple of 8 below m; returns that count
+        private static int KaratsubaCombineAvx2(int m, int[] r, int rOff, int[] t, int tOff)
+        {
+            int len = m & ~7;
+
+            var Z0Lo = MemoryMarshal.AsBytes(r.AsSpan(rOff, len));
+            var Z0Hi = MemoryMarshal.AsBytes(r.AsSpan(rOff + m, len));
+            var Z2Lo = MemoryMarshal.AsBytes(r.AsSpan(rOff + 2 * m, len));
+            var Z2Hi = MemoryMarshal.AsBytes(r.AsSpan(rOff + 3 * m, len));
+            var ZMLo = MemoryMarshal.AsBytes(t.AsSpan(tOff, len));
+            var ZMHi = MemoryMarshal.AsBytes(t.AsSpan(tOff + m, len));
+
+            for (int i = 0; i < Z0Lo.Length; i += 32)
+            {
+                var u = Avx2.Subtract(Read256(Z0Hi.Slice(i)), Read256(Z2Lo.Slice(i)));
+                var lo = Avx2.Subtract(Avx2.Add(u, Read256(ZMLo.Slice(i))), Read256(Z0Lo.Slice(i)));
+                var hi = Avx2.Subtract(Avx2.Subtract(Read256(ZMHi.Slice(i)), Read256(Z2Hi.Slice(i))), u);
+                Write256(Z0Hi.Slice(i), lo);
+                Write256(Z2Lo.Slice(i), hi);
+            }
+            return len;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector256<int> Read256(ReadOnlySpan<byte> s) => MemoryMarshal.Read<Vector256<int>>(s);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Write256(Span<byte> t, Vector256<int> s)
+        {
+#if NET8_0_OR_GREATER
+            MemoryMarshal.Write(t, in s);
+#else
+            MemoryMarshal.Write(t, ref s);
+#endif
+        }
+#endif
 
         // Computes the exact product of the operands in buf (see RentMultiplicationBuffer), both of degree < p,
         // reduced modulo x^p - x - 1, into buf[2n .. 2n + p - 1].
