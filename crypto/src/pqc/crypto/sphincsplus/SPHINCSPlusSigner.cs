@@ -33,6 +33,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         {
         }
 
+        /// <inheritdoc/>
         public void Init(bool forSigning, ICipherParameters param)
         {
             if (forSigning)
@@ -57,6 +58,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             }
         }
 
+        /// <inheritdoc/>
         public byte[] GenerateSignature(byte[] message)
         {
             // # Input: Message M, private key SK = (SK.seed, SK.prf, PK.seed, PK.root)
@@ -118,6 +120,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             return signature;
         }
 
+        /// <inheritdoc/>
         public bool VerifySignature(byte[] message, byte[] signature)
         {
             //# Input: Message M, signature SIG, public key PK

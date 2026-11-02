@@ -10,7 +10,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    // TODO[api] Make sealed
+    /// <summary>An HSS private key.</summary>
     public class HssPrivateKeyParameters
         : LmsKeyParameters, ILmsContextBasedSigner
     {
@@ -166,6 +166,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             ResetKeyToIndex();
         }
 
+        /// <summary>Create a new <see cref="HssPrivateKeyParameters"/>.</summary>
+        /// <param name="l">The l.</param>
+        /// <param name="keys">The keys.</param>
+        /// <param name="sig">The signature.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="indexLimit">The index limit.</param>
         public HssPrivateKeyParameters(int l, IList<LmsPrivateKeyParameters> keys, IList<LmsSignature> sig, long index,
             long indexLimit)
             : base(true)
@@ -216,6 +222,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         private Hierarchy CurrentHierarchy => Volatile.Read(ref m_hierarchy);
 
+        /// <summary>
+        /// Parse a <see cref="HssPrivateKeyParameters"/> from its encoded private key and public key.
+        /// </summary>
+        /// <param name="privEnc">The encoded private key.</param>
+        /// <param name="pubEnc">The encoded public key.</param>
+        /// <returns>The parsed <see cref="HssPrivateKeyParameters"/>.</returns>
         public static HssPrivateKeyParameters GetInstance(byte[] privEnc, byte[] pubEnc) =>
             Parse(privEnc, 0, privEnc.Length, HssPublicKeyParameters.Parse(pubEnc));
 
@@ -255,6 +267,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     $"HSS private key index {index} does not match the component key indices, which imply {implied}");
         }
 
+        /// <summary>Return an <see cref="HssPrivateKeyParameters"/> from the given object.</summary>
+        /// <param name="src">
+        /// An <see cref="HssPrivateKeyParameters"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="HssPrivateKeyParameters"/>, or null if <paramref name="src"/> is null.</returns>
         public static HssPrivateKeyParameters GetInstance(object src)
         {
             if (src is HssPrivateKeyParameters hssPrivateKeyParameters)
@@ -359,16 +376,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return pKey;
         }
 
+        /// <summary>Gets the l.</summary>
         [Obsolete("Use 'Level' instead")]
         public int L => m_level;
 
+        /// <summary>Gets the level.</summary>
         public int Level => m_level;
 
+        /// <summary>Return the index.</summary>
         public long GetIndex()
         {
             lock (this) return m_index;
         }
 
+        /// <summary>Return the lms parameters.</summary>
         public LmsParameters[] GetLmsParameters() => CurrentHierarchy.GetLmsParameters();
 
         internal void IncIndex()
@@ -398,9 +419,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private static HssPrivateKeyParameters MakeCopy(HssPrivateKeyParameters privateKeyParameters) =>
             Parse(privateKeyParameters.GetEncoded());
 
-        // TODO[api] Remove. Nothing calls this: the hierarchy is replaced by the methods that build it, which
-        // hold the monitor across the read and the write and take ownership of what they built. Sealing the
-        // class (see above) removes it in any case.
+        /// <summary>Replace the keys and signatures of the hierarchy.</summary>
+        /// <param name="newKeys">The new keys.</param>
+        /// <param name="newSig">The new signatures.</param>
         protected void UpdateHierarchy(IList<LmsPrivateKeyParameters> newKeys, IList<LmsSignature> newSig)
         {
             lock (this)
@@ -409,10 +430,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
+        /// <summary>
+        /// Determine whether this key is a shard, that is, a key restricted to a range of the signatures of its parent.
+        /// </summary>
+        /// <returns>true if it is a shard, false otherwise.</returns>
         public bool IsShard() => m_isShard;
 
+        /// <summary>Gets the index limit.</summary>
         public long IndexLimit => m_indexLimit;
 
+        /// <inheritdoc/>
         public long GetUsagesRemaining() => IndexLimit - GetIndex();
 
         internal LmsPrivateKeyParameters GetRootKey() => GetKey(0);
@@ -456,9 +483,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         internal LmsPrivateKeyParameters GetKey(int index) => CurrentHierarchy.GetKey(index);
 
-        // Two reads of the hierarchy, so a caller that needs the keys and the signatures over them to belong to one
-        // snapshot has to take the pair in one step, or check that it did not change between the two.
-        // TODO[api] Remove: bc-java's promoted API keeps both package-private, and nothing outside needs either
+        /// <summary>Return the keys.</summary>
         public IList<LmsPrivateKeyParameters> GetKeys() => CurrentHierarchy.Keys;
 
         internal IList<LmsSignature> GetSig() => CurrentHierarchy.Sig;
@@ -599,6 +624,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
+        /// <summary>Return the public key.</summary>
         public HssPublicKeyParameters GetPublicKey()
         {
             lock (this)
@@ -712,6 +738,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return key;
         }
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             if (this == obj)
@@ -754,6 +781,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 && CompareLists(thisHierarchy.Sig, thatHierarchy.Sig);
         }
 
+        /// <inheritdoc/>
         public override byte[] GetEncoded()
         {
             lock (this)
@@ -780,6 +808,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             //
@@ -798,11 +827,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return hc;
         }
 
+        /// <summary>Create a copy of this key.</summary>
+        /// <returns>The copy.</returns>
         protected object Clone()
         {
             return MakeCopy(this);
         }
 
+        /// <inheritdoc/>
         public LmsContext GenerateLmsContext()
         {
             LmsSignedPubKey[] signed_pub_key;
@@ -843,6 +875,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return LmsEngine.WithSignedPublicKeys(context, signed_pub_key);
         }
 
+        /// <inheritdoc/>
         public byte[] GenerateSignature(LmsContext context) => LmsEngine.GenerateHssSignature(Level, context);
 
         private void CheckDisposed()

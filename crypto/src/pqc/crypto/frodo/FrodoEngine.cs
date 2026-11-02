@@ -9,6 +9,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 {
+    /// <summary>The FrodoKEM engine.</summary>
     public class FrodoEngine
     {
         // constant parameters
@@ -54,13 +55,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         private IDigest digest;
         private FrodoMatrixGenerator gen;
 
+        /// <summary>Gets the cipher text size.</summary>
         public int CipherTextSize => len_ct_bytes;
 
+        /// <summary>Gets the session key size.</summary>
         public int SessionKeySize => len_ss_bytes;
 
+        /// <summary>Gets the private key size.</summary>
         public int PrivateKeySize => len_sk_bytes;
+        /// <summary>Gets the public key size.</summary>
         public int PublicKeySize => len_pk_bytes;
 
+        /// <summary>Create a new <see cref="FrodoEngine"/>.</summary>
+        /// <param name="n">The n.</param>
+        /// <param name="D">The d.</param>
+        /// <param name="B">The b.</param>
+        /// <param name="cdf_table">The cdf table.</param>
+        /// <param name="digest">The digest.</param>
+        /// <param name="mGen">The m gen.</param>
         // TODO[api] IDigest should be IXof?
         public FrodoEngine(int n, int D, int B, short[] cdf_table, IDigest digest, FrodoMatrixGenerator mGen)
         {
@@ -187,6 +199,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             return output;
         }
 
+        /// <summary>Generate a key pair.</summary>
+        /// <param name="pk">The buffer to receive the public key.</param>
+        /// <param name="sk">The buffer to receive the private key.</param>
+        /// <param name="random">The source of randomness.</param>
         public void kem_keypair(byte[] pk, byte[] sk, SecureRandom random)
         {
             // 1. Choose uniformly random seeds s || seedSE || z
@@ -323,6 +339,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             return K;
         }
 
+        /// <summary>Encapsulate a shared secret.</summary>
+        /// <param name="ct">The buffer to receive the ciphertext.</param>
+        /// <param name="ss">The buffer to receive the shared secret.</param>
+        /// <param name="pk">The public key.</param>
+        /// <param name="random">The source of randomness.</param>
         public void kem_enc(byte[] ct, byte[] ss, byte[] pk, SecureRandom random)
         {
             // Parse pk = seedA || b
@@ -435,6 +456,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             return output;
         }
 
+        /// <summary>Decapsulate a shared secret.</summary>
+        /// <param name="ss">The buffer to receive the shared secret.</param>
+        /// <param name="ct">The ciphertext.</param>
+        /// <param name="sk">The private key.</param>
         public void kem_dec(byte[] ss, byte[] ct, byte[] sk)
         {
             // Parse ct = c1 || c2

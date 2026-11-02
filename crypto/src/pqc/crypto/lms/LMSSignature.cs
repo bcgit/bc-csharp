@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>An LMS signature.</summary>
     // TODO[api] Make internal
     public class LmsSignature
         : IEncodable
@@ -15,6 +16,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private readonly LMSigParameters m_parameters;
         private readonly byte[][] m_y;
 
+        /// <summary>Create a new <see cref="LmsSignature"/>.</summary>
+        /// <param name="q">The q.</param>
+        /// <param name="otsSignature">The ots signature.</param>
+        /// <param name="parameter">The parameter.</param>
+        /// <param name="y">The second operand.</param>
         public LmsSignature(int q, LMOtsSignature otsSignature, LMSigParameters parameter, byte[][] y)
         {
             m_q = q;
@@ -23,6 +29,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_y = y;
         }
 
+        /// <summary>Return an <see cref="LmsSignature"/> from the given object.</summary>
+        /// <param name="src">
+        /// An <see cref="LmsSignature"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="LmsSignature"/>, or null if <paramref name="src"/> is null.</returns>
         public static LmsSignature GetInstance(object src)
         {
             if (src is LmsSignature lmsSignature)
@@ -57,6 +68,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return new LmsSignature(q, otsSignature, sigParameter, path);
         }
 
+        /// <inheritdoc/>
         // TODO[api] Fix parameter name
         public override bool Equals(object o)
         {
@@ -70,6 +82,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 && DeepEquals(this.m_y, that.m_y);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             int result = m_q;
@@ -79,6 +92,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return result;
         }
 
+        /// <inheritdoc/>
         public byte[] GetEncoded()
         {
             return Composer.Compose()
@@ -89,12 +103,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .Build();
         }
 
+        /// <summary>Gets the ots signature.</summary>
         public LMOtsSignature OtsSignature => m_otsSignature;
 
+        /// <summary>Gets the q.</summary>
         public int Q => m_q;
 
+        /// <summary>Gets the sig parameters.</summary>
         public LMSigParameters SigParameters => m_parameters;
 
+        /// <summary>Gets the y.</summary>
         // TODO[api]
         public byte[][] Y => m_y;
 

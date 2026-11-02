@@ -4,6 +4,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
+    /// <summary>Base class for SPHINCS+ keys.</summary>
     [Obsolete("Use SLH-DSA instead")]
     public abstract class SphincsPlusKeyParameters
         : AsymmetricKeyParameter
@@ -16,6 +17,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             m_parameters = parameters;
         }
 
+        /// <summary>Gets the parameters.</summary>
         public SphincsPlusParameters Parameters => m_parameters;
     }
 }

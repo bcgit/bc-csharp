@@ -4,17 +4,21 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
+    /// <summary>Generates a shared secret and its encapsulation for a public key, for SABER.</summary>
     public sealed class SaberKemGenerator
         : IEncapsulatedSecretGenerator
     {
         // the source of randomness
         private SecureRandom sr;
 
+        /// <summary>Create a new <see cref="SaberKemGenerator"/>.</summary>
+        /// <param name="random">The source of randomness.</param>
         public SaberKemGenerator(SecureRandom random)
         {
             this.sr = CryptoServicesRegistrar.GetSecureRandom(random);
         }
 
+        /// <inheritdoc/>
         public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
         {
             SaberPublicKeyParameters key = (SaberPublicKeyParameters)recipientKey;

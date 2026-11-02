@@ -6,16 +6,19 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
-    public sealed class PicnicSigner 
+    /// <summary>A Picnic signer.</summary>
+    public sealed class PicnicSigner
         : IMessageSigner
     {
         private PicnicPrivateKeyParameters privKey;
         private PicnicPublicKeyParameters pubKey;
 
+        /// <summary>Create a new <see cref="PicnicSigner"/>.</summary>
         public PicnicSigner()
         {
         }
 
+        /// <inheritdoc/>
         public void Init(bool forSigning, ICipherParameters param)
         {
             if (forSigning)
@@ -29,6 +32,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         }
 
+        /// <inheritdoc/>
         public byte[] GenerateSignature(byte[] message)
         {
             PicnicEngine engine = privKey.Parameters.GetEngine();
@@ -40,6 +44,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return signature;
         }
 
+        /// <inheritdoc/>
         public bool VerifySignature(byte[] message, byte[] signature)
         {
             PicnicEngine engine = pubKey.Parameters.GetEngine();

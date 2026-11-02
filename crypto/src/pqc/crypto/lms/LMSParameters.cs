@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>The LMS and LM-OTS parameter set pair of an LMS key.</summary>
     public sealed class LmsParameters
     {
         /// <summary>
@@ -17,17 +18,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private readonly LMSigParameters m_sigParameters;
         private readonly LMOtsParameters m_otsParameters;
 
-        // TODO[api] Make internal, rename parameters like fields
+        /// <summary>Create a new <see cref="LmsParameters"/>.</summary>
+        /// <param name="lmSigParameters">The lm sig parameters.</param>
+        /// <param name="lmOtsParameters">The lm ots parameters.</param>
         public LmsParameters(LMSigParameters lmSigParameters, LMOtsParameters lmOtsParameters)
         {
             m_sigParameters = lmSigParameters ?? throw new ArgumentNullException(nameof(lmSigParameters));
             m_otsParameters = lmOtsParameters ?? throw new ArgumentNullException(nameof(lmOtsParameters));
         }
 
-        // TODO[api] Rename to SigParameters
+        /// <summary>Gets the LM sig parameters.</summary>
         public LMSigParameters LMSigParameters => m_sigParameters;
 
-        // TODO[api] Rename to OtsParameters
+        /// <summary>Gets the LM ots parameters.</summary>
         public LMOtsParameters LMOtsParameters => m_otsParameters;
 
         /// <summary>A pairing of the two parameter sets, so equal by value.</summary>

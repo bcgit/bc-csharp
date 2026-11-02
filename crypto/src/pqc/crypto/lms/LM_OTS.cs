@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>LM-OTS (Leighton-Micali one-time signature) operations, as defined in RFC 8554.</summary>
     // TODO[api] Make internal
     public static class LMOts
     {
@@ -27,6 +28,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         internal const int SEED_RANDOMISER_INDEX = ~2;
         internal const short D_MESG = unchecked((short)0x8181);
 
+        /// <summary>Extract the i-th w-bit coefficient of a byte string (RFC 8554 Algorithm 2).</summary>
+        /// <param name="S">The byte string.</param>
+        /// <param name="i">The index of the coefficient.</param>
+        /// <param name="w">The width of a coefficient in bits.</param>
+        /// <returns>The coefficient.</returns>
         public static int Coef(byte[] S, int i, int w)
         {
             int index = (i * w) / 8;
@@ -37,6 +43,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return (S[index] >> shift) & mask;
         }
 
+        /// <summary>Calculate the checksum of a byte string (RFC 8554 Algorithm 2).</summary>
+        /// <param name="S">The byte string.</param>
+        /// <param name="sLen">The length of the byte string.</param>
+        /// <param name="parameters">The LM-OTS parameters.</param>
+        /// <returns>The checksum, shifted into place.</returns>
         public static int Cksm(byte[] S, int sLen, LMOtsParameters parameters)
         {
             int sum = 0;
@@ -62,7 +73,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             Pack.UInt16_To_BE((ushort)cs, Q, n);
         }
 
-        // TODO[api] Remove. Nothing calls this: the key derives its own public key.
+        /// <summary>Generate the public key for a private key (RFC 8554 Algorithm 1).</summary>
+        /// <param name="privateKey">The private key.</param>
+        /// <returns>The public key.</returns>
         public static LMOtsPublicKey LmsOtsGeneratePublicKey(LMOtsPrivateKey privateKey) =>
             privateKey.GeneratePublicKey();
 
@@ -144,6 +157,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         // signing has users - RFC 8554 does not offer it as a signature scheme in its own right - so it waits for
         // the promotion that makes this whole class internal.
 #pragma warning disable IDE1006
+        /// <summary>Generate a signature for a message.</summary>
+        /// <param name="sigParams">The LMS signature parameters.</param>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="path">The authentication path.</param>
+        /// <param name="message">The message.</param>
+        /// <param name="preHashed">true if the message has already been hashed.</param>
+        /// <returns>The signature.</returns>
+        // TODO[api] Rename
         public static LMOtsSignature lm_ots_generate_signature(LMSigParameters sigParams, LMOtsPrivateKey privateKey,
             byte[][] path, byte[] message, bool preHashed)
 #pragma warning restore IDE1006
@@ -165,6 +186,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return LMOtsGenerateSignature(privateKey, Q, qCtx.C);
         }
 
+        /// <summary>Generate a signature for a hashed message (RFC 8554 Algorithm 3).</summary>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="Q">The message hash with its checksum.</param>
+        /// <param name="C">The randomizer.</param>
+        /// <returns>The signature.</returns>
         public static LMOtsSignature LMOtsGenerateSignature(LMOtsPrivateKey privateKey, byte[] Q, byte[] C)
         {
             LMOtsParameters parameters = privateKey.Parameters;
@@ -207,7 +233,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return new LMOtsSignature(parameters, C, y);
         }
 
-        // TODO[api] Remove on promotion
+        /// <summary>Validate a signature against a public key (RFC 8554 Algorithm 4).</summary>
+        /// <param name="publicKey">The public key.</param>
+        /// <param name="signature">The signature.</param>
+        /// <param name="message">The message.</param>
+        /// <param name="prehashed">true if the message has already been hashed.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
         public static bool LMOtsValidateSignature(LMOtsPublicKey publicKey, LMOtsSignature signature, byte[] message,
             bool prehashed)
         {
@@ -222,7 +253,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return Arrays.AreEqual(LMOtsValidateSignatureCalculate(publicKey, signature, message), publicKey.InternalK);
         }
 
-        // TODO[api] Remove on promotion
+        /// <summary>Calculate the public key value implied by a signature (RFC 8554 Algorithm 4b).</summary>
+        /// <param name="publicKey">The public key.</param>
+        /// <param name="signature">The signature.</param>
+        /// <param name="message">The message.</param>
+        /// <returns>The calculated public key value.</returns>
         public static byte[] LMOtsValidateSignatureCalculate(LMOtsPublicKey publicKey, LMOtsSignature signature,
             byte[] message)
         {
@@ -233,7 +268,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return ctx.CalculateKc();
         }
 
-        // TODO[api] Remove on promotion
+        /// <summary>Calculate the public key value implied by the signature of a context.</summary>
+        /// <param name="context">The context.</param>
+        /// <returns>The calculated public key value.</returns>
         public static byte[] LMOtsValidateSignatureCalculate(LmsContext context) => context.CalculateKc();
 
         /// <summary>

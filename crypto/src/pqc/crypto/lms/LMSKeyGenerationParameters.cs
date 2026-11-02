@@ -5,6 +5,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>The parameters for generating LMS keys.</summary>
     public class LmsKeyGenerationParameters
         : KeyGenerationParameters
     {
@@ -37,6 +38,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_lmsParameters = lmsParameters;
         }
 
+        /// <summary>Gets the lms parameters.</summary>
         public LmsParameters LmsParameters => m_lmsParameters;
     }
 }
