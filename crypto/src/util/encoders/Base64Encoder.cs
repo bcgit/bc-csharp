@@ -3,9 +3,11 @@ using System.IO;
 
 namespace Org.BouncyCastle.Utilities.Encoders
 {
+    /// <summary>A Base64 encoder and decoder, implementing <see cref="IEncoder"/>.</summary>
     public class Base64Encoder
         : IEncoder
     {
+        /// <summary>The table mapping 6-bit values to the characters used to encode them.</summary>
         protected readonly byte[] encodingTable =
         {
             (byte)'A', (byte)'B', (byte)'C', (byte)'D', (byte)'E', (byte)'F', (byte)'G',
@@ -22,6 +24,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
             (byte)'+', (byte)'/'
         };
 
+        /// <summary>The character used to pad the encoded output.</summary>
         protected byte padding = (byte)'=';
 
         /*
@@ -29,6 +32,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
         */
         protected readonly byte[] decodingTable = new byte[128];
 
+        /// <summary>Populate the decoding table from the encoding table.</summary>
         protected void InitialiseDecodingTable()
         {
             Arrays.Fill(decodingTable, (byte)0xff);
@@ -39,11 +43,19 @@ namespace Org.BouncyCastle.Utilities.Encoders
             }
         }
 
+        /// <summary>Create a new <see cref="Base64Encoder"/>.</summary>
         public Base64Encoder()
         {
             InitialiseDecodingTable();
         }
 
+        /// <summary>Encode bytes to Base64, writing the encoded characters (as ASCII bytes) to a buffer.</summary>
+        /// <param name="inBuf">The input buffer.</param>
+        /// <param name="inOff">The offset into <paramref name="inBuf"/> at which the data starts.</param>
+        /// <param name="inLen">The number of bytes to encode.</param>
+        /// <param name="outBuf">The output buffer.</param>
+        /// <param name="outOff">The offset into <paramref name="outBuf"/> at which to start writing.</param>
+        /// <returns>The number of bytes written to <paramref name="outBuf"/>.</returns>
         public int Encode(byte[] inBuf, int inOff, int inLen, byte[] outBuf, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -95,6 +107,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int Encode(ReadOnlySpan<byte> input, Span<byte> output)
         {
             int inPos = 0;
@@ -147,7 +160,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
         *
         * @return the number of bytes produced.
         */
-        public int Encode(byte[] buf, int off, int len, Stream outStream) 
+        public int Encode(byte[] buf, int off, int len, Stream outStream)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return Encode(buf.AsSpan(off, len), outStream);
@@ -170,6 +183,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int Encode(ReadOnlySpan<byte> data, Stream outStream)
         {
             Span<byte> tmp = stackalloc byte[72];
@@ -269,6 +283,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int Decode(ReadOnlySpan<byte> data, Stream outStream)
         {
             byte b1, b2, b3, b4;
@@ -357,12 +372,12 @@ namespace Org.BouncyCastle.Utilities.Encoders
         *
         * @return the number of bytes produced.
         */
-        public int DecodeString(string data, Stream	outStream)
+        public int DecodeString(string data, Stream outStream)
         {
             // Platform Implementation
-//			byte[] bytes = Convert.FromBase64String(data);
-//			outStream.Write(bytes, 0, bytes.Length);
-//			return bytes.Length;
+// byte[] bytes = Convert.FromBase64String(data);
+// outStream.Write(bytes, 0, bytes.Length);
+// return bytes.Length;
 
             byte b1, b2, b3, b4;
             int length = 0;
@@ -424,11 +439,11 @@ namespace Org.BouncyCastle.Utilities.Encoders
         }
 
         private int DecodeLastBlock(
-            Stream	outStream,
-            char	c1,
-            char	c2,
-            char	c3,
-            char	c4)
+            Stream outStream,
+            char c1,
+            char c2,
+            char c3,
+            char c4)
         {
             if (c3 == padding)
             {

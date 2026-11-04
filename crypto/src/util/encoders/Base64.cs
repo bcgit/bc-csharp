@@ -3,6 +3,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Utilities.Encoders
 {
+    /// <summary>Utility class to decode and encode Base64.</summary>
     // TODO[api] Make static
     public sealed class Base64
     {
@@ -10,8 +11,16 @@ namespace Org.BouncyCastle.Utilities.Encoders
         {
         }
 
+        /// <summary>Encode data as a Base64 string.</summary>
+        /// <param name="data">The data to encode.</param>
+        /// <returns>The Base64 string.</returns>
         public static string ToBase64String(byte[] data) => Convert.ToBase64String(data, 0, data.Length);
 
+        /// <summary>Encode data as a Base64 string.</summary>
+        /// <param name="data">The data to encode.</param>
+        /// <param name="off">The offset into <paramref name="data"/> at which the data starts.</param>
+        /// <param name="length">The number of bytes to encode.</param>
+        /// <returns>The Base64 string.</returns>
         public static string ToBase64String(byte[] data, int off, int length) =>
             Convert.ToBase64String(data, off, length);
 
@@ -64,6 +73,11 @@ namespace Org.BouncyCastle.Utilities.Encoders
          */
         public static byte[] Decode(byte[] data) => Decode(data, 0, data.Length);
 
+        /// <summary>Decode Base64 encoded data given as ASCII bytes.</summary>
+        /// <param name="data">The encoded data.</param>
+        /// <param name="off">The offset into <paramref name="data"/> at which the encoded data starts.</param>
+        /// <param name="length">The number of bytes of encoded data.</param>
+        /// <returns>The decoded bytes.</returns>
         public static byte[] Decode(byte[] data, int off, int length)
         {
             string s = Strings.FromAsciiByteArray(data, off, length);

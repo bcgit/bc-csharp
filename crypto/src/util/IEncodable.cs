@@ -2,6 +2,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Utilities
 {
+    /// <summary>Interface for objects that can provide an encoded form of themselves.</summary>
     public interface IEncodable
     {
         /// <summary>Return a byte array representing the implementing object.</summary>

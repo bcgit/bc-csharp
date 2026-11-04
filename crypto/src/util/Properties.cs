@@ -51,10 +51,17 @@ namespace Org.BouncyCastle.Utilities
         /// </remarks>
         public static readonly string Argon2MaxParallelism = "Org.BouncyCastle.Argon2.MaxParallelism";
 
+        /// <summary>
+        /// Allow unsafe INTEGER encodings (such as redundant leading bytes) to be accepted when parsing ASN.1.
+        /// </summary>
         public static readonly string Asn1AllowUnsafeInteger = "Org.BouncyCastle.Asn1.AllowUnsafeInteger";
 
+        /// <summary>The maximum nesting depth accepted when parsing ASN.1.</summary>
         public static readonly string Asn1MaxDepth = "Org.BouncyCastle.Asn1.MaxDepth";
 
+        /// <summary>
+        /// The maximum encoded length, in bytes, accepted when parsing ASN.1 from a source of unknown length.
+        /// </summary>
         public static readonly string Asn1MaxLimit = "Org.BouncyCastle.Asn1.MaxLimit";
 
         /// <summary>
@@ -81,18 +88,27 @@ namespace Org.BouncyCastle.Utilities
         /// </remarks>
         public static readonly string CmsAllowLenientRsaPkcs1 = "Org.BouncyCastle.Cms.AllowLenientRsaPkcs1";
 
+        /// <summary>The maximum size, in bits, of Diffie-Hellman parameters that will be accepted.</summary>
         public static readonly string DHMaxSize = "Org.BouncyCastle.DH.MaxSize";
 
+        /// <summary>The maximum size, in bits, of DSA parameters that will be accepted.</summary>
         public static readonly string DsaMaxSize = "Org.BouncyCastle.Dsa.MaxSize";
 
+        /// <summary>The maximum field size, in bits, of binary-field elliptic curves that will be accepted.</summary>
         public static readonly string ECF2mMaxSize = "Org.BouncyCastle.EC.F2m_MaxSize";
 
+        /// <summary>The maximum field size, in bits, of prime-field elliptic curves that will be accepted.</summary>
         public static readonly string ECFpMaxSize = "Org.BouncyCastle.EC.Fp_MaxSize";
 
+        /// <summary>
+        /// The primality certainty used when validating the field prime of prime-field elliptic curves.
+        /// </summary>
         public static readonly string ECFpCertainty = "Org.BouncyCastle.EC.Fp_Certainty";
 
+        /// <summary>Disable all format-preserving encryption (FPE) algorithms when set to true.</summary>
         public static readonly string FpeDisable = "Org.BouncyCastle.Fpe.Disable";
 
+        /// <summary>Disable the FPE FF1 algorithm when set to true.</summary>
         public static readonly string FpeDisableFf1 = "Org.BouncyCastle.Fpe.Disable_Ff1";
 
         /// <summary>
@@ -175,6 +191,7 @@ namespace Org.BouncyCastle.Utilities
         /// </remarks>
         public static readonly string Pkcs12StoreIterationCount = "Org.BouncyCastle.Pkcs12.StoreIterationCount";
 
+        /// <summary>Relax the strict checking of PKCS#1 encodings when set to true.</summary>
         public static readonly string Pkcs1NotStrict = "Org.BouncyCastle.Pkcs1.NotStrict";
 
         /// <summary>
@@ -188,12 +205,16 @@ namespace Org.BouncyCastle.Utilities
         /// </remarks>
         public static readonly string PKMacMaxIterationCount = "Org.BouncyCastle.PKMac.MaxIterationCount";
 
+        /// <summary>Allow RSA moduli that fail the usual safety checks when set to true.</summary>
         public static readonly string RsaAllowUnsafeModulus = "Org.BouncyCastle.Rsa.AllowUnsafeModulus";
 
+        /// <summary>The maximum number of Miller-Rabin tests performed when validating RSA moduli.</summary>
         public static readonly string RsaMaxMRTests = "Org.BouncyCastle.Rsa.MaxMRTests";
 
+        /// <summary>The maximum size, in bits, of RSA moduli that will be accepted.</summary>
         public static readonly string RsaMaxSize = "Org.BouncyCastle.Rsa.MaxSize";
 
+        /// <summary>Allow X.509 certificates whose TBSCertificate is not DER encoded when set to true.</summary>
         public static readonly string X509AllowNonDerTbsCertificate = "Org.BouncyCastle.X509.Allow_Non-DER_TBSCert";
 
         /// <summary>
@@ -263,16 +284,42 @@ namespace Org.BouncyCastle.Utilities
         private static readonly ThreadLocal<Dictionary<string, string>> ThreadProperties =
             new ThreadLocal<Dictionary<string, string>>();
 
+        /// <summary>Clear the thread-specific properties of the calling thread, discarding the whole table.</summary>
         public static void Clear() => ThreadProperties.Value = null;
 
+        /// <summary>Remove all entries from the thread-specific properties of the calling thread.</summary>
         public static void ClearThreadProperties() => ThreadProperties.Value?.Clear();
 
+        /// <summary>
+        /// Get a boolean property, falling back to a default if it is not defined or cannot be parsed.
+        /// </summary>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <param name="defaultValue">
+        /// The value to return if the property is not defined or is not a valid boolean.
+        /// </param>
+        /// <returns>The property value, or <paramref name="defaultValue"/>.</returns>
         public static bool GetBoolean(string propertyName, bool defaultValue) =>
             TryGetBoolean(propertyName, out bool propertyValue) ? propertyValue : defaultValue;
 
+        /// <summary>
+        /// Get a 32-bit integer property, falling back to a default if it is not defined or cannot be parsed.
+        /// </summary>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <param name="defaultValue">
+        /// The value to return if the property is not defined or is not a valid integer.
+        /// </param>
+        /// <returns>The property value, or <paramref name="defaultValue"/>.</returns>
         public static int GetInt32(string propertyName, int defaultValue) =>
             TryGetInt32(propertyName, out int propertyValue) ? propertyValue : defaultValue;
 
+        /// <summary>
+        /// Get a 64-bit integer property, falling back to a default if it is not defined or cannot be parsed.
+        /// </summary>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <param name="defaultValue">
+        /// The value to return if the property is not defined or is not a valid integer.
+        /// </param>
+        /// <returns>The property value, or <paramref name="defaultValue"/>.</returns>
         public static long GetInt64(string propertyName, long defaultValue) =>
             TryGetInt64(propertyName, out long propertyValue) ? propertyValue : defaultValue;
 
@@ -304,6 +351,10 @@ namespace Org.BouncyCastle.Utilities
         /// </returns>
         public static string GetProperty(string name, string defaultValue) => GetProperty(name) ?? defaultValue;
 
+        /// <summary>Get the value of a thread-specific property.</summary>
+        /// <param name="name">The name of the property.</param>
+        /// <returns>The value, or null if the calling thread has not set the property.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="name"/> is null.</exception>
         public static string GetThreadProperty(string name)
         {
             if (name == null)
@@ -316,6 +367,10 @@ namespace Org.BouncyCastle.Utilities
             return null;
         }
 
+        /// <summary>Remove a thread-specific property.</summary>
+        /// <param name="name">The name of the property.</param>
+        /// <returns>true if the property was present and was removed, false otherwise.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="name"/> is null.</exception>
         public static bool RemoveThreadProperty(string name)
         {
             if (name == null)
@@ -328,15 +383,30 @@ namespace Org.BouncyCastle.Utilities
             return false;
         }
 
+        /// <summary>Set a thread-specific property to a boolean value.</summary>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <param name="propertyValue">The value to set.</param>
         public static void SetThreadBoolean(string propertyName, bool propertyValue) =>
             SetThreadProperty(propertyName, propertyValue.ToString());
 
+        /// <summary>Set a thread-specific property to a 32-bit integer value.</summary>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <param name="propertyValue">The value to set.</param>
         public static void SetThreadInt32(string propertyName, int propertyValue) =>
             SetThreadProperty(propertyName, propertyValue.ToString());
 
+        /// <summary>Set a thread-specific property to a 64-bit integer value.</summary>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <param name="propertyValue">The value to set.</param>
         public static void SetThreadInt64(string propertyName, long propertyValue) =>
             SetThreadProperty(propertyName, propertyValue.ToString());
 
+        /// <summary>Set a thread-specific property to a string value.</summary>
+        /// <param name="name">The name of the property.</param>
+        /// <param name="value">The value to set.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="name"/> or <paramref name="value"/> is null.
+        /// </exception>
         public static void SetThreadProperty(string name, string value)
         {
             if (name == null)
@@ -349,21 +419,55 @@ namespace Org.BouncyCastle.Utilities
             threadProperties[name] = value;
         }
 
+        /// <summary>Try to get a boolean property.</summary>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <param name="propertyValue">On success, the value of the property.</param>
+        /// <returns>true if the property is defined and is a valid boolean, false otherwise.</returns>
         public static bool TryGetBoolean(string propertyName, out bool propertyValue) =>
             bool.TryParse(GetProperty(propertyName), out propertyValue);
 
+        /// <summary>Try to get a 32-bit integer property.</summary>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <param name="propertyValue">On success, the value of the property.</param>
+        /// <returns>true if the property is defined and is a valid integer, false otherwise.</returns>
         public static bool TryGetInt32(string propertyName, out int propertyValue) =>
             int.TryParse(GetProperty(propertyName), out propertyValue);
 
+        /// <summary>Try to get a 64-bit integer property.</summary>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <param name="propertyValue">On success, the value of the property.</param>
+        /// <returns>true if the property is defined and is a valid integer, false otherwise.</returns>
         public static bool TryGetInt64(string propertyName, out long propertyValue) =>
             long.TryParse(GetProperty(propertyName), out propertyValue);
 
+        /// <summary>
+        /// Run an action or function with a thread-specific property temporarily set, restoring the previous state
+        /// afterwards.
+        /// </summary>
+        /// <param name="name">The name of the property.</param>
+        /// <param name="value">The value to set while running.</param>
+        /// <param name="action">The action to run.</param>
         public static void WithThreadProperty(string name, string value, Action action) =>
             WithThreadProperty<object, object>(name, value, arg: null, (object ignore) => { action(); return null; });
 
+        /// <summary>
+        /// Run an action or function with a thread-specific property temporarily set, restoring the previous state
+        /// afterwards.
+        /// </summary>
+        /// <param name="name">The name of the property.</param>
+        /// <param name="value">The value to set while running.</param>
+        /// <param name="func">The function to run.</param>
         public static TResult WithThreadProperty<TResult>(string name, string value, Func<TResult> func) =>
             WithThreadProperty<object, TResult>(name, value, arg: null, (object ignore) => func());
 
+        /// <summary>
+        /// Run an action or function with a thread-specific property temporarily set, restoring the previous state
+        /// afterwards.
+        /// </summary>
+        /// <param name="name">The name of the property.</param>
+        /// <param name="value">The value to set while running.</param>
+        /// <param name="arg">The argument to pass to <paramref name="func"/>.</param>
+        /// <param name="func">The function to run.</param>
         public static TResult WithThreadProperty<TArg, TResult>(string name, string value, TArg arg,
             Func<TArg, TResult> func)
         {
