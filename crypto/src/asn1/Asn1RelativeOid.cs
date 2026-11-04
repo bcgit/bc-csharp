@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -23,6 +24,31 @@ namespace Org.BouncyCastle.Asn1
                 return CreatePrimitive(octetString.GetOctets(), clone: false);
             }
         }
+
+        private sealed class ArcOrderComparer
+            : IComparer<Asn1RelativeOid>
+        {
+            public int Compare(Asn1RelativeOid x, Asn1RelativeOid y)
+            {
+                if (ReferenceEquals(x, y))
+                    return 0;
+                if (x == null)
+                    return -1;
+                if (y == null)
+                    return 1;
+
+                return CompareContents(x.m_contents, y.m_contents);
+            }
+        }
+
+        /// <summary>
+        /// Orders relative OIDs numerically arc by arc, with a proper prefix before its extensions (e.g. 1 &lt; 1.3
+        /// &lt; 1.10 &lt; 10). A null reference sorts first.
+        /// </summary>
+        /// <remarks>
+        /// Works directly on the contents octets, so never forces the (decimal) string form.
+        /// </remarks>
+        internal static IComparer<Asn1RelativeOid> ArcComparer { get; } = new ArcOrderComparer();
 
         /// <summary>Implementation limit on the length of the contents octets for a Relative OID.</summary>
         /// <remarks>
@@ -285,6 +311,40 @@ namespace Org.BouncyCastle.Asn1
             }
 
             return subIDStart;
+        }
+
+        /// <summary>
+        /// Compare valid contents octets in arc order: numerically arc by arc, with a proper prefix ordered before its
+        /// extensions.
+        /// </summary>
+        /// <remarks>
+        /// Relies on every subidentifier being minimally encoded (no leading 0x80) and terminated, as checked by
+        /// <see cref="IsValidContents"/>, so that a longer subidentifier encoding always has the larger value. The
+        /// combined first subidentifier of an OID needs no special treatment, since 40X+Y is monotonic in (X, Y).
+        /// </remarks>
+        internal static int CompareContents(byte[] a, byte[] b)
+        {
+            int len = System.Math.Min(a.Length, b.Length), i = 0;
+            while (i < len && a[i] == b[i])
+            {
+                ++i;
+            }
+
+            // No mismatch: valid contents end on a subidentifier boundary, so the shorter one is an arc prefix
+            if (i == len)
+                return a.Length.CompareTo(b.Length);
+
+            // The mismatched subidentifiers start at the same offset; if they also end together, this octet decides
+            int tiebreak = a[i] < b[i] ? -1 : 1;
+
+            // Otherwise the one still continuing after the other terminates is longer, hence larger
+            while ((a[i] & b[i] & 0x80) != 0)
+            {
+                ++i;
+            }
+
+            int diff = (a[i] >> 7) - (b[i] >> 7);
+            return diff != 0 ? diff : tiebreak;
         }
 
         internal static bool IsValidIdentifier(string identifier, int from)

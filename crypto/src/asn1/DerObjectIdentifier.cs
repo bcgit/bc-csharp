@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -23,6 +24,31 @@ namespace Org.BouncyCastle.Asn1
                 return CreatePrimitive(octetString.GetOctets(), clone: false);
             }
         }
+
+        private sealed class ArcOrderComparer
+            : IComparer<DerObjectIdentifier>
+        {
+            public int Compare(DerObjectIdentifier x, DerObjectIdentifier y)
+            {
+                if (ReferenceEquals(x, y))
+                    return 0;
+                if (x == null)
+                    return -1;
+                if (y == null)
+                    return 1;
+
+                return Asn1RelativeOid.CompareContents(x.m_contents, y.m_contents);
+            }
+        }
+
+        /// <summary>
+        /// Orders OIDs numerically arc by arc, with a proper prefix before its extensions (e.g. 1.2 &lt; 1.2.3 &lt;
+        /// 1.2.10 &lt; 1.10). A null reference sorts first.
+        /// </summary>
+        /// <remarks>
+        /// Works directly on the contents octets, so never forces the (decimal) string form.
+        /// </remarks>
+        internal static IComparer<DerObjectIdentifier> ArcComparer { get; } = new ArcOrderComparer();
 
         /// <summary>Implementation limit on the length of the contents octets for an Object Identifier.</summary>
         /// <remarks>
