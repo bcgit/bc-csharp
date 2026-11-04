@@ -1,4 +1,6 @@
-﻿using Org.BouncyCastle.Utilities;
+﻿using System;
+
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
@@ -10,6 +12,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         public BikePublicKeyParameters(BikeParameters param, byte[] publicKey)
             : base(false, param)
         {
+            if (publicKey == null)
+                throw new ArgumentNullException(nameof(publicKey));
+            if (publicKey.Length != param.RByte)
+                throw new ArgumentException("Invalid length", nameof(publicKey));
+
             m_publicKey = Arrays.Clone(publicKey);
         }
 
