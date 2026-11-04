@@ -7,9 +7,11 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Flags describing the properties of a DTLS record.</summary>
     [Flags]
     public enum DtlsRecordFlags
     {
+        /// <summary>No flags are set.</summary>
         None = 0,
 
         /// <summary>The record is newer (by epoch and sequence number) than any record received previously.</summary>
@@ -19,8 +21,13 @@ namespace Org.BouncyCastle.Tls
         UsesConnectionID = 2,
     }
 
+    /// <summary>A callback that is notified of the properties of a DTLS record.</summary>
+    /// <param name="flags">The flags describing the record.</param>
     public delegate void DtlsRecordCallback(DtlsRecordFlags flags);
 
+    /// <summary>
+    /// A DTLS connection established by <see cref="DtlsClientProtocol"/> or <see cref="DtlsServerProtocol"/>.
+    /// </summary>
     public class DtlsTransport
         : DatagramTransport
     {
@@ -317,6 +324,7 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void Send(ReadOnlySpan<byte> buffer)
         {
             try

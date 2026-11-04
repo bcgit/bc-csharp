@@ -3,11 +3,15 @@ using System.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>A digitally-signed element: a signature together with the signature and hash algorithm used.</summary>
     public sealed class DigitallySigned
     {
         private readonly SignatureAndHashAlgorithm m_algorithm;
         private readonly byte[] m_signature;
 
+        /// <summary>Create a new <see cref="DigitallySigned"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="signature">The signature.</param>
         public DigitallySigned(SignatureAndHashAlgorithm algorithm, byte[] signature)
         {
             if (signature == null)
@@ -23,6 +27,7 @@ namespace Org.BouncyCastle.Tls
             get { return m_algorithm; }
         }
 
+        /// <summary>Gets the signature.</summary>
         public byte[] Signature
         {
             get { return m_signature; }

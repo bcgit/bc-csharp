@@ -29,6 +29,7 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <exception cref="IOException"/>
         byte[] GetExtension(DerObjectIdentifier extensionOid);
 
+        /// <summary>Gets the serial number.</summary>
         BigInteger SerialNumber { get; }
 
         /// <returns>the OID of this certificate's 'signatureAlgorithm', as a string.</returns>

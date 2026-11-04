@@ -12,6 +12,8 @@ namespace Org.BouncyCastle.Tls.Crypto
         void SetKey(byte[] key, int keyOff, int keyLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Set the key.</summary>
+        /// <param name="key">The key.</param>
         void SetKey(ReadOnlySpan<byte> key);
 #endif
 
@@ -22,6 +24,8 @@ namespace Org.BouncyCastle.Tls.Crypto
         void Update(byte[] input, int inOff, int length);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Update the MAC with a span of input.</summary>
+        /// <param name="input">The input.</param>
         void Update(ReadOnlySpan<byte> input);
 #endif
 

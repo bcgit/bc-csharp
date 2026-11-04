@@ -96,6 +96,10 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <returns>true if this instance can support SRP authentication, false otherwise.</returns>
         bool HasSrpAuthentication();
 
+        /// <summary>Create a secret from two component secrets, for hybrid key exchange.</summary>
+        /// <param name="s1">The first secret.</param>
+        /// <param name="s2">The second secret.</param>
+        /// <returns>The hybrid secret.</returns>
         TlsSecret CreateHybridSecret(TlsSecret s1, TlsSecret s2);
 
         /// <summary>Create a TlsSecret object based on provided data.</summary>
@@ -192,6 +196,9 @@ namespace Org.BouncyCastle.Tls.Crypto
         TlsNonceGenerator CreateNonceGenerator(byte[] additionalSeedMaterial);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Create a nonce generator.</summary>
+        /// <param name="additionalSeedMaterial">Additional seed material to mix in.</param>
+        /// <returns>The nonce generator.</returns>
         TlsNonceGenerator CreateNonceGenerator(ReadOnlySpan<byte> additionalSeedMaterial);
 #endif
 

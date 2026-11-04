@@ -13,6 +13,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     {
         private readonly int m_signatureScheme;
 
+        /// <summary>Create a new <see cref="BcTlsRsaPssSigner"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="signatureScheme">The signature scheme.</param>
         public BcTlsRsaPssSigner(BcTlsCrypto crypto, RsaKeyParameters privateKey, int signatureScheme)
             : base(crypto, privateKey)
         {
@@ -23,6 +27,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             m_signatureScheme = signatureScheme;
         }
 
+        /// <inheritdoc/>
         public override byte[] GenerateRawSignature(SignatureAndHashAlgorithm algorithm, byte[] hash)
         {
             if (algorithm == null || SignatureScheme.From(algorithm) != m_signatureScheme)

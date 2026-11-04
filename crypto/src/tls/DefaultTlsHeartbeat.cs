@@ -4,6 +4,10 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>
+    /// A default <see cref="TlsHeartbeat"/> implementation with fixed idle and timeout periods and counter-based
+    /// payloads.
+    /// </summary>
     public class DefaultTlsHeartbeat
         : TlsHeartbeat
     {
@@ -11,6 +15,9 @@ namespace Org.BouncyCastle.Tls
 
         private uint counter = 0U;
 
+        /// <summary>Create a new <see cref="DefaultTlsHeartbeat"/>.</summary>
+        /// <param name="idleMillis">The idle millis.</param>
+        /// <param name="timeoutMillis">The timeout millis.</param>
         public DefaultTlsHeartbeat(int idleMillis, int timeoutMillis)
         {
             if (idleMillis <= 0)
@@ -22,6 +29,7 @@ namespace Org.BouncyCastle.Tls
             this.timeoutMillis = timeoutMillis;
         }
 
+        /// <inheritdoc/>
         public virtual byte[] GeneratePayload()
         {
             lock (this)
@@ -31,11 +39,13 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <inheritdoc/>
         public virtual int IdleMillis
         {
             get { return idleMillis; }
         }
 
+        /// <inheritdoc/>
         public virtual int TimeoutMillis
         {
             get { return timeoutMillis; }

@@ -6,6 +6,9 @@ using Org.BouncyCastle.Tls.Crypto;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>
+    /// The pre_shared_key extension of a TLS 1.3 ClientHello: the offered identities and their binders.
+    /// </summary>
     public sealed class OfferedPsks
     {
         internal class BindersConfig
@@ -45,6 +48,8 @@ namespace Org.BouncyCastle.Tls
         private readonly IList<byte[]> m_binders;
         private readonly int m_bindersSize;
 
+        /// <summary>Create a new <see cref="OfferedPsks"/>.</summary>
+        /// <param name="identities">The identities.</param>
         public OfferedPsks(IList<PskIdentity> identities)
             : this(identities, null, -1)
         {
@@ -64,12 +69,18 @@ namespace Org.BouncyCastle.Tls
             m_bindersSize = bindersSize;
         }
 
+        /// <summary>Gets the binders.</summary>
         public IList<byte[]> Binders => m_binders;
 
+        /// <summary>Gets the binders size.</summary>
         public int BindersSize => m_bindersSize;
 
+        /// <summary>Gets the identities.</summary>
         public IList<PskIdentity> Identities => m_identities;
 
+        /// <summary>Find the index of a PSK identity among the offered identities.</summary>
+        /// <param name="pskIdentity">The identity.</param>
+        /// <returns>The index, or -1 if the identity was not offered.</returns>
         public int GetIndexOfIdentity(PskIdentity pskIdentity)
         {
             for (int i = 0, count = m_identities.Count; i < count; ++i)

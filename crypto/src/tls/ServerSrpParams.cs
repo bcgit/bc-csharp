@@ -6,11 +6,17 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>The SRP parameters sent by a server in a ServerKeyExchange message.</summary>
     public sealed class ServerSrpParams
     {
         private BigInteger m_N, m_g, m_B;
         private byte[] m_s;
 
+        /// <summary>Create a new <see cref="ServerSrpParams"/>.</summary>
+        /// <param name="N">The n.</param>
+        /// <param name="g">The generator.</param>
+        /// <param name="s">The s.</param>
+        /// <param name="B">The b.</param>
         public ServerSrpParams(BigInteger N, BigInteger g, byte[] s, BigInteger B)
         {
             this.m_N = N;
@@ -19,21 +25,25 @@ namespace Org.BouncyCastle.Tls
             this.m_B = B;
         }
 
+        /// <summary>Gets the b.</summary>
         public BigInteger B
         {
             get { return m_B; }
         }
 
+        /// <summary>Gets the g.</summary>
         public BigInteger G
         {
             get { return m_g; }
         }
 
+        /// <summary>Gets the n.</summary>
         public BigInteger N
         {
             get { return m_N; }
         }
 
+        /// <summary>Gets the s.</summary>
         public byte[] S
         {
             get { return m_s; }

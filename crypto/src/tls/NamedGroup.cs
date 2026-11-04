@@ -16,60 +16,95 @@ namespace Org.BouncyCastle.Tls
          * in ECParameters).
          */
         public const int sect163k1 = 1;
+        /// <summary>The <c>sect163r1</c> constant, with the value <c>2</c>.</summary>
         public const int sect163r1 = 2;
+        /// <summary>The <c>sect163r2</c> constant, with the value <c>3</c>.</summary>
         public const int sect163r2 = 3;
+        /// <summary>The <c>sect193r1</c> constant, with the value <c>4</c>.</summary>
         public const int sect193r1 = 4;
+        /// <summary>The <c>sect193r2</c> constant, with the value <c>5</c>.</summary>
         public const int sect193r2 = 5;
+        /// <summary>The <c>sect233k1</c> constant, with the value <c>6</c>.</summary>
         public const int sect233k1 = 6;
+        /// <summary>The <c>sect233r1</c> constant, with the value <c>7</c>.</summary>
         public const int sect233r1 = 7;
+        /// <summary>The <c>sect239k1</c> constant, with the value <c>8</c>.</summary>
         public const int sect239k1 = 8;
+        /// <summary>The <c>sect283k1</c> constant, with the value <c>9</c>.</summary>
         public const int sect283k1 = 9;
+        /// <summary>The <c>sect283r1</c> constant, with the value <c>10</c>.</summary>
         public const int sect283r1 = 10;
+        /// <summary>The <c>sect409k1</c> constant, with the value <c>11</c>.</summary>
         public const int sect409k1 = 11;
+        /// <summary>The <c>sect409r1</c> constant, with the value <c>12</c>.</summary>
         public const int sect409r1 = 12;
+        /// <summary>The <c>sect571k1</c> constant, with the value <c>13</c>.</summary>
         public const int sect571k1 = 13;
+        /// <summary>The <c>sect571r1</c> constant, with the value <c>14</c>.</summary>
         public const int sect571r1 = 14;
+        /// <summary>The <c>secp160k1</c> constant, with the value <c>15</c>.</summary>
         public const int secp160k1 = 15;
+        /// <summary>The <c>secp160r1</c> constant, with the value <c>16</c>.</summary>
         public const int secp160r1 = 16;
+        /// <summary>The <c>secp160r2</c> constant, with the value <c>17</c>.</summary>
         public const int secp160r2 = 17;
+        /// <summary>The <c>secp192k1</c> constant, with the value <c>18</c>.</summary>
         public const int secp192k1 = 18;
+        /// <summary>The <c>secp192r1</c> constant, with the value <c>19</c>.</summary>
         public const int secp192r1 = 19;
+        /// <summary>The <c>secp224k1</c> constant, with the value <c>20</c>.</summary>
         public const int secp224k1 = 20;
+        /// <summary>The <c>secp224r1</c> constant, with the value <c>21</c>.</summary>
         public const int secp224r1 = 21;
+        /// <summary>The <c>secp256k1</c> constant, with the value <c>22</c>.</summary>
         public const int secp256k1 = 22;
+        /// <summary>The <c>secp256r1</c> constant, with the value <c>23</c>.</summary>
         public const int secp256r1 = 23;
+        /// <summary>The <c>secp384r1</c> constant, with the value <c>24</c>.</summary>
         public const int secp384r1 = 24;
+        /// <summary>The <c>secp521r1</c> constant, with the value <c>25</c>.</summary>
         public const int secp521r1 = 25;
 
         /*
          * RFC 7027
          */
         public const int brainpoolP256r1 = 26;
+        /// <summary>The <c>brainpoolP384r1</c> constant, with the value <c>27</c>.</summary>
         public const int brainpoolP384r1 = 27;
+        /// <summary>The <c>brainpoolP512r1</c> constant, with the value <c>28</c>.</summary>
         public const int brainpoolP512r1 = 28;
 
         /*
          * RFC 8422
          */
         public const int x25519 = 29;
+        /// <summary>The <c>x448</c> constant, with the value <c>30</c>.</summary>
         public const int x448 = 30;
 
         /*
          * RFC 8734
          */
         public const int brainpoolP256r1tls13 = 31;
+        /// <summary>The <c>brainpoolP384r1tls13</c> constant, with the value <c>32</c>.</summary>
         public const int brainpoolP384r1tls13 = 32;
+        /// <summary>The <c>brainpoolP512r1tls13</c> constant, with the value <c>33</c>.</summary>
         public const int brainpoolP512r1tls13 = 33;
 
         /*
          * RFC 9189
          */
         public const int GC256A = 34;
+        /// <summary>The <c>GC256B</c> constant, with the value <c>35</c>.</summary>
         public const int GC256B = 35;
+        /// <summary>The <c>GC256C</c> constant, with the value <c>36</c>.</summary>
         public const int GC256C = 36;
+        /// <summary>The <c>GC256D</c> constant, with the value <c>37</c>.</summary>
         public const int GC256D = 37;
+        /// <summary>The <c>GC512A</c> constant, with the value <c>38</c>.</summary>
         public const int GC512A = 38;
+        /// <summary>The <c>GC512B</c> constant, with the value <c>39</c>.</summary>
         public const int GC512B = 39;
+        /// <summary>The <c>GC512C</c> constant, with the value <c>40</c>.</summary>
         public const int GC512C = 40;
 
         /*
@@ -84,9 +119,13 @@ namespace Org.BouncyCastle.Tls
          * range. No codepoints outside of this range will be allocated to FFDHE groups.
          */
         public const int ffdhe2048 = 256;
+        /// <summary>The <c>ffdhe3072</c> constant, with the value <c>257</c>.</summary>
         public const int ffdhe3072 = 257;
+        /// <summary>The <c>ffdhe4096</c> constant, with the value <c>258</c>.</summary>
         public const int ffdhe4096 = 258;
+        /// <summary>The <c>ffdhe6144</c> constant, with the value <c>259</c>.</summary>
         public const int ffdhe6144 = 259;
+        /// <summary>The <c>ffdhe8192</c> constant, with the value <c>260</c>.</summary>
         public const int ffdhe8192 = 260;
 
         /*
@@ -101,20 +140,25 @@ namespace Org.BouncyCastle.Tls
          * RFC 4492
          */
         public const int arbitrary_explicit_prime_curves = 0xFF01;
+        /// <summary>The <c>arbitrary_explicit_char2_curves</c> constant, with the value <c>0xFF02</c>.</summary>
         public const int arbitrary_explicit_char2_curves = 0xFF02;
 
         /*
          * draft-connolly-tls-mlkem-key-agreement-05
          */
         public const int MLKEM512 = 0x0200;
+        /// <summary>The <c>MLKEM768</c> constant, with the value <c>0x0201</c>.</summary>
         public const int MLKEM768 = 0x0201;
+        /// <summary>The <c>MLKEM1024</c> constant, with the value <c>0x0202</c>.</summary>
         public const int MLKEM1024 = 0x0202;
 
         /*
          * draft-ietf-tls-ecdhe-mlkem-00
          */
         public const int SecP256r1MLKEM768 = 0x11EB;
+        /// <summary>The <c>X25519MLKEM768</c> constant, with the value <c>0x11EC</c>.</summary>
         public const int X25519MLKEM768 = 0x11EC;
+        /// <summary>The <c>SecP384r1MLKEM1024</c> constant, with the value <c>0x11ED</c>.</summary>
         public const int SecP384r1MLKEM1024 = 0x11ED;
 
         /*
@@ -135,6 +179,10 @@ namespace Org.BouncyCastle.Tls
         private static readonly string[] FiniteFieldNames = new string[]{ "ffdhe2048", "ffdhe3072", "ffdhe4096",
             "ffdhe6144", "ffdhe8192" };
 
+        /// <summary>Determine whether a named group can be negotiated with a protocol version.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <param name="version">The protocol version.</param>
+        /// <returns>true if the group can be negotiated, false otherwise.</returns>
         public static bool CanBeNegotiated(int namedGroup, ProtocolVersion version)
         {
             switch (namedGroup)
@@ -176,6 +224,9 @@ namespace Org.BouncyCastle.Tls
             return IsPrivate(namedGroup);
         }
 
+        /// <summary>Get the size in bits of a named elliptic curve group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The size in bits, or -1 if the group is not a specific curve.</returns>
         public static int GetCurveBits(int namedGroup)
         {
             switch (namedGroup)
@@ -258,6 +309,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the name of the elliptic curve of a named group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The curve name, or null if the group is not a specific curve.</returns>
         public static string GetCurveName(int namedGroup)
         {
             if (RefersToASpecificCurve(namedGroup))
@@ -266,6 +320,9 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        /// <summary>Get the size in bits of a named finite field group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The size in bits, or -1 if the group is not a specific finite field.</returns>
         public static int GetFiniteFieldBits(int namedGroup)
         {
             switch (namedGroup)
@@ -285,6 +342,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the name of the finite field group of a named group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The group name, or null if the group is not a specific finite field.</returns>
         public static string GetFiniteFieldName(int namedGroup)
         {
             if (RefersToASpecificFiniteField(namedGroup))
@@ -295,6 +355,9 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        /// <summary>Get the first component group of a hybrid named group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The component group, or -1 if the group is not a hybrid.</returns>
         public static int GetHybridFirst(int namedGroup)
         {
             switch (namedGroup)
@@ -312,6 +375,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the second component group of a hybrid named group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The component group, or -1 if the group is not a hybrid.</returns>
         public static int GetHybridSecond(int namedGroup)
         {
             switch (namedGroup)
@@ -361,6 +427,9 @@ namespace Org.BouncyCastle.Tls
             return -1;
         }
 
+        /// <summary>Get the name of the key encapsulation mechanism of a named group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The KEM name, or null if the group is not a specific KEM.</returns>
         public static string GetKemName(int namedGroup)
         {
             switch (namedGroup)
@@ -376,26 +445,33 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Return the maximum char 2 curve bits.</summary>
         public static int GetMaximumChar2CurveBits()
         {
             return 571;
         }
 
+        /// <summary>Return the maximum curve bits.</summary>
         public static int GetMaximumCurveBits()
         {
             return 571;
         }
 
+        /// <summary>Return the maximum finite field bits.</summary>
         public static int GetMaximumFiniteFieldBits()
         {
             return 8192;
         }
 
+        /// <summary>Return the maximum prime curve bits.</summary>
         public static int GetMaximumPrimeCurveBits()
         {
             return 521;
         }
 
+        /// <summary>Get the name of the given named group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The name.</returns>
         public static string GetName(int namedGroup)
         {
             if (IsPrivate(namedGroup))
@@ -460,6 +536,9 @@ namespace Org.BouncyCastle.Tls
             return "UNKNOWN";
         }
 
+        /// <summary>Get the standard name of a named group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The standard name, or null if the group has none.</returns>
         public static string GetStandardName(int namedGroup)
         {
             string curveName = GetCurveName(namedGroup);
@@ -477,30 +556,50 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        /// <summary>
+        /// Get a textual representation of the given named group, made up of its name and its numeric value.
+        /// </summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The text.</returns>
         public static string GetText(int namedGroup)
         {
             return GetName(namedGroup) + "(" + namedGroup + ")";
         }
 
+        /// <summary>Determine whether a named group is a binary-field (characteristic 2) elliptic curve.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is a binary-field curve, false otherwise.</returns>
         public static bool IsChar2Curve(int namedGroup)
         {
             return (namedGroup >= sect163k1 && namedGroup <= sect571r1)
                 || (namedGroup == arbitrary_explicit_char2_curves);
         }
 
+        /// <summary>Determine whether a named group is a finite field Diffie-Hellman group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is a finite field group, false otherwise.</returns>
         public static bool IsFiniteField(int namedGroup) => (namedGroup & 0xFFFFFF00) == 0x00000100;
 
+        /// <summary>Determine whether a named group is a prime-field elliptic curve.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is a prime-field curve, false otherwise.</returns>
         public static bool IsPrimeCurve(int namedGroup)
         {
             return (namedGroup >= secp160k1 && namedGroup <= curveSM2)
                 || (namedGroup == arbitrary_explicit_prime_curves);
         }
 
+        /// <summary>Determine whether the given named group is in the range reserved for private use.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the value is in the private-use range, false otherwise.</returns>
         public static bool IsPrivate(int namedGroup)
         {
             return (namedGroup >> 2) == 0x7F || (namedGroup >> 8) == 0xFE;
         }
 
+        /// <summary>Determine whether the given named group is a valid value.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the value is valid, false otherwise.</returns>
         public static bool IsValid(int namedGroup)
         {
             return RefersToASpecificGroup(namedGroup)
@@ -508,11 +607,17 @@ namespace Org.BouncyCastle.Tls
                 || (namedGroup >= arbitrary_explicit_prime_curves && namedGroup <= arbitrary_explicit_char2_curves);
         }
 
+        /// <summary>Determine whether a named group refers to a curve used with ECDH.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is an ECDH curve, false otherwise.</returns>
         public static bool RefersToAnECDHCurve(int namedGroup)
         {
             return RefersToASpecificCurve(namedGroup);
         }
 
+        /// <summary>Determine whether a named group refers to a curve used with ECDSA.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is an ECDSA curve, false otherwise.</returns>
         public static bool RefersToAnECDSACurve(int namedGroup)
         {
             /*
@@ -524,21 +629,33 @@ namespace Org.BouncyCastle.Tls
                 && !RefersToAnXDHCurve(namedGroup);
         }
 
+        /// <summary>Determine whether a named group refers to an XDH curve (X25519 or X448).</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is an XDH curve, false otherwise.</returns>
         public static bool RefersToAnXDHCurve(int namedGroup)
         {
             return namedGroup >= x25519 && namedGroup <= x448;
         }
 
+        /// <summary>Determine whether a named group refers to a specific elliptic curve.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is a specific curve, false otherwise.</returns>
         public static bool RefersToASpecificCurve(int namedGroup)
         {
             return namedGroup >= sect163k1 && namedGroup <= curveSM2;
         }
 
+        /// <summary>Determine whether a named group refers to a specific finite field group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is a specific finite field group, false otherwise.</returns>
         public static bool RefersToASpecificFiniteField(int namedGroup)
         {
             return namedGroup >= ffdhe2048 && namedGroup <= ffdhe8192;
         }
 
+        /// <summary>Determine whether a named group refers to a specific group of any kind.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is a specific group, false otherwise.</returns>
         public static bool RefersToASpecificGroup(int namedGroup)
         {
             return RefersToASpecificCurve(namedGroup)
@@ -547,6 +664,9 @@ namespace Org.BouncyCastle.Tls
                 || RefersToASpecificKem(namedGroup);
         }
 
+        /// <summary>Determine whether a named group refers to a specific hybrid of two groups.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is a specific hybrid, false otherwise.</returns>
         public static bool RefersToASpecificHybrid(int namedGroup)
         {
             switch (namedGroup)
@@ -561,6 +681,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Determine whether a named group refers to a specific key encapsulation mechanism.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is a specific KEM, false otherwise.</returns>
         public static bool RefersToASpecificKem(int namedGroup)
         {
             switch (namedGroup)

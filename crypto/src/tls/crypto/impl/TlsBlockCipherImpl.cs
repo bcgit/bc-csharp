@@ -14,6 +14,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         void SetKey(byte[] key, int keyOff, int keyLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Set the key.</summary>
+        /// <param name="key">The key.</param>
         void SetKey(ReadOnlySpan<byte> key);
 #endif
 
@@ -25,6 +27,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         void Init(byte[] iv, int ivOff, int ivLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Initialise the cipher with a new initialization vector.</summary>
+        /// <param name="iv">The initialization vector.</param>
         void Init(ReadOnlySpan<byte> iv);
 #endif
 

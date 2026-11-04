@@ -7,11 +7,15 @@ using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>A certificate status message, carrying for example an OCSP response.</summary>
     public sealed class CertificateStatus
     {
         private readonly short m_statusType;
         private readonly object m_response;
 
+        /// <summary>Create a new <see cref="CertificateStatus"/>.</summary>
+        /// <param name="statusType">The status type.</param>
+        /// <param name="response">The response.</param>
         public CertificateStatus(short statusType, object response)
         {
             if (!IsCorrectType(statusType, response))
@@ -39,10 +43,13 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Gets the status type.</summary>
         public short StatusType => m_statusType;
 
+        /// <summary>Gets the response.</summary>
         public object Response => m_response;
 
+        /// <summary>Gets the OCSP response, if this is a status of type OCSP.</summary>
         public OcspResponse OcspResponse
         {
             get

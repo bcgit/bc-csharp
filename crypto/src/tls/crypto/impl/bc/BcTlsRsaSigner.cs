@@ -14,17 +14,25 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public class BcTlsRsaSigner
         : BcTlsSigner
     {
+        /// <summary>Create a new <see cref="BcTlsRsaSigner"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="publicKey">The public key.</param>
         [Obsolete("Use constructor without 'publicKey' parameter instead")]
         public BcTlsRsaSigner(BcTlsCrypto crypto, RsaKeyParameters privateKey, RsaKeyParameters publicKey)
             : this(crypto, privateKey)
         {
         }
 
+        /// <summary>Create a new <see cref="BcTlsRsaSigner"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="privateKey">The private key.</param>
         public BcTlsRsaSigner(BcTlsCrypto crypto, RsaKeyParameters privateKey)
             : base(crypto, privateKey)
         {
         }
 
+        /// <inheritdoc/>
         public override byte[] GenerateRawSignature(SignatureAndHashAlgorithm algorithm, byte[] hash)
         {
             IDigest nullDigest = new NullDigest();

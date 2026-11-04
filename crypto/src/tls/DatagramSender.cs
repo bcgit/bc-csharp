@@ -3,6 +3,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Interface for a sink for datagrams.</summary>
     public interface DatagramSender
     {
         /// <exception cref="IOException"/>

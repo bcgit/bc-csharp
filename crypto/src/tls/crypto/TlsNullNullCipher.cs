@@ -6,23 +6,28 @@ namespace Org.BouncyCastle.Tls.Crypto
     public sealed class TlsNullNullCipher
         : TlsCipher
     {
+        /// <summary>The shared instance of <see cref="TlsNullNullCipher"/>.</summary>
         public static readonly TlsNullNullCipher Instance = new TlsNullNullCipher();
 
+        /// <inheritdoc/>
         public int GetCiphertextDecodeLimit(int plaintextLimit)
         {
             return plaintextLimit;
         }
 
+        /// <inheritdoc/>
         public int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit)
         {
             return plaintextLength;
         }
 
+        /// <inheritdoc/>
         public int GetPlaintextLimit(int ciphertextLimit)
         {
             return ciphertextLimit;
         }
 
+        /// <inheritdoc/>
         public TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, byte[] plaintext, int offset, int len)
         {
@@ -32,6 +37,7 @@ namespace Org.BouncyCastle.Tls.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, ReadOnlySpan<byte> plaintext)
         {
@@ -41,22 +47,26 @@ namespace Org.BouncyCastle.Tls.Crypto
         }
 #endif
 
+        /// <inheritdoc/>
         public TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
             byte[] ciphertext, int offset, int len)
         {
             return new TlsDecodeResult(ciphertext, offset, len, recordType);
         }
 
+        /// <inheritdoc/>
         public void RekeyDecoder()
         {
             throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <inheritdoc/>
         public void RekeyEncoder()
         {
             throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <inheritdoc/>
         public bool UsesOpaqueRecordType
         {
             get { return false; }

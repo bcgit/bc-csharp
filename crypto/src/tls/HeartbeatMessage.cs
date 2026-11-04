@@ -6,13 +6,25 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>A heartbeat message of RFC 6520.</summary>
     public sealed class HeartbeatMessage
     {
+        /// <summary>Create a heartbeat message, with random padding.</summary>
+        /// <param name="context">The TLS context.</param>
+        /// <param name="type">The message type (see <see cref="HeartbeatMessageType"/>).</param>
+        /// <param name="payload">The payload.</param>
+        /// <returns>The new message.</returns>
         public static HeartbeatMessage Create(TlsContext context, short type, byte[] payload)
         {
             return Create(context, type, payload, 16);
         }
 
+        /// <summary>Create a heartbeat message, with random padding.</summary>
+        /// <param name="context">The TLS context.</param>
+        /// <param name="type">The message type (see <see cref="HeartbeatMessageType"/>).</param>
+        /// <param name="payload">The payload.</param>
+        /// <param name="paddingLength">The length of the padding.</param>
+        /// <returns>The new message.</returns>
         public static HeartbeatMessage Create(TlsContext context, short type, byte[] payload, int paddingLength)
         {
             byte[] padding = context.NonceGenerator.GenerateNonce(paddingLength);
@@ -24,6 +36,10 @@ namespace Org.BouncyCastle.Tls
         private readonly byte[] m_payload;
         private readonly byte[] m_padding;
 
+        /// <summary>Create a new <see cref="HeartbeatMessage"/>.</summary>
+        /// <param name="type">The type.</param>
+        /// <param name="payload">The payload.</param>
+        /// <param name="padding">The padding.</param>
         public HeartbeatMessage(short type, byte[] payload, byte[] padding)
         {
             if (!HeartbeatMessageType.IsValid(type))
@@ -38,6 +54,7 @@ namespace Org.BouncyCastle.Tls
             this.m_padding = padding;
         }
 
+        /// <summary>Gets the padding length.</summary>
         public int PaddingLength
         {
             /*
@@ -46,11 +63,13 @@ namespace Org.BouncyCastle.Tls
             get { return m_padding.Length; }
         }
 
+        /// <summary>Gets the payload.</summary>
         public byte[] Payload
         {
             get { return m_payload; }
         }
 
+        /// <summary>Gets the type.</summary>
         public short Type
         {
             get { return m_type; }

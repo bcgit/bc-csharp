@@ -34,6 +34,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <summary>The certificate.</summary>
         protected readonly X509CertificateStructure m_certificate;
 
         /// <exception cref="IOException"/>
@@ -42,12 +43,16 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         {
         }
 
+        /// <summary>Create a new <see cref="BcTlsCertificate"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="certificate">The certificate.</param>
         public BcTlsCertificate(BcTlsCrypto crypto, X509CertificateStructure certificate)
             : base(crypto, certificate.SubjectPublicKeyInfo)
         {
             m_certificate = certificate;
         }
 
+        /// <summary>Gets the underlying X.509 certificate structure.</summary>
         public virtual X509CertificateStructure X509CertificateStructure => m_certificate;
 
         /// <exception cref="IOException"/>
@@ -71,12 +76,16 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return null;
         }
 
+        /// <inheritdoc/>
         public override BigInteger SerialNumber => m_certificate.SerialNumber.Value;
 
+        /// <inheritdoc/>
         public override string SigAlgOid => m_certificate.SignatureAlgorithm.Algorithm.Id;
 
+        /// <inheritdoc/>
         public override Asn1Encodable GetSigAlgParams() => m_certificate.SignatureAlgorithm.Parameters;
 
+        /// <inheritdoc/>
         // TODO[api] Rename parameter to 'keyUsageBit'
         protected override bool SupportsKeyUsage(int keyUsageBits)
         {

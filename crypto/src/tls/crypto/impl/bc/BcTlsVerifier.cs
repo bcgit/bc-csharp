@@ -4,12 +4,18 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
+    /// <summary>Base class for TLS signature verifiers using the Bouncy Castle implementation.</summary>
     public abstract class BcTlsVerifier
         : TlsVerifier
     {
+        /// <summary>The crypto.</summary>
         protected readonly BcTlsCrypto m_crypto;
+        /// <summary>The public key.</summary>
         protected readonly AsymmetricKeyParameter m_publicKey;
 
+        /// <summary>Create a new <see cref="BcTlsVerifier"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="publicKey">The public key.</param>
         protected BcTlsVerifier(BcTlsCrypto crypto, AsymmetricKeyParameter publicKey)
         {
             if (crypto == null)
@@ -23,8 +29,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             m_publicKey = publicKey;
         }
 
+        /// <inheritdoc/>
         public virtual TlsStreamVerifier GetStreamVerifier(DigitallySigned digitallySigned) => null;
 
+        /// <inheritdoc/>
         public virtual bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash) =>
             throw new NotSupportedException();
     }

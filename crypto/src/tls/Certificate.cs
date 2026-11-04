@@ -20,12 +20,17 @@ namespace Org.BouncyCastle.Tls
         private static readonly TlsCertificate[] EmptyCerts = Array.Empty<TlsCertificate>();
         private static readonly CertificateEntry[] EmptyCertEntries = Array.Empty<CertificateEntry>();
 
+        /// <summary>An empty certificate chain, for use before TLS 1.3.</summary>
         public static readonly Certificate EmptyChain = new Certificate(EmptyCerts);
+        /// <summary>An empty certificate chain, for use with TLS 1.3.</summary>
         public static readonly Certificate EmptyChainTls13 = new Certificate(TlsUtilities.EmptyBytes, EmptyCertEntries);
 
+        /// <summary>Options controlling how a certificate message is parsed.</summary>
         public sealed class ParseOptions
         {
+            /// <summary>Gets or sets the certificate type.</summary>
             public short CertificateType { get; set; } = Tls.CertificateType.X509;
+            /// <summary>Gets or sets the max chain length.</summary>
             public int MaxChainLength { get; set; } = int.MaxValue;
         }
 
@@ -47,16 +52,25 @@ namespace Org.BouncyCastle.Tls
         private readonly CertificateEntry[] m_certificateEntryList;
         private readonly short m_certificateType;
 
+        /// <summary>Create a new <see cref="Certificate"/>.</summary>
+        /// <param name="certificateList">The certificate list.</param>
         public Certificate(TlsCertificate[] certificateList)
             : this(null, Convert(certificateList))
         {
         }
 
+        /// <summary>Create a new <see cref="Certificate"/>.</summary>
+        /// <param name="certificateRequestContext">The certificate request context.</param>
+        /// <param name="certificateEntryList">The certificate entry list.</param>
         public Certificate(byte[] certificateRequestContext, CertificateEntry[] certificateEntryList)
             : this(Tls.CertificateType.X509, certificateRequestContext, certificateEntryList)
         {
         }
 
+        /// <summary>Create a new <see cref="Certificate"/>.</summary>
+        /// <param name="certificateType">The certificate type.</param>
+        /// <param name="certificateRequestContext">The certificate request context.</param>
+        /// <param name="certificateEntryList">The certificate entry list.</param>
         // TODO[tls13] Prefer to manage the certificateRequestContext internally only?
         public Certificate(short certificateType, byte[] certificateRequestContext, CertificateEntry[] certificateEntryList)
         {
@@ -70,6 +84,7 @@ namespace Org.BouncyCastle.Tls
             m_certificateType = certificateType;
         }
 
+        /// <summary>Return the certificate request context.</summary>
         public byte[] GetCertificateRequestContext()
         {
             return TlsUtilities.Clone(m_certificateRequestContext);
@@ -81,23 +96,32 @@ namespace Org.BouncyCastle.Tls
             return CloneCertificateList();
         }
 
+        /// <summary>Get the certificate at an index of the chain.</summary>
+        /// <param name="index">The index.</param>
+        /// <returns>The certificate.</returns>
         public TlsCertificate GetCertificateAt(int index)
         {
             return m_certificateEntryList[index].Certificate;
         }
 
+        /// <summary>Get the certificate entry at an index of the chain.</summary>
+        /// <param name="index">The index.</param>
+        /// <returns>The certificate entry.</returns>
         public CertificateEntry GetCertificateEntryAt(int index)
         {
             return m_certificateEntryList[index];
         }
 
+        /// <summary>Return the certificate entry list.</summary>
         public CertificateEntry[] GetCertificateEntryList()
         {
             return CloneCertificateEntryList();
         }
 
+        /// <summary>Gets the certificate type.</summary>
         public short CertificateType => m_certificateType;
 
+        /// <summary>Gets the length.</summary>
         public int Length => m_certificateEntryList.Length;
 
         /// <returns><c>true</c> if this certificate chain contains no certificates, or <c>false</c> otherwise.

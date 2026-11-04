@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>A ServerHello message.</summary>
     public sealed class ServerHello
     {
         private static readonly byte[] HelloRetryRequestMagic = { 0xCF, 0x21, 0xAD, 0x74, 0xE5, 0x9A, 0x61, 0x11, 0xBE,
@@ -18,11 +19,21 @@ namespace Org.BouncyCastle.Tls
         private readonly int m_cipherSuite;
         private readonly IDictionary<int, byte[]> m_extensions;
 
+        /// <summary>Create a new <see cref="ServerHello"/>.</summary>
+        /// <param name="sessionID">The session ID.</param>
+        /// <param name="cipherSuite">The cipher suite.</param>
+        /// <param name="extensions">The extensions.</param>
         public ServerHello(byte[] sessionID, int cipherSuite, IDictionary<int, byte[]> extensions)
             : this(ProtocolVersion.TLSv12, Arrays.Clone(HelloRetryRequestMagic), sessionID, cipherSuite, extensions)
         {
         }
 
+        /// <summary>Create a new <see cref="ServerHello"/>.</summary>
+        /// <param name="version">The version.</param>
+        /// <param name="random">The source of randomness.</param>
+        /// <param name="sessionID">The session ID.</param>
+        /// <param name="cipherSuite">The cipher suite.</param>
+        /// <param name="extensions">The extensions.</param>
         public ServerHello(ProtocolVersion version, byte[] random, byte[] sessionID, int cipherSuite,
             IDictionary<int, byte[]> extensions)
         {
@@ -33,31 +44,38 @@ namespace Org.BouncyCastle.Tls
             this.m_extensions = extensions;
         }
 
+        /// <summary>Gets the cipher suite.</summary>
         public int CipherSuite
         {
             get { return m_cipherSuite; }
         }
 
+        /// <summary>Gets the extensions.</summary>
         public IDictionary<int, byte[]> Extensions
         {
             get { return m_extensions; }
         }
 
+        /// <summary>Gets the random.</summary>
         public byte[] Random
         {
             get { return m_random; }
         }
 
+        /// <summary>Gets the session ID.</summary>
         public byte[] SessionID
         {
             get { return m_sessionID; }
         }
 
+        /// <summary>Gets the version.</summary>
         public ProtocolVersion Version
         {
             get { return m_version; }
         }
 
+        /// <summary>Determine whether this message is a HelloRetryRequest.</summary>
+        /// <returns>true if this is a HelloRetryRequest, false otherwise.</returns>
         public bool IsHelloRetryRequest()
         {
             return Arrays.AreEqual(HelloRetryRequestMagic, m_random);

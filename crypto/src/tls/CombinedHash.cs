@@ -9,9 +9,13 @@ namespace Org.BouncyCastle.Tls
     public class CombinedHash
         : TlsHash
     {
+        /// <summary>The context.</summary>
         protected readonly TlsContext m_context;
+        /// <summary>The crypto.</summary>
         protected readonly TlsCrypto m_crypto;
+        /// <summary>The md 5.</summary>
         protected readonly TlsHash m_md5;
+        /// <summary>The sha 1.</summary>
         protected readonly TlsHash m_sha1;
 
         internal CombinedHash(TlsContext context, TlsHash md5, TlsHash sha1)
@@ -22,6 +26,8 @@ namespace Org.BouncyCastle.Tls
             this.m_sha1 = sha1;
         }
 
+        /// <summary>Create a new <see cref="CombinedHash"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
         public CombinedHash(TlsCrypto crypto)
         {
             this.m_crypto = crypto;
@@ -29,6 +35,8 @@ namespace Org.BouncyCastle.Tls
             this.m_sha1 = crypto.CreateHash(CryptoHashAlgorithm.sha1);
         }
 
+        /// <summary>Create a copy of the given <see cref="CombinedHash"/>.</summary>
+        /// <param name="t">The instance to copy.</param>
         public CombinedHash(CombinedHash t)
         {
             this.m_context = t.m_context;
@@ -37,6 +45,7 @@ namespace Org.BouncyCastle.Tls
             this.m_sha1 = t.m_sha1.CloneHash();
         }
 
+        /// <inheritdoc/>
         public virtual void Update(byte[] input, int inOff, int len)
         {
             m_md5.Update(input, inOff, len);
@@ -44,6 +53,7 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void Update(ReadOnlySpan<byte> input)
         {
             m_md5.Update(input);
@@ -51,6 +61,7 @@ namespace Org.BouncyCastle.Tls
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual byte[] CalculateHash()
         {
             if (null != m_context && TlsUtilities.IsSsl(m_context))
@@ -61,11 +72,13 @@ namespace Org.BouncyCastle.Tls
             return Arrays.Concatenate(m_md5.CalculateHash(), m_sha1.CalculateHash());
         }
 
+        /// <inheritdoc/>
         public virtual TlsHash CloneHash()
         {
             return new CombinedHash(this);
         }
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             m_md5.Reset();

@@ -25,26 +25,46 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>The psk identity.</summary>
         protected TlsPskIdentity m_pskIdentity;
+        /// <summary>The psk identity manager.</summary>
         protected TlsPskIdentityManager m_pskIdentityManager;
+        /// <summary>The dh group verifier.</summary>
         protected TlsDHGroupVerifier m_dhGroupVerifier;
 
+        /// <summary>The psk identity hint.</summary>
         protected byte[] m_psk_identity_hint = null;
+        /// <summary>The psk.</summary>
         protected byte[] m_psk = null;
 
+        /// <summary>The dh config.</summary>
         protected TlsDHConfig m_dhConfig;
+        /// <summary>The ec config.</summary>
         protected TlsECConfig m_ecConfig;
+        /// <summary>The agreement.</summary>
         protected TlsAgreement m_agreement;
 
+        /// <summary>The server credentials.</summary>
         protected TlsCredentialedDecryptor m_serverCredentials = null;
+        /// <summary>The server encryptor.</summary>
         protected TlsEncryptor m_serverEncryptor;
+        /// <summary>The pre master secret.</summary>
         protected TlsSecret m_preMasterSecret;
 
+        /// <summary>Create a new <see cref="TlsPskKeyExchange"/>.</summary>
+        /// <param name="keyExchange">The key exchange.</param>
+        /// <param name="pskIdentity">The psk identity.</param>
+        /// <param name="dhGroupVerifier">The dh group verifier.</param>
         public TlsPskKeyExchange(int keyExchange, TlsPskIdentity pskIdentity, TlsDHGroupVerifier dhGroupVerifier)
             : this(keyExchange, pskIdentity, null, dhGroupVerifier, null, null)
         {
         }
 
+        /// <summary>Create a new <see cref="TlsPskKeyExchange"/>.</summary>
+        /// <param name="keyExchange">The key exchange.</param>
+        /// <param name="pskIdentityManager">The psk identity manager.</param>
+        /// <param name="dhConfig">The dh config.</param>
+        /// <param name="ecConfig">The ec config.</param>
         public TlsPskKeyExchange(int keyExchange, TlsPskIdentityManager pskIdentityManager,
             TlsDHConfig dhConfig, TlsECConfig ecConfig)
             : this(keyExchange, null, pskIdentityManager, null, dhConfig, ecConfig)
@@ -62,12 +82,14 @@ namespace Org.BouncyCastle.Tls
             m_ecConfig = ecConfig;
         }
 
+        /// <inheritdoc/>
         public override void SkipServerCredentials()
         {
             if (m_keyExchange == KeyExchangeAlgorithm.RSA_PSK)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <inheritdoc/>
         public override void ProcessServerCredentials(TlsCredentials serverCredentials)
         {
             if (m_keyExchange != KeyExchangeAlgorithm.RSA_PSK)
@@ -76,6 +98,7 @@ namespace Org.BouncyCastle.Tls
             m_serverCredentials = TlsUtilities.RequireDecryptorCredentials(serverCredentials);
         }
 
+        /// <inheritdoc/>
         public override void ProcessServerCertificate(Certificate serverCertificate)
         {
             if (m_keyExchange != KeyExchangeAlgorithm.RSA_PSK)
@@ -84,6 +107,7 @@ namespace Org.BouncyCastle.Tls
             m_serverEncryptor = serverCertificate.GetCertificateAt(0).CreateEncryptor(TlsCertificateRole.RsaEncryption);
         }
 
+        /// <inheritdoc/>
         public override byte[] GenerateServerKeyExchange()
         {
             m_psk_identity_hint = m_pskIdentityManager.GetHint();
@@ -128,10 +152,12 @@ namespace Org.BouncyCastle.Tls
             return buf.ToArray();
         }
 
+        /// <inheritdoc/>
         public override bool RequiresServerKeyExchange =>
             m_keyExchange == KeyExchangeAlgorithm.DHE_PSK ||
             m_keyExchange == KeyExchangeAlgorithm.ECDHE_PSK;
 
+        /// <inheritdoc/>
         public override void ProcessServerKeyExchange(Stream input)
         {
             m_psk_identity_hint = TlsUtilities.ReadOpaque16(input);
@@ -158,9 +184,11 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <inheritdoc/>
         public override void ProcessClientCredentials(TlsCredentials clientCredentials) =>
             throw new TlsFatalAlert(AlertDescription.internal_error);
 
+        /// <inheritdoc/>
         public override void GenerateClientKeyExchange(Stream output)
         {
             if (m_psk_identity_hint == null)
@@ -198,6 +226,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <inheritdoc/>
         public override void ProcessClientKeyExchange(Stream input)
         {
             byte[] psk_identity = TlsUtilities.ReadOpaque16(input);
@@ -229,6 +258,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <inheritdoc/>
         public override TlsSecret GeneratePreMasterSecret()
         {
             byte[] other_secret = GenerateOtherSecret(m_psk.Length);
@@ -243,12 +273,19 @@ namespace Org.BouncyCastle.Tls
             return m_context.Crypto.CreateSecret(buf.ToArray());
         }
 
+        /// <summary>Generate the ephemeral DH public value and write it to a stream.</summary>
+        /// <param name="output">The stream to write to.</param>
         protected virtual void GenerateEphemeralDH(Stream output) =>
             TlsUtilities.WriteOpaque16(m_agreement.GenerateEphemeral(), output);
 
+        /// <summary>Generate the ephemeral ECDH public value and write it to a stream.</summary>
+        /// <param name="output">The stream to write to.</param>
         protected virtual void GenerateEphemeralECDH(Stream output) =>
             TlsUtilities.WriteOpaque8(m_agreement.GenerateEphemeral(), output);
 
+        /// <summary>Generate the other secret for the pre-master secret.</summary>
+        /// <param name="pskLength">The length in bytes of the pre-shared key.</param>
+        /// <returns>The other secret.</returns>
         protected virtual byte[] GenerateOtherSecret(int pskLength)
         {
             if (m_keyExchange == KeyExchangeAlgorithm.PSK)
@@ -270,8 +307,12 @@ namespace Org.BouncyCastle.Tls
             throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <summary>Process the ephemeral DH public value received from the peer.</summary>
+        /// <param name="y">The public value.</param>
         protected virtual void ProcessEphemeralDH(byte[] y) => m_agreement.ReceivePeerValue(y);
 
+        /// <summary>Process the ephemeral ECDH public value received from the peer.</summary>
+        /// <param name="point">The encoded point.</param>
         protected virtual void ProcessEphemeralECDH(byte[] point)
         {
             TlsEccUtilities.CheckPointEncoding(m_ecConfig.NamedGroup, point);

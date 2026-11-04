@@ -4,21 +4,26 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls.Crypto
 {
+    /// <summary>A stream that writes everything to a TLS hash.</summary>
     public class TlsHashSink
         : BaseOutputStream
     {
         private readonly TlsHash m_hash;
 
+        /// <summary>Create a new <see cref="TlsHashSink"/>.</summary>
+        /// <param name="hash">The hash.</param>
         public TlsHashSink(TlsHash hash)
         {
             this.m_hash = hash;
         }
 
+        /// <summary>Gets the hash.</summary>
         public virtual TlsHash Hash
         {
             get { return m_hash; }
         }
 
+        /// <inheritdoc/>
         public override void Write(byte[] buffer, int offset, int count)
         {
             Streams.ValidateBufferArguments(buffer, offset, count);
@@ -30,6 +35,7 @@ namespace Org.BouncyCastle.Tls.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override void Write(ReadOnlySpan<byte> buffer)
         {
             if (!buffer.IsEmpty)
@@ -39,6 +45,7 @@ namespace Org.BouncyCastle.Tls.Crypto
         }
 #endif
 
+        /// <inheritdoc/>
         public override void WriteByte(byte value)
         {
             m_hash.Update(new byte[]{ value }, 0, 1);

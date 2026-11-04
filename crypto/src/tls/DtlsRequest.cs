@@ -2,6 +2,9 @@
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>
+    /// A DTLS handshake request (a ClientHello) received from a client, retained for use by the server protocol.
+    /// </summary>
     public sealed class DtlsRequest
     {
         private readonly long m_recordSeq;

@@ -7,11 +7,15 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>An entry of the trusted_ca_keys extension of RFC 6066.</summary>
     public sealed class TrustedAuthority
     {
         private readonly short m_identifierType;
         private readonly object m_identifier;
 
+        /// <summary>Create a new <see cref="TrustedAuthority"/>.</summary>
+        /// <param name="identifierType">The identifier type.</param>
+        /// <param name="identifier">The identifier.</param>
         public TrustedAuthority(short identifierType, object identifier)
         {
             if (!IsCorrectType(identifierType, identifier))
@@ -21,14 +25,19 @@ namespace Org.BouncyCastle.Tls
             m_identifier = identifier;
         }
 
+        /// <summary>Gets the identifier type.</summary>
         public short IdentifierType => m_identifierType;
 
+        /// <summary>Gets the identifier.</summary>
         public object Identifier => m_identifier;
 
+        /// <summary>Return the cert sha 1 hash.</summary>
         public byte[] GetCertSha1Hash() => Arrays.Clone((byte[])m_identifier);
 
+        /// <summary>Return the key sha 1 hash.</summary>
         public byte[] GetKeySha1Hash() => Arrays.Clone((byte[])m_identifier);
 
+        /// <summary>Gets the X.509 name of the authority, if the identifier type is X.509 name.</summary>
         public X509Name X509Name
         {
             get

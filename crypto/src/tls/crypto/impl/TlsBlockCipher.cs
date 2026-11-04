@@ -10,16 +10,26 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
     public class TlsBlockCipher
         : TlsCipher, TlsCipherExt
     {
+        /// <summary>The crypto params.</summary>
         protected readonly TlsCryptoParameters m_cryptoParams;
+        /// <summary>The random data.</summary>
         protected readonly byte[] m_randomData;
+        /// <summary>The encrypt then mac.</summary>
         protected readonly bool m_encryptThenMac;
+        /// <summary>The use explicit IV.</summary>
         protected readonly bool m_useExplicitIV;
+        /// <summary>The accept extra padding.</summary>
         protected readonly bool m_acceptExtraPadding;
+        /// <summary>The use extra padding.</summary>
         protected readonly bool m_useExtraPadding;
 
+        /// <summary>The encrypt cipher.</summary>
         protected readonly TlsBlockCipherImpl m_decryptCipher, m_encryptCipher;
+        /// <summary>The write mac.</summary>
         protected readonly TlsSuiteHmac m_readMac, m_writeMac;
+        /// <summary>The encrypt connection ID.</summary>
         protected readonly byte[] m_decryptConnectionID, m_encryptConnectionID;
+        /// <summary>The encrypt use inner plaintext.</summary>
         protected readonly bool m_decryptUseInnerPlaintext, m_encryptUseInnerPlaintext;
 
         /// <exception cref="IOException"/>
@@ -48,7 +58,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             /*
              * Don't use variable-length padding with truncated MACs.
-             * 
+             *
              * See "Tag Size Does Matter: Attacks and Proofs for the TLS Record Protocol", Paterson,
              * Ristenpart, Shrimpton.
              *
@@ -155,6 +165,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
         }
 
+        /// <inheritdoc/>
         public virtual int GetCiphertextDecodeLimit(int plaintextLimit)
         {
             int blockSize = m_decryptCipher.GetBlockSize();
@@ -165,6 +176,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return GetCiphertextLength(blockSize, macSize, maxPadding, innerPlaintextLimit);
         }
 
+        /// <inheritdoc/>
         public virtual int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit)
         {
             plaintextLimit = System.Math.Min(plaintextLength, plaintextLimit);
@@ -177,12 +189,14 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return GetCiphertextLength(blockSize, macSize, maxPadding, innerPlaintextLimit);
         }
 
+        /// <inheritdoc/>
         // TODO[api] Remove
         public virtual int GetPlaintextLimit(int ciphertextLimit)
         {
             return GetPlaintextEncodeLimit(ciphertextLimit);
         }
 
+        /// <inheritdoc/>
         public virtual int GetPlaintextDecodeLimit(int ciphertextLimit)
         {
             int blockSize = m_decryptCipher.GetBlockSize();
@@ -193,6 +207,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return innerPlaintextLimit - (m_decryptUseInnerPlaintext ? 1 : 0);
         }
 
+        /// <inheritdoc/>
         public virtual int GetPlaintextEncodeLimit(int ciphertextLimit)
         {
             int blockSize = m_encryptCipher.GetBlockSize();
@@ -203,6 +218,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return innerPlaintextLimit - (m_encryptUseInnerPlaintext ? 1 : 0);
         }
 
+        /// <inheritdoc/>
         public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, byte[] plaintext, int offset, int len)
         {
@@ -291,6 +307,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, ReadOnlySpan<byte> plaintext)
         {
@@ -375,6 +392,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
             byte[] ciphertext, int offset, int len)
         {
@@ -479,21 +497,31 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return new TlsDecodeResult(ciphertext, offset, plaintextLength, contentType);
         }
 
+        /// <inheritdoc/>
         public virtual void RekeyDecoder()
         {
             throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <inheritdoc/>
         public virtual void RekeyEncoder()
         {
             throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <inheritdoc/>
         public virtual bool UsesOpaqueRecordType
         {
             get { return false; }
         }
 
+        /// <summary>Check the padding of a record in constant time.</summary>
+        /// <param name="buf">The buffer holding the record.</param>
+        /// <param name="off">The offset into <paramref name="buf"/> at which the record starts.</param>
+        /// <param name="len">The length of the record.</param>
+        /// <param name="blockSize">The block size.</param>
+        /// <param name="macSize">The MAC size.</param>
+        /// <returns>The padding length, or a negative value if the padding is invalid.</returns>
         protected virtual int CheckPaddingConstantTime(byte[] buf, int off, int len, int blockSize, int macSize)
         {
             int end = off + len;
@@ -541,6 +569,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return totalPad;
         }
 
+        /// <summary>Choose the number of extra blocks of padding to add.</summary>
+        /// <param name="max">The maximum number of extra blocks.</param>
+        /// <returns>The number of extra blocks.</returns>
         protected virtual int ChooseExtraPadBlocks(int max)
         {
             byte[] random = m_cryptoParams.NonceGenerator.GenerateNonce(4);
@@ -549,6 +580,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return System.Math.Min(n, max);
         }
 
+        /// <summary>Calculate the length of the ciphertext for a plaintext.</summary>
+        /// <param name="blockSize">The block size.</param>
+        /// <param name="macSize">The MAC size.</param>
+        /// <param name="maxPadding">The maximum length of padding.</param>
+        /// <param name="plaintextLength">The plaintext length.</param>
+        /// <returns>The ciphertext length.</returns>
         protected virtual int GetCiphertextLength(int blockSize, int macSize, int maxPadding, int plaintextLength)
         {
             int ciphertextLength = plaintextLength;
@@ -577,6 +614,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return ciphertextLength;
         }
 
+        /// <summary>Calculate the maximum length of the plaintext for a ciphertext.</summary>
+        /// <param name="blockSize">The block size.</param>
+        /// <param name="macSize">The MAC size.</param>
+        /// <param name="ciphertextLength">The ciphertext length.</param>
+        /// <returns>The maximum plaintext length.</returns>
         protected virtual int GetPlaintextLength(int blockSize, int macSize, int ciphertextLength)
         {
             int plaintextLength = ciphertextLength;

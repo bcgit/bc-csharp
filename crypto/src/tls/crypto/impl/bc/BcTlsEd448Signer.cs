@@ -5,14 +5,19 @@ using Org.BouncyCastle.Crypto.Signers;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
+    /// <summary>An Ed448 signer for TLS, using the Bouncy Castle implementation.</summary>
     public class BcTlsEd448Signer
         : BcTlsSigner
     {
+        /// <summary>Create a new <see cref="BcTlsEd448Signer"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="privateKey">The private key.</param>
         public BcTlsEd448Signer(BcTlsCrypto crypto, Ed448PrivateKeyParameters privateKey)
             : base(crypto, privateKey)
         {
         }
 
+        /// <inheritdoc/>
         public override TlsStreamSigner GetStreamSigner(SignatureAndHashAlgorithm algorithm)
         {
             if (algorithm == null || SignatureScheme.From(algorithm) != SignatureScheme.ed448)

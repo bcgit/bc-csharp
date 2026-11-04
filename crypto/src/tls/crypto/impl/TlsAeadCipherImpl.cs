@@ -14,6 +14,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         void SetKey(byte[] key, int keyOff, int keyLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Set the key.</summary>
+        /// <param name="key">The key.</param>
         void SetKey(ReadOnlySpan<byte> key);
 #endif
 
@@ -59,6 +61,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         int DoFinal(byte[] additionalData, byte[] input, int inputOffset, int inputLength, byte[] output,
             int outputOffset);
 
+        /// <summary>Reset the cipher to its initial state.</summary>
         // TODO[api] Remove
         void Reset();
     }
