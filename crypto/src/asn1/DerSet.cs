@@ -25,12 +25,26 @@ namespace Org.BouncyCastle.Asn1
 
         public static DerSet Map<T>(T[] ts, Func<T, Asn1Encodable> func)
         {
-            return ts.Length < 1 ? Empty : new DerSet(CollectionUtilities.Map(ts, func));
+            return ts.Length < 1 ? Empty : WithElementsUnshared(CollectionUtilities.Map(ts, func));
         }
 
         public static DerSet Map<T>(IReadOnlyCollection<T> c, Func<T, Asn1Encodable> func)
         {
-            return c.Count < 1 ? Empty : new DerSet(CollectionUtilities.Map(c, func));
+            return c.Count < 1 ? Empty : WithElementsUnshared(CollectionUtilities.Map(c, func));
+        }
+
+        /// <summary>Create a DER set that uses <paramref name="elements"/> directly, without copying.</summary>
+        /// <remarks>
+        /// The array is sorted in place, so it must not be shared: the caller gives up the array, which must not
+        /// also be another object's backing array (e.g. a sequence's elements).
+        /// </remarks>
+        internal static DerSet WithElementsUnshared(Asn1Encodable[] elements)
+        {
+            if (elements.Length < 1)
+                return Empty;
+
+            var sortedDerEncodings = elements.Length > 1 ? SortElements(elements) : null;
+            return new DerSet(elements, sortedDerEncodings);
         }
 
         public DerSet()
@@ -48,7 +62,7 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal DerSet(Asn1Encodable[] elements, bool doSort)
+        private protected DerSet(Asn1Encodable[] elements, bool doSort)
             : base(elements, doSort)
         {
         }
@@ -58,7 +72,7 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal DerSet(Asn1EncodableVector elementVector, bool doSort)
+        private protected DerSet(Asn1EncodableVector elementVector, bool doSort)
             : base(elementVector, doSort)
         {
         }
@@ -78,13 +92,13 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal DerSet(IReadOnlyCollection<Asn1Encodable> elements, bool doSort)
+        private protected DerSet(IReadOnlyCollection<Asn1Encodable> elements, bool doSort)
             : base(elements, doSort)
         {
         }
 
-        internal DerSet(bool isSorted, Asn1Encodable[] elements)
-            : base(isSorted, elements)
+        private protected DerSet(Asn1Encodable[] elements, DerEncoding[] sortedDerEncodings)
+            : base(elements, sortedDerEncodings)
         {
         }
 

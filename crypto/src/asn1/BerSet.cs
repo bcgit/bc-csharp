@@ -24,12 +24,17 @@ namespace Org.BouncyCastle.Asn1
 
         public static new BerSet Map<T>(T[] ts, Func<T, Asn1Encodable> func)
         {
-            return ts.Length < 1 ? Empty : new BerSet(isSorted: false, CollectionUtilities.Map(ts, func));
+            return ts.Length < 1 ? Empty : WithElements(CollectionUtilities.Map(ts, func));
         }
 
         public static new BerSet Map<T>(IReadOnlyCollection<T> c, Func<T, Asn1Encodable> func)
         {
-            return c.Count < 1 ? Empty : new BerSet(isSorted: false, CollectionUtilities.Map(c, func));
+            return c.Count < 1 ? Empty : WithElements(CollectionUtilities.Map(c, func));
+        }
+
+        internal static new BerSet WithElements(Asn1Encodable[] elements)
+        {
+            return elements.Length < 1 ? Empty : new BerSet(elements, sortedDerEncodings: null);
         }
 
         public BerSet()
@@ -67,8 +72,8 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal BerSet(bool isSorted, Asn1Encodable[] elements)
-            : base(isSorted, elements)
+        private protected BerSet(Asn1Encodable[] elements, DerEncoding[] sortedDerEncodings)
+            : base(elements, sortedDerEncodings)
         {
         }
 

@@ -153,6 +153,6 @@ namespace Org.BouncyCastle.Asn1
 
         internal override DerExternal ToAsn1External() => DLExternal.FromSequence(this);
 
-        internal override Asn1Set ToAsn1Set() => new DLSet(false, m_elements);
+        internal override Asn1Set ToAsn1Set() => DLSet.WithElements(m_elements);
     }
 }

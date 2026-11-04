@@ -162,7 +162,7 @@ namespace Org.BouncyCastle.Asn1
             DerOctetString.WithContents(BerOctetString.FlattenOctetStrings(GetConstructedOctetStrings()));
 
         // NOTE: DLSet is intentional, we don't want sorting
-        internal override Asn1Set ToAsn1Set() => new DLSet(false, m_elements);
+        internal override Asn1Set ToAsn1Set() => DLSet.WithElements(m_elements);
 
         internal static int GetEncodingLength(int contentsLength) =>
             Asn1OutputStream.GetLengthOfEncodingDL(Asn1Tags.Sequence, contentsLength);

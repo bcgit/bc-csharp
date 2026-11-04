@@ -155,6 +155,6 @@ namespace Org.BouncyCastle.Asn1
 
         internal override Asn1OctetString ToAsn1OctetString() => new BerOctetString(GetConstructedOctetStrings());
 
-        internal override Asn1Set ToAsn1Set() => new BerSet(false, m_elements);
+        internal override Asn1Set ToAsn1Set() => BerSet.WithElements(m_elements);
     }
 }

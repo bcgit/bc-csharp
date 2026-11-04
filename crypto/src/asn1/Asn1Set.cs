@@ -171,12 +171,18 @@ namespace Org.BouncyCastle.Asn1
             m_sortedDerEncodings = sortedDerEncodings;
         }
 
-        // TODO[api] Remove 'protected'
+        // TODO[api] Remove (unused internally)
         protected internal Asn1Set(bool isSorted, Asn1Encodable[] elements)
         {
             Debug.Assert(!isSorted);
             m_elements = elements;
             m_sortedDerEncodings = null;
+        }
+
+        private protected Asn1Set(Asn1Encodable[] elements, DerEncoding[] sortedDerEncodings)
+        {
+            m_elements = elements ?? throw new ArgumentNullException(nameof(elements));
+            m_sortedDerEncodings = sortedDerEncodings;
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
@@ -274,7 +280,7 @@ namespace Org.BouncyCastle.Asn1
 
         public override string ToString() => CollectionUtilities.ToString(m_elements);
 
-        private static DerEncoding[] SortElements(Asn1Encodable[] elements)
+        private protected static DerEncoding[] SortElements(Asn1Encodable[] elements)
         {
             var derEncodings = Asn1OutputStream.GetContentsEncodingsDer(elements);
             Array.Sort(derEncodings, elements);
