@@ -12,6 +12,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     {
         private readonly CompressedDataPacket m_data;
 
+        /// <summary>Create a new <see cref="PgpCompressedData"/>.</summary>
+        /// <param name="bcpgInput">The bcpg input.</param>
         public PgpCompressedData(BcpgInputStream bcpgInput)
         {
             Packet packet = bcpgInput.ReadPacket();

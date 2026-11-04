@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
+    /// <summary>A padding packet (RFC 9580 section 5.14).</summary>
     public class PaddingPacket
         : ContainedPacket
     {
@@ -25,12 +26,17 @@ namespace Org.BouncyCastle.Bcpg
             m_padding = Streams.ReadAll(bcpgIn);
         }
 
+        /// <summary>Create a new <see cref="PaddingPacket"/>.</summary>
+        /// <param name="padding">The padding.</param>
         public PaddingPacket(byte[] padding)
             : base(PacketTag.Padding, newPacketFormat: true)
         {
             m_padding = Arrays.CopyBuffer(padding);
         }
 
+        /// <summary>Create a new <see cref="PaddingPacket"/>.</summary>
+        /// <param name="paddingLength">The padding length.</param>
+        /// <param name="random">The source of randomness.</param>
         public PaddingPacket(int paddingLength, SecureRandom random)
             : base(PacketTag.Padding, newPacketFormat: true)
         {
@@ -42,9 +48,11 @@ namespace Org.BouncyCastle.Bcpg
             m_padding = SecureRandom.GetNextBytes(random, paddingLength);
         }
 
+        /// <inheritdoc/>
         public override void Encode(BcpgOutputStream bcpgOut) =>
             bcpgOut.WritePacket(HasNewPacketFormat, PacketTag.Padding, m_padding);
 
+        /// <summary>Return the padding.</summary>
         public byte[] GetPadding() => Arrays.InternalCopyBuffer(m_padding);
 
         internal byte[] Padding => m_padding;

@@ -363,6 +363,7 @@ namespace Org.BouncyCastle.Bcpg
             return c;
         }
 
+        /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
             Streams.ValidateBufferArguments(buffer, offset, count);
@@ -384,6 +385,7 @@ namespace Org.BouncyCastle.Bcpg
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int Read(Span<byte> buffer)
         {
             /*
@@ -403,6 +405,7 @@ namespace Org.BouncyCastle.Bcpg
         }
 #endif
 
+        /// <inheritdoc/>
         public override int ReadByte()
         {
             if (m_start)
@@ -575,6 +578,7 @@ namespace Org.BouncyCastle.Bcpg
             return (int)m_outBuf[m_bufPtr++];
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -604,8 +608,11 @@ namespace Org.BouncyCastle.Bcpg
             ArmoredOutputStream.HeaderMessageID,
         };
 
+        /// <summary>Start building an armored input stream.</summary>
+        /// <returns>A new builder.</returns>
         public static Builder Build() => new Builder();
 
+        /// <summary>A builder for <see cref="ArmoredInputStream"/>.</summary>
         public sealed class Builder
         {
             internal bool m_hasHeaders = true;
@@ -697,6 +704,9 @@ namespace Org.BouncyCastle.Bcpg
                 return this;
             }
 
+            /// <summary>Build an armored input stream over a stream.</summary>
+            /// <param name="input">The stream to read the armored data from.</param>
+            /// <returns>The new stream.</returns>
             public ArmoredInputStream Build(Stream input) => new ArmoredInputStream(input, this);
         }
     }

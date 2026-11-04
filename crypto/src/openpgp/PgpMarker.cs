@@ -11,6 +11,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     {
         private readonly MarkerPacket m_packet;
 
+        /// <summary>Create a new <see cref="PgpMarker"/>.</summary>
+        /// <param name="bcpgInput">The bcpg input.</param>
         public PgpMarker(BcpgInputStream bcpgInput)
         {
             Packet packet = bcpgInput.ReadPacket();

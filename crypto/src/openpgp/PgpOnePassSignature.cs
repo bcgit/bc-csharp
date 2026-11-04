@@ -59,6 +59,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+        /// <summary>Add a byte to the data being verified.</summary>
+        /// <param name="b">The byte.</param>
         public void Update(byte b)
         {
             if (signatureType == PgpSignature.CanonicalTextDocument)
@@ -98,8 +100,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             sig.Update((byte)'\n');
         }
 
+        /// <summary>Add bytes to the data being verified.</summary>
+        /// <param name="bytes">The bytes.</param>
         public void Update(params byte[] bytes) => Update(bytes, 0, bytes.Length);
 
+        /// <summary>Add a range of bytes to the data being verified.</summary>
+        /// <param name="bytes">The bytes.</param>
+        /// <param name="off">The offset into <paramref name="bytes"/> at which to start.</param>
+        /// <param name="length">The number of bytes.</param>
         public void Update(byte[] bytes, int off, int length)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -122,6 +130,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Add bytes to the data being verified.</summary>
+        /// <param name="input">The bytes.</param>
         public void Update(ReadOnlySpan<byte> input)
         {
             if (signatureType == PgpSignature.CanonicalTextDocument)
@@ -153,12 +163,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// </remarks>
         public long KeyId => sigPack.KeyId;
 
+        /// <summary>Gets the signature type.</summary>
         public int SignatureType => sigPack.SignatureType;
 
+        /// <summary>Gets the hash algorithm.</summary>
         public HashAlgorithmTag HashAlgorithm => sigPack.HashAlgorithm;
 
+        /// <summary>Gets the key algorithm.</summary>
         public PublicKeyAlgorithmTag KeyAlgorithm => sigPack.KeyAlgorithm;
 
+        /// <summary>Return the encoded.</summary>
         public byte[] GetEncoded()
         {
             var bOut = new MemoryStream();
@@ -166,6 +180,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return bOut.ToArray();
         }
 
+        /// <summary>Write the encoding of this object.</summary>
+        /// <param name="outStr">The stream to write to.</param>
         public void Encode(Stream outStr) => sigPack.Encode(BcpgOutputStream.Wrap(outStr));
     }
 }

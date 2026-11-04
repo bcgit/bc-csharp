@@ -9,10 +9,18 @@ namespace Org.BouncyCastle.Bcpg
     public class SymmetricKeyEncSessionPacket
         : ContainedPacket
     {
+        /// <summary>The <c>Version4</c> constant, with the value <c>4</c>.</summary>
         public const byte Version4 = 4;
+        /// <summary>The <c>Version5</c> constant, with the value <c>5</c>.</summary>
         public const byte Version5 = 5;
+        /// <summary>The <c>Version6</c> constant, with the value <c>6</c>.</summary>
         public const byte Version6 = 6;
 
+        /// <summary>Create a version 4 packet.</summary>
+        /// <param name="encAlgorithm">The symmetric key algorithm.</param>
+        /// <param name="s2k">The string-to-key specifier.</param>
+        /// <param name="secKeyData">The encrypted session key, or null.</param>
+        /// <returns>The new packet.</returns>
         public static SymmetricKeyEncSessionPacket CreateV4Packet(SymmetricKeyAlgorithmTag encAlgorithm, S2k s2k,
             byte[] secKeyData)
         {
@@ -21,12 +29,28 @@ namespace Org.BouncyCastle.Bcpg
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Create a version 5 packet.</summary>
+        /// <param name="encAlgorithm">The symmetric key algorithm.</param>
+        /// <param name="aeadAlgorithm">The AEAD algorithm.</param>
+        /// <param name="iv">The initialization vector.</param>
+        /// <param name="s2k">The string-to-key specifier.</param>
+        /// <param name="secKeyData">The encrypted session key.</param>
+        /// <param name="authTag">The authentication tag.</param>
+        /// <returns>The new packet.</returns>
         public static SymmetricKeyEncSessionPacket CreateV5Packet(SymmetricKeyAlgorithmTag encAlgorithm,
             AeadAlgorithmTag aeadAlgorithm, byte[] iv, S2k s2k, byte[] secKeyData, byte[] authTag)
         {
             return new SymmetricKeyEncSessionPacket(Version5, encAlgorithm, aeadAlgorithm, iv, s2k, secKeyData, authTag);
         }
 
+        /// <summary>Create a version 6 packet.</summary>
+        /// <param name="encAlgorithm">The symmetric key algorithm.</param>
+        /// <param name="aeadAlgorithm">The AEAD algorithm.</param>
+        /// <param name="iv">The initialization vector.</param>
+        /// <param name="s2k">The string-to-key specifier.</param>
+        /// <param name="secKeyData">The encrypted session key.</param>
+        /// <param name="authTag">The authentication tag.</param>
+        /// <returns>The new packet.</returns>
         public static SymmetricKeyEncSessionPacket CreateV6Packet(SymmetricKeyAlgorithmTag encAlgorithm,
             AeadAlgorithmTag aeadAlgorithm, byte[] iv, S2k s2k, byte[] secKeyData, byte[] authTag)
         {
@@ -41,11 +65,16 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte[] m_iv;                               // V5, V6
         private readonly byte[] m_authTag;                          // V5, V6
 
+        /// <summary>Create a new <see cref="SymmetricKeyEncSessionPacket"/>.</summary>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
         public SymmetricKeyEncSessionPacket(BcpgInputStream bcpgIn)
             : this(bcpgIn, newPacketFormat: false)
         {
         }
 
+        /// <summary>Create a new <see cref="SymmetricKeyEncSessionPacket"/>.</summary>
+        /// <param name="bcpgIn">The stream to read the encoding from.</param>
+        /// <param name="newPacketFormat">true if new packet format, false otherwise.</param>
         public SymmetricKeyEncSessionPacket(BcpgInputStream bcpgIn, bool newPacketFormat)
             : base(PacketTag.SymmetricKeyEncryptedSessionKey, newPacketFormat)
         {
@@ -133,6 +162,10 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+        /// <summary>Create a new <see cref="SymmetricKeyEncSessionPacket"/>.</summary>
+        /// <param name="encAlgorithm">The enc algorithm.</param>
+        /// <param name="s2k">The s 2 k.</param>
+        /// <param name="secKeyData">The sec key data.</param>
         [Obsolete("Use 'CreateV4Packet' instead")]
         public SymmetricKeyEncSessionPacket(SymmetricKeyAlgorithmTag encAlgorithm, S2k s2k, byte[] secKeyData)
             : base(PacketTag.SymmetricKeyEncryptedSessionKey)
@@ -174,10 +207,13 @@ namespace Org.BouncyCastle.Bcpg
             m_authTag = authTag;
         }
 
+        /// <summary>Gets the aead algorithm.</summary>
         public AeadAlgorithmTag AeadAlgorithm => m_aeadAlgorithm;
 
+        /// <summary>Gets the enc algorithm.</summary>
         public SymmetricKeyAlgorithmTag EncAlgorithm => m_encAlgorithm;
 
+        /// <inheritdoc/>
         public override void Encode(BcpgOutputStream bcpgOut)
         {
             bool newFormatOnly = m_version > Version4;
@@ -239,20 +275,32 @@ namespace Org.BouncyCastle.Bcpg
             bcpgOut.WritePacket(HasNewPacketFormat, PacketTag.SymmetricKeyEncryptedSessionKey, bOut.ToArray());
         }
 
+        /// <summary>Return the AA data.</summary>
         public byte[] GetAAData() => CreateAAData(VersionByte, EncAlgorithm, AeadAlgorithm);
 
+        /// <summary>Return the auth tag.</summary>
         public byte[] GetAuthTag() => m_authTag;
 
+        /// <summary>Return the IV.</summary>
         public byte[] GetIV() => m_iv;
 
+        /// <summary>Return the sec key data.</summary>
         public byte[] GetSecKeyData() => m_secKeyData;
 
+        /// <summary>Gets the s 2 k.</summary>
         public S2k S2k => m_s2k;
 
+        /// <summary>Gets the version.</summary>
         public int Version => m_version;
 
+        /// <summary>Gets the version byte.</summary>
         public byte VersionByte => m_version;
 
+        /// <summary>Create the additional authenticated data for a packet.</summary>
+        /// <param name="version">The packet version.</param>
+        /// <param name="encAlgorithm">The symmetric key algorithm.</param>
+        /// <param name="aeadAlgorithm">The AEAD algorithm.</param>
+        /// <returns>The additional data.</returns>
         public static byte[] CreateAAData(byte version, SymmetricKeyAlgorithmTag encAlgorithm,
             AeadAlgorithmTag aeadAlgorithm)
         {

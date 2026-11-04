@@ -18,6 +18,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     {
         private readonly IList<PgpPublicKey> keys;
 
+        /// <summary>Create a new <see cref="PgpPublicKeyRing"/>.</summary>
+        /// <param name="encoding">The encoding.</param>
         public PgpPublicKeyRing(
             byte[] encoding)
             : this(new MemoryStream(encoding, false))
@@ -29,6 +31,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             this.keys = pubKeys;
         }
 
+        /// <summary>Create a new <see cref="PgpPublicKeyRing"/>.</summary>
+        /// <param name="inputStream">The input stream.</param>
         public PgpPublicKeyRing(
             Stream inputStream)
         {
@@ -115,6 +119,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return pubKey.GetValidSeconds(GetPublicKey());
         }
 
+        /// <summary>Return the encoded.</summary>
         public virtual byte[] GetEncoded()
         {
             MemoryStream bOut = new MemoryStream();
@@ -124,6 +129,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return bOut.ToArray();
         }
 
+        /// <summary>Write the encoding of this object.</summary>
+        /// <param name="outStr">The stream to write to.</param>
         public virtual void Encode(
             Stream outStr)
         {
@@ -144,8 +151,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="pubKey">The public key to be inserted.</param>
         /// <returns>A new <c>PgpPublicKeyRing</c></returns>
         public static PgpPublicKeyRing InsertPublicKey(
-            PgpPublicKeyRing	pubRing,
-            PgpPublicKey		pubKey)
+            PgpPublicKeyRing pubRing,
+            PgpPublicKey pubKey)
         {
             var keys = new List<PgpPublicKey>(pubRing.keys);
             bool found = false;
@@ -221,7 +228,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         internal static PgpPublicKey ReadSubkey(BcpgInputStream bcpgInput)
         {
-            PublicKeyPacket	pk = ReadPublicKeyPacket(bcpgInput);
+            PublicKeyPacket pk = ReadPublicKeyPacket(bcpgInput);
             TrustPacket kTrust = ReadOptionalTrustPacket(bcpgInput);
 
             // PGP 8 actually leaves out the signature.

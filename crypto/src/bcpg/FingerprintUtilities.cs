@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Bcpg
 {
+    /// <summary>Utility methods for calculating key fingerprints and key IDs.</summary>
     public static class FingerprintUtilities
     {
         /// <summary>Derive a key-id from the given key fingerprint.</summary>

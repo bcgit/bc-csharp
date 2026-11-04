@@ -10,6 +10,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
+    /// <summary>Base class for encrypted data in OpenPGP messages.</summary>
     public abstract class PgpEncryptedData
     {
         internal class TruncatedStream

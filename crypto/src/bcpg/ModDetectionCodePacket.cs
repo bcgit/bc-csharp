@@ -25,6 +25,8 @@ namespace Org.BouncyCastle.Bcpg
             bcpgIn.ReadFully(m_digest);
         }
 
+        /// <summary>Create a new <see cref="ModDetectionCodePacket"/>.</summary>
+        /// <param name="digest">The digest.</param>
         public ModDetectionCodePacket(byte[] digest)
             : base(PacketTag.ModificationDetectionCode)
         {
@@ -36,8 +38,10 @@ namespace Org.BouncyCastle.Bcpg
 
         internal byte[] Digest => m_digest;
 
+        /// <summary>Return the digest.</summary>
         public byte[] GetDigest() => Arrays.Clone(m_digest);
 
+        /// <inheritdoc/>
         public override void Encode(BcpgOutputStream bcpgOut) =>
             bcpgOut.WritePacket(HasNewPacketFormat, PacketTag.ModificationDetectionCode, m_digest);
     }

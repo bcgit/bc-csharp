@@ -57,6 +57,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             lastb = 0;
         }
 
+        /// <summary>Add a byte to the data being signed.</summary>
+        /// <param name="b">The byte.</param>
         public void Update(byte b)
         {
             if (signatureType == PgpSignature.CanonicalTextDocument)
@@ -103,8 +105,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             dig.Update(b);
         }
 
+        /// <summary>Add bytes to the data being signed.</summary>
+        /// <param name="b">The bytes.</param>
         public void Update(params byte[] b) => Update(b, 0, b.Length);
 
+        /// <summary>Add a range of bytes to the data being signed.</summary>
+        /// <param name="b">The bytes.</param>
+        /// <param name="off">The offset into <paramref name="b"/> at which to start.</param>
+        /// <param name="len">The number of bytes.</param>
         public void Update(byte[] b, int off, int len)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -126,6 +134,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Add bytes to the data being signed.</summary>
+        /// <param name="input">The bytes.</param>
         public void Update(ReadOnlySpan<byte> input)
         {
             if (signatureType == PgpSignature.CanonicalTextDocument)
