@@ -20,6 +20,9 @@ namespace Org.BouncyCastle.Crypto.Macs
         private byte[] buf;
         private int bufOff;
 
+        /// <summary>Create a new <see cref="Dstu7624Mac"/>.</summary>
+        /// <param name="blockSizeBits">The block size bits.</param>
+        /// <param name="q">The q.</param>
         public Dstu7624Mac(int blockSizeBits, int q)
         {
             engine = new Dstu7624Engine(blockSizeBits);
@@ -36,6 +39,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             buf = new byte[blockSize];
         }
 
+        /// <inheritdoc/>
         public void Init(ICipherParameters parameters)
         {
             if (parameters is KeyParameter)
@@ -51,16 +55,19 @@ namespace Org.BouncyCastle.Crypto.Macs
             }
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return "Dstu7624Mac"; }
         }
 
+        /// <inheritdoc/>
         public int GetMacSize()
         {
             return macSize;
         }
 
+        /// <inheritdoc/>
         public void Update(byte input)
         {
             if (bufOff == buf.Length)
@@ -76,6 +83,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             buf[bufOff++] = input;
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
             if (len < 0)
@@ -113,6 +121,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             int blockSize = engine.GetBlockSize();
@@ -172,6 +181,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             }
         }
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
             if (bufOff % buf.Length != 0)
@@ -190,6 +200,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             if (bufOff % buf.Length != 0)
@@ -208,6 +219,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
+        /// <inheritdoc/>
         public void Reset()
         {
             Arrays.Fill(c, (byte)0x00);

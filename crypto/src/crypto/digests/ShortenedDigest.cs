@@ -33,18 +33,24 @@ namespace Org.BouncyCastle.Crypto.Digests
             m_length = length;
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName => m_baseDigest.AlgorithmName + "(" + m_length * 8 + ")";
 
+        /// <inheritdoc/>
         public int GetDigestSize() => m_length;
 
+        /// <inheritdoc/>
         public void Update(byte input) => m_baseDigest.Update(input);
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int inLen) => m_baseDigest.BlockUpdate(input, inOff, inLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input) => m_baseDigest.BlockUpdate(input);
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
             // Checked up front so that nothing can throw between filling the temporary and wiping it.
@@ -63,6 +69,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             // Checked up front so that nothing can throw between filling the temporary and wiping it.
@@ -84,8 +91,10 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public void Reset() => m_baseDigest.Reset();
 
+        /// <inheritdoc/>
         public int GetByteLength() => m_baseDigest.GetByteLength();
     }
 }

@@ -4,14 +4,17 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
+    /// <summary>Key pair generator for DSTU 4145-2002.</summary>
     // TODO[api] Could just subclass ECKeyPairGenerator except that GenerateKeyPair is not marked virtual there
     public class Dstu4145KeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
         private readonly ECKeyPairGenerator m_inner = new ECKeyPairGenerator();
 
+        /// <inheritdoc/>
         public virtual void Init(KeyGenerationParameters parameters) => m_inner.Init(parameters);
 
+        /// <inheritdoc/>
         public virtual AsymmetricCipherKeyPair GenerateKeyPair()
         {
             var keyPair = m_inner.GenerateKeyPair();

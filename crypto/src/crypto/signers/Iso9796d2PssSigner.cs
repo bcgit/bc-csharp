@@ -80,6 +80,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => digest.AlgorithmName + "with" + "ISO9796-2S2";
 
         /// <summary>Initialise the signer.</summary>
@@ -142,6 +143,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         /// <summary> clear possible sensitive data</summary>
         private void ClearBlock(byte[] block) => Array.Clear(block, 0, block.Length);
 
+        /// <inheritdoc/>
         public virtual void UpdateWithRecoveredMessage(byte[] signature)
         {
             byte[] block = cipher.ProcessBlock(signature, 0, signature.Length);
@@ -228,6 +230,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
+        /// <inheritdoc/>
         public virtual void BlockUpdate(byte[] input, int inOff, int inLen)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -251,6 +254,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void BlockUpdate(ReadOnlySpan<byte> input)
         {
             if (preSig == null)
@@ -269,6 +273,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int GetMaxSignatureSize() => cipher.GetOutputBlockSize();
 
         /// <summary> Generate a signature for the loaded message using the key we were

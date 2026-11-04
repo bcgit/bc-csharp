@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
+    /// <summary>Implementation of the Xoodyak hash function.</summary>
     public sealed class XoodyakDigest
         : IDigest
     {
@@ -21,17 +22,22 @@ namespace Org.BouncyCastle.Crypto.Digests
         private int m_bufPos = 0;
         private bool m_updated = false;
 
+        /// <summary>Create a new <see cref="XoodyakDigest"/>.</summary>
         public XoodyakDigest()
         {
             Reset();
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName => "Xoodyak Hash";
 
+        /// <inheritdoc/>
         public int GetDigestSize() => 32;
 
+        /// <inheritdoc/>
         public int GetByteLength() => Rabsorb;
 
+        /// <inheritdoc/>
         public void Update(byte input)
         {
             m_buf[m_bufPos] = input;
@@ -48,6 +54,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int inLen)
         {
             Check.DataLength(input, inOff, inLen, "input buffer too short");
@@ -93,6 +100,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             int available = Rabsorb - m_bufPos;
@@ -127,6 +135,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -153,6 +162,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             Check.OutputLength(output, 32, "output buffer too short");
@@ -175,6 +185,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public void Reset()
         {
             Arrays.Fill(m_state, 0);

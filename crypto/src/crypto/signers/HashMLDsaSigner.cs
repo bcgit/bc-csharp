@@ -8,6 +8,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
+    /// <summary>Signer for the pre-hash variant of ML-DSA (HashML-DSA).</summary>
     public sealed class HashMLDsaSigner
         : ISigner
     {
@@ -23,6 +24,9 @@ namespace Org.BouncyCastle.Crypto.Signers
         private MLDsaPublicKeyParameters m_publicKey;
         private MLDsaEngine m_engine;
 
+        /// <summary>Create a new <see cref="HashMLDsaSigner"/>.</summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="deterministic">true if deterministic, false otherwise.</param>
         public HashMLDsaSigner(MLDsaParameters parameters, bool deterministic)
         {
             if (parameters == null)
@@ -36,8 +40,10 @@ namespace Org.BouncyCastle.Crypto.Signers
             m_deterministic = deterministic;
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName => m_parameters.Name;
 
+        /// <inheritdoc/>
         public void Init(bool forSigning, ICipherParameters parameters)
         {
             parameters = ParameterUtilities.GetContext(parameters, minLen: 0, maxLen: 255, out var providedContext);
@@ -78,16 +84,21 @@ namespace Org.BouncyCastle.Crypto.Signers
             Reset();
         }
 
+        /// <inheritdoc/>
         public void Update(byte input) => m_preHashDigest.Update(input);
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int inLen) => m_preHashDigest.BlockUpdate(input, inOff, inLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input) => m_preHashDigest.BlockUpdate(input);
 #endif
 
+        /// <inheritdoc/>
         public int GetMaxSignatureSize() => m_engine.CryptoBytes;
 
+        /// <inheritdoc/>
         public byte[] GenerateSignature()
         {
             if (m_privateKey == null)
@@ -101,6 +112,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             return sig;
         }
 
+        /// <inheritdoc/>
         public bool VerifySignature(byte[] signature)
         {
             if (m_publicKey == null)
@@ -112,6 +124,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 encT1: m_publicKey.m_t1);
         }
 
+        /// <inheritdoc/>
         public void Reset() => m_preHashDigest.Reset();
 
         private ShakeDigest FinishPreHash()

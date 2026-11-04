@@ -4,21 +4,28 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
+    /// <summary>Implementation of the VMPC stream cipher.</summary>
     public class VmpcEngine
         : IStreamCipher
     {
+        /// <summary>The VMPC state value <c>n</c>.</summary>
         protected byte n = 0;
+        /// <summary>The VMPC permutation <c>P</c>.</summary>
         protected byte[] P = null;
+        /// <summary>The VMPC state value <c>s</c>.</summary>
         protected byte s = 0;
 
+        /// <summary>The initialization vector in use.</summary>
         protected byte[] workingIV;
+        /// <summary>The key in use.</summary>
         protected byte[] workingKey;
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => "VMPC";
 
         /**
         * initialise a VMPC cipher.
-        * 
+        *
         * @param forEncryption
         *    whether or not we are for encryption.
         * @param params
@@ -47,6 +54,9 @@ namespace Org.BouncyCastle.Crypto.Engines
             InitKey(this.workingKey, this.workingIV);
         }
 
+        /// <summary>Initialise the permutation and state from the key and initialization vector.</summary>
+        /// <param name="keyBytes">The key.</param>
+        /// <param name="ivBytes">The initialization vector.</param>
         protected virtual void InitKey(byte[] keyBytes, byte[] ivBytes)
         {
             n = 0;
@@ -60,7 +70,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             KsaRound(P, ref s, ivBytes);
         }
 
-        public virtual void ProcessBytes(byte[]	input, int inOff, int len, byte[] output, int outOff)
+        /// <inheritdoc/>
+        public virtual void ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, len, "input buffer too short");
             Check.OutputLength(output, outOff, len, "output buffer too short");
@@ -78,6 +89,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.OutputLength(output, input.Length, "output buffer too short");
@@ -95,11 +107,13 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             InitKey(this.workingKey, this.workingIV);
         }
 
+        /// <inheritdoc/>
         public virtual byte ReturnByte(byte input)
         {
             byte pn = P[n];

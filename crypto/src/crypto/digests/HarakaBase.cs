@@ -4,6 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
+    /// <summary>Base class for the Haraka v2 hash function implementations.</summary>
     public abstract class HarakaBase
         : IDigest
     {
@@ -129,26 +130,35 @@ namespace Org.BouncyCastle.Crypto.Digests
             return output;
         }
 
+        /// <inheritdoc/>
         public abstract string AlgorithmName { get; }
 
+        /// <inheritdoc/>
         public int GetDigestSize()
         {
             return DIGEST_SIZE;
         }
 
+        /// <inheritdoc/>
         public abstract int GetByteLength();
 
+        /// <inheritdoc/>
         public abstract void Update(byte input);
 
+        /// <inheritdoc/>
         public abstract void BlockUpdate(byte[] input, int inOff, int length);
 
+        /// <inheritdoc/>
         public abstract int DoFinal(byte[] output, int outOff);
 
+        /// <inheritdoc/>
         public abstract void Reset();
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public abstract void BlockUpdate(ReadOnlySpan<byte> input);
 
+        /// <inheritdoc/>
         public abstract int DoFinal(Span<byte> output);
 #endif
     }

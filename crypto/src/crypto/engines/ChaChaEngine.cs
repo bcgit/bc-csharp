@@ -36,8 +36,10 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
         }
 
+        /// <inheritdoc/>
         public override string AlgorithmName => "ChaCha" + rounds;
 
+        /// <inheritdoc/>
         protected override void AdvanceCounter()
         {
             if (++engineState[12] == 0)
@@ -46,11 +48,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+        /// <inheritdoc/>
         protected override void ResetCounter()
         {
             engineState[12] = engineState[13] = 0;
         }
 
+        /// <inheritdoc/>
         protected override void SetKey(byte[] keyBytes, byte[] ivBytes)
         {
             if (keyBytes != null)
@@ -69,6 +73,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Pack.LE_To_UInt32(ivBytes, 0, engineState, 14, 2);
         }
 
+        /// <inheritdoc/>
         protected override void GenerateKeyStream(byte[] output) => ChaChaCore(rounds, engineState, output);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

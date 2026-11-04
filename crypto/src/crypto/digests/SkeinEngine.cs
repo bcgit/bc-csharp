@@ -86,22 +86,28 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         }
 
+        /// <summary>A typed parameter for configuring a Skein hash.</summary>
         public class Parameter
         {
             private int type;
             private byte[] value;
 
+            /// <summary>Create a new <see cref="Parameter"/>.</summary>
+            /// <param name="type">The type.</param>
+            /// <param name="value">The value.</param>
             public Parameter(int type, byte[] value)
             {
                 this.type = type;
                 this.value = value;
             }
 
+            /// <summary>Gets the type.</summary>
             public int Type
             {
                 get { return type; }
             }
 
+            /// <summary>Gets the value.</summary>
             public byte[] Value
             {
                 get { return value; }
@@ -269,14 +275,14 @@ namespace Org.BouncyCastle.Crypto.Digests
                 First = true;
             }
 
-            public uint Type 
+            public uint Type
             {
-                get 
+                get
                 {
                     return (uint)((tweak[1] >> 56) & 0x3FUL);
                 }
 
-                set 
+                set
                 {
                     // Bits 120..125 = type
                     tweak[1] = (tweak[1] & 0xFFFFFFC000000000UL) | ((value & 0x3FUL) << 56);
@@ -589,11 +595,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             return existing;
         }
 
+        /// <inheritdoc/>
         public IMemoable Copy()
         {
             return new SkeinEngine(this);
         }
 
+        /// <inheritdoc/>
         public void Reset(IMemoable other)
         {
             SkeinEngine s = (SkeinEngine)other;
@@ -604,11 +612,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             CopyIn(s);
         }
 
+        /// <summary>Gets the output size.</summary>
         public int OutputSize
         {
             get { return outputSizeBytes; }
         }
 
+        /// <summary>Gets the block size.</summary>
         public int BlockSize
         {
             get { return threefish.GetBlockSize (); }
@@ -618,7 +628,9 @@ namespace Org.BouncyCastle.Crypto.Digests
         /// Initialises the Skein engine with the provided parameters. See <see cref="Org.BouncyCastle.Crypto.Parameters.SkeinParameters"/> for
         /// details on the parameterisation of the Skein hash function.
         /// </summary>
-        /// <param name="parameters">the parameters to apply to this engine, or <code>null</code> to use no parameters.</param>
+        /// <param name="parameters">
+        /// the parameters to apply to this engine, or <code>null</code> to use no parameters.
+        /// </param>
         public void Init(SkeinParameters parameters)
         {
             this.chain = null;
@@ -749,12 +761,18 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <summary>Add a single byte of input to the hash.</summary>
+        /// <param name="inByte">The byte to add.</param>
         public void Update(byte inByte)
         {
             singleByte[0] = inByte;
             BlockUpdate(singleByte, 0, 1);
         }
 
+        /// <summary>Add input to the hash.</summary>
+        /// <param name="inBytes">The input data.</param>
+        /// <param name="inOff">The offset into <paramref name="inBytes"/> at which the data starts.</param>
+        /// <param name="len">The number of bytes to add.</param>
         public void BlockUpdate(byte[] inBytes, int inOff, int len)
         {
             CheckInitialised();
@@ -762,6 +780,8 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Add input to the hash.</summary>
+        /// <param name="input">The input data.</param>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             CheckInitialised();
@@ -769,6 +789,10 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <summary>Finish the hash and write the result to a buffer.</summary>
+        /// <param name="outBytes">The buffer to receive the hash.</param>
+        /// <param name="outOff">The offset into <paramref name="outBytes"/> at which to start writing.</param>
+        /// <returns>The number of bytes written.</returns>
         public int DoFinal(byte[] outBytes, int outOff)
         {
             CheckInitialised();
@@ -805,6 +829,9 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Finish the hash and write the result to a buffer.</summary>
+        /// <param name="output">The buffer to receive the hash.</param>
+        /// <returns>The number of bytes written.</returns>
         public int DoFinal(Span<byte> output)
         {
             CheckInitialised();

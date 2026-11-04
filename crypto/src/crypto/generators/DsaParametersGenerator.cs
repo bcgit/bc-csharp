@@ -15,17 +15,20 @@ namespace Org.BouncyCastle.Crypto.Generators
     public class DsaParametersGenerator
     {
         private IDigest         digest;
-        private int				L, N;
-        private int				certainty;
-        private SecureRandom	random;
+        private int L, N;
+        private int certainty;
+        private SecureRandom random;
         private bool            use186_3;
         private int             usageIndex;
 
+        /// <summary>Create a new <see cref="DsaParametersGenerator"/>.</summary>
         public DsaParametersGenerator()
             : this(new Sha1Digest())
         {
         }
 
+        /// <summary>Create a new <see cref="DsaParametersGenerator"/>.</summary>
+        /// <param name="digest">The digest.</param>
         public DsaParametersGenerator(IDigest digest)
         {
             this.digest = digest;
@@ -53,7 +56,9 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         /// <summary>Initialise the generator for DSA 2</summary>
         /// <remarks>You must use this Init method if you need to generate parameters for DSA 2 keys</remarks>
-        /// <param name="parameters">An instance of <c>DsaParameterGenerationParameters</c> used to configure this generator</param>
+        /// <param name="parameters">
+        /// An instance of <c>DsaParameterGenerationParameters</c> used to configure this generator
+        /// </param>
         public virtual void Init(DsaParameterGenerationParameters parameters)
         {
             // TODO Should we enforce the minimum 'certainty' values as per C.3 Table C.1?
@@ -82,10 +87,12 @@ namespace Org.BouncyCastle.Crypto.Generators
         public virtual DsaParameters GenerateParameters()
         {
             return use186_3
-                ?	GenerateParameters_FIPS186_3()
-                :	GenerateParameters_FIPS186_2();
+                ? GenerateParameters_FIPS186_3()
+                : GenerateParameters_FIPS186_2();
         }
 
+        /// <summary>Generate DSA parameters following FIPS 186-2.</summary>
+        /// <returns>The parameters.</returns>
         protected virtual DsaParameters GenerateParameters_FIPS186_2()
         {
             byte[] seed = new byte[20];
@@ -157,6 +164,11 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
+        /// <summary>Calculate a generator following FIPS 186-2.</summary>
+        /// <param name="p">The prime modulus.</param>
+        /// <param name="q">The prime divisor of <c>p - 1</c>.</param>
+        /// <param name="r">The source of randomness.</param>
+        /// <returns>The generator.</returns>
         protected virtual BigInteger CalculateGenerator_FIPS186_2(BigInteger p, BigInteger q, SecureRandom r)
         {
             BigInteger e = p.Subtract(BigInteger.One).Divide(q);
@@ -185,7 +197,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 // 1. Check that the (L, N) pair is in the list of acceptable (L, N pairs) (see Section 4.2). If
 //    the pair is not in the list, then return INVALID.
             // Note: checked at initialisation
-            
+
 // 2. If (seedlen < N), then return INVALID.
             // FIXME This should be configurable (must be >= N)
             int seedlen = N;
@@ -289,12 +301,24 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
+        /// <summary>Calculate a generator following FIPS 186-3, without verification data.</summary>
+        /// <param name="p">The prime modulus.</param>
+        /// <param name="q">The prime divisor of <c>p - 1</c>.</param>
+        /// <param name="r">The source of randomness.</param>
+        /// <returns>The generator.</returns>
         protected virtual BigInteger CalculateGenerator_FIPS186_3_Unverifiable(BigInteger p, BigInteger q,
             SecureRandom r)
         {
             return CalculateGenerator_FIPS186_2(p, q, r);
         }
 
+        /// <summary>Calculate a generator following FIPS 186-3, in a way that can be verified later.</summary>
+        /// <param name="d">The digest to use.</param>
+        /// <param name="p">The prime modulus.</param>
+        /// <param name="q">The prime divisor of <c>p - 1</c>.</param>
+        /// <param name="seed">The domain parameter seed.</param>
+        /// <param name="index">The index of the generator.</param>
+        /// <returns>The generator.</returns>
         protected virtual BigInteger CalculateGenerator_FIPS186_3_Verifiable(IDigest d, BigInteger p, BigInteger q,
             byte[] seed, int index)
         {
@@ -306,7 +330,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             byte[] U = new byte[seed.Length + ggen.Length + 1 + 2];
             Array.Copy(seed, 0, U, 0, seed.Length);
             Array.Copy(ggen, 0, U, seed.Length, ggen.Length);
-            U[U.Length - 3] = (byte)index; 
+            U[U.Length - 3] = (byte)index;
 
             byte[] w = new byte[d.GetDigestSize()];
             for (int count = 1; count < (1 << 16); ++count)
@@ -322,13 +346,17 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             return null;
         }
-        
+
         private static bool IsValidDsaStrength(
             int strength)
         {
             return strength >= 512 && strength <= 1024 && strength % 64 == 0;
         }
 
+        /// <summary>Hash an input.</summary>
+        /// <param name="d">The digest to use.</param>
+        /// <param name="input">The input.</param>
+        /// <param name="output">The buffer to receive the hash.</param>
         protected static void Hash(IDigest d, byte[] input, byte[] output)
         {
             d.BlockUpdate(input, 0, input.Length);
@@ -340,6 +368,8 @@ namespace Org.BouncyCastle.Crypto.Generators
             return L > 1024 ? 256 : 160;
         }
 
+        /// <summary>Increment a big-endian counter in place.</summary>
+        /// <param name="buf">The counter.</param>
         protected static void Inc(byte[] buf)
         {
             for (int i = buf.Length - 1; i >= 0; --i)

@@ -31,12 +31,16 @@ namespace Org.BouncyCastle.Crypto
          */
         internal int GetBufferPosition() => bufOff;
 
+        /// <inheritdoc/>
         public override string AlgorithmName => m_cipher.AlgorithmName;
 
+        /// <inheritdoc/>
         public override int GetBlockSize() => m_cipher.GetInputBlockSize();
 
+        /// <inheritdoc/>
         public override int GetOutputSize(int length) => m_cipher.GetOutputBlockSize();
 
+        /// <inheritdoc/>
         public override int GetUpdateOutputSize(int length) => 0;
 
         /**
@@ -60,6 +64,7 @@ namespace Org.BouncyCastle.Crypto
             this.bufOff = 0;
         }
 
+        /// <inheritdoc/>
         public override byte[] ProcessByte(byte input)
         {
             Check.DataLength(bufOff >= buffer.Length, "attempt to process message too long for cipher");
@@ -68,6 +73,7 @@ namespace Org.BouncyCastle.Crypto
             return null;
         }
 
+        /// <inheritdoc/>
         public override int ProcessByte(byte input, byte[] output, int outOff)
         {
             Check.DataLength(bufOff >= buffer.Length, "attempt to process message too long for cipher");
@@ -77,6 +83,7 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int ProcessByte(byte input, Span<byte> output)
         {
             Check.DataLength(bufOff >= buffer.Length, "attempt to process message too long for cipher");
@@ -86,6 +93,7 @@ namespace Org.BouncyCastle.Crypto
         }
 #endif
 
+        /// <inheritdoc/>
         public override byte[] ProcessBytes(byte[] input, int inOff, int length)
         {
             if (length < 1)
@@ -101,6 +109,7 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.DataLength(input.Length > buffer.Length - bufOff, "attempt to process message too long for cipher");
@@ -130,6 +139,7 @@ namespace Org.BouncyCastle.Crypto
             return outBytes;
         }
 
+        /// <inheritdoc/>
         public override byte[] DoFinal(byte[] input, int inOff, int length)
         {
             ProcessBytes(input, inOff, length);
@@ -137,6 +147,7 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int DoFinal(Span<byte> output)
         {
             int result = 0;

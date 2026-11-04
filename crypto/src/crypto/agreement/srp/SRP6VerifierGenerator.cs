@@ -10,11 +10,15 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
     /// <summary>Generates new SRP verifier for user.</summary>
     public class Srp6VerifierGenerator
     {
+        /// <summary>The safe prime modulus <c>N</c>.</summary>
         protected BigInteger N;
+        /// <summary>The generator <c>g</c> of the group.</summary>
         protected BigInteger g;
+        /// <summary>The digest used to calculate the verifier.</summary>
         protected IDigest digest;
         protected SecureRandom random;
 
+        /// <summary>Create a new <see cref="Srp6VerifierGenerator"/>.</summary>
         public Srp6VerifierGenerator()
         {
         }
@@ -45,6 +49,10 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
 
         public virtual void Init(Srp6GroupParameters group, IDigest digest) => Init(group, digest, random: null);
 
+        /// <summary>Initialise the verifier generator.</summary>
+        /// <param name="group">The group.</param>
+        /// <param name="digest">The digest.</param>
+        /// <param name="random">The source of randomness, or null to use the default.</param>
         public virtual void Init(Srp6GroupParameters group, IDigest digest, SecureRandom random) =>
             Init(group.N, group.G, digest, random);
 

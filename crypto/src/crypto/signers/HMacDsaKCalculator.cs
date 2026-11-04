@@ -31,11 +31,14 @@ namespace Org.BouncyCastle.Crypto.Signers
 #endif
         }
 
+        /// <inheritdoc/>
         public virtual bool IsDeterministic => true;
 
+        /// <inheritdoc/>
         public virtual void Init(BigInteger n, SecureRandom random) =>
             throw new InvalidOperationException("Operation not supported");
 
+        /// <inheritdoc/>
         public void Init(BigInteger n, BigInteger d, byte[] message)
         {
             this.n = n;
@@ -116,6 +119,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 #endif
         }
 
+        /// <inheritdoc/>
         public virtual BigInteger NextK()
         {
             byte[] t = new byte[BigIntegers.GetUnsignedByteLength(n)];

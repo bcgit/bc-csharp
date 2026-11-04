@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
+    /// <summary>Signer for GOST R 34.10, hashing the message with a digest before signing.</summary>
     public class Gost3410DigestSigner
         : ISigner
     {
@@ -15,6 +16,9 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         private bool m_forSigning;
 
+        /// <summary>Create a new <see cref="Gost3410DigestSigner"/>.</summary>
+        /// <param name="signer">The signer.</param>
+        /// <param name="digest">The digest.</param>
         // TODO[api] Rename 'signer' to 'dsa'
         public Gost3410DigestSigner(IDsa signer, IDigest digest)
         {
@@ -24,8 +28,10 @@ namespace Org.BouncyCastle.Crypto.Signers
             m_digestSize = digest.GetDigestSize();
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => m_digest.AlgorithmName + "with" + m_dsa.AlgorithmName;
 
+        /// <inheritdoc/>
         public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
             m_forSigning = forSigning;
@@ -43,17 +49,22 @@ namespace Org.BouncyCastle.Crypto.Signers
             m_dsa.Init(forSigning, parameters);
         }
 
+        /// <inheritdoc/>
         public virtual void Update(byte input) => m_digest.Update(input);
 
+        /// <inheritdoc/>
         public virtual void BlockUpdate(byte[] input, int inOff, int inLen) =>
             m_digest.BlockUpdate(input, inOff, inLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void BlockUpdate(ReadOnlySpan<byte> input) => m_digest.BlockUpdate(input);
 #endif
 
+        /// <inheritdoc/>
         public virtual int GetMaxSignatureSize() => m_digestSize * 2;
 
+        /// <inheritdoc/>
         public virtual byte[] GenerateSignature()
         {
             if (!m_forSigning)
@@ -77,6 +88,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
+        /// <inheritdoc/>
         public virtual bool VerifySignature(byte[] signature)
         {
             if (m_forSigning)
@@ -99,6 +111,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             return m_dsa.VerifySignature(hash, r, s);
         }
 
+        /// <inheritdoc/>
         public virtual void Reset() => m_digest.Reset();
     }
 }

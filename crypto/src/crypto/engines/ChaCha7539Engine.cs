@@ -31,10 +31,13 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
         }
 
+        /// <inheritdoc/>
         public override string AlgorithmName => "ChaCha7539";
 
+        /// <inheritdoc/>
         protected override int NonceSize => 12;
 
+        /// <inheritdoc/>
         protected override void AdvanceCounter()
         {
             // TODO[chacha] Counter 0xFFFFFFFF is never usable (its keystream is generated, then rejected here), though
@@ -44,11 +47,13 @@ namespace Org.BouncyCastle.Crypto.Engines
                 throw new InvalidOperationException("attempt to increase counter past 2^32.");
         }
 
+        /// <inheritdoc/>
         protected override void ResetCounter()
         {
             engineState[12] = 0;
         }
 
+        /// <inheritdoc/>
         protected override void SetKey(byte[] keyBytes, byte[] ivBytes)
         {
             if (keyBytes != null)
@@ -66,6 +71,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Pack.LE_To_UInt32(ivBytes, 0, engineState, 13, 3);
         }
 
+        /// <inheritdoc/>
         protected override void GenerateKeyStream(byte[] output) =>
             ChaChaEngine.ChaChaCore(rounds, engineState, output);
 

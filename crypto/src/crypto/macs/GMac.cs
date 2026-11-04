@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Macs
     /// GMac is an invocation of the GCM mode where no data is encrypted (i.e. all input data to the Mac
     /// is processed as additional authenticated data with the underlying GCM block cipher).
     /// </remarks>
-    public class GMac 
+    public class GMac
         : IMac
     {
         private readonly GcmBlockCipher cipher;
@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
         /// <summary>
-        /// Initialises the GMAC - requires a <see cref="Org.BouncyCastle.Crypto.Parameters.ParametersWithIV"/> 
+        /// Initialises the GMAC - requires a <see cref="Org.BouncyCastle.Crypto.Parameters.ParametersWithIV"/>
         /// providing a <see cref="Org.BouncyCastle.Crypto.Parameters.KeyParameter"/> and a nonce.
         /// </summary>
         public void Init(ICipherParameters parameters)
@@ -66,33 +66,39 @@ namespace Org.BouncyCastle.Crypto.Macs
             }
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return cipher.UnderlyingCipher.AlgorithmName + "-GMAC"; }
         }
 
+        /// <inheritdoc/>
         public int GetMacSize()
         {
             return macSizeBits / 8;
         }
 
-        public void Update(byte input) 
+        /// <inheritdoc/>
+        public void Update(byte input)
         {
             cipher.ProcessAadByte(input);
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
             cipher.ProcessAadBytes(input, inOff, len);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             cipher.ProcessAadBytes(input);
         }
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
             try
@@ -107,6 +113,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             try
@@ -121,6 +128,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
+        /// <inheritdoc/>
         public void Reset()
         {
             cipher.Reset();

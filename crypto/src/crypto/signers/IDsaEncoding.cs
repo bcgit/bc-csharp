@@ -12,7 +12,9 @@ namespace Org.BouncyCastle.Crypto.Signers
         /// <summary>Decode the (r, s) pair of a DSA signature.</summary>
         /// <param name="n">The order of the group that r, s belong to.</param>
         /// <param name="encoding">An encoding of the (r, s) pair of a DSA signature.</param>
-        /// <returns>The (r, s) of a DSA signature, stored in an array of exactly two elements, r followed by s.</returns>
+        /// <returns>
+        /// The (r, s) of a DSA signature, stored in an array of exactly two elements, r followed by s.
+        /// </returns>
         BigInteger[] Decode(BigInteger n, byte[] encoding);
 
         /// <summary>Encode the (r, s) pair of a DSA signature.</summary>
@@ -23,9 +25,18 @@ namespace Org.BouncyCastle.Crypto.Signers
         byte[] Encode(BigInteger n, BigInteger r, BigInteger s);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Encode the (r, s) pair of a DSA signature into a span.</summary>
+        /// <param name="n">The order of the group that r, s belong to.</param>
+        /// <param name="r">The r value of a DSA signature.</param>
+        /// <param name="s">The s value of a DSA signature.</param>
+        /// <param name="output">The span to receive the encoding.</param>
+        /// <returns>The length of the encoding.</returns>
         int Encode(BigInteger n, BigInteger r, BigInteger s, Span<byte> output);
 #endif
 
+        /// <summary>Get the maximum size of the encoding of a signature.</summary>
+        /// <param name="n">The order of the group that r, s belong to.</param>
+        /// <returns>The maximum size in bytes.</returns>
         int GetMaxEncodingSize(BigInteger n);
     }
 }

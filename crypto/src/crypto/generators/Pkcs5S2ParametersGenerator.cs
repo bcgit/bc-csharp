@@ -29,6 +29,8 @@ namespace Org.BouncyCastle.Crypto.Generators
         {
         }
 
+        /// <summary>Create a new <see cref="Pkcs5S2ParametersGenerator"/>.</summary>
+        /// <param name="digest">The digest.</param>
         public Pkcs5S2ParametersGenerator(IDigest digest)
         {
             this.hMac = new HMac(digest);
@@ -96,9 +98,10 @@ namespace Org.BouncyCastle.Crypto.Generators
             return outBytes;
         }
 
+        /// <inheritdoc/>
         public override ICipherParameters GenerateDerivedParameters(
-            string	algorithm,
-            int		keySize)
+            string algorithm,
+            int keySize)
         {
             keySize /= 8;
 
@@ -107,10 +110,11 @@ namespace Org.BouncyCastle.Crypto.Generators
             return ParameterUtilities.CreateKeyParameter(algorithm, dKey, 0, keySize);
         }
 
+        /// <inheritdoc/>
         public override ICipherParameters GenerateDerivedParameters(
-            string	algorithm,
-            int		keySize,
-            int		ivSize)
+            string algorithm,
+            int keySize,
+            int ivSize)
         {
             keySize /= 8;
             ivSize /= 8;

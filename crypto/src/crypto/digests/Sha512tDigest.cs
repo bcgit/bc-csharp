@@ -45,19 +45,22 @@ namespace Org.BouncyCastle.Crypto.Digests
         {
             this.digestLength = t.digestLength;
 
-			Reset(t);
+            Reset(t);
         }
 
+        /// <inheritdoc/>
         public override string AlgorithmName
         {
             get { return "SHA-512/" + (digestLength * 8); }
         }
 
+        /// <inheritdoc/>
         public override int GetDigestSize()
         {
             return digestLength;
         }
 
+        /// <inheritdoc/>
         public override int DoFinal(byte[] output, int outOff)
         {
             Finish();
@@ -77,6 +80,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int DoFinal(Span<byte> output)
         {
             Finish();
@@ -215,31 +219,33 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public override IMemoable Copy()
-		{
-			return new Sha512tDigest(this);
-		}
+        {
+            return new Sha512tDigest(this);
+        }
 
-		public override void Reset(IMemoable other)
-		{
-			Sha512tDigest t = (Sha512tDigest)other;
+        /// <inheritdoc/>
+        public override void Reset(IMemoable other)
+        {
+            Sha512tDigest t = (Sha512tDigest)other;
 
-			if (this.digestLength != t.digestLength)
-			{
-				throw new MemoableResetException("digestLength inappropriate in other");
-			}
+            if (this.digestLength != t.digestLength)
+            {
+                throw new MemoableResetException("digestLength inappropriate in other");
+            }
 
-			base.CopyIn(t);
+            base.CopyIn(t);
 
-			this.H1t = t.H1t;
-			this.H2t = t.H2t;
-			this.H3t = t.H3t;
-			this.H4t = t.H4t;
-			this.H5t = t.H5t;
-			this.H6t = t.H6t;
-			this.H7t = t.H7t;
-			this.H8t = t.H8t;
-		}
+            this.H1t = t.H1t;
+            this.H2t = t.H2t;
+            this.H3t = t.H3t;
+            this.H4t = t.H4t;
+            this.H5t = t.H5t;
+            this.H6t = t.H6t;
+            this.H7t = t.H7t;
+            this.H8t = t.H8t;
+        }
 
-	}
+    }
 }

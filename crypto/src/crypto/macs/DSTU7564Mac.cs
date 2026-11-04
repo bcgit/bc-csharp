@@ -20,17 +20,21 @@ namespace Org.BouncyCastle.Crypto.Macs
         byte[] paddedKey;
         byte[] invertedKey;
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return "DSTU7564Mac"; }
         }
 
+        /// <summary>Create a new <see cref="Dstu7564Mac"/>.</summary>
+        /// <param name="macSizeBits">The MAC size in bits.</param>
         public Dstu7564Mac(int macSizeBits)
         {
             engine = new Dstu7564Digest(macSizeBits);
             macSize = macSizeBits / 8;
         }
 
+        /// <inheritdoc/>
         public void Init(ICipherParameters parameters)
         {
             if (parameters is KeyParameter)
@@ -54,11 +58,13 @@ namespace Org.BouncyCastle.Crypto.Macs
             engine.BlockUpdate(paddedKey, 0, paddedKey.Length);
         }
 
+        /// <inheritdoc/>
         public int GetMacSize()
         {
             return macSize;
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
             Check.DataLength(input, inOff, len, "input buffer too short");
@@ -71,6 +77,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             if (paddedKey == null)
@@ -81,12 +88,14 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
+        /// <inheritdoc/>
         public void Update(byte input)
         {
             engine.Update(input);
             inputLength++;
         }
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
             if (paddedKey == null)
@@ -104,6 +113,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             if (paddedKey == null)
@@ -121,6 +131,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
+        /// <inheritdoc/>
         public void Reset()
         {
             inputLength = 0;

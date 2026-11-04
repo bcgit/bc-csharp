@@ -26,17 +26,22 @@ namespace Org.BouncyCastle.Crypto.Digests
         private ulong S0, S1, S2, S3, S4;
         private int m_bufPos = 0;
 
+        /// <summary>Create a new <see cref="AsconHash256"/>.</summary>
         public AsconHash256()
         {
             Reset();
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName => "Ascon-Hash256";
 
+        /// <inheritdoc/>
         public int GetDigestSize() => 32;
 
+        /// <inheritdoc/>
         public int GetByteLength() => Rate;
 
+        /// <inheritdoc/>
         public void Update(byte input)
         {
             m_buf[m_bufPos] = input;
@@ -48,6 +53,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int inLen)
         {
             Check.DataLength(input, inOff, inLen, "input buffer too short");
@@ -89,6 +95,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             int available = Rate - m_bufPos;
@@ -119,6 +126,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -144,6 +152,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             Check.OutputLength(output, 32, "output buffer too short");
@@ -165,6 +174,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public void Reset()
         {
             //S0 = 0x0000080100cc0002UL;

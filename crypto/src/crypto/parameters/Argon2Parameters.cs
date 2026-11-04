@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Parameters for the Argon2 password hashing function, together with a builder for them.</summary>
     public sealed class Argon2Parameters
     {
         /// <summary>Argon2d - data-dependent memory access.</summary>

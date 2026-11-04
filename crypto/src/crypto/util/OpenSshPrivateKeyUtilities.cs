@@ -12,6 +12,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
+    /// <summary>Utility methods for reading and writing private keys in the OpenSSH format.</summary>
     public static class OpenSshPrivateKeyUtilities
     {
         /// <summary>Magic value for proprietary OpenSSH private key.</summary>

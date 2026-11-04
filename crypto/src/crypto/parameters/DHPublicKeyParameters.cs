@@ -62,6 +62,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_y = Validate(y, parameters);
         }
 
+        /// <summary>Create a new <see cref="DHPublicKeyParameters"/>.</summary>
+        /// <param name="y">The second operand.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="algorithmOid">The algorithm object identifier.</param>
         public DHPublicKeyParameters(BigInteger y, DHParameters parameters, DerObjectIdentifier algorithmOid)
             : base(false, parameters, algorithmOid)
         {
@@ -71,6 +75,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <summary>Gets the public point Y.</summary>
         public virtual BigInteger Y => m_y;
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             if (obj == this)
@@ -80,8 +85,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 && Equals(that);
         }
 
+        /// <summary>Determine whether these parameters are equal to another instance.</summary>
+        /// <param name="other">The instance to compare with.</param>
+        /// <returns>true if the parameters are equal, false otherwise.</returns>
         protected bool Equals(DHPublicKeyParameters other) => m_y.Equals(other.m_y) && base.Equals(other);
 
+        /// <inheritdoc/>
         public override int GetHashCode() => m_y.GetHashCode() ^ base.GetHashCode();
 
         private static int Legendre(BigInteger a, BigInteger b)

@@ -10,6 +10,7 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Operators.Utilities
 {
+    /// <summary>The default finder of MAC algorithm identifiers.</summary>
     public class DefaultMacAlgorithmFinder
         : IMacAlgorithmFinder
     {

@@ -85,6 +85,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             m_sequence = sequence;
         }
 
+        /// <summary>Return the encoded.</summary>
         public byte[] GetEncoded() => m_sequence.GetEncoded();
     }
 }

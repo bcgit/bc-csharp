@@ -2,9 +2,11 @@
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
+    /// <summary>Implementation of the AES key wrap with padding algorithm (RFC 5649).</summary>
     public class AesWrapPadEngine
         : Rfc5649WrapEngine
     {
+        /// <summary>Create a new <see cref="AesWrapPadEngine"/>.</summary>
         public AesWrapPadEngine()
             : base(AesUtilities.CreateEngine())
         {

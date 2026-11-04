@@ -10,10 +10,15 @@ namespace Org.BouncyCastle.Crypto.Digests
     using Aes = System.Runtime.Intrinsics.X86.Aes;
     using Sse2 = System.Runtime.Intrinsics.X86.Sse2;
 
+    /// <summary>Implementation of the Haraka v2 256-bit permutation hash using the x86 AES instructions.</summary>
     public static class Haraka256_X86
     {
+        /// <summary>Gets a value indicating whether this is supported.</summary>
         public static bool IsSupported => Org.BouncyCastle.Runtime.Intrinsics.X86.Aes.IsEnabled;
 
+        /// <summary>Compute the Haraka-256 hash of a 32-byte input using hardware instructions.</summary>
+        /// <param name="input">The 32-byte input.</param>
+        /// <param name="output">The buffer to receive the 32-byte hash.</param>
         public static void Hash(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (!IsSupported)
@@ -31,6 +36,10 @@ namespace Org.BouncyCastle.Crypto.Digests
             Store128(s1, output[16..32]);
         }
 
+        /// <summary>Compute the Haraka-256 hash of a 32-byte input using hardware instructions.</summary>
+        /// <param name="input">The 32-byte input.</param>
+        /// <param name="output">The buffer to receive the 32-byte hash.</param>
+        /// <param name="roundConstants">The round constants to use.</param>
         public static void Hash(ReadOnlySpan<byte> input, Span<byte> output,
             ReadOnlySpan<Vector128<byte>> roundConstants)
         {
@@ -49,6 +58,12 @@ namespace Org.BouncyCastle.Crypto.Digests
             Store128(s1, output[16..32]);
         }
 
+        /// <summary>
+        /// Compute the Haraka-256 permutation of a 32-byte input using hardware instructions, without the final
+        /// feed-forward.
+        /// </summary>
+        /// <param name="input">The 32-byte input.</param>
+        /// <param name="output">The buffer to receive the 32-byte result.</param>
         public static void Permute(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (!IsSupported)
@@ -63,6 +78,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             Store128(s1, output[16..32]);
         }
 
+        /// <summary>
+        /// Compute the Haraka-256 permutation of a 32-byte input using hardware instructions, without the final
+        /// feed-forward.
+        /// </summary>
+        /// <param name="input">The 32-byte input.</param>
+        /// <param name="output">The buffer to receive the 32-byte result.</param>
+        /// <param name="roundConstants">The round constants to use.</param>
         public static void Permute(ReadOnlySpan<byte> input, Span<byte> output,
             ReadOnlySpan<Vector128<byte>> roundConstants)
         {

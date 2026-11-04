@@ -40,11 +40,13 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
+        /// <inheritdoc/>
         public int Radix
         {
             get { return m_charMap.Count; }
         }
 
+        /// <inheritdoc/>
         public byte[] ConvertToIndexes(char[] input)
         {
             byte[] outBuf;
@@ -76,6 +78,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return outBuf;
         }
 
+        /// <inheritdoc/>
         public char[] ConvertToChars(byte[] input)
         {
             char[] outBuf;

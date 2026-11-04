@@ -15,9 +15,12 @@ namespace Org.BouncyCastle.Crypto.Signers
     public class ECDsaSigner
         : IDsa
     {
+        /// <summary>The calculator for the per-signature value <c>k</c>.</summary>
         protected readonly IDsaKCalculator kCalculator;
 
+        /// <summary>The key in use.</summary>
         protected ECKeyParameters key = null;
+        /// <summary>The source of randomness.</summary>
         protected SecureRandom random = null;
 
         /**
@@ -38,11 +41,13 @@ namespace Org.BouncyCastle.Crypto.Signers
             this.kCalculator = kCalculator;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "ECDSA"; }
         }
 
+        /// <inheritdoc/>
         public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
             if (forSigning)
@@ -65,6 +70,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
+        /// <inheritdoc/>
         public virtual BigInteger Order
         {
             get { return key.Parameters.N; }
@@ -153,14 +159,14 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             /*
              * If possible, avoid normalizing the point (to save a modular inversion in the curve field).
-             * 
+             *
              * There are ~cofactor elements of the curve field that reduce (modulo the group order) to 'r'.
              * If the cofactor is known and small, we generate those possible field values and project each
              * of them to the same "denominator" (depending on the particular projective coordinates in use)
              * as the calculated point.X. If any of the projected values matches point.X, then we have:
              *     (point.X / Denominator mod p) mod n == r
              * as required, and verification succeeds.
-             * 
+             *
              * Based on an original idea by Gregory Maxwell (https://github.com/gmaxwell), as implemented in
              * the libsecp256k1 project (https://github.com/bitcoin/secp256k1).
              */
@@ -192,6 +198,10 @@ namespace Org.BouncyCastle.Crypto.Signers
             return v.Equals(r);
         }
 
+        /// <summary>Calculate the integer <c>e</c> to sign from a message.</summary>
+        /// <param name="n">The order of the group.</param>
+        /// <param name="message">The message hash.</param>
+        /// <returns>The integer <c>e</c>.</returns>
         protected virtual BigInteger CalculateE(BigInteger n, byte[] message)
         {
             int messageBitLength = message.Length * 8;
@@ -205,11 +215,17 @@ namespace Org.BouncyCastle.Crypto.Signers
             return trunc;
         }
 
+        /// <summary>Create the multiplier used for multiplying the base point.</summary>
+        /// <returns>The multiplier.</returns>
         protected virtual ECMultiplier CreateBasePointMultiplier()
         {
             return new FixedPointCombMultiplier();
         }
 
+        /// <summary>Get the denominator of a point's coordinates, for batch inversion.</summary>
+        /// <param name="coordinateSystem">The coordinate system of the point.</param>
+        /// <param name="p">The point.</param>
+        /// <returns>The denominator, or null if the point has none.</returns>
         protected virtual ECFieldElement GetDenominator(int coordinateSystem, ECPoint p)
         {
             switch (coordinateSystem)
@@ -227,6 +243,10 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
+        /// <summary>Obtain a source of randomness for signing.</summary>
+        /// <param name="needed">true if randomness is needed, as for signing.</param>
+        /// <param name="provided">A source of randomness that was provided, or null.</param>
+        /// <returns>The source of randomness to use, or null if none is needed.</returns>
         protected virtual SecureRandom InitSecureRandom(bool needed, SecureRandom provided)
         {
             return !needed ? null : CryptoServicesRegistrar.GetSecureRandom(provided);

@@ -34,6 +34,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             m_digest = digest;
         }
 
+        /// <inheritdoc/>
         public void Init(IDerivationParameters parameters)
         {
             if (parameters is KdfParameters kdfParameters)
@@ -52,6 +53,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
+        /// <inheritdoc/>
         public IDigest Digest => m_digest;
 
         /**
@@ -112,6 +114,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int GenerateBytes(Span<byte> output)
         {
             m_digest.Reset();

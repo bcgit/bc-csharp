@@ -7,6 +7,10 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
+    /// <summary>
+    /// Implementation of the BLAKE3 hash function, supporting plain hashing, keyed hashing, key derivation and
+    /// extendable output.
+    /// </summary>
     public sealed class Blake3Digest
         : IDigest, IMemoable, IXof
     {
@@ -232,6 +236,7 @@ namespace Org.BouncyCastle.Crypto.Digests
          */
         private int m_thePos;
 
+        /// <summary>Create a new <see cref="Blake3Digest"/>.</summary>
         public Blake3Digest()
             : this((BLOCKLEN >> 1) * 8)
         {
@@ -259,10 +264,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             Reset(pSource);
         }
 
+        /// <inheritdoc/>
         public int GetByteLength() => BLOCKLEN;
 
+        /// <inheritdoc/>
         public string AlgorithmName => "BLAKE3";
 
+        /// <inheritdoc/>
         public int GetDigestSize() => m_theDigestLen;
 
         /**
@@ -309,6 +317,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <inheritdoc/>
         public void Update(byte b)
         {
             /* Check that we are not outputting */
@@ -337,6 +346,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             m_thePos++;
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] pMessage, int pOffset, int pLen)
         {
             /* Ignore null operation */
@@ -397,6 +407,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             if (input.IsEmpty)
@@ -450,11 +461,13 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] pOutput, int pOutOffset)
         {
             return OutputFinal(pOutput, pOutOffset, GetDigestSize());
         }
 
+        /// <inheritdoc/>
         public int OutputFinal(byte[] pOut, int pOutOffset, int pOutLen)
         {
             int length = Output(pOut, pOutOffset, pOutLen);
@@ -462,6 +475,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             return length;
         }
 
+        /// <inheritdoc/>
         public int Output(byte[] pOut, int pOutOffset, int pOutLen)
         {
             Check.OutputLength(pOut, pOutOffset, pOutLen, "output buffer too short");
@@ -520,6 +534,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             int digestSize = GetDigestSize();
@@ -527,6 +542,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             return OutputFinal(output[..digestSize]);
         }
 
+        /// <inheritdoc/>
         public int OutputFinal(Span<byte> output)
         {
             int length = Output(output);
@@ -534,6 +550,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             return length;
         }
 
+        /// <inheritdoc/>
         public int Output(Span<byte> output)
         {
             /* If we have not started outputting yet */
@@ -587,6 +604,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public void Reset()
         {
             ResetBlockCount();
@@ -595,6 +613,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             Arrays.Fill(m_theBuffer, 0);
         }
 
+        /// <inheritdoc/>
         public void Reset(IMemoable pSource)
         {
             /* Access source */
@@ -628,6 +647,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             m_thePos = mySource.m_thePos;
         }
 
+        /// <inheritdoc/>
         public IMemoable Copy()
         {
             return new Blake3Digest(this);

@@ -33,16 +33,19 @@ namespace Org.BouncyCastle.Crypto.Digests
         {
         }
 
+        /// <inheritdoc/>
         public override string AlgorithmName
         {
             get { return "SHA-512"; }
         }
 
+        /// <inheritdoc/>
         public override int GetDigestSize()
         {
             return DigestLength;
         }
 
+        /// <inheritdoc/>
         public override int DoFinal(
             byte[]  output,
             int     outOff)
@@ -65,6 +68,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int DoFinal(Span<byte> output)
         {
             Finish();
@@ -104,17 +108,19 @@ namespace Org.BouncyCastle.Crypto.Digests
             H7 = 0x1f83d9abfb41bd6b;
             H8 = 0x5be0cd19137e2179;
         }
-		
-		public override IMemoable Copy()
-		{
-			return new Sha512Digest(this);
-		}
 
-		public override void Reset(IMemoable other)
-		{
-			Sha512Digest d = (Sha512Digest)other;
+        /// <inheritdoc/>
+        public override IMemoable Copy()
+        {
+            return new Sha512Digest(this);
+        }
 
-			CopyIn(d);
-		}
+        /// <inheritdoc/>
+        public override void Reset(IMemoable other)
+        {
+            Sha512Digest d = (Sha512Digest)other;
+
+            CopyIn(d);
+        }
     }
 }

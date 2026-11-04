@@ -25,11 +25,16 @@ namespace Org.BouncyCastle.Crypto.Macs
         private readonly byte[] inputPad;
         private readonly byte[] outputBuf;
 
+        /// <summary>Create a new <see cref="HMac"/>.</summary>
+        /// <param name="digest">The digest.</param>
         public HMac(IDigest digest)
             : this(digest, digest.GetByteLength())
         {
         }
 
+        /// <summary>Create a new <see cref="HMac"/>.</summary>
+        /// <param name="digest">The digest.</param>
+        /// <param name="blockLength">The block length.</param>
         public HMac(IDigest digest, int blockLength)
         {
             if (blockLength < 16)
@@ -42,16 +47,19 @@ namespace Org.BouncyCastle.Crypto.Macs
             this.outputBuf = new byte[blockLength + digestSize];
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return digest.AlgorithmName + "/HMAC"; }
         }
 
+        /// <summary>Return the underlying digest.</summary>
         public virtual IDigest GetUnderlyingDigest()
         {
             return digest;
         }
 
+        /// <inheritdoc/>
         public virtual void Init(ICipherParameters parameters)
         {
             digest.Reset();
@@ -99,28 +107,33 @@ namespace Org.BouncyCastle.Crypto.Macs
             }
         }
 
+        /// <inheritdoc/>
         public virtual int GetMacSize()
         {
             return digestSize;
         }
 
+        /// <inheritdoc/>
         public virtual void Update(byte input)
         {
             digest.Update(input);
         }
 
+        /// <inheritdoc/>
         public virtual void BlockUpdate(byte[] input, int inOff, int len)
         {
             digest.BlockUpdate(input, inOff, len);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void BlockUpdate(ReadOnlySpan<byte> input)
         {
             digest.BlockUpdate(input);
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int DoFinal(byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -156,6 +169,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int DoFinal(Span<byte> output)
         {
             digest.DoFinal(outputBuf.AsSpan(blockLength));

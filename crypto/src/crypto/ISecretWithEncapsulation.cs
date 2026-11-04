@@ -2,10 +2,11 @@ using System;
 
 namespace Org.BouncyCastle.Crypto
 {
+    /// <summary>Interface for a secret value together with the encapsulation that carries it.</summary>
     public interface ISecretWithEncapsulation
-        : IDisposable 
+        : IDisposable
     {
-        
+
         ///<summary>
         /// Return the secret associated with the encapsulation.
         /// </summary>

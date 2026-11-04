@@ -14,6 +14,7 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
+    /// <summary>Signer for RSA signatures, hashing the message with a digest before signing.</summary>
     public class RsaDigestSigner
         : ISigner
     {
@@ -51,33 +52,53 @@ namespace Org.BouncyCastle.Crypto.Signers
             OidMap["MD5"] = PkcsObjectIdentifiers.MD5;
         }
 
+        /// <summary>Create a new <see cref="RsaDigestSigner"/>.</summary>
+        /// <param name="digest">The digest.</param>
         public RsaDigestSigner(IDigest digest)
             :   this(digest, CollectionUtilities.GetValueOrNull(OidMap, digest.AlgorithmName))
         {
         }
 
+        /// <summary>Create a new <see cref="RsaDigestSigner"/>.</summary>
+        /// <param name="digest">The digest.</param>
+        /// <param name="digestOid">The digest oid.</param>
         public RsaDigestSigner(IDigest digest, DerObjectIdentifier digestOid)
             :   this(digest, new AlgorithmIdentifier(digestOid, DerNull.Instance))
         {
         }
 
+        /// <summary>Create a new <see cref="RsaDigestSigner"/>.</summary>
+        /// <param name="digest">The digest.</param>
+        /// <param name="algId">The alg id.</param>
         // TODO[api] Rename 'algId' to 'digestAlgID'
         public RsaDigestSigner(IDigest digest, AlgorithmIdentifier algId)
             :   this(new RsaCoreEngine(), digest, algId)
         {
         }
 
+        /// <summary>Create a new <see cref="RsaDigestSigner"/>.</summary>
+        /// <param name="rsa">The rsa.</param>
+        /// <param name="digest">The digest.</param>
+        /// <param name="digestOid">The digest oid.</param>
         public RsaDigestSigner(IRsa rsa, IDigest digest, DerObjectIdentifier digestOid)
             :   this(rsa, digest, new AlgorithmIdentifier(digestOid, DerNull.Instance))
         {
         }
 
+        /// <summary>Create a new <see cref="RsaDigestSigner"/>.</summary>
+        /// <param name="rsa">The rsa.</param>
+        /// <param name="digest">The digest.</param>
+        /// <param name="algId">The alg id.</param>
         // TODO[api] Rename 'algId' to 'digestAlgID'
         public RsaDigestSigner(IRsa rsa, IDigest digest, AlgorithmIdentifier algId)
             :   this(new RsaBlindedEngine(rsa), digest, algId)
         {
         }
 
+        /// <summary>Create a new <see cref="RsaDigestSigner"/>.</summary>
+        /// <param name="rsaEngine">The rsa engine.</param>
+        /// <param name="digest">The digest.</param>
+        /// <param name="algId">The alg id.</param>
         // TODO[api] Rename 'algId' to 'digestAlgID'
         public RsaDigestSigner(IAsymmetricBlockCipher rsaEngine, IDigest digest, AlgorithmIdentifier algId)
         {
@@ -86,6 +107,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             m_digestAlgID = algId;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => m_digest.AlgorithmName + "withRSA";
 
         /**
@@ -111,17 +133,22 @@ namespace Org.BouncyCastle.Crypto.Signers
             m_engine.Init(forSigning, parameters);
         }
 
+        /// <inheritdoc/>
         public virtual void Update(byte input) => m_digest.Update(input);
 
+        /// <inheritdoc/>
         public virtual void BlockUpdate(byte[] input, int inOff, int inLen) =>
             m_digest.BlockUpdate(input, inOff, inLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void BlockUpdate(ReadOnlySpan<byte> input) => m_digest.BlockUpdate(input);
 #endif
 
+        /// <inheritdoc/>
         public virtual int GetMaxSignatureSize() => m_engine.GetOutputBlockSize();
 
+        /// <inheritdoc/>
         public virtual byte[] GenerateSignature()
         {
             if (!m_forSigning)
@@ -149,6 +176,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
+        /// <inheritdoc/>
         public virtual bool VerifySignature(byte[] signature)
         {
             if (m_forSigning)
@@ -181,6 +209,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             return false;
         }
 
+        /// <inheritdoc/>
         public virtual void Reset() => m_digest.Reset();
 
         private static byte[] CheckDerEncoded(byte[] hash)

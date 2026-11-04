@@ -39,9 +39,9 @@ namespace Org.BouncyCastle.Crypto.Signers
         /// <param name="digest">digest to use.</param>
         /// <param name="isImplicit">whether or not the trailer is implicit or gives the hash.</param>
         public Iso9796d2Signer(
-            IAsymmetricBlockCipher	cipher,
-            IDigest					digest,
-            bool					isImplicit)
+            IAsymmetricBlockCipher cipher,
+            IDigest digest,
+            bool isImplicit)
         {
             this.cipher = cipher;
             this.digest = digest;
@@ -72,11 +72,13 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return digest.AlgorithmName + "with" + "ISO9796-2S1"; }
         }
 
+        /// <inheritdoc/>
         public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
             RsaKeyParameters kParam = (RsaKeyParameters) parameters;
@@ -141,6 +143,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             Array.Clear(block, 0, block.Length);
         }
 
+        /// <inheritdoc/>
         public virtual void UpdateWithRecoveredMessage(
             byte[] signature)
         {
@@ -222,6 +225,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             recoveredMessage.CopyTo(mBuf, 0);
         }
 
+        /// <inheritdoc/>
         public virtual void Update(byte input)
         {
             digest.Update(input);
@@ -234,6 +238,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             messageLength++;
         }
 
+        /// <inheritdoc/>
         public virtual void BlockUpdate(byte[] input, int inOff, int inLen)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -255,6 +260,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void BlockUpdate(ReadOnlySpan<byte> input)
         {
             while (!input.IsEmpty && messageLength < mBuf.Length)
@@ -271,6 +277,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int GetMaxSignatureSize() => cipher.GetOutputBlockSize();
 
         /// <summary> Generate a signature for the loaded message using the key we were
@@ -450,7 +457,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 digest.DoFinal(hash, 0);
 
                 bool isOkay = true;
-                
+
                 for (int i = 0; i != hash.Length; i++)
                 {
                     block[off + i] ^= hash[i];

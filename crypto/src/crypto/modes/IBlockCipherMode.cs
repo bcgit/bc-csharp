@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Crypto.Modes
 {
+    /// <summary>A mode of operation that wraps an underlying block cipher.</summary>
     public interface IBlockCipherMode
         : IBlockCipher
     {

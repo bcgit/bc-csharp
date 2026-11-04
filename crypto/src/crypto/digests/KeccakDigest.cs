@@ -32,22 +32,32 @@ namespace Org.BouncyCastle.Crypto.Digests
         };
 
         private readonly ulong[] state = new ulong[25];
+        /// <summary>The data queue holding input not yet absorbed.</summary>
         protected byte[] dataQueue = new byte[192];
+        /// <summary>The rate of the sponge, in bits.</summary>
         protected int rate;
+        /// <summary>The number of bits in the data queue.</summary>
         protected int bitsInQueue;
+        /// <summary>The length of the fixed output, in bits.</summary>
         protected internal int fixedOutputLength;
+        /// <summary>Whether the sponge is in the squeezing phase.</summary>
         protected bool squeezing;
 
+        /// <summary>Create a new <see cref="KeccakDigest"/>.</summary>
         public KeccakDigest()
             : this(288)
         {
         }
 
+        /// <summary>Create a new <see cref="KeccakDigest"/>.</summary>
+        /// <param name="bitLength">The bit length.</param>
         public KeccakDigest(int bitLength)
         {
             Init(bitLength);
         }
 
+        /// <summary>Create a copy of the given <see cref="KeccakDigest"/>.</summary>
+        /// <param name="source">The instance to copy.</param>
         public KeccakDigest(KeccakDigest source)
         {
             CopyIn(source);
@@ -63,33 +73,39 @@ namespace Org.BouncyCastle.Crypto.Digests
             this.squeezing = source.squeezing;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "Keccak-" + fixedOutputLength; }
         }
 
+        /// <inheritdoc/>
         public virtual int GetDigestSize()
         {
             return fixedOutputLength >> 3;
         }
 
+        /// <inheritdoc/>
         public virtual void Update(byte input)
         {
             Absorb(input);
         }
 
+        /// <inheritdoc/>
         public virtual void BlockUpdate(byte[] input, int inOff, int len)
         {
             Absorb(input, inOff, len);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void BlockUpdate(ReadOnlySpan<byte> input)
         {
             Absorb(input);
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int DoFinal(byte[] output, int outOff)
         {
             Squeeze(output, outOff, fixedOutputLength);
@@ -100,6 +116,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int DoFinal(Span<byte> output)
         {
             int digestSize = GetDigestSize();
@@ -132,6 +149,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             return GetDigestSize();
         }
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             Init(fixedOutputLength);
@@ -177,6 +195,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             this.fixedOutputLength = (1600 - rate) >> 1;
         }
 
+        /// <summary>Absorb input into the sponge.</summary>
+        /// <param name="data">The input.</param>
         protected void Absorb(byte data)
         {
             if ((bitsInQueue & 7) != 0)
@@ -196,6 +216,10 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <summary>Absorb input into the sponge.</summary>
+        /// <param name="data">The input.</param>
+        /// <param name="off">The offset into <paramref name="data"/> at which the input starts.</param>
+        /// <param name="len">The number of bytes of input.</param>
         protected void Absorb(byte[] data, int off, int len)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -238,6 +262,8 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Absorb input into the sponge.</summary>
+        /// <param name="data">The input.</param>
         protected void Absorb(ReadOnlySpan<byte> data)
         {
             if ((bitsInQueue & 7) != 0)
@@ -277,6 +303,9 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <summary>Absorb a number of bits of input into the sponge.</summary>
+        /// <param name="data">The input bits, in the low bits of the value.</param>
+        /// <param name="bits">The number of bits.</param>
         protected void AbsorbBits(int data, int bits)
         {
             if (bits < 1 || bits > 7)
@@ -329,6 +358,10 @@ namespace Org.BouncyCastle.Crypto.Digests
             squeezing = true;
         }
 
+        /// <summary>Squeeze output from the sponge.</summary>
+        /// <param name="output">The buffer to receive the output.</param>
+        /// <param name="offset">The offset into <paramref name="output"/> at which to start writing.</param>
+        /// <param name="outputLength">The number of bits to squeeze.</param>
         // TODO[api] Not needed under NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         protected void Squeeze(byte[] output, int offset, long outputLength)
         {
@@ -374,6 +407,8 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Squeeze output from the sponge.</summary>
+        /// <param name="output">The buffer to receive the output.</param>
         protected void Squeeze(Span<byte> output)
         {
             int rateBytes = rate >> 3;
@@ -623,11 +658,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             A[20] = a20; A[21] = a21; A[22] = a22; A[23] = a23; A[24] = a24;
         }
 
+        /// <inheritdoc/>
         public virtual IMemoable Copy()
         {
             return new KeccakDigest(this);
         }
 
+        /// <inheritdoc/>
         public virtual void Reset(IMemoable other)
         {
             CopyIn((KeccakDigest)other);

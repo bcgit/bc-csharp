@@ -19,13 +19,17 @@ namespace Org.BouncyCastle.Crypto.Agreement
         private ECPrivateKeyParameters m_key;
         private BigInteger m_ukm;
 
+        /// <inheritdoc/>
         public int AgreementSize => m_digest.GetDigestSize();
 
+        /// <summary>Create a new <see cref="ECVkoAgreement"/>.</summary>
+        /// <param name="digest">The digest.</param>
         public ECVkoAgreement(IDigest digest)
         {
             m_digest = digest ?? throw new ArgumentNullException(nameof(digest));
         }
 
+        /// <inheritdoc/>
         public void Init(ICipherParameters parameters)
         {
             if (!(parameters is ParametersWithUkm paramsWithUkm))
@@ -44,6 +48,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
 #endif
         }
 
+        /// <inheritdoc/>
         public void CalculateAgreement(ICipherParameters publicKey, byte[] buf, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -55,6 +60,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void CalculateAgreement(ICipherParameters publicKey, Span<byte> buf)
         {
             ImplUpdateDigest(publicKey);

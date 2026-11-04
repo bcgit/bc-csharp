@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Digests
     * as outlined in RFC1319 by B.Kaliski from RSA Laboratories April 1992
     */
     public class MD2Digest
-		: IDigest, IMemoable
+        : IDigest, IMemoable
     {
         private const int DigestLength = 16;
         private const int BYTE_LENGTH = 16;
@@ -29,18 +29,21 @@ namespace Org.BouncyCastle.Crypto.Digests
         private byte[]   C = new byte[16];
         private int COff;
 
+        /// <summary>Create a new <see cref="MD2Digest"/>.</summary>
         public MD2Digest()
         {
             Reset();
         }
 
+        /// <summary>Create a copy of the given <see cref="MD2Digest"/>.</summary>
+        /// <param name="t">The instance to copy.</param>
         public MD2Digest(MD2Digest t)
-		{
-			CopyIn(t);
-		}
+        {
+            CopyIn(t);
+        }
 
-		private void CopyIn(MD2Digest t)
-		{
+        private void CopyIn(MD2Digest t)
+        {
             Array.Copy(t.X, 0, X, 0, t.X.Length);
             xOff = t.xOff;
             Array.Copy(t.M, 0, M, 0, t.M.Length);
@@ -55,21 +58,23 @@ namespace Org.BouncyCastle.Crypto.Digests
         * @return the algorithm name
         */
         public string AlgorithmName
-		{
-			get { return "MD2"; }
-		}
+        {
+            get { return "MD2"; }
+        }
 
-		public int GetDigestSize()
-		{
-			return DigestLength;
-		}
+        /// <inheritdoc/>
+        public int GetDigestSize()
+        {
+            return DigestLength;
+        }
 
-		public int GetByteLength()
-		{
-			return BYTE_LENGTH;
-		}
+        /// <inheritdoc/>
+        public int GetByteLength()
+        {
+            return BYTE_LENGTH;
+        }
 
-		/**
+        /**
         * Close the digest, producing the final digest value. The doFinal
         * call leaves the digest reset.
         *
@@ -99,6 +104,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             // add padding
@@ -203,6 +209,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             //
@@ -309,17 +316,19 @@ namespace Org.BouncyCastle.Crypto.Digests
         (byte)159,(byte)17,(byte)131,(byte)20
         };
 
-		public IMemoable Copy()
-		{
-			return new MD2Digest(this);
-		}
+        /// <inheritdoc/>
+        public IMemoable Copy()
+        {
+            return new MD2Digest(this);
+        }
 
-		public void Reset(IMemoable other)
-		{
-			MD2Digest d = (MD2Digest)other;
+        /// <inheritdoc/>
+        public void Reset(IMemoable other)
+        {
+            MD2Digest d = (MD2Digest)other;
 
-			CopyIn(d);
-		}
+            CopyIn(d);
+        }
 
     }
 

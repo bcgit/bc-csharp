@@ -65,11 +65,13 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return digest.AlgorithmName + "with" + cipher.AlgorithmName + "/X9.31"; }
         }
 
+        /// <inheritdoc/>
         public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
             kParam = (RsaKeyParameters)ParameterUtilities.IgnoreRandom(parameters);
@@ -83,25 +85,30 @@ namespace Org.BouncyCastle.Crypto.Signers
             Reset();
         }
 
+        /// <inheritdoc/>
         public virtual void Update(byte b)
         {
             digest.Update(b);
         }
 
+        /// <inheritdoc/>
         public virtual void BlockUpdate(byte[] input, int inOff, int inLen)
         {
             digest.BlockUpdate(input, inOff, inLen);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void BlockUpdate(ReadOnlySpan<byte> input)
         {
             digest.BlockUpdate(input);
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int GetMaxSignatureSize() => BigIntegers.GetUnsignedByteLength(kParam.Modulus);
 
+        /// <inheritdoc/>
         public virtual byte[] GenerateSignature()
         {
             CreateSignatureBlock();
@@ -115,6 +122,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             return BigIntegers.AsUnsignedByteArray(size, t);
         }
 
+        /// <inheritdoc/>
         public virtual bool VerifySignature(byte[] signature)
         {
             try
@@ -166,6 +174,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             return rv;
         }
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             digest.Reset();

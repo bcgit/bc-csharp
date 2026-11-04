@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         /// However, due to the small uncertainties if p and q are not prime,
         /// advanced attacks are not prevented.
         /// Use it at your own risk.
-        /// 
+        ///
         /// Throws NullReferenceException if any argument is null. Throws
         /// InvalidOperationException is any of the above validations fail.
         /// </summary>
@@ -85,16 +85,19 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
             this.g = g;
         }
 
+        /// <summary>Gets the p.</summary>
         public virtual BigInteger P
         {
             get { return p; }
         }
 
+        /// <summary>Gets the q.</summary>
         public virtual BigInteger Q
         {
             get { return q; }
         }
 
+        /// <summary>Gets the g.</summary>
         public virtual BigInteger G
         {
             get { return g; }

@@ -24,13 +24,17 @@ namespace Org.BouncyCastle.Crypto.Engines
         private KeyParameter m_key = null;
         private bool m_forWrapping = true;
 
+        /// <summary>Create a new <see cref="Rfc5649WrapEngine"/>.</summary>
+        /// <param name="engine">The underlying engine.</param>
         public Rfc5649WrapEngine(IBlockCipher engine)
         {
             m_engine = engine;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => m_engine.AlgorithmName;
 
+        /// <inheritdoc/>
         public virtual void Init(bool forWrapping, ICipherParameters parameters)
         {
             m_forWrapping = forWrapping;
@@ -61,6 +65,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+        /// <inheritdoc/>
         public virtual byte[] Wrap(byte[] input, int inOff, int length)
         {
             if (!m_forWrapping)
@@ -107,6 +112,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+        /// <inheritdoc/>
         public virtual byte[] Unwrap(byte[] input, int inOff, int length)
         {
             if (m_forWrapping)
@@ -154,7 +160,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Array.Copy(extractedAIV, 0, extractedHighOrderAIV, 0, 4);
             int mli = (int)Pack.BE_To_UInt32(extractedAIV, 4);
 
-            // Even if a check fails we still continue and check everything 
+            // Even if a check fails we still continue and check everything
             // else in order to avoid certain timing based side-channel attacks.
 
             // Check the fixed portion of the AIV

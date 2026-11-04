@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Macs
 {
+    /// <summary>Implementation of KMAC, the Keccak-based MAC defined in NIST SP 800-185.</summary>
     public class KMac
         : IMac, IXof
     {
@@ -19,6 +20,9 @@ namespace Org.BouncyCastle.Crypto.Macs
         private bool initialised;
         private bool firstOutput;
 
+        /// <summary>Create a new <see cref="KMac"/>.</summary>
+        /// <param name="bitLength">The bit length.</param>
+        /// <param name="S">The s.</param>
         public KMac(int bitLength, byte[] S)
         {
             this.cshake = new CShakeDigest(bitLength, Strings.ToAsciiByteArray("KMAC"), S);
@@ -26,11 +30,13 @@ namespace Org.BouncyCastle.Crypto.Macs
             this.outputLength = bitLength * 2 / 8;
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return "KMAC" + cshake.AlgorithmName.Substring(6); }
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
             if (!initialised)
@@ -40,6 +46,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             if (!initialised)
@@ -49,6 +56,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
             if (firstOutput)
@@ -69,6 +77,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             if (firstOutput)
@@ -89,6 +98,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
+        /// <inheritdoc/>
         public int OutputFinal(byte[] output, int outOff, int outLen)
         {
             if (firstOutput)
@@ -109,6 +119,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int OutputFinal(Span<byte> output)
         {
             if (firstOutput)
@@ -129,6 +140,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
+        /// <inheritdoc/>
         public int Output(byte[] output, int outOff, int outLen)
         {
             if (firstOutput)
@@ -147,6 +159,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int Output(Span<byte> output)
         {
             if (firstOutput)
@@ -165,21 +178,25 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
+        /// <inheritdoc/>
         public int GetByteLength()
         {
             return cshake.GetByteLength();
         }
 
+        /// <inheritdoc/>
         public int GetDigestSize()
         {
             return outputLength;
         }
 
+        /// <inheritdoc/>
         public int GetMacSize()
         {
             return outputLength;
         }
 
+        /// <inheritdoc/>
         public void Init(ICipherParameters parameters)
         {
             KeyParameter kParam = (KeyParameter)parameters;
@@ -188,6 +205,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             Reset();
         }
 
+        /// <inheritdoc/>
         public void Reset()
         {
             cshake.Reset();
@@ -231,6 +249,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         private static byte[] Encode(byte[] X) =>
             Arrays.Concatenate(XofUtilities.LeftEncode(X.Length * 8L), X);
 
+        /// <inheritdoc/>
         public void Update(byte input)
         {
             if (!initialised)

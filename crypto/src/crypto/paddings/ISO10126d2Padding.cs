@@ -10,13 +10,16 @@ namespace Org.BouncyCastle.Crypto.Paddings
     {
         private SecureRandom m_random = null;
 
+        /// <inheritdoc/>
         public void Init(SecureRandom random)
         {
             m_random = CryptoServicesRegistrar.GetSecureRandom(random);
         }
 
+        /// <inheritdoc/>
         public string PaddingName => "ISO10126-2";
 
+        /// <inheritdoc/>
         public int AddPadding(byte[] input, int inOff)
         {
             int count = input.Length - inOff;
@@ -30,6 +33,7 @@ namespace Org.BouncyCastle.Crypto.Paddings
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int AddPadding(Span<byte> block, int position)
         {
             int count = block.Length - position;
@@ -43,6 +47,7 @@ namespace Org.BouncyCastle.Crypto.Paddings
         }
 #endif
 
+        /// <inheritdoc/>
         public int PadCount(byte[] input)
         {
             int count = input[input.Length - 1];
@@ -56,6 +61,7 @@ namespace Org.BouncyCastle.Crypto.Paddings
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int PadCount(ReadOnlySpan<byte> block)
         {
             int count = block[block.Length - 1];

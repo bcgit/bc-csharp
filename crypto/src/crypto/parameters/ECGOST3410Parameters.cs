@@ -7,6 +7,7 @@ using Org.BouncyCastle.Asn1.X9;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Domain parameters for GOST R 34.10 on an elliptic curve.</summary>
     public class ECGost3410Parameters
         : ECNamedDomainParameters
     {
@@ -49,6 +50,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
         }
 
+        /// <summary>Create a new <see cref="ECGost3410Parameters"/>.</summary>
+        /// <param name="x9ECParameters">The curve parameters.</param>
+        /// <param name="publicKeyParamSet">The public key param set.</param>
+        /// <param name="digestParamSet">The digest param set.</param>
+        /// <param name="encryptionParamSet">The encryption param set.</param>
         private ECGost3410Parameters(X9ECParameters x9ECParameters, DerObjectIdentifier publicKeyParamSet,
             DerObjectIdentifier digestParamSet, DerObjectIdentifier encryptionParamSet)
             : base(publicKeyParamSet, x9ECParameters)
@@ -70,6 +76,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
         }
 
+        /// <summary>Create a new <see cref="ECGost3410Parameters"/>.</summary>
+        /// <param name="dp">The dp.</param>
+        /// <param name="publicKeyParamSet">The public key param set.</param>
+        /// <param name="digestParamSet">The digest param set.</param>
+        /// <param name="encryptionParamSet">The encryption param set.</param>
         [Obsolete("Use 'FromPublicKeyParameters' or param-sets-only constructor instead")]
         public ECGost3410Parameters(ECDomainParameters dp, DerObjectIdentifier publicKeyParamSet,
             DerObjectIdentifier digestParamSet, DerObjectIdentifier encryptionParamSet)
@@ -78,10 +89,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
         }
 
+        /// <summary>Gets the public key param set.</summary>
         public DerObjectIdentifier PublicKeyParamSet => Name;
 
+        /// <summary>Gets the digest param set.</summary>
         public DerObjectIdentifier DigestParamSet => m_digestParamSet;
 
+        /// <summary>Gets the encryption param set.</summary>
         public DerObjectIdentifier EncryptionParamSet => m_encryptionParamSet;
 
         private static X9ECParameters GetX9ECParameters(DerObjectIdentifier publicKeyParamSet)

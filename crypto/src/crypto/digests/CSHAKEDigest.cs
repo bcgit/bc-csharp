@@ -28,7 +28,9 @@ namespace Org.BouncyCastle.Crypto.Digests
         /// Base constructor
         /// </summary>
         /// <param name="bitLength">bit length of the underlying SHAKE function, 128 or 256.</param>
-        /// <param name="N">the function name string, note this is reserved for use by NIST. Avoid using it if not required.</param>
+        /// <param name="N">
+        /// the function name string, note this is reserved for use by NIST. Avoid using it if not required.
+        /// </param>
         /// <param name="S">the customization string - available for local use.</param>
         public CShakeDigest(int bitLength, byte[] N, byte[] S)
             : base(bitLength)
@@ -44,6 +46,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <summary>Create a copy of the given <see cref="CShakeDigest"/>.</summary>
+        /// <param name="source">The instance to copy.</param>
         public CShakeDigest(CShakeDigest source)
             : base(source)
         {
@@ -73,11 +77,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <inheritdoc/>
         public override string AlgorithmName
         {
             get { return "CSHAKE" + fixedOutputLength; }
         }
 
+        /// <inheritdoc/>
         public override int Output(byte[] output, int outOff, int outLen)
         {
             if (diff == null)
@@ -96,6 +102,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int Output(Span<byte> output)
         {
             if (diff == null)
@@ -114,6 +121,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public override void Reset()
         {
             base.Reset();
