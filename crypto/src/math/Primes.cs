@@ -10,6 +10,7 @@ namespace Org.BouncyCastle.Math
     /// <summary>Utility methods for generating primes and testing for primality.</summary>
     public static class Primes
     {
+        /// <summary>The limit below which the small prime factors are tested for.</summary>
         public static readonly int SmallFactorLimit = 211;
 
         private static readonly BigInteger One = BigInteger.One;
@@ -45,10 +46,13 @@ namespace Org.BouncyCastle.Math
                 m_factor = factor;
             }
 
+            /// <summary>Gets the factor.</summary>
             public BigInteger Factor => m_factor;
 
+            /// <summary>Gets a value indicating whether this is provably composite.</summary>
             public bool IsProvablyComposite => m_provablyComposite;
 
+            /// <summary>Gets a value indicating whether this is not prime power.</summary>
             public bool IsNotPrimePower => m_provablyComposite && m_factor == null;
         }
 
@@ -67,10 +71,13 @@ namespace Org.BouncyCastle.Math
                 m_primeGenCounter = primeGenCounter;
             }
 
+            /// <summary>Gets the prime.</summary>
             public BigInteger Prime => m_prime;
 
+            /// <summary>Gets the prime seed.</summary>
             public byte[] PrimeSeed => m_primeSeed;
 
+            /// <summary>Gets the prime gen counter.</summary>
             public int PrimeGenCounter => m_primeGenCounter;
         }
 
@@ -445,7 +452,7 @@ namespace Org.BouncyCastle.Math
                     /*
                      * This is an optimization of the original algorithm, using trial division to screen out
                      * many non-primes quickly.
-                     * 
+                     *
                      * NOTE: 'primeSeed' is still incremented as if we performed the full check!
                      */
                     if (ImplHasAnySmallFactors(c))

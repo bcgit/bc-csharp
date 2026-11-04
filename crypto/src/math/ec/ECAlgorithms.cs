@@ -7,29 +7,46 @@ using Org.BouncyCastle.Math.Raw;
 
 namespace Org.BouncyCastle.Math.EC
 {
+    /// <summary>Algorithms for elliptic curve points and curves.</summary>
     public class ECAlgorithms
     {
+        /// <summary>Determine whether a curve is over a binary field.</summary>
+        /// <param name="c">The curve.</param>
+        /// <returns>true if the curve is over a binary field, false otherwise.</returns>
         public static bool IsF2mCurve(ECCurve c)
         {
             return IsF2mField(c.Field);
         }
 
+        /// <summary>Determine whether a field is a binary field.</summary>
+        /// <param name="field">The field.</param>
+        /// <returns>true if the field is a binary field, false otherwise.</returns>
         public static bool IsF2mField(IFiniteField field)
         {
             return field.Dimension > 1 && field.Characteristic.Equals(BigInteger.Two)
                 && field is IPolynomialExtensionField;
         }
 
+        /// <summary>Determine whether a curve is over a prime field.</summary>
+        /// <param name="c">The curve.</param>
+        /// <returns>true if the curve is over a prime field, false otherwise.</returns>
         public static bool IsFpCurve(ECCurve c)
         {
             return IsFpField(c.Field);
         }
 
+        /// <summary>Determine whether a field is a prime field.</summary>
+        /// <param name="field">The field.</param>
+        /// <returns>true if the field is a prime field, false otherwise.</returns>
         public static bool IsFpField(IFiniteField field)
         {
             return field.Dimension == 1;
         }
 
+        /// <summary>Calculate the sum of the products of points and scalars.</summary>
+        /// <param name="ps">The points.</param>
+        /// <param name="ks">The scalars.</param>
+        /// <returns>The sum of the products.</returns>
         public static ECPoint SumOfMultiplies(ECPoint[] ps, BigInteger[] ks)
         {
             if (ps == null || ks == null || ps.Length != ks.Length || ps.Length < 1)
@@ -64,6 +81,12 @@ namespace Org.BouncyCastle.Math.EC
             return ImplCheckResult(ImplSumOfMultiplies(imported, ks));
         }
 
+        /// <summary>Calculate a*P + b*Q.</summary>
+        /// <param name="P">The first point.</param>
+        /// <param name="a">The first scalar.</param>
+        /// <param name="Q">The second point.</param>
+        /// <param name="b">The second scalar.</param>
+        /// <returns>The result.</returns>
         public static ECPoint SumOfTwoMultiplies(ECPoint P, BigInteger a, ECPoint Q, BigInteger b)
         {
             ECCurve cp = P.Curve;
@@ -84,6 +107,12 @@ namespace Org.BouncyCastle.Math.EC
             return ImplCheckResult(ImplShamirsTrickWNaf(P, a, Q, b));
         }
 
+        /// <summary>Calculate a*P + b*Q for scalars that are secret, using a constant-time method.</summary>
+        /// <param name="P">The first point.</param>
+        /// <param name="a">The first scalar.</param>
+        /// <param name="Q">The second point.</param>
+        /// <param name="b">The second scalar.</param>
+        /// <returns>The result.</returns>
         public static ECPoint SumOfTwoMultipliesSecret(ECPoint P, BigInteger a, ECPoint Q, BigInteger b)
         {
             // TODO[ec] Placeholder for constant-time implementation of Straus ladder
@@ -94,7 +123,7 @@ namespace Org.BouncyCastle.Math.EC
         * "Shamir's Trick", originally due to E. G. Straus
         * (Addition chains of vectors. American Mathematical Monthly,
         * 71(7):806-808, Aug./Sept. 1964)
-        *  
+        *
         * Input: The points P, Q, scalar k = (km?, ... , k1, k0)
         * and scalar l = (lm?, ... , l1, l0).
         * Output: R = k * P + l * Q.
@@ -116,6 +145,10 @@ namespace Org.BouncyCastle.Math.EC
             return ImplCheckResult(ImplShamirsTrickJsf(P, k, Q, l));
         }
 
+        /// <summary>Import a point into a curve, if it is not already on that curve.</summary>
+        /// <param name="c">The curve.</param>
+        /// <param name="p">The point.</param>
+        /// <returns>The point on the given curve.</returns>
         public static ECPoint ImportPoint(ECCurve c, ECPoint p)
         {
             ECCurve cp = p.Curve;
@@ -125,11 +158,23 @@ namespace Org.BouncyCastle.Math.EC
             return c.ImportPoint(p);
         }
 
+        /// <summary>Invert a range of field elements at once, using a single inversion (Montgomery's trick).</summary>
+        /// <param name="zs">The elements, which are replaced by their inverses.</param>
+        /// <param name="off">The offset of the range.</param>
+        /// <param name="len">The length of the range.</param>
         public static void MontgomeryTrick(ECFieldElement[] zs, int off, int len)
         {
             MontgomeryTrick(zs, off, len, null);
         }
 
+        /// <summary>
+        /// Invert a range of field elements at once, using a single inversion, optionally multiplying each inverse by a
+        /// scale factor.
+        /// </summary>
+        /// <param name="zs">The elements, which are replaced by their (scaled) inverses.</param>
+        /// <param name="off">The offset of the range.</param>
+        /// <param name="len">The length of the range.</param>
+        /// <param name="scale">A scale factor to multiply each inverse by, or null.</param>
         public static void MontgomeryTrick(ECFieldElement[] zs, int off, int len, ECFieldElement scale)
         {
             /*
@@ -172,7 +217,7 @@ namespace Org.BouncyCastle.Math.EC
          * Simple shift-and-add multiplication. Serves as reference implementation to verify (possibly
          * faster) implementations, and for very small scalars. CAUTION: This implementation is NOT
          * constant-time in any way. It is only intended to be used for diagnostics.
-         * 
+         *
          * @param p
          *            The point to multiply.
          * @param k
@@ -202,14 +247,26 @@ namespace Org.BouncyCastle.Math.EC
             return k.SignValue < 0 ? q.Negate() : q;
         }
 
+        /// <summary>Multiply a point by a scalar.</summary>
+        /// <param name="p">The point.</param>
+        /// <param name="k">The scalar.</param>
+        /// <returns>The product.</returns>
         public static ECPoint Multiply(ECPoint p, BigInteger k) => p.Multiply(k);
 
+        /// <summary>Multiply a point by a scalar that is secret, using a constant-time method.</summary>
+        /// <param name="p">The point.</param>
+        /// <param name="k">The scalar.</param>
+        /// <returns>The product.</returns>
         public static ECPoint MultiplySecret(ECPoint p, BigInteger k)
         {
             // TODO[ec] Placeholder for constant-time implementation of scalar multiplication
             return Multiply(p, k);
         }
 
+        /// <summary>Check that a point is valid: not null, normalizable, and on the curve.</summary>
+        /// <param name="p">The point.</param>
+        /// <returns>The point, if valid.</returns>
+        /// <exception cref="ArgumentException">The point is not valid.</exception>
         public static ECPoint ValidatePoint(ECPoint p)
         {
             if (!p.IsValid())
@@ -218,6 +275,11 @@ namespace Org.BouncyCastle.Math.EC
             return p;
         }
 
+        /// <summary>Import a point into a curve and validate it.</summary>
+        /// <param name="c">The curve.</param>
+        /// <param name="p">The point.</param>
+        /// <returns>The point on the given curve, if valid.</returns>
+        /// <exception cref="ArgumentException">The point is not valid.</exception>
         public static ECPoint CleanPoint(ECCurve c, ECPoint p)
         {
             ECCurve cp = p.Curve;
@@ -415,7 +477,7 @@ namespace Org.BouncyCastle.Math.EC
 
                 int width = System.Math.Min(8, info.Width);
 
-                infos[i] = info; 
+                infos[i] = info;
                 wnafs[i] = WNafUtilities.GenerateWindowNaf(width, ki);
             }
 
@@ -445,7 +507,7 @@ namespace Org.BouncyCastle.Math.EC
             for (int i = 0, j = 0; i < len; ++i)
             {
                 ECPoint p = ps[i];
-                ECPoint q = EndoUtilities.MapPoint(glvEndomorphism, p); 
+                ECPoint q = EndoUtilities.MapPoint(glvEndomorphism, p);
                 pqs[j++] = p;
                 pqs[j++] = q;
             }
