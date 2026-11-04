@@ -131,7 +131,7 @@ namespace Org.BouncyCastle.Tsp
             if (eku == null)
                 throw new TspValidationException("Certificate must have an ExtendedKeyUsage extension.");
 
-            if (!cert.GetCriticalExtensionOids().Contains(X509Extensions.ExtendedKeyUsage.Id))
+            if (!cert.GetExtension(X509Extensions.ExtendedKeyUsage).IsCritical)
                 throw new TspValidationException("Certificate must have an ExtendedKeyUsage extension marked as critical.");
 
             if (!eku.HasKeyPurposeId(KeyPurposeID.id_kp_timeStamping) || eku.Count != 1)
