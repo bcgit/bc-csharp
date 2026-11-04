@@ -231,13 +231,13 @@ namespace Org.BouncyCastle.Security
         /// <exception cref="SecurityUtilityException">If <paramref name="id"/> is not recognised.</exception>
         // TODO[api] Change parameter name to 'oid'
         public static byte[] CalculateDigest(DerObjectIdentifier id, byte[] input) =>
-            CalculateDigest(id.GetID(), input);
+            DoFinal(GetDigest(id), input);
 
         /// <summary>One-shot digest of <paramref name="len"/> bytes from <paramref name="buf"/>, starting at
         /// offset <paramref name="off"/>, using the algorithm identified by <paramref name="oid"/>.</summary>
         /// <exception cref="SecurityUtilityException">If <paramref name="oid"/> is not recognised.</exception>
         public static byte[] CalculateDigest(DerObjectIdentifier oid, byte[] buf, int off, int len) =>
-            CalculateDigest(oid.GetID(), buf, off, len);
+            DoFinal(GetDigest(oid), buf, off, len);
 
         /// <summary>One-shot digest of <paramref name="input"/>, using the algorithm identified by
         /// <paramref name="algorithm"/>.</summary>
@@ -271,7 +271,7 @@ namespace Org.BouncyCastle.Security
         /// <paramref name="oid"/>.</summary>
         /// <exception cref="SecurityUtilityException">If <paramref name="oid"/> is not recognised.</exception>
         public static byte[] CalculateDigest(DerObjectIdentifier oid, ReadOnlySpan<byte> buffer) =>
-            CalculateDigest(oid.GetID(), buffer);
+            DoFinal(GetDigest(oid), buffer);
 
         /// <summary>One-shot digest of <paramref name="buffer"/>, using the algorithm identified by
         /// <paramref name="algorithm"/>.</summary>
