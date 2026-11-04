@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Parser for an ASN.1 BIT STRING, giving access to its content as a stream.</summary>
     public interface Asn1BitStringParser
         : IAsn1Convertible
     {

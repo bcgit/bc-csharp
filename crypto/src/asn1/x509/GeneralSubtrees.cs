@@ -9,6 +9,11 @@ namespace Org.BouncyCastle.Asn1.X509
     public sealed class GeneralSubtrees
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="GeneralSubtrees"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="GeneralSubtrees"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="GeneralSubtrees"/>, or null if <paramref name="obj"/> is null.</returns>
         public static GeneralSubtrees GetInstance(object obj)
         {
             if (obj == null)
@@ -18,9 +23,16 @@ namespace Org.BouncyCastle.Asn1.X509
             return new GeneralSubtrees(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="GeneralSubtrees"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="GeneralSubtrees"/>.</returns>
         public static GeneralSubtrees GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new GeneralSubtrees(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="GeneralSubtrees"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="GeneralSubtrees"/>, or null if <paramref name="element"/> is null.</returns>
         public static GeneralSubtrees GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -36,6 +48,10 @@ namespace Org.BouncyCastle.Asn1.X509
             return null;
         }
 
+        /// <summary>Return an <see cref="GeneralSubtrees"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="GeneralSubtrees"/>.</returns>
         public static GeneralSubtrees GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new GeneralSubtrees(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -50,12 +66,16 @@ namespace Org.BouncyCastle.Asn1.X509
             m_elements = DerSequence.Map(seq, GeneralSubtree.GetInstance);
         }
 
+        /// <summary>Create a new <see cref="GeneralSubtrees"/>.</summary>
+        /// <param name="generalSubtree">The general subtree.</param>
         public GeneralSubtrees(GeneralSubtree generalSubtree)
         {
             m_elements = DerSequence.FromElement(
                 generalSubtree ?? throw new ArgumentNullException(nameof(generalSubtree)));
         }
 
+        /// <summary>Create a new <see cref="GeneralSubtrees"/>.</summary>
+        /// <param name="generalSubtrees">The general subtrees.</param>
         public GeneralSubtrees(params GeneralSubtree[] generalSubtrees)
         {
             if (Arrays.IsNullOrContainsNull(generalSubtrees))
@@ -66,6 +86,8 @@ namespace Org.BouncyCastle.Asn1.X509
             m_elements = DerSequence.FromElements(generalSubtrees);
         }
 
+        /// <summary>Create a new <see cref="GeneralSubtrees"/>.</summary>
+        /// <param name="generalSubtrees">The general subtrees.</param>
         public GeneralSubtrees(IEnumerable<GeneralSubtree> generalSubtrees)
         {
             if (generalSubtrees == null)
@@ -79,6 +101,8 @@ namespace Org.BouncyCastle.Asn1.X509
             m_elements = DerSequence.FromVector(elements);
         }
 
+        /// <summary>Create a new <see cref="GeneralSubtrees"/>.</summary>
+        /// <param name="generalSubtrees">The general subtrees.</param>
         public GeneralSubtrees(IReadOnlyCollection<GeneralSubtree> generalSubtrees)
         {
             if (generalSubtrees == null)
@@ -89,10 +113,13 @@ namespace Org.BouncyCastle.Asn1.X509
             m_elements = DerSequence.FromCollection(generalSubtrees);
         }
 
+        /// <summary>Gets the elements.</summary>
         public Asn1Sequence Elements => m_elements;
 
+        /// <summary>Return the elements.</summary>
         public GeneralSubtree[] GetElements() => m_elements.MapElements(GeneralSubtree.GetInstance);
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => m_elements;
     }
 }

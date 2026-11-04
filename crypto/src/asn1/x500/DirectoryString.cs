@@ -2,14 +2,27 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.X500
 {
+    /// <summary>The DirectoryString choice of X.520.</summary>
     public class DirectoryString
         : Asn1Encodable, IAsn1Choice, IAsn1String
     {
+        /// <summary>Return an <see cref="DirectoryString"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="DirectoryString"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="DirectoryString"/>, or null if <paramref name="obj"/> is null.</returns>
         public static DirectoryString GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
+        /// <summary>Return an <see cref="DirectoryString"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DirectoryString"/>.</returns>
         public static DirectoryString GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
             Asn1Utilities.GetInstanceChoice(obj, isExplicit, GetInstance);
 
+        /// <summary>Return an <see cref="DirectoryString"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="DirectoryString"/>, or null if <paramref name="element"/> is null.</returns>
         public static DirectoryString GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -25,6 +38,10 @@ namespace Org.BouncyCastle.Asn1.X500
             return null;
         }
 
+        /// <summary>Return an <see cref="DirectoryString"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DirectoryString"/>.</returns>
         public static DirectoryString GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
@@ -45,11 +62,14 @@ namespace Org.BouncyCastle.Asn1.X500
             m_str = str;
         }
 
+        /// <summary>Create a new <see cref="DirectoryString"/>.</summary>
+        /// <param name="str">The str.</param>
         public DirectoryString(string str)
         {
             m_str = new DerUtf8String(str);
         }
 
+        /// <inheritdoc/>
         public string GetString() => m_str.GetString();
 
         /**

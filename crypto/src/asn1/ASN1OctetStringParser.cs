@@ -2,6 +2,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Parser for an ASN.1 OCTET STRING, giving access to its content as a stream.</summary>
     public interface Asn1OctetStringParser
         : IAsn1Convertible
     {

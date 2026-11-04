@@ -34,21 +34,42 @@ namespace Org.BouncyCastle.Asn1.X509
     public class GeneralName
         : Asn1Encodable, IAsn1Choice
     {
+        /// <summary>The <c>OtherName</c> constant, with the value <c>0</c>.</summary>
         public const int OtherName = 0;
+        /// <summary>The <c>Rfc822Name</c> constant, with the value <c>1</c>.</summary>
         public const int Rfc822Name = 1;
+        /// <summary>The <c>DnsName</c> constant, with the value <c>2</c>.</summary>
         public const int DnsName = 2;
+        /// <summary>The <c>X400Address</c> constant, with the value <c>3</c>.</summary>
         public const int X400Address = 3;
+        /// <summary>The <c>DirectoryName</c> constant, with the value <c>4</c>.</summary>
         public const int DirectoryName = 4;
+        /// <summary>The <c>EdiPartyName</c> constant, with the value <c>5</c>.</summary>
         public const int EdiPartyName = 5;
+        /// <summary>The <c>UniformResourceIdentifier</c> constant, with the value <c>6</c>.</summary>
         public const int UniformResourceIdentifier = 6;
+        /// <summary>The <c>IPAddress</c> constant, with the value <c>7</c>.</summary>
         public const int IPAddress = 7;
+        /// <summary>The <c>RegisteredID</c> constant, with the value <c>8</c>.</summary>
         public const int RegisteredID = 8;
 
+        /// <summary>Return an <see cref="GeneralName"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="GeneralName"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="GeneralName"/>, or null if <paramref name="obj"/> is null.</returns>
         public static GeneralName GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
+        /// <summary>Return an <see cref="GeneralName"/> from a tagged object.</summary>
+        /// <param name="tagObj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="GeneralName"/>.</returns>
         public static GeneralName GetInstance(Asn1TaggedObject tagObj, bool explicitly) =>
             Asn1Utilities.GetInstanceChoice(tagObj, explicitly, GetInstance);
 
+        /// <summary>Return an <see cref="GeneralName"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="GeneralName"/>, or null if <paramref name="element"/> is null.</returns>
         public static GeneralName GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -68,6 +89,10 @@ namespace Org.BouncyCastle.Asn1.X509
             return null;
         }
 
+        /// <summary>Return an <see cref="GeneralName"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="GeneralName"/>.</returns>
         public static GeneralName GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
@@ -110,6 +135,8 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly int m_tag;
         private readonly Asn1Encodable m_object;
 
+        /// <summary>Create a new <see cref="GeneralName"/>.</summary>
+        /// <param name="directoryName">The directory name.</param>
         public GeneralName(X509Name directoryName)
         {
             m_tag = DirectoryName;
@@ -149,6 +176,9 @@ namespace Org.BouncyCastle.Asn1.X509
             m_object = name;
         }
 
+        /// <summary>Create a new <see cref="GeneralName"/>.</summary>
+        /// <param name="tag">The tag.</param>
+        /// <param name="name">The name.</param>
         public GeneralName(int tag, Asn1Encodable name)
         {
             m_tag = tag;
@@ -222,10 +252,13 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
+        /// <summary>Gets the tag no.</summary>
         public int TagNo => m_tag;
 
+        /// <summary>Gets the name.</summary>
         public Asn1Encodable Name => m_object;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             // directoryName is explicitly tagged as it is a CHOICE
@@ -234,6 +267,7 @@ namespace Org.BouncyCastle.Asn1.X509
             return new DerTaggedObject(isExplicit, m_tag, m_object);
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             StringBuilder buf = new StringBuilder();

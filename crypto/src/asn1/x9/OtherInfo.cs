@@ -9,6 +9,9 @@ namespace Org.BouncyCastle.Asn1.X9
     public class OtherInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="OtherInfo"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="OtherInfo"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="OtherInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static OtherInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -20,6 +23,10 @@ namespace Org.BouncyCastle.Asn1.X9
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="OtherInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="OtherInfo"/>.</returns>
         public static OtherInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -27,6 +34,10 @@ namespace Org.BouncyCastle.Asn1.X9
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="OtherInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="OtherInfo"/>.</returns>
         public static OtherInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -38,6 +49,8 @@ namespace Org.BouncyCastle.Asn1.X9
         private readonly Asn1OctetString m_partyAInfo;
         private readonly Asn1OctetString m_suppPubInfo;
 
+        /// <summary>Create a new <see cref="OtherInfo"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public OtherInfo(Asn1Sequence seq)
         {
@@ -56,6 +69,10 @@ namespace Org.BouncyCastle.Asn1.X9
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="OtherInfo"/>.</summary>
+        /// <param name="keyInfo">The key info.</param>
+        /// <param name="partyAInfo">The party a info.</param>
+        /// <param name="suppPubInfo">The supp pub info.</param>
         public OtherInfo(KeySpecificInfo keyInfo, Asn1OctetString partyAInfo, Asn1OctetString suppPubInfo)
         {
             m_keyInfo = keyInfo ?? throw new ArgumentNullException(nameof(keyInfo));
@@ -63,10 +80,13 @@ namespace Org.BouncyCastle.Asn1.X9
             m_suppPubInfo = suppPubInfo ?? throw new ArgumentNullException(nameof(suppPubInfo));
         }
 
+        /// <summary>Gets the key info.</summary>
         public KeySpecificInfo KeyInfo => m_keyInfo;
 
+        /// <summary>Gets the party a info.</summary>
         public Asn1OctetString PartyAInfo => m_partyAInfo;
 
+        /// <summary>Gets the supp pub info.</summary>
         public Asn1OctetString SuppPubInfo => m_suppPubInfo;
 
         /**

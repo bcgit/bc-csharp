@@ -67,11 +67,16 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        /// <summary>Create a new <see cref="Asn1InputStream"/>.</summary>
+        /// <param name="input">The input data.</param>
         public Asn1InputStream(Stream input)
             : this(input, FindLimit(input))
         {
         }
 
+        /// <summary>Create a new <see cref="Asn1InputStream"/>.</summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="leaveOpen">true if leave open, false otherwise.</param>
         public Asn1InputStream(Stream input, bool leaveOpen)
             : this(input, FindLimit(input), leaveOpen)
         {
@@ -85,6 +90,10 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        /// <summary>Create a new <see cref="Asn1InputStream"/>.</summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="limit">The limit.</param>
+        /// <param name="leaveOpen">true if leave open, false otherwise.</param>
         public Asn1InputStream(Stream input, int limit, bool leaveOpen)
             : this(input, FindDepth(), limit, leaveOpen, tmp: new byte[16])
         {
@@ -105,8 +114,10 @@ namespace Org.BouncyCastle.Asn1
         private Asn1InputStream CreateSubStream(Stream sub, int limit) =>
             new Asn1InputStream(sub, DecrementDepth(m_depth), limit, leaveOpen: true, m_tmp);
 
+        /// <summary>Gets the limit.</summary>
         public int Limit => m_limit;
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (m_leaveOpen)
@@ -193,6 +204,8 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>Read the next object from the stream.</summary>
+        /// <returns>The object read, or null if the end of the stream was reached.</returns>
         public Asn1Object ReadObject()
         {
             int tagHdr = s.ReadByte();
@@ -341,7 +354,7 @@ namespace Org.BouncyCastle.Asn1
             int length = s.ReadByte();
             if (0U == ((uint)length >> 7))
             {
-                // definite-length short form 
+                // definite-length short form
                 return length;
             }
             if (0x80 == length)

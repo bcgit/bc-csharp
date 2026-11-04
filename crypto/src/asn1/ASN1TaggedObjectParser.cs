@@ -2,18 +2,30 @@ using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Parser for a tagged ASN.1 object.</summary>
     public interface Asn1TaggedObjectParser
         : IAsn1Convertible
     {
+        /// <summary>Gets the tag class.</summary>
         int TagClass { get; }
 
+        /// <summary>Gets the tag no.</summary>
         int TagNo { get; }
 
         // TODO[api]
         //bool HasContextTag();
 
+        /// <summary>
+        /// Determine whether the tagged object has the context-specific tag class and the given tag number.
+        /// </summary>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>true if the tag matches, false otherwise.</returns>
         bool HasContextTag(int tagNo);
 
+        /// <summary>Determine whether the tagged object has the given tag class and tag number.</summary>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag number.</param>
+        /// <returns>true if the tag matches, false otherwise.</returns>
         bool HasTag(int tagClass, int tagNo);
 
         // TODO[api]

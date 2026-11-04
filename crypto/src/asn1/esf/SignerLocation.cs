@@ -19,6 +19,11 @@ namespace Org.BouncyCastle.Asn1.Esf
     public class SignerLocation
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="SignerLocation"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="SignerLocation"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="SignerLocation"/>, or null if <paramref name="obj"/> is null.</returns>
         public static SignerLocation GetInstance(object obj)
         {
             if (obj == null)
@@ -30,11 +35,19 @@ namespace Org.BouncyCastle.Asn1.Esf
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="SignerLocation"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SignerLocation"/>.</returns>
         public static SignerLocation GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
 #pragma warning disable CS0618 // Type or member is obsolete
             new SignerLocation(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 #pragma warning restore CS0618 // Type or member is obsolete
 
+        /// <summary>Return an <see cref="SignerLocation"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SignerLocation"/>.</returns>
         public static SignerLocation GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
 #pragma warning disable CS0618 // Type or member is obsolete
             new SignerLocation(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
@@ -44,6 +57,8 @@ namespace Org.BouncyCastle.Asn1.Esf
         private readonly DirectoryString m_localityName;
         private readonly Asn1Sequence m_postalAddress;
 
+        /// <summary>Create a new <see cref="SignerLocation"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public SignerLocation(Asn1Sequence seq)
         {
@@ -80,23 +95,35 @@ namespace Org.BouncyCastle.Asn1.Esf
             m_postalAddress = postalAddress;
         }
 
+        /// <summary>Create a new <see cref="SignerLocation"/>.</summary>
+        /// <param name="countryName">The country name.</param>
+        /// <param name="localityName">The locality name.</param>
+        /// <param name="postalAddress">The postal address.</param>
         public SignerLocation(DirectoryString countryName, DirectoryString localityName, DirectoryString[] postalAddress)
             : this(countryName, localityName, new DerSequence(postalAddress))
         {
         }
 
+        /// <summary>Create a new <see cref="SignerLocation"/>.</summary>
+        /// <param name="countryName">The country name.</param>
+        /// <param name="localityName">The locality name.</param>
+        /// <param name="postalAddress">The postal address.</param>
         public SignerLocation(DerUtf8String countryName, DerUtf8String localityName, Asn1Sequence postalAddress)
             : this(DirectoryString.GetInstance(countryName), DirectoryString.GetInstance(localityName), postalAddress)
         {
         }
 
+        /// <summary>Gets the country.</summary>
         public DirectoryString Country => m_countryName;
 
+        /// <summary>Gets the locality.</summary>
         public DirectoryString Locality => m_localityName;
 
+        /// <summary>Return the postal.</summary>
         public DirectoryString[] GetPostal() =>
             m_postalAddress?.MapElements(DirectoryString.GetInstance);
 
+        /// <summary>Gets the postal address.</summary>
         public Asn1Sequence PostalAddress => m_postalAddress;
 
         /**

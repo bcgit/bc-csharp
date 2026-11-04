@@ -4,14 +4,27 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
+    /// <summary>The CMPCertificate structure of RFC 4210: a certificate in one of the supported formats.</summary>
     public class CmpCertificate
         : Asn1Encodable, IAsn1Choice
     {
+        /// <summary>Return an <see cref="CmpCertificate"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="CmpCertificate"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="CmpCertificate"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CmpCertificate GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
+        /// <summary>Return an <see cref="CmpCertificate"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CmpCertificate"/>.</returns>
         public static CmpCertificate GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
 
+        /// <summary>Return an <see cref="CmpCertificate"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="CmpCertificate"/>, or null if <paramref name="element"/> is null.</returns>
         public static CmpCertificate GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -35,6 +48,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return null;
         }
 
+        /// <summary>Return an <see cref="CmpCertificate"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CmpCertificate"/>.</returns>
         public static CmpCertificate GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
@@ -43,6 +60,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
         private readonly int m_otherCertTag;
         private readonly Asn1Encodable m_otherCert;
 
+        /// <summary>Create a new <see cref="CmpCertificate"/>.</summary>
+        /// <param name="type">The type.</param>
+        /// <param name="otherCert">The other cert.</param>
         [Obsolete("Use 'GetInstance' from tagged object instead")]
         public CmpCertificate(int type, Asn1Encodable otherCert)
         {
@@ -58,6 +78,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_otherCert = other.m_otherCert;
         }
 
+        /// <summary>Create a new <see cref="CmpCertificate"/>.</summary>
+        /// <param name="x509v3PKCert">The x 509 v 3 PK cert.</param>
         public CmpCertificate(X509CertificateStructure x509v3PKCert)
         {
             if (x509v3PKCert.Version != 3)
@@ -68,12 +90,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_otherCert = null;
         }
 
+        /// <summary>Gets a value indicating whether this is x 509 v 3 PK cert.</summary>
         public virtual bool IsX509v3PKCert => m_x509v3PKCert != null;
 
+        /// <summary>Gets the x 509 v 3 PK cert.</summary>
         public virtual X509CertificateStructure X509v3PKCert => m_x509v3PKCert;
 
+        /// <summary>Gets the other cert tag.</summary>
         public virtual int OtherCertTag => m_otherCertTag;
 
+        /// <summary>Gets the other cert.</summary>
         public virtual Asn1Encodable OtherCert => m_otherCert;
 
         /**

@@ -5,15 +5,25 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
+    /// <summary>The RSAES-OAEP-params structure of PKCS#1.</summary>
     public class RsaesOaepParameters
         : Asn1Encodable
     {
+        /// <summary>The default hash algorithm, SHA-1.</summary>
         public static readonly AlgorithmIdentifier DefaultHashAlgorithm = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1, DerNull.Instance);
+        /// <summary>The default mask generation algorithm, MGF1 with SHA-1.</summary>
         public static readonly AlgorithmIdentifier DefaultMaskGenAlgorithm = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, DefaultHashAlgorithm);
+        /// <summary>The default mask generation function, MGF1 with SHA-1.</summary>
         [Obsolete("Use 'DefaultMaskGenAlgorithm' instead")]
         public static readonly AlgorithmIdentifier DefaultMaskGenFunction = DefaultMaskGenAlgorithm;
+        /// <summary>The default source of the encoding parameters, an empty string.</summary>
         public static readonly AlgorithmIdentifier DefaultPSourceAlgorithm = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdPSpecified, DerOctetString.Empty);
 
+        /// <summary>Return an <see cref="RsaesOaepParameters"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="RsaesOaepParameters"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="RsaesOaepParameters"/>, or null if <paramref name="obj"/> is null.</returns>
         public static RsaesOaepParameters GetInstance(object obj)
         {
             if (obj == null)
@@ -25,6 +35,10 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="RsaesOaepParameters"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RsaesOaepParameters"/>.</returns>
         public static RsaesOaepParameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -32,6 +46,10 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="RsaesOaepParameters"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RsaesOaepParameters"/>.</returns>
         public static RsaesOaepParameters GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -43,6 +61,8 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private readonly AlgorithmIdentifier m_maskGenAlgorithm;
         private readonly AlgorithmIdentifier m_pSourceAlgorithm;
 
+        /// <summary>Create a new <see cref="RsaesOaepParameters"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public RsaesOaepParameters(Asn1Sequence seq)
         {
@@ -74,11 +94,18 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         {
         }
 
+        /// <summary>Create a new <see cref="RsaesOaepParameters"/>.</summary>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="maskGenAlgorithm">The mask gen algorithm.</param>
         public RsaesOaepParameters(AlgorithmIdentifier hashAlgorithm, AlgorithmIdentifier maskGenAlgorithm)
             : this(hashAlgorithm, maskGenAlgorithm, DefaultPSourceAlgorithm)
         {
         }
 
+        /// <summary>Create a new <see cref="RsaesOaepParameters"/>.</summary>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="maskGenAlgorithm">The mask gen algorithm.</param>
+        /// <param name="pSourceAlgorithm">The p source algorithm.</param>
         public RsaesOaepParameters(AlgorithmIdentifier hashAlgorithm, AlgorithmIdentifier maskGenAlgorithm,
             AlgorithmIdentifier pSourceAlgorithm)
         {
@@ -87,12 +114,17 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_pSourceAlgorithm = pSourceAlgorithm;
         }
 
+        /// <summary>Gets the hash algorithm.</summary>
         public AlgorithmIdentifier HashAlgorithm => m_hashAlgorithm;
 
+        /// <summary>Gets the mask gen algorithm.</summary>
         public AlgorithmIdentifier MaskGenAlgorithm => m_maskGenAlgorithm;
 
+        /// <summary>Gets the p source algorithm.</summary>
         public AlgorithmIdentifier PSourceAlgorithm => m_pSourceAlgorithm;
 
+        /// <summary>Return a copy of these parameters with the default source of the encoding parameters.</summary>
+        /// <returns>The new parameters.</returns>
         public RsaesOaepParameters WithDefaultPSource()
         {
             if (DefaultPSourceAlgorithm == m_pSourceAlgorithm)

@@ -20,6 +20,9 @@ namespace Org.BouncyCastle.Asn1.Cms
     public sealed class BinaryTime
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="BinaryTime"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="BinaryTime"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="BinaryTime"/>, or null if <paramref name="obj"/> is null.</returns>
         public static BinaryTime GetInstance(object obj)
         {
             if (obj == null)
@@ -29,9 +32,17 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new BinaryTime(DerInteger.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="BinaryTime"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="BinaryTime"/>.</returns>
         public static BinaryTime GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new BinaryTime(DerInteger.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="BinaryTime"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="BinaryTime"/>.</returns>
         public static BinaryTime GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new BinaryTime(DerInteger.GetTagged(taggedObject, declaredExplicit));
 
@@ -67,6 +78,8 @@ namespace Org.BouncyCastle.Asn1.Cms
         {
         }
 
+        /// <summary>Create a new <see cref="BinaryTime"/>.</summary>
+        /// <param name="time">The time.</param>
         public BinaryTime(DerInteger time)
         {
             if (time == null)
@@ -112,6 +125,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return false;
         }
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => m_time;
     }
 }

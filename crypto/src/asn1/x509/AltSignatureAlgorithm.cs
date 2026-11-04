@@ -28,6 +28,11 @@ namespace Org.BouncyCastle.Asn1.X509
     public class AltSignatureAlgorithm
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="AltSignatureAlgorithm"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="AltSignatureAlgorithm"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="AltSignatureAlgorithm"/>, or null if <paramref name="obj"/> is null.</returns>
         public static AltSignatureAlgorithm GetInstance(object obj)
         {
             if (obj == null)
@@ -37,12 +42,23 @@ namespace Org.BouncyCastle.Asn1.X509
             return new AltSignatureAlgorithm(AlgorithmIdentifier.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="AltSignatureAlgorithm"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AltSignatureAlgorithm"/>.</returns>
         public static AltSignatureAlgorithm GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new AltSignatureAlgorithm(AlgorithmIdentifier.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="AltSignatureAlgorithm"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AltSignatureAlgorithm"/>.</returns>
         public static AltSignatureAlgorithm GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new AltSignatureAlgorithm(AlgorithmIdentifier.GetTagged(taggedObject, declaredExplicit));
 
+        /// <summary>Get the extension of this type from a table of extensions, if it is present.</summary>
+        /// <param name="extensions">The extensions, or null.</param>
+        /// <returns>The value, or null if the extension is not present.</returns>
         public static AltSignatureAlgorithm FromExtensions(X509Extensions extensions)
         {
             return GetInstance(
@@ -51,23 +67,32 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private readonly AlgorithmIdentifier m_algorithm;
 
+        /// <summary>Create a new <see cref="AltSignatureAlgorithm"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
         public AltSignatureAlgorithm(AlgorithmIdentifier algorithm)
         {
             m_algorithm = algorithm ?? throw new ArgumentNullException(nameof(algorithm));
         }
 
+        /// <summary>Create a new <see cref="AltSignatureAlgorithm"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
         public AltSignatureAlgorithm(DerObjectIdentifier algorithm)
             : this(algorithm, null)
         {
         }
 
+        /// <summary>Create a new <see cref="AltSignatureAlgorithm"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="parameters">The parameters.</param>
         public AltSignatureAlgorithm(DerObjectIdentifier algorithm, Asn1Encodable parameters)
         {
             m_algorithm = new AlgorithmIdentifier(algorithm, parameters);
         }
 
+        /// <summary>Gets the algorithm.</summary>
         public AlgorithmIdentifier Algorithm => m_algorithm;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => m_algorithm.ToAsn1Object();
     }
 }

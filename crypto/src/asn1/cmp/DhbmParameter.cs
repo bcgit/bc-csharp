@@ -15,6 +15,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class DhbmParameter
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="DhbmParameter"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="DhbmParameter"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="DhbmParameter"/>, or null if <paramref name="obj"/> is null.</returns>
         public static DhbmParameter GetInstance(object obj)
         {
             if (obj == null)
@@ -24,9 +29,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new DhbmParameter(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="DhbmParameter"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DhbmParameter"/>.</returns>
         public static DhbmParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new DhbmParameter(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="DhbmParameter"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DhbmParameter"/>.</returns>
         public static DhbmParameter GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new DhbmParameter(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -46,16 +59,22 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="DhbmParameter"/>.</summary>
+        /// <param name="owf">The owf.</param>
+        /// <param name="mac">The MAC.</param>
         public DhbmParameter(AlgorithmIdentifier owf, AlgorithmIdentifier mac)
         {
             m_owf = owf ?? throw new ArgumentNullException(nameof(owf));
             m_mac = mac ?? throw new ArgumentNullException(nameof(mac));
         }
 
+        /// <summary>Gets the owf.</summary>
         public virtual AlgorithmIdentifier Owf => m_owf;
 
+        /// <summary>Gets the mac.</summary>
         public virtual AlgorithmIdentifier Mac => m_mac;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => new DerSequence(m_owf, m_mac);
     }
 }

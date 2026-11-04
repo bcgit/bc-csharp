@@ -24,6 +24,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class PbmParameter
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="PbmParameter"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="PbmParameter"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="PbmParameter"/>, or null if <paramref name="obj"/> is null.</returns>
         public static PbmParameter GetInstance(object obj)
         {
             if (obj == null)
@@ -33,9 +38,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new PbmParameter(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="PbmParameter"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PbmParameter"/>.</returns>
         public static PbmParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PbmParameter(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="PbmParameter"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PbmParameter"/>.</returns>
         public static PbmParameter GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PbmParameter(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -59,11 +72,21 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="PbmParameter"/>.</summary>
+        /// <param name="salt">The salt.</param>
+        /// <param name="owf">The owf.</param>
+        /// <param name="iterationCount">The iteration count.</param>
+        /// <param name="mac">The MAC.</param>
         public PbmParameter(byte[] salt, AlgorithmIdentifier owf, int iterationCount, AlgorithmIdentifier mac)
             : this(DerOctetString.FromContents(salt), owf, DerInteger.ValueOf(iterationCount), mac)
         {
         }
 
+        /// <summary>Create a new <see cref="PbmParameter"/>.</summary>
+        /// <param name="salt">The salt.</param>
+        /// <param name="owf">The owf.</param>
+        /// <param name="iterationCount">The iteration count.</param>
+        /// <param name="mac">The MAC.</param>
         public PbmParameter(Asn1OctetString salt, AlgorithmIdentifier owf, DerInteger iterationCount,
             AlgorithmIdentifier mac)
         {
@@ -73,12 +96,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_mac = mac ?? throw new ArgumentNullException(nameof(mac));
         }
 
+        /// <summary>Gets the iteration count.</summary>
         public virtual DerInteger IterationCount => m_iterationCount;
 
+        /// <summary>Gets the mac.</summary>
         public virtual AlgorithmIdentifier Mac => m_mac;
 
+        /// <summary>Gets the owf.</summary>
         public virtual AlgorithmIdentifier Owf => m_owf;
 
+        /// <summary>Gets the salt.</summary>
         public virtual Asn1OctetString Salt => m_salt;
 
         /**

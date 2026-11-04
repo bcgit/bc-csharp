@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Asn1.Ess
     ///     certHash        Hash,
     ///     issuerSerial    IssuerSerial OPTIONAL
     /// }
-    /// 
+    ///
     /// Hash ::= OCTET STRING
     /// </code>
     /// </remarks>
@@ -27,9 +27,17 @@ namespace Org.BouncyCastle.Asn1.Ess
         private static readonly AlgorithmIdentifier V1HashAlgorithm =
             new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1);
 
+        /// <summary>Create a version 2 certificate ID from a version 1 certificate ID.</summary>
+        /// <param name="essCertID">The version 1 certificate ID.</param>
+        /// <returns>The new certificate ID.</returns>
         public static EssCertIDv2 From(EssCertID essCertID) =>
             new EssCertIDv2(V1HashAlgorithm, essCertID.CertHash, essCertID.IssuerSerial);
 
+        /// <summary>Return an <see cref="EssCertIDv2"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="EssCertIDv2"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="EssCertIDv2"/>, or null if <paramref name="obj"/> is null.</returns>
         public static EssCertIDv2 GetInstance(object obj)
         {
             if (obj == null)
@@ -39,9 +47,17 @@ namespace Org.BouncyCastle.Asn1.Ess
             return new EssCertIDv2(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="EssCertIDv2"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EssCertIDv2"/>.</returns>
         public static EssCertIDv2 GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new EssCertIDv2(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="EssCertIDv2"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EssCertIDv2"/>.</returns>
         public static EssCertIDv2 GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new EssCertIDv2(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -64,21 +80,33 @@ namespace Org.BouncyCastle.Asn1.Ess
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="EssCertIDv2"/>.</summary>
+        /// <param name="certHash">The cert hash.</param>
         public EssCertIDv2(byte[] certHash)
             : this(null, certHash, null)
         {
         }
 
+        /// <summary>Create a new <see cref="EssCertIDv2"/>.</summary>
+        /// <param name="algId">The alg id.</param>
+        /// <param name="certHash">The cert hash.</param>
         public EssCertIDv2(AlgorithmIdentifier algId, byte[] certHash)
             : this(algId, certHash, null)
         {
         }
 
+        /// <summary>Create a new <see cref="EssCertIDv2"/>.</summary>
+        /// <param name="certHash">The cert hash.</param>
+        /// <param name="issuerSerial">The issuer serial.</param>
         public EssCertIDv2(byte[] certHash, IssuerSerial issuerSerial)
             : this(null, certHash, issuerSerial)
         {
         }
 
+        /// <summary>Create a new <see cref="EssCertIDv2"/>.</summary>
+        /// <param name="algId">The alg id.</param>
+        /// <param name="certHash">The cert hash.</param>
+        /// <param name="issuerSerial">The issuer serial.</param>
         public EssCertIDv2(AlgorithmIdentifier algId, byte[] certHash, IssuerSerial issuerSerial)
         {
             m_hashAlgorithm = algId ?? DefaultHashAlgorithm;
@@ -86,6 +114,10 @@ namespace Org.BouncyCastle.Asn1.Ess
             m_issuerSerial = issuerSerial;
         }
 
+        /// <summary>Create a new <see cref="EssCertIDv2"/>.</summary>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="certHash">The cert hash.</param>
+        /// <param name="issuerSerial">The issuer serial.</param>
         public EssCertIDv2(AlgorithmIdentifier hashAlgorithm, Asn1OctetString certHash, IssuerSerial issuerSerial)
         {
             m_hashAlgorithm = hashAlgorithm ?? DefaultHashAlgorithm;
@@ -93,14 +125,19 @@ namespace Org.BouncyCastle.Asn1.Ess
             m_issuerSerial = issuerSerial;
         }
 
+        /// <summary>Gets the hash algorithm.</summary>
         public AlgorithmIdentifier HashAlgorithm => m_hashAlgorithm;
 
+        /// <summary>Gets the cert hash.</summary>
         public Asn1OctetString CertHash => m_certHash;
 
+        /// <summary>Return the cert hash.</summary>
         public byte[] GetCertHash() => Arrays.Clone(m_certHash.GetOctets());
 
+        /// <summary>Gets the issuer serial.</summary>
         public IssuerSerial IssuerSerial => m_issuerSerial;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);

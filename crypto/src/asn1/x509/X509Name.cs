@@ -78,11 +78,16 @@ namespace Org.BouncyCastle.Asn1.X509
         * Naming attributes of type X520name
         */
         public static readonly DerObjectIdentifier Surname = new DerObjectIdentifier("2.5.4.4");
+        /// <summary>The object identifier <c>2.5.4.42</c>.</summary>
         public static readonly DerObjectIdentifier GivenName = new DerObjectIdentifier("2.5.4.42");
+        /// <summary>The object identifier <c>2.5.4.43</c>.</summary>
         public static readonly DerObjectIdentifier Initials = new DerObjectIdentifier("2.5.4.43");
+        /// <summary>The object identifier <c>2.5.4.44</c>.</summary>
         public static readonly DerObjectIdentifier Generation = new DerObjectIdentifier("2.5.4.44");
+        /// <summary>The object identifier <c>2.5.4.45</c>.</summary>
         public static readonly DerObjectIdentifier UniqueIdentifier = new DerObjectIdentifier("2.5.4.45");
 
+        /// <summary>The object identifier <c>2.5.4.13</c>.</summary>
         public static readonly DerObjectIdentifier Description = new DerObjectIdentifier("2.5.4.13");
 
         /**
@@ -105,6 +110,7 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public static readonly DerObjectIdentifier Pseudonym = new DerObjectIdentifier("2.5.4.65");
 
+        /// <summary>The object identifier <c>2.5.4.72</c>.</summary>
         public static readonly DerObjectIdentifier Role = new DerObjectIdentifier("2.5.4.72");
 
         /**
@@ -175,6 +181,7 @@ namespace Org.BouncyCastle.Asn1.X509
         * more from PKCS#9
         */
         public static readonly DerObjectIdentifier UnstructuredName = PkcsObjectIdentifiers.Pkcs9AtUnstructuredName;
+        /// <summary>The object identifier <c>1.2.840.113549.1.9.8</c>.</summary>
         public static readonly DerObjectIdentifier UnstructuredAddress = PkcsObjectIdentifiers.Pkcs9AtUnstructuredAddress;
 
         /**
@@ -227,6 +234,9 @@ namespace Org.BouncyCastle.Asn1.X509
         */
         private static readonly IDictionary<DerObjectIdentifier, string> DefaultSymbolsInternal =
             new Dictionary<DerObjectIdentifier, string>();
+        /// <summary>
+        /// A table translating object identifiers into their common symbols, following RFC 2253 with a few extras.
+        /// </summary>
         public static readonly IDictionary<DerObjectIdentifier, string> DefaultSymbols =
             CollectionUtilities.ReadOnly(DefaultSymbolsInternal);
 
@@ -235,6 +245,7 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         private static readonly IDictionary<DerObjectIdentifier, string> RFC2253SymbolsInternal =
             new Dictionary<DerObjectIdentifier, string>();
+        /// <summary>A table translating object identifiers into their common symbols, following RFC 2253.</summary>
         public static readonly IDictionary<DerObjectIdentifier, string> RFC2253Symbols =
             CollectionUtilities.ReadOnly(RFC2253SymbolsInternal);
 
@@ -244,6 +255,7 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         private static readonly IDictionary<DerObjectIdentifier, string> RFC1779SymbolsInternal =
             new Dictionary<DerObjectIdentifier, string>();
+        /// <summary>A table translating object identifiers into their common symbols, following RFC 1779.</summary>
         public static readonly IDictionary<DerObjectIdentifier, string> RFC1779Symbols =
             CollectionUtilities.ReadOnly(RFC1779SymbolsInternal);
 
@@ -252,6 +264,7 @@ namespace Org.BouncyCastle.Asn1.X509
         */
         private static readonly IDictionary<string, DerObjectIdentifier> DefaultLookupInternal =
             new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>A table translating common symbols (case-insensitively) into object identifiers.</summary>
         public static readonly IDictionary<string, DerObjectIdentifier> DefaultLookup =
             CollectionUtilities.ReadOnly(DefaultLookupInternal);
 
@@ -361,6 +374,9 @@ namespace Org.BouncyCastle.Asn1.X509
             DefaultLookupInternal.Add("jurisdictionlocality", JurisdictionL);
         }
 
+        /// <summary>Return an <see cref="X509Name"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="X509Name"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="X509Name"/>, or null if <paramref name="obj"/> is null.</returns>
         public static X509Name GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
         /**
@@ -373,6 +389,9 @@ namespace Org.BouncyCastle.Asn1.X509
         public static X509Name GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             Asn1Utilities.GetInstanceChoice(obj, explicitly, GetInstance);
 
+        /// <summary>Return an <see cref="X509Name"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="X509Name"/>, or null if <paramref name="element"/> is null.</returns>
         public static X509Name GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -388,6 +407,10 @@ namespace Org.BouncyCastle.Asn1.X509
             return null;
         }
 
+        /// <summary>Return an <see cref="X509Name"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="X509Name"/>.</returns>
         public static X509Name GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
@@ -398,6 +421,7 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly List<bool> m_added = new List<bool>();
         private Asn1Sequence m_seq;
 
+        /// <summary>Create a new <see cref="X509Name"/>.</summary>
         protected X509Name()
         {
         }
@@ -681,8 +705,10 @@ namespace Org.BouncyCastle.Asn1.X509
             return v;
         }
 
+        /// <summary>Gets a value indicating whether this is empty.</summary>
         public bool IsEmpty => m_seq != null ? m_seq.Count < 1 : m_ordering.Count < 1;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             if (m_seq == null)
@@ -873,6 +899,7 @@ namespace Org.BouncyCastle.Asn1.X509
             return buf.ToString();
         }
 
+        /// <inheritdoc/>
         public override string ToString() => ToString(DefaultReverse, DefaultSymbols);
 
         private void AddAttribute(IDictionary<string, DerObjectIdentifier> lookup,

@@ -2,9 +2,13 @@
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 BIT STRING with BER (possibly constructed) encoding.</summary>
     public class BerBitString
         : DLBitString
     {
+        /// <summary>Create a BER bit string by concatenating the bit strings in a sequence.</summary>
+        /// <param name="seq">The sequence of bit strings.</param>
+        /// <returns>The new bit string.</returns>
         public static BerBitString FromSequence(Asn1Sequence seq)
         {
             return new BerBitString(seq.MapElements(GetInstance));
@@ -66,23 +70,35 @@ namespace Org.BouncyCastle.Asn1
 
         private readonly DerBitString[] elements;
 
+        /// <summary>Create a new <see cref="BerBitString"/>.</summary>
+        /// <param name="data">The data.</param>
+        /// <param name="padBits">The number of unused bits in the last octet.</param>
         public BerBitString(byte data, int padBits)
             : base(data, padBits)
         {
             this.elements = null;
         }
 
+        /// <summary>Create a new <see cref="BerBitString"/>.</summary>
+        /// <param name="data">The data.</param>
         public BerBitString(byte[] data)
             : this(data, 0)
         {
         }
 
+        /// <summary>Create a new <see cref="BerBitString"/>.</summary>
+        /// <param name="data">The data.</param>
+        /// <param name="padBits">The number of unused bits in the last octet.</param>
         public BerBitString(byte[] data, int padBits)
             : base(data, padBits)
         {
             this.elements = null;
         }
 
+        /// <summary>Create a new <see cref="BerBitString"/>.</summary>
+        /// <param name="data">The data.</param>
+        /// <param name="padBits">The number of unused bits in the last octet.</param>
+        /// <param name="segmentLimit">The segment limit.</param>
         [Obsolete("Use version without segmentLimit (which is ignored anyway)")]
         public BerBitString(byte[] data, int padBits, int segmentLimit)
             : this(data, padBits)
@@ -90,11 +106,16 @@ namespace Org.BouncyCastle.Asn1
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Create a new <see cref="BerBitString"/>.</summary>
+        /// <param name="data">The data.</param>
         public BerBitString(ReadOnlySpan<byte> data)
             : this(data, 0)
         {
         }
 
+        /// <summary>Create a new <see cref="BerBitString"/>.</summary>
+        /// <param name="data">The data.</param>
+        /// <param name="padBits">The number of unused bits in the last octet.</param>
         public BerBitString(ReadOnlySpan<byte> data, int padBits)
             : base(data, padBits)
         {
@@ -102,23 +123,32 @@ namespace Org.BouncyCastle.Asn1
         }
 #endif
 
+        /// <summary>Create a new <see cref="BerBitString"/>.</summary>
+        /// <param name="namedBits">The named bits.</param>
         public BerBitString(int namedBits)
             : base(namedBits)
         {
             this.elements = null;
         }
 
+        /// <summary>Create a new <see cref="BerBitString"/>.</summary>
+        /// <param name="obj">The object.</param>
         public BerBitString(Asn1Encodable obj)
             : this(obj.GetDerEncoded(), 0)
         {
         }
 
+        /// <summary>Create a new <see cref="BerBitString"/>.</summary>
+        /// <param name="elements">The elements.</param>
         public BerBitString(DerBitString[] elements)
             : base(FlattenBitStrings(elements), false)
         {
             this.elements = elements;
         }
 
+        /// <summary>Create a new <see cref="BerBitString"/>.</summary>
+        /// <param name="elements">The elements.</param>
+        /// <param name="segmentLimit">The segment limit.</param>
         [Obsolete("Use version without segmentLimit (which is ignored anyway)")]
         public BerBitString(DerBitString[] elements, int segmentLimit)
             : this(elements)

@@ -24,6 +24,11 @@ namespace Org.BouncyCastle.Asn1.Tsp
     public class ArchiveTimeStamp
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="ArchiveTimeStamp"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="ArchiveTimeStamp"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="ArchiveTimeStamp"/>, or null if <paramref name="obj"/> is null.</returns>
         public static ArchiveTimeStamp GetInstance(object obj)
         {
             if (obj == null)
@@ -33,9 +38,17 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new ArchiveTimeStamp(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="ArchiveTimeStamp"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ArchiveTimeStamp"/>.</returns>
         public static ArchiveTimeStamp GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ArchiveTimeStamp(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="ArchiveTimeStamp"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ArchiveTimeStamp"/>.</returns>
         public static ArchiveTimeStamp GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ArchiveTimeStamp(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -59,17 +72,28 @@ namespace Org.BouncyCastle.Asn1.Tsp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="ArchiveTimeStamp"/>.</summary>
+        /// <param name="digestAlgorithm">The digest algorithm.</param>
+        /// <param name="reducedHashTree">The reduced hash tree.</param>
+        /// <param name="timeStamp">The time stamp.</param>
         public ArchiveTimeStamp(AlgorithmIdentifier digestAlgorithm, PartialHashtree[] reducedHashTree,
             ContentInfo timeStamp)
             : this(digestAlgorithm, null, reducedHashTree, timeStamp)
         {
         }
 
+        /// <summary>Create a new <see cref="ArchiveTimeStamp"/>.</summary>
+        /// <param name="timeStamp">The time stamp.</param>
         public ArchiveTimeStamp(ContentInfo timeStamp)
             : this(null, null, null, timeStamp)
         {
         }
 
+        /// <summary>Create a new <see cref="ArchiveTimeStamp"/>.</summary>
+        /// <param name="digestAlgorithm">The digest algorithm.</param>
+        /// <param name="attributes">The attributes.</param>
+        /// <param name="reducedHashTree">The reduced hash tree.</param>
+        /// <param name="timeStamp">The time stamp.</param>
         public ArchiveTimeStamp(AlgorithmIdentifier digestAlgorithm, Attributes attributes,
             PartialHashtree[] reducedHashTree, ContentInfo timeStamp)
         {
@@ -79,9 +103,11 @@ namespace Org.BouncyCastle.Asn1.Tsp
             m_timeStamp = timeStamp ?? throw new ArgumentNullException(nameof(timeStamp));
         }
 
+        /// <summary>Return the digest algorithm identifier.</summary>
         public virtual AlgorithmIdentifier GetDigestAlgorithmIdentifier() => m_digestAlgorithm
             ?? GetTimeStampInfo().MessageImprint.HashAlgorithm;
 
+        /// <summary>Return the time stamp digest value.</summary>
         public virtual byte[] GetTimeStampDigestValue() => GetTimeStampInfo().MessageImprint.GetHashedMessage();
 
         private TstInfo GetTimeStampInfo()
@@ -120,11 +146,14 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return PartialHashtree.GetInstance(m_reducedHashTree[0]);
         }
 
+        /// <summary>Return the reduced hash tree.</summary>
         public virtual PartialHashtree[] GetReducedHashTree() =>
             m_reducedHashTree?.MapElements(PartialHashtree.GetInstance);
 
+        /// <summary>Gets the time stamp.</summary>
         public virtual ContentInfo TimeStamp => m_timeStamp;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(4);

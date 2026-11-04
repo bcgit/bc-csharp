@@ -2,19 +2,36 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
+    /// <summary>The ProofOfPossession choice of RFC 4211.</summary>
     public class ProofOfPossession
         : Asn1Encodable, IAsn1Choice
     {
+        /// <summary>The <c>TYPE_RA_VERIFIED</c> constant, with the value <c>0</c>.</summary>
         public const int TYPE_RA_VERIFIED = 0;
+        /// <summary>The <c>TYPE_SIGNING_KEY</c> constant, with the value <c>1</c>.</summary>
         public const int TYPE_SIGNING_KEY = 1;
+        /// <summary>The <c>TYPE_KEY_ENCIPHERMENT</c> constant, with the value <c>2</c>.</summary>
         public const int TYPE_KEY_ENCIPHERMENT = 2;
+        /// <summary>The <c>TYPE_KEY_AGREEMENT</c> constant, with the value <c>3</c>.</summary>
         public const int TYPE_KEY_AGREEMENT = 3;
 
+        /// <summary>Return an <see cref="ProofOfPossession"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="ProofOfPossession"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="ProofOfPossession"/>, or null if <paramref name="obj"/> is null.</returns>
         public static ProofOfPossession GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
+        /// <summary>Return an <see cref="ProofOfPossession"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ProofOfPossession"/>.</returns>
         public static ProofOfPossession GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
 
+        /// <summary>Return an <see cref="ProofOfPossession"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="ProofOfPossession"/>, or null if <paramref name="element"/> is null.</returns>
         public static ProofOfPossession GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -34,6 +51,10 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return null;
         }
 
+        /// <summary>Return an <see cref="ProofOfPossession"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ProofOfPossession"/>.</returns>
         public static ProofOfPossession GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
@@ -86,8 +107,10 @@ namespace Org.BouncyCastle.Asn1.Crmf
         {
         }
 
+        /// <summary>Gets the type.</summary>
         public virtual int Type => m_tagNo;
 
+        /// <summary>Gets the object.</summary>
         public virtual Asn1Encodable Object => m_obj;
 
         /**

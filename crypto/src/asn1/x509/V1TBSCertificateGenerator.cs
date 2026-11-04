@@ -19,37 +19,46 @@ namespace Org.BouncyCastle.Asn1.X509
      */
     public class V1TbsCertificateGenerator
     {
-        internal DerTaggedObject		version = new DerTaggedObject(0, DerInteger.Zero);
-        internal DerInteger				serialNumber;
-        internal AlgorithmIdentifier	signature;
-        internal X509Name				issuer;
+        internal DerTaggedObject version = new DerTaggedObject(0, DerInteger.Zero);
+        internal DerInteger serialNumber;
+        internal AlgorithmIdentifier signature;
+        internal X509Name issuer;
         internal Validity               validity;
-        internal Time					startDate, endDate;
-        internal X509Name				subject;
-        internal SubjectPublicKeyInfo	subjectPublicKeyInfo;
+        internal Time startDate, endDate;
+        internal X509Name subject;
+        internal SubjectPublicKeyInfo subjectPublicKeyInfo;
 
-		public V1TbsCertificateGenerator()
+        /// <summary>Create a new <see cref="V1TbsCertificateGenerator"/>.</summary>
+        public V1TbsCertificateGenerator()
         {
         }
 
-		public void SetSerialNumber(
+        /// <summary>Set the serial number.</summary>
+        /// <param name="serialNumber">The serial number.</param>
+        public void SetSerialNumber(
             DerInteger serialNumber)
         {
             this.serialNumber = serialNumber;
         }
 
-		public void SetSignature(
+        /// <summary>Set the signature.</summary>
+        /// <param name="signature">The signature.</param>
+        public void SetSignature(
             AlgorithmIdentifier signature)
         {
             this.signature = signature;
         }
 
-		public void SetIssuer(
+        /// <summary>Set the issuer.</summary>
+        /// <param name="issuer">The issuer.</param>
+        public void SetIssuer(
             X509Name issuer)
         {
             this.issuer = issuer;
         }
 
+        /// <summary>Set the validity.</summary>
+        /// <param name="validity">The validity.</param>
         public void SetValidity(Validity validity)
         {
             this.validity = validity;
@@ -57,41 +66,56 @@ namespace Org.BouncyCastle.Asn1.X509
             this.endDate = null;
         }
 
+        /// <summary>Set the start date.</summary>
+        /// <param name="startDate">The start date.</param>
         public void SetStartDate(Time startDate)
         {
             this.validity = null;
             this.startDate = startDate;
         }
 
+        /// <summary>Set the start date.</summary>
+        /// <param name="startDate">The start date.</param>
         public void SetStartDate(Asn1UtcTime startDate)
         {
             SetStartDate(new Time(startDate));
         }
 
+        /// <summary>Set the end date.</summary>
+        /// <param name="endDate">The end date.</param>
         public void SetEndDate(Time endDate)
         {
             this.validity = null;
             this.endDate = endDate;
         }
 
+        /// <summary>Set the end date.</summary>
+        /// <param name="endDate">The end date.</param>
         public void SetEndDate(Asn1UtcTime endDate)
         {
             SetEndDate(new Time(endDate));
         }
 
+        /// <summary>Set the subject.</summary>
+        /// <param name="subject">The subject.</param>
         public void SetSubject(
             X509Name subject)
         {
             this.subject = subject;
         }
 
-		public void SetSubjectPublicKeyInfo(
+        /// <summary>Set the subject public key info.</summary>
+        /// <param name="pubKeyInfo">The pub key info.</param>
+        public void SetSubjectPublicKeyInfo(
             SubjectPublicKeyInfo pubKeyInfo)
         {
             this.subjectPublicKeyInfo = pubKeyInfo;
         }
 
-		public TbsCertificateStructure GenerateTbsCertificate()
+        /// <summary>Generate the TBSCertificate from the state of the generator.</summary>
+        /// <returns>The TBSCertificate.</returns>
+        /// <exception cref="InvalidOperationException">A required field has not been set.</exception>
+        public TbsCertificateStructure GenerateTbsCertificate()
         {
             if ((serialNumber == null) || (signature == null) || (issuer == null) ||
                 (validity == null && (startDate == null || endDate == null)) ||

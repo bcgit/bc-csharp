@@ -19,6 +19,11 @@ namespace Org.BouncyCastle.Asn1.BC
     public sealed class PbkdKeyData
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="PbkdKeyData"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="PbkdKeyData"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="PbkdKeyData"/>, or null if <paramref name="obj"/> is null.</returns>
         public static PbkdKeyData GetInstance(object obj)
         {
             if (obj == null)
@@ -28,9 +33,17 @@ namespace Org.BouncyCastle.Asn1.BC
             return new PbkdKeyData(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="PbkdKeyData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PbkdKeyData"/>.</returns>
         public static PbkdKeyData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PbkdKeyData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="PbkdKeyData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PbkdKeyData"/>.</returns>
         public static PbkdKeyData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PbkdKeyData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -40,6 +53,12 @@ namespace Org.BouncyCastle.Asn1.BC
         private readonly DerInteger m_iterationCount;
         private readonly Asn1OctetString m_encoded;
 
+        /// <summary>Create a new <see cref="PbkdKeyData"/>.</summary>
+        /// <param name="keyAlgorithm">The key algorithm.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="salt">The salt.</param>
+        /// <param name="iterationCount">The iteration count.</param>
+        /// <param name="encoded">The encoded form.</param>
         public PbkdKeyData(DerUtf8String keyAlgorithm, Asn1OctetString password, Asn1OctetString salt,
             DerInteger iterationCount, Asn1OctetString encoded)
         {
@@ -63,16 +82,22 @@ namespace Org.BouncyCastle.Asn1.BC
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the encoded.</summary>
         public Asn1OctetString Encoded => m_encoded;
 
+        /// <summary>Gets the iteration count.</summary>
         public DerInteger IterationCount => m_iterationCount;
 
+        /// <summary>Gets the key algorithm.</summary>
         public DerUtf8String KeyAlgorithm => m_keyAlgorithm;
 
+        /// <summary>Gets the password.</summary>
         public Asn1OctetString Password => m_password;
 
+        /// <summary>Gets the salt.</summary>
         public Asn1OctetString Salt => m_salt;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(5);

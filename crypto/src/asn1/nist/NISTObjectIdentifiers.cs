@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Nist
 {
+    /// <summary>Object identifiers for NIST.</summary>
     // TODO[api] Make static
     public sealed class NistObjectIdentifiers
     {
@@ -130,6 +131,7 @@ namespace Org.BouncyCastle.Asn1.Nist
         /// <summary> 2.16.840.1.101.3.4.3 </summary>
         public static readonly DerObjectIdentifier SigAlgs = NistAlgorithm.Branch("3");
 
+        /// <summary>The object identifier <c>2.16.840.1.101.3.4.3</c>.</summary>
         [Obsolete("Use 'SigAlgs' instead")]
         public static readonly DerObjectIdentifier IdDsaWithSha2 = SigAlgs;
 

@@ -28,6 +28,11 @@ namespace Org.BouncyCastle.Asn1.Tsp
     public class EncryptionInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="EncryptionInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="EncryptionInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="EncryptionInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static EncryptionInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -37,9 +42,17 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new EncryptionInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="EncryptionInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EncryptionInfo"/>.</returns>
         public static EncryptionInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new EncryptionInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="EncryptionInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EncryptionInfo"/>.</returns>
         public static EncryptionInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new EncryptionInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -67,16 +80,22 @@ namespace Org.BouncyCastle.Asn1.Tsp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="EncryptionInfo"/>.</summary>
+        /// <param name="encryptionInfoType">The encryption info type.</param>
+        /// <param name="encryptionInfoValue">The encryption info value.</param>
         public EncryptionInfo(DerObjectIdentifier encryptionInfoType, Asn1Encodable encryptionInfoValue)
         {
             m_encryptionInfoType = encryptionInfoType ?? throw new ArgumentNullException(nameof(encryptionInfoType));
             m_encryptionInfoValue = encryptionInfoValue ?? throw new ArgumentNullException(nameof(encryptionInfoValue));
         }
 
+        /// <summary>Gets the encryption info type.</summary>
         public virtual DerObjectIdentifier EncryptionInfoType => m_encryptionInfoType;
 
+        /// <summary>Gets the encryption info value.</summary>
         public virtual Asn1Encodable EncryptionInfoValue => m_encryptionInfoValue;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => new DLSequence(m_encryptionInfoType, m_encryptionInfoValue);
     }
 }

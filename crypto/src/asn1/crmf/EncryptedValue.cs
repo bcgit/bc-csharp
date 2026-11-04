@@ -4,9 +4,15 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
+    /// <summary>The EncryptedValue structure of RFC 4211.</summary>
     public class EncryptedValue
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="EncryptedValue"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="EncryptedValue"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="EncryptedValue"/>, or null if <paramref name="obj"/> is null.</returns>
         public static EncryptedValue GetInstance(object obj)
         {
             if (obj == null)
@@ -16,9 +22,16 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new EncryptedValue(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="EncryptedValue"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EncryptedValue"/>.</returns>
         public static EncryptedValue GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new EncryptedValue(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="EncryptedValue"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="EncryptedValue"/>, or null if <paramref name="element"/> is null.</returns>
         public static EncryptedValue GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -34,6 +47,10 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return null;
         }
 
+        /// <summary>Return an <see cref="EncryptedValue"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EncryptedValue"/>.</returns>
         public static EncryptedValue GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new EncryptedValue(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -61,6 +78,13 @@ namespace Org.BouncyCastle.Asn1.Crmf
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="EncryptedValue"/>.</summary>
+        /// <param name="intendedAlg">The intended alg.</param>
+        /// <param name="symmAlg">The symm alg.</param>
+        /// <param name="encSymmKey">The enc symm key.</param>
+        /// <param name="keyAlg">The key alg.</param>
+        /// <param name="valueHint">The value hint.</param>
+        /// <param name="encValue">The enc value.</param>
         public EncryptedValue(AlgorithmIdentifier intendedAlg, AlgorithmIdentifier symmAlg, DerBitString encSymmKey,
             AlgorithmIdentifier keyAlg, Asn1OctetString valueHint, DerBitString encValue)
         {
@@ -72,16 +96,22 @@ namespace Org.BouncyCastle.Asn1.Crmf
             m_encValue = encValue ?? throw new ArgumentNullException(nameof(encValue));
         }
 
+        /// <summary>Gets the intended alg.</summary>
         public virtual AlgorithmIdentifier IntendedAlg => m_intendedAlg;
 
+        /// <summary>Gets the symm alg.</summary>
         public virtual AlgorithmIdentifier SymmAlg => m_symmAlg;
 
+        /// <summary>Gets the enc symm key.</summary>
         public virtual DerBitString EncSymmKey => m_encSymmKey;
 
+        /// <summary>Gets the key alg.</summary>
         public virtual AlgorithmIdentifier KeyAlg => m_keyAlg;
 
+        /// <summary>Gets the value hint.</summary>
         public virtual Asn1OctetString ValueHint => m_valueHint;
 
+        /// <summary>Gets the enc value.</summary>
         public virtual DerBitString EncValue => m_encValue;
 
         /**

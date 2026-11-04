@@ -28,6 +28,11 @@ namespace Org.BouncyCastle.Asn1.X509
     public class SubjectAltPublicKeyInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="SubjectAltPublicKeyInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="SubjectAltPublicKeyInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="SubjectAltPublicKeyInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static SubjectAltPublicKeyInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -37,12 +42,23 @@ namespace Org.BouncyCastle.Asn1.X509
             return new SubjectAltPublicKeyInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="SubjectAltPublicKeyInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SubjectAltPublicKeyInfo"/>.</returns>
         public static SubjectAltPublicKeyInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SubjectAltPublicKeyInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="SubjectAltPublicKeyInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SubjectAltPublicKeyInfo"/>.</returns>
         public static SubjectAltPublicKeyInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SubjectAltPublicKeyInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
+        /// <summary>Get the extension of this type from a table of extensions, if it is present.</summary>
+        /// <param name="extensions">The extensions, or null.</param>
+        /// <returns>The value, or null if the extension is not present.</returns>
         public static SubjectAltPublicKeyInfo FromExtensions(X509Extensions extensions)
         {
             return GetInstance(
@@ -65,12 +81,17 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="SubjectAltPublicKeyInfo"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="subjectAltPublicKey">The subject alt public key.</param>
         public SubjectAltPublicKeyInfo(AlgorithmIdentifier algorithm, DerBitString subjectAltPublicKey)
         {
             m_algorithm = algorithm ?? throw new ArgumentNullException(nameof(algorithm));
             m_subjectAltPublicKey = subjectAltPublicKey ?? throw new ArgumentNullException(nameof(subjectAltPublicKey));
         }
 
+        /// <summary>Create a new <see cref="SubjectAltPublicKeyInfo"/>.</summary>
+        /// <param name="subjectPublicKeyInfo">The subject public key info.</param>
         public SubjectAltPublicKeyInfo(SubjectPublicKeyInfo subjectPublicKeyInfo)
         {
             if (subjectPublicKeyInfo == null)
@@ -80,10 +101,13 @@ namespace Org.BouncyCastle.Asn1.X509
             m_subjectAltPublicKey = subjectPublicKeyInfo.PublicKey;
         }
 
+        /// <summary>Gets the algorithm.</summary>
         public AlgorithmIdentifier Algorithm => m_algorithm;
 
+        /// <summary>Gets the subject alt public key.</summary>
         public DerBitString SubjectAltPublicKey => m_subjectAltPublicKey;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => new DerSequence(m_algorithm, m_subjectAltPublicKey);
     }
 }

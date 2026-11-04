@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 INTEGER type.</summary>
     public class DerInteger
         : Asn1Object
     {
@@ -21,16 +22,25 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <summary>
+        /// The <c>AllowUnsafeProperty</c> constant, with the value <c>Org.BouncyCastle.Asn1.AllowUnsafeInteger</c>.
+        /// </summary>
         [Obsolete("Use 'Properties.Asn1AllowUnsafeInteger' instead")]
         public const string AllowUnsafeProperty = "Org.BouncyCastle.Asn1.AllowUnsafeInteger";
 
         private static readonly DerInteger[] SmallConstants = new DerInteger[64];
 
+        /// <summary>The value 0.</summary>
         public static readonly DerInteger Zero;
+        /// <summary>The value 1.</summary>
         public static readonly DerInteger One;
+        /// <summary>The value 2.</summary>
         public static readonly DerInteger Two;
+        /// <summary>The value 3.</summary>
         public static readonly DerInteger Three;
+        /// <summary>The value 4.</summary>
         public static readonly DerInteger Four;
+        /// <summary>The value 5.</summary>
         public static readonly DerInteger Five;
 
         internal static bool AllowUnsafe() => Properties.GetBoolean(Properties.Asn1AllowUnsafeInteger, false);
@@ -71,6 +81,9 @@ namespace Org.BouncyCastle.Asn1
             return (DerInteger)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Return an <see cref="DerInteger"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="DerInteger"/>, or null if <paramref name="element"/> is null.</returns>
         public static DerInteger GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -82,11 +95,18 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="DerInteger"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DerInteger"/>.</returns>
         public static DerInteger GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (DerInteger)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Create an integer with the given value.</summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The integer.</returns>
         public static DerInteger ValueOf(int value)
         {
             if (value >= 0L && value < SmallConstants.Length)
@@ -97,6 +117,9 @@ namespace Org.BouncyCastle.Asn1
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Create an integer with the given value.</summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The integer.</returns>
         public static DerInteger ValueOf(long value)
         {
             if (value >= 0L && value < SmallConstants.Length)
@@ -127,6 +150,8 @@ namespace Org.BouncyCastle.Asn1
         private readonly byte[] m_contents;
         private readonly int m_start;
 
+        /// <summary>Create a new <see cref="DerInteger"/>.</summary>
+        /// <param name="value">The value.</param>
         [Obsolete("Use ValueOf instead.")]
         public DerInteger(int value)
         {
@@ -134,6 +159,8 @@ namespace Org.BouncyCastle.Asn1
             m_start = 0;
         }
 
+        /// <summary>Create a new <see cref="DerInteger"/>.</summary>
+        /// <param name="value">The value.</param>
         [Obsolete("Use ValueOf instead.")]
         public DerInteger(long value)
         {
@@ -141,6 +168,8 @@ namespace Org.BouncyCastle.Asn1
             m_start = 0;
         }
 
+        /// <summary>Create a new <see cref="DerInteger"/>.</summary>
+        /// <param name="value">The value.</param>
         public DerInteger(BigInteger value)
         {
             if (value == null)
@@ -150,7 +179,8 @@ namespace Org.BouncyCastle.Asn1
             m_start = 0;
         }
 
-        // TODO[api] Rename parameter to contents
+        /// <summary>Create a new <see cref="DerInteger"/>.</summary>
+        /// <param name="bytes">The bytes.</param>
         public DerInteger(byte[] bytes)
             : this(bytes, clone: true)
         {
@@ -172,21 +202,31 @@ namespace Org.BouncyCastle.Asn1
         /// </remarks>
         public BigInteger PositiveValue => new BigInteger(1, m_contents);
 
+        /// <summary>Gets the value.</summary>
         // NB: The BigInteger constructor tolerates any redundant sign bytes (per 'AllowUnsafe')
         public BigInteger Value => new BigInteger(m_contents);
 
+        /// <summary>Determine whether the integer equals the given value.</summary>
+        /// <param name="x">The value to compare with.</param>
+        /// <returns>true if the values are equal, false otherwise.</returns>
         public bool HasValue(int x)
         {
             return (m_contents.Length - m_start) <= 4
                 && IntValue(m_contents, m_start, SignExtSigned) == x;
         }
 
+        /// <summary>Determine whether the integer equals the given value.</summary>
+        /// <param name="x">The value to compare with.</param>
+        /// <returns>true if the values are equal, false otherwise.</returns>
         public bool HasValue(long x)
         {
             return (m_contents.Length - m_start) <= 8
                 && LongValue(m_contents, m_start, SignExtSigned) == x;
         }
 
+        /// <summary>Determine whether the integer equals the given value.</summary>
+        /// <param name="x">The value to compare with.</param>
+        /// <returns>true if the values are equal, false otherwise.</returns>
         public bool HasValue(BigInteger x)
         {
             return null != x
@@ -202,6 +242,7 @@ namespace Org.BouncyCastle.Asn1
         public int IntPositiveValueExact => TryGetIntPositiveValueExact(out int result) ? result
             : throw new ArithmeticException("ASN.1 Integer out of positive int range");
 
+        /// <summary>Gets the int value exact.</summary>
         public int IntValueExact => TryGetIntValueExact(out int result) ? result
             : throw new ArithmeticException("ASN.1 Integer out of int range");
 
@@ -212,6 +253,7 @@ namespace Org.BouncyCastle.Asn1
         public long LongPositiveValueExact => TryGetLongPositiveValueExact(out long result) ? result
             : throw new ArithmeticException("ASN.1 Integer out of positive long range");
 
+        /// <summary>Gets the long value exact.</summary>
         public long LongValueExact => TryGetLongValueExact(out long result) ? result
             : throw new ArithmeticException("ASN.1 Integer out of long range");
 
@@ -232,6 +274,9 @@ namespace Org.BouncyCastle.Asn1
             return true;
         }
 
+        /// <summary>Try to get the value as an int.</summary>
+        /// <param name="value">On success, the value.</param>
+        /// <returns>true if the value fits in an int, false otherwise.</returns>
         public bool TryGetIntValueExact(out int value)
         {
             int count = m_contents.Length - m_start;
@@ -262,6 +307,9 @@ namespace Org.BouncyCastle.Asn1
             return true;
         }
 
+        /// <summary>Try to get the value as a long.</summary>
+        /// <param name="value">On success, the value.</param>
+        /// <returns>true if the value fits in a long, false otherwise.</returns>
         public bool TryGetLongValueExact(out long value)
         {
             int count = m_contents.Length - m_start;
@@ -275,6 +323,7 @@ namespace Org.BouncyCastle.Asn1
             return true;
         }
 
+        /// <summary>Gets a value indicating whether this is negative.</summary>
         public bool IsNegative => (m_contents[m_start] & 0x80) != 0;
 
         internal override IAsn1Encoding GetEncoding(int encoding) =>
@@ -289,14 +338,17 @@ namespace Org.BouncyCastle.Asn1
         internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo) =>
             new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             return asn1Object is DerInteger that
                 && Arrays.AreEqual(this.m_contents, that.m_contents);
         }
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode() => Arrays.GetHashCode(m_contents);
 
+        /// <inheritdoc/>
         public override string ToString() => Value.ToString();
 
         internal static DerInteger CreatePrimitive(byte[] contents)

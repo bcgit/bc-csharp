@@ -33,6 +33,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class Challenge
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="Challenge"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="Challenge"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="Challenge"/>, or null if <paramref name="obj"/> is null.</returns>
         public static Challenge GetInstance(object obj)
         {
             if (obj == null)
@@ -42,9 +45,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new Challenge(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="Challenge"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Challenge"/>.</returns>
         public static Challenge GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Challenge(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="Challenge"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Challenge"/>.</returns>
         public static Challenge GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Challenge(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -66,11 +77,18 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="Challenge"/>.</summary>
+        /// <param name="witness">The witness.</param>
+        /// <param name="challenge">The challenge.</param>
         public Challenge(byte[] witness, byte[] challenge)
             : this(null, witness, challenge)
         {
         }
 
+        /// <summary>Create a new <see cref="Challenge"/>.</summary>
+        /// <param name="owf">The owf.</param>
+        /// <param name="witness">The witness.</param>
+        /// <param name="challenge">The challenge.</param>
         public Challenge(AlgorithmIdentifier owf, byte[] witness, byte[] challenge)
         {
             m_owf = owf;
@@ -78,10 +96,13 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_challenge = DerOctetString.FromContents(challenge);
         }
 
+        /// <summary>Gets the owf.</summary>
         public virtual AlgorithmIdentifier Owf => m_owf;
 
+        /// <summary>Gets the witness.</summary>
         public virtual Asn1OctetString Witness => m_witness;
 
+        /// <summary>Gets the challenge value.</summary>
         public virtual Asn1OctetString ChallengeValue => m_challenge;
 
         /**
@@ -124,6 +145,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
         public class Rand
             : Asn1Encodable
         {
+            /// <summary>Return an <see cref="Rand"/> from the given object.</summary>
+            /// <param name="obj">An <see cref="Rand"/>, an object from which one can be constructed, or null.</param>
+            /// <returns>The <see cref="Rand"/>, or null if <paramref name="obj"/> is null.</returns>
             public static Rand GetInstance(object obj)
             {
                 if (obj == null)
@@ -135,11 +159,19 @@ namespace Org.BouncyCastle.Asn1.Cmp
 #pragma warning restore CS0618 // Type or member is obsolete
             }
 
+            /// <summary>Return an <see cref="Rand"/> from a tagged object.</summary>
+            /// <param name="taggedObject">The tagged object.</param>
+            /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+            /// <returns>The <see cref="Rand"/>.</returns>
             public static Rand GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
 #pragma warning disable CS0618 // Type or member is obsolete
                 new Rand(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 #pragma warning restore CS0618 // Type or member is obsolete
 
+            /// <summary>Return an <see cref="Rand"/> from a tagged object.</summary>
+            /// <param name="taggedObject">The tagged object.</param>
+            /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+            /// <returns>The <see cref="Rand"/>.</returns>
             public static Rand GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
 #pragma warning disable CS0618 // Type or member is obsolete
                 new Rand(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
@@ -148,12 +180,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             private readonly DerInteger m_intVal;
             private readonly GeneralName m_sender;
 
+            /// <summary>Create a new <see cref="Rand"/>.</summary>
+            /// <param name="intVal">The int val.</param>
+            /// <param name="sender">The sender.</param>
             public Rand(DerInteger intVal, GeneralName sender)
             {
                 m_intVal = intVal ?? throw new ArgumentNullException(nameof(intVal));
                 m_sender = sender ?? throw new ArgumentNullException(nameof(sender));
             }
 
+            /// <summary>Create a new <see cref="Rand"/>.</summary>
+            /// <param name="seq">The ASN.1 sequence.</param>
             [Obsolete("Use 'GetInstance' instead")]
             public Rand(Asn1Sequence seq)
             {
@@ -171,10 +208,13 @@ namespace Org.BouncyCastle.Asn1.Cmp
                     throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
             }
 
+            /// <summary>Gets the int val.</summary>
             public virtual DerInteger IntVal => m_intVal;
 
+            /// <summary>Gets the sender.</summary>
             public virtual GeneralName Sender => m_sender;
 
+            /// <inheritdoc/>
             public override Asn1Object ToAsn1Object() => new DerSequence(m_intVal, m_sender);
         }
     }

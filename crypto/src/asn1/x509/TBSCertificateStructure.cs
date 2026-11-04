@@ -25,8 +25,13 @@ namespace Org.BouncyCastle.Asn1.X509
      * will parse them, but you really shouldn't be creating new ones.</p>
      */
     public class TbsCertificateStructure
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
+        /// <summary>Return an <see cref="TbsCertificateStructure"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="TbsCertificateStructure"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="TbsCertificateStructure"/>, or null if <paramref name="obj"/> is null.</returns>
         public static TbsCertificateStructure GetInstance(object obj)
         {
             if (obj == null)
@@ -36,9 +41,17 @@ namespace Org.BouncyCastle.Asn1.X509
             return new TbsCertificateStructure(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="TbsCertificateStructure"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="TbsCertificateStructure"/>.</returns>
         public static TbsCertificateStructure GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new TbsCertificateStructure(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="TbsCertificateStructure"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="TbsCertificateStructure"/>.</returns>
         public static TbsCertificateStructure GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new TbsCertificateStructure(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -56,7 +69,7 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly Asn1Sequence m_seq;
 
         private TbsCertificateStructure(Asn1Sequence seq)
-		{
+        {
             int count = seq.Count, pos = 0;
             if (count < 6 || count > 10)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
@@ -106,6 +119,17 @@ namespace Org.BouncyCastle.Asn1.X509
             m_seq = seq;
         }
 
+        /// <summary>Create a new <see cref="TbsCertificateStructure"/>.</summary>
+        /// <param name="version">The version.</param>
+        /// <param name="serialNumber">The serial number.</param>
+        /// <param name="signature">The signature.</param>
+        /// <param name="issuer">The issuer.</param>
+        /// <param name="validity">The validity.</param>
+        /// <param name="subject">The subject.</param>
+        /// <param name="subjectPublicKeyInfo">The subject public key info.</param>
+        /// <param name="issuerUniqueID">The issuer unique ID.</param>
+        /// <param name="subjectUniqueID">The subject unique ID.</param>
+        /// <param name="extensions">The extensions.</param>
         public TbsCertificateStructure(DerInteger version, DerInteger serialNumber, AlgorithmIdentifier signature,
             X509Name issuer, Validity validity, X509Name subject, SubjectPublicKeyInfo subjectPublicKeyInfo,
             DerBitString issuerUniqueID, DerBitString subjectUniqueID, X509Extensions extensions)
@@ -129,33 +153,47 @@ namespace Org.BouncyCastle.Asn1.X509
             m_seq = null;
         }
 
+        /// <summary>Gets the version.</summary>
         public int Version => m_version.IntValueExact + 1;
 
-		public DerInteger VersionNumber => m_version;
+        /// <summary>Gets the version number.</summary>
+        public DerInteger VersionNumber => m_version;
 
-		public DerInteger SerialNumber => m_serialNumber;
+        /// <summary>Gets the serial number.</summary>
+        public DerInteger SerialNumber => m_serialNumber;
 
+        /// <summary>Gets the signature.</summary>
         public AlgorithmIdentifier Signature => m_signature;
 
+        /// <summary>Gets the issuer.</summary>
         public X509Name Issuer => m_issuer;
 
+        /// <summary>Gets the validity.</summary>
         public Validity Validity => m_validity;
 
+        /// <summary>Gets the start date.</summary>
         public Time StartDate => Validity.NotBefore;
 
+        /// <summary>Gets the end date.</summary>
         public Time EndDate => Validity.NotAfter;
 
+        /// <summary>Gets the subject.</summary>
         public X509Name Subject => m_subject;
 
+        /// <summary>Gets the subject public key info.</summary>
         public SubjectPublicKeyInfo SubjectPublicKeyInfo => m_subjectPublicKeyInfo;
 
+        /// <summary>Gets the issuer unique ID.</summary>
         public DerBitString IssuerUniqueID => m_issuerUniqueID;
 
+        /// <summary>Gets the subject unique ID.</summary>
         public DerBitString SubjectUniqueID => m_subjectUniqueID;
 
+        /// <summary>Gets the extensions.</summary>
         public X509Extensions Extensions => m_extensions;
 
-		public override Asn1Object ToAsn1Object()
+        /// <inheritdoc/>
+        public override Asn1Object ToAsn1Object()
         {
             if (m_seq != null)
             {
@@ -174,12 +212,12 @@ namespace Org.BouncyCastle.Asn1.X509
             v.Add(m_serialNumber, m_signature, m_issuer, m_validity, m_subject, m_subjectPublicKeyInfo);
 
             // Note: implicit tag
-			v.AddOptionalTagged(false, 1, m_issuerUniqueID);
+            v.AddOptionalTagged(false, 1, m_issuerUniqueID);
 
-			// Note: implicit tag
-			v.AddOptionalTagged(false, 2, m_subjectUniqueID);
+            // Note: implicit tag
+            v.AddOptionalTagged(false, 2, m_subjectUniqueID);
 
-			v.AddOptionalTagged(true, 3, m_extensions);
+            v.AddOptionalTagged(true, 3, m_extensions);
 
             return new DerSequence(v);
         }
