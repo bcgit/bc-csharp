@@ -22,9 +22,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         public byte[] ExtractSecret(byte[] encapsulation)
         {
             byte[] ss = new byte[64];
-            byte[] sk = m_privateKey.InternalPrivateKey;
 
-            m_engine.Decaps(ss, ct: encapsulation, sk);
+            m_engine.Decaps(ss, ct: encapsulation, m_privateKey.GetExpandedKey());
 
             return Arrays.CopySegment(ss, 0, 32);
         }

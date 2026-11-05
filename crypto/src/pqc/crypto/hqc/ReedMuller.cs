@@ -4,12 +4,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
     internal static class ReedMuller
     {
+        /**
+         * RM.Encode of the HQC specification (2026-10-12, Section 3.5.3): the 128-bit RM(1,7) codeword is the message
+         * bits times rm_generator_matrix, held here as four 32-bit words. Message bit 7 selects the all-ones row, bits
+         * 0-4 the rows 0x55.., 0x33.., 0x0f.., 0xff00.., 0xffff0000 and bits 5 and 6 the word-selecting rows, with bit
+         * i of a codeword byte read as ByteToBit(byte, 7 - i) - so, relative to the 2025-08-22 specification, the bits
+         * of every codeword byte are in the reverse order.
+         */
         internal static void EncodeSub(int[] output, int m)
         {
             int w0 = Bit0Mask(m >> 7);
-            w0 ^= (int)(Bit0Mask(m >> 0) & 0xAAAAAAAA);
-            w0 ^= (int)(Bit0Mask(m >> 1) & 0xCCCCCCCC);
-            w0 ^= (int)(Bit0Mask(m >> 2) & 0xF0F0F0F0);
+            w0 ^= (int)(Bit0Mask(m >> 0) & 0x55555555);
+            w0 ^= (int)(Bit0Mask(m >> 1) & 0x33333333);
+            w0 ^= (int)(Bit0Mask(m >> 2) & 0x0F0F0F0F);
             w0 ^= (int)(Bit0Mask(m >> 3) & 0xFF00FF00);
             w0 ^= (int)(Bit0Mask(m >> 4) & 0xFFFF0000);
 
@@ -41,6 +48,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             }
         }
 
+        /**
+         * dRM.Decode.ExpandAndSum: bit_sums[8j + k] counts, over the rm_multiplicity copies, ByteToBit(byte j, 7 - k),
+         * hence the {@code ^ 7} on the bit index within each byte of the 32-bit words.
+         */
         private static void ExpandThenSum(int[] dst, int[] src, int off, int mulParam)
         {
             int srcOff = off * 4;
@@ -51,7 +62,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                     int dstOff = j * 32;
                     for (int k = 0; k < 32; k++)
                     {
-                        dst[dstOff + k] = (t >> k) & 1;
+                        dst[dstOff + k] = (t >> (k ^ 7)) & 1;
                     }
                 }
             }
@@ -65,7 +76,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                     int dstOff = j * 32;
                     for (int k = 0; k < 32; k++)
                     {
-                        dst[dstOff + k] += (t >> k) & 1;
+                        dst[dstOff + k] += (t >> (k ^ 7)) & 1;
                     }
                 }
             }

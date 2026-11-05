@@ -8,11 +8,27 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
+    /**
+     * HQC-PKE and HQC-KEM of the HQC specification of 2026-10-12 (Sections 3.6 and 3.7).
+     * <p>
+     * The decapsulation key dkKEM is the 32-byte seedKEM alone. Everything decapsulation needs is re-derived from it -
+     * ctxKEM = XOF.Init(seedKEM || k), seedPKE = GetBytes(32), sigma = GetBytes(k), (ekPKE, dkPKE) =
+     * HQC-PKE.Keygen(seedPKE) - and that derivation costs a key generation, so <see cref="ExpandSecretKey"/> performs
+     * it once into the "expanded key" ekPKE || seedPKE.dk || sigma, which <see cref="HqcPrivateKeyParameters"/> caches
+     * and <see cref="Decaps"/> consumes.
+     * </p>
+     * <p>
+     * NOTE: the specification text writes ctxKEM = XOF.Init(seedKEM), with nothing appended (Section 3.7, Keygen step 3
+     * and Decaps step 2). The reference implementation absorbs seedKEM followed by k (in bytes: 16, 24 or 32) as a
+     * single byte, so a seed reused across parameter sets yields unrelated keys, and the known-answer tests follow the
+     * code. This implementation follows the reference implementation and its known-answer tests.
+     * </p>
+     */
     internal class HqcEngine
     {
         internal const int SharedSecretBytes = 32;
+        internal const int SeedBytes = 32;
         private const int SaltBytes = 16;
-        private const int SeedBytes = 32;
 
         private readonly int m_n;
         private readonly int m_n1;
@@ -56,45 +72,70 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
         internal int CipherTextBytes => m_cipherTextBytes;
 
+        /** Size of the expanded decapsulation key ekPKE || seedPKE.dk || sigma. */
+        internal int ExpandedKeyBytes => m_pkSize + SeedBytes + m_k;
+
         /**
-         * Generate key pairs - Secret key : (x,y) - Public key: (h,s)
+         * HQC-KEM.Keygen: sample seedKEM, which is the decapsulation key, and expand it.
          *
-         * @param pk output pk = (publicSeed||s)
+         * @param pk      output ekKEM = ekPKE = (seedPKE.ek || s)
+         * @param seedKem output dkKEM = seedKEM
+         * @return the expanded key ekPKE || seedPKE.dk || sigma, for {@link #Decaps}
          **/
-        internal void GenKeyPair(byte[] pk, byte[] sk, SecureRandom secureRandom)
+        internal byte[] GenKeyPair(byte[] pk, byte[] seedKem, SecureRandom secureRandom)
         {
-            // Randomly generate seeds for secret keys and public keys
-            byte[] seedKem = new byte[SeedBytes];
-            byte[] keyPairSeed = new byte[SeedBytes << 1];
-            ulong[] yLongBytes = m_gf2x.Create();
-            ulong[] h = m_gf2x.Create(); // s
-
             secureRandom.NextBytes(seedKem);
-            Shake256RandomGenerator ctxKem = new Shake256RandomGenerator(seedKem, 0x01);
-            Array.Copy(seedKem, 0, sk, m_pkSize + SeedBytes + m_k, SeedBytes);
 
-            ctxKem.NextBytes(seedKem);
-            ctxKem.NextBytes(sk, m_pkSize + SeedBytes, m_k);
+            byte[] expanded = ExpandSecretKey(seedKem);
+            Array.Copy(expanded, 0, pk, 0, m_pkSize);
+            return expanded;
+        }
 
-            HashHI(keyPairSeed, 512, seedKem, seedKem.Length, 0x02);
-            ctxKem.Init(keyPairSeed, 0, SeedBytes, 0x01);
+        /**
+         * Derive from dkKEM = seedKEM everything HQC-KEM.Decaps needs: seedPKE and sigma from
+         * ctxKEM = XOF.Init(seedKEM || k), then (ekPKE, dkPKE) = HQC-PKE.Keygen(seedPKE) with dkPKE = seedPKE.dk,
+         * (seedPKE.dk, seedPKE.ek) = I(seedPKE), y then x sampled from XOF(seedPKE.dk) by SampleFixedWeightVect$,
+         * h from XOF(seedPKE.ek) and s = x + h.y.
+         *
+         * @param seedKem the 32-byte seedKEM
+         * @return ekPKE || seedPKE.dk || sigma
+         **/
+        internal byte[] ExpandSecretKey(byte[] seedKem)
+        {
+            byte[] expanded = new byte[ExpandedKeyBytes];
+            byte[] seedPke = new byte[SeedBytes];
+            byte[] keyPairSeed = new byte[SeedBytes << 1];
+            ulong[] y = m_gf2x.Create();
+            ulong[] h = m_gf2x.Create(); // becomes s
+
+            // k is absorbed after seedKEM as the reference implementation does; see the class comment
+            var ctxKem = new Shake256RandomGenerator(seedKem, 0, SeedBytes, (byte)m_k);
+            ctxKem.NextBytes(seedPke);
+            ctxKem.NextBytes(expanded, m_pkSize + SeedBytes, m_k); // sigma
+
+            HashHI(keyPairSeed, 512, seedPke, SeedBytes, 0x02); // (seedPKE.dk, seedPKE.ek) = I(seedPKE)
+            ctxKem.Init(keyPairSeed, 0, SeedBytes); // XOF(seedPKE.dk)
 
             uint[] ySupport = SampleSupport1(ctxKem, m_w);
-            WriteSupportToVector(yLongBytes, ySupport, m_w);
             uint[] xSupport = SampleSupport1(ctxKem, m_w);
-            Array.Copy(keyPairSeed, SeedBytes, pk, 0, SeedBytes);
-            ctxKem.Init(keyPairSeed, SeedBytes, SeedBytes, 0x01);
+            WriteSupportToVector(y, ySupport, m_w);
+
+            ctxKem.Init(keyPairSeed, SeedBytes, SeedBytes); // XOF(seedPKE.ek)
             m_gf2x.Random(ctxKem, h);
-            m_gf2x.Mul(h, yLongBytes, h); // h is s as the output
-            AddSupportTo(h, xSupport, m_w); // h ^= x
-            Utils.FromUInt64ArrayToByteArray(pk, SeedBytes, pk.Length - SeedBytes, h);
-            Array.Copy(keyPairSeed, 0, sk, m_pkSize, SeedBytes);
-            Array.Copy(pk, 0, sk, 0, m_pkSize);
-            Arrays.Clear(keyPairSeed);
-            Array.Clear(ySupport, 0, ySupport.Length);
-            Array.Clear(xSupport, 0, xSupport.Length);
-            m_gf2x.Clear(yLongBytes);
+            m_gf2x.Mul(h, y, h); // s = h.y
+            AddSupportTo(h, xSupport, m_w); // s ^= x
+
+            Array.Copy(keyPairSeed, SeedBytes, expanded, 0, SeedBytes); // ekPKE = seedPKE.ek || s
+            Utils.FromUInt64ArrayToByteArray(expanded, SeedBytes, m_pkSize - SeedBytes, h);
+            Array.Copy(keyPairSeed, 0, expanded, m_pkSize, SeedBytes); // dkPKE = seedPKE.dk
+
+            Arrays.ZeroMemory(seedPke);
+            Arrays.ZeroMemory(keyPairSeed);
+            Arrays.ZeroMemory(ySupport);
+            Arrays.ZeroMemory(xSupport);
+            m_gf2x.Clear(y);
             m_gf2x.Clear(h);
+            return expanded;
         }
 
         /**
@@ -128,16 +169,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         }
 
         /**
-         * HQC Decapsulation - Input: ct, sk - Output: ss
+         * HQC Decapsulation - Input: ct, expanded sk - Output: ss
          *
          * @param ss session key
          * @param ct ciphertext
-         * @param sk secret key
+         * @param sk the expanded decapsulation key ekPKE || seedPKE.dk || sigma from {@link #ExpandSecretKey}
          * @return 0 if decapsulation is successful, -1 otherwise
          **/
         internal int Decaps(byte[] ss, byte[] ct, byte[] sk)
         {
-            // Extract Y and Public Keys from sk
+            // Recompute y from seedPKE.dk; ekPKE and sigma are read from sk in place
             ulong[] u64 = m_gf2x.Create();
             ulong[] v64 = new ulong[N1N2_BYTE_64]; // ciphertext v: an n1*n2-bit codeword, not a ring element
             ulong[] cKemPrimeU64 = m_gf2x.Create(); // tmpLong
@@ -148,7 +189,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             byte[] kBar = new byte[32];
             byte[] tmp = new byte[m_n1];
 
-            Shake256RandomGenerator generator = new Shake256RandomGenerator(sk, m_pkSize, SeedBytes, 0x01);
+            Shake256RandomGenerator generator = new Shake256RandomGenerator(sk, m_pkSize, SeedBytes);
             uint[] ySupport = SampleSupport1(generator, m_w);
             WriteSupportToVector(cKemPrimeV64, ySupport, m_w); // cKemPrimeV64 holds dense y for the multiply
 
@@ -207,10 +248,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             ReedSolomon.Encode(res, m, m_n1, m_k, m_generatorPoly);
             ReedMuller.Encode(v, res, m_n1, m_mulParam);
 
-            var randomGenerator = new Shake256RandomGenerator(ekPke, 0, SeedBytes, 0x01);
+            var randomGenerator = new Shake256RandomGenerator(ekPke, 0, SeedBytes);
             m_gf2x.Random(randomGenerator, tmp);
 
-            randomGenerator.Init(theta, thetaOff, SeedBytes, 0x01);
+            randomGenerator.Init(theta, thetaOff, SeedBytes);
             uint[] r2Support = SampleSupport2(randomGenerator, m_wr);
             WriteSupportToVector(r2Dense, r2Support, m_wr);
             m_gf2x.Mul(tmp, r2Dense, u);
@@ -238,31 +279,60 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             return r + ((r >> 31) & m_n);
         }
 
+        /**
+         * SampleSupport1: rejection-sample <paramref name="weight"/> distinct positions in [0, n) into
+         * <paramref name="support"/>, squeezing one 3-byte little-endian candidate at a time from the XOF and keeping
+         * it when it lies below rejection_threshold_n (so that reduction modulo n is unbiased) and is not already in
+         * the support.
+         * <p>
+         * NOTE: this runs on secret data at both of its call sites - it samples the secret key supports y and x in
+         * {@link #ExpandSecretKey}, which also happens on every decapsulation of a key whose expansion is not cached,
+         * where the same seed produces the same draw sequence every time and so any timing variation is a fixed,
+         * repeatedly measurable function of the private key. The work done on each candidate is therefore branch-free
+         * and fixed-count: the duplicate scan visits every slot with no early exit, and an accepted candidate is
+         * written by masking across all slots rather than by indexing with the secret running count. Do not
+         * "optimise" any of that back into a break, a continue, or a {@code support[count]} store.
+         * </p>
+         * <p>
+         * The number of candidates drawn before <paramref name="weight"/> are accepted is data-dependent, which is
+         * inherent to the specified sampler (the reference implementation's loop is the same shape) and cannot be
+         * removed without changing the bytes consumed from the XOF, and therefore the key.
+         * </p>
+         */
         private void GenerateRandomSupport(uint[] support, int weight, Shake256RandomGenerator random)
         {
-            int randomBytesSize = 3 * weight;
-            byte[] randBytes = new byte[randomBytesSize];
-            int j = randomBytesSize;
+            byte[] randBytes = new byte[3];
 
             int count = 0;
             while (count < weight)
             {
-                if (j == randomBytesSize)
+                random.NextBytes(randBytes);
+
+                int candidate = randBytes[0] | (randBytes[1] << 8) | (randBytes[2] << 16);
+
+                // in range for an unbiased reduction
+                int accept = (candidate - m_rejectionThreshold) >> 31;
+                int reduced = BarrettReduce(candidate);
+
+                // drop a repeat: every slot is compared, the not-yet-filled ones counting as non-matching, so
+                // neither the trip count nor the exit depends on the values
+                for (int t = 0; t < weight; ++t)
                 {
-                    random.XofGetBytes(randBytes, randomBytesSize);
-                    j = 0;
+                    int live = (t - count) >> 31;
+                    accept &= CDiff(reduced, (int)support[t]) | ~live;
                 }
 
-                int candidate = ((int)randBytes[j++] << 16) | ((int)randBytes[j++] << 8) | (int)randBytes[j++];
-                if (candidate >= m_rejectionThreshold)
-                    continue;
+                // store at index count without using count as an index
+                for (int t = 0; t < weight; ++t)
+                {
+                    int hit = accept & ~CDiff(t, count);
+                    support[t] = (support[t] & ~(uint)hit) | ((uint)reduced & (uint)hit);
+                }
 
-                candidate = BarrettReduce(candidate);
-                if (Array.IndexOf(support, (uint)candidate, 0, count) >= 0)
-                    continue;
-
-                support[count++] = (uint)candidate;
+                count -= accept; // accept is 0 or -1
             }
+
+            Arrays.ZeroMemory(randBytes);
         }
 
         /**

@@ -1,9 +1,9 @@
+using System;
 using System.Collections.Generic;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Security;
@@ -15,11 +15,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     [TestFixture]
     public class HqcVectorTest
     {
+        // the reference implementation's kats/ref/hqc-{1,3,5}/PQCkemKAT_32.rsp for the HQC specification of
+        // 2026-10-12 (32 is the size of the seed-only decapsulation key)
         private static readonly Dictionary<string, HqcParameters> Parameters = new Dictionary<string, HqcParameters>()
         {
-            { "PQCkemKAT_2321.rsp", HqcParameters.hqc128 },
-            { "PQCkemKAT_4602.rsp", HqcParameters.hqc192 },
-            { "PQCkemKAT_7333.rsp", HqcParameters.hqc256 },
+            { "hqc-1/PQCkemKAT_32.rsp", HqcParameters.hqc128 },
+            { "hqc-3/PQCkemKAT_32.rsp", HqcParameters.hqc192 },
+            { "hqc-5/PQCkemKAT_32.rsp", HqcParameters.hqc256 },
         };
 
         private static readonly IEnumerable<HqcParameters> ParametersValues = Parameters.Values;
@@ -113,6 +115,45 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 parameters + ": rejection secret tail must depend on the ciphertext (FO implicit rejection)");
         }
 
+        [TestCaseSource(nameof(ParametersValues))]
+        [Parallelizable(ParallelScope.All)]
+        public void SeedOnlyPrivateKey(HqcParameters parameters)
+        {
+            // The decapsulation key encoding is the 32-byte seedKEM (HQC specification 2026-10-12, Table 9): a key
+            // rebuilt from nothing but that encoding must derive the same public key and decapsulate, and the
+            // superseded expanded encoding must be refused.
+            var kpg = new HqcKeyPairGenerator();
+            kpg.Init(new HqcKeyGenerationParameters(Random, parameters));
+            var kp = kpg.GenerateKeyPair();
+            var pub = (HqcPublicKeyParameters)kp.Public;
+            var priv = (HqcPrivateKeyParameters)kp.Private;
+
+            byte[] enc = priv.GetEncoded();
+            Assert.AreEqual(32, parameters.SecretKeyBytes, parameters + ": secret key size");
+            Assert.AreEqual(32, enc.Length, parameters + ": encoding size");
+            Assert.True(Arrays.AreEqual(enc, priv.GetPrivateKey()), parameters + ": GetPrivateKey");
+
+            // the generator's own copy and a key re-derived from the seed agree on the public key
+            Assert.True(Arrays.AreEqual(pub.GetEncoded(), priv.GetPublicKeyParameters().GetEncoded()),
+                parameters + ": public key from seed");
+
+            var rebuilt = new HqcPrivateKeyParameters(parameters, enc);
+            Assert.True(Arrays.AreEqual(pub.GetEncoded(), rebuilt.GetPublicKeyParameters().GetEncoded()),
+                parameters + ": public key from rebuilt seed");
+
+            var encapsulated = new HqcKemGenerator(Random).GenerateEncapsulated(pub);
+            byte[] fromRebuilt = new HqcKemExtractor(rebuilt).ExtractSecret(encapsulated.GetEncapsulation());
+            Assert.True(Arrays.AreEqual(encapsulated.GetSecret(), fromRebuilt),
+                parameters + ": decaps with rebuilt key");
+
+            // the expanded layout of the 2025-08-22 specification is no longer an encoding
+            foreach (int oldSize in new int[]{ 2321, 4602, 7333 })
+            {
+                Assert.Throws<ArgumentException>(() => new HqcPrivateKeyParameters(parameters, new byte[oldSize]),
+                    parameters + ": accepted a " + oldSize + " byte private key");
+            }
+        }
+
         [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
         public void TV(string testVectorFile) =>
@@ -127,7 +168,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] ct = Hex.Decode(data["ct"]);     // ciphertext
             byte[] ss = Hex.Decode(data["ss"]);     // session key
 
-            var random = new Shake256SecureRandom(seed);
+            // the 2026-10-12 reference KAT harness went back to the NIST AES-256 CTR-DRBG (lib/nist-rng/rng.c,
+            // randombytes_init(seed, NULL, 256)); the 2025-08-22 one drew from SHAKE256(seed || 0x00)
+            var random = new NistSecureRandom(seed, null);
             var hqcParameters = Parameters[path];
 
             var kpGen = new HqcKeyPairGenerator();
@@ -161,21 +204,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             byte[] decapSecret = kemExtractor.ExtractSecret(cipherText);
             Assert.True(Arrays.AreEqual(ss, decapSecret), path + " " + count + ": decapSecret");
-        }
-
-        private class Shake256SecureRandom : SecureRandom
-        {
-            private readonly ShakeDigest m_xof = new ShakeDigest(256);
-
-            internal Shake256SecureRandom(byte[] seed)
-            {
-                m_xof.BlockUpdate(seed, 0, seed.Length);
-                m_xof.Update(0x00);
-            }
-
-            public override void NextBytes(byte[] buf) => m_xof.Output(buf, 0, buf.Length);
-
-            public override void NextBytes(byte[] buf, int off, int len) => m_xof.Output(buf, off, len);
         }
     }
 }
