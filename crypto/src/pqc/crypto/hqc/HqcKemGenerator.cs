@@ -32,8 +32,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             engine.Encaps(u, v, K, pk, salt, m_random);
 
             byte[] cipherText = Arrays.ConcatenateAll(u, v, salt);
+            byte[] secret = Arrays.CopySegment(K, 0, 32);
 
-            return new SecretWithEncapsulationImpl(Arrays.CopySegment(K, 0, 32), cipherText);
+            // K holds the shared secret followed by theta, the encryption seed
+            Arrays.ZeroMemory(K);
+
+            return new SecretWithEncapsulationImpl(secret, cipherText);
         }
 
         private sealed class SecretWithEncapsulationImpl
@@ -66,7 +70,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             {
                 if (!m_hasBeenDestroyed)
                 {
-                    Arrays.Clear(m_sessionKey);
+                    Arrays.ZeroMemory(m_sessionKey);
                     Arrays.Clear(m_cipherText);
                     m_hasBeenDestroyed = true;
                 }

@@ -32,7 +32,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
             m_engine.Decaps(ss, ct: encapsulation, m_privateKey.GetExpandedKey());
 
-            return Arrays.CopySegment(ss, 0, 32);
+            byte[] secret = Arrays.CopySegment(ss, 0, 32);
+            Arrays.ZeroMemory(ss);
+            return secret;
         }
 
         public int EncapsulationLength => m_engine.CipherTextBytes;

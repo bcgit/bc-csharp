@@ -164,7 +164,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             Utils.FromUInt64ArrayToByteArray(v, 0, v.Length, v64);
             m_gf2x.Clear(u64);
             Nat.Zero64(v64.Length, v64);
-            Arrays.Clear(m);
+            Arrays.ZeroMemory(m);
             Arrays.Clear(hashEkKem);
         }
 
@@ -230,12 +230,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             Nat.Zero64(v64.Length, v64);
             m_gf2x.Clear(cKemPrimeU64);
             m_gf2x.Clear(cKemPrimeV64);
-            Array.Clear(ySupport, 0, ySupport.Length);
+            Arrays.ZeroMemory(ySupport);
             Arrays.Clear(hashEkKem);
-            Arrays.Clear(kThetaPrime);
-            Arrays.Clear(mPrime);
-            Arrays.Clear(kBar);
-            Arrays.Clear(tmp);
+            Arrays.ZeroMemory(kThetaPrime);
+            Arrays.ZeroMemory(mPrime);
+            Arrays.ZeroMemory(kBar);
+            Arrays.ZeroMemory(tmp);
             return -result;
         }
 
@@ -264,12 +264,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
             uint[] r1Support = SampleSupport2(randomGenerator, m_wr);
             AddSupportTo(u, r1Support, m_wr); // u ^= r1
-            Array.Clear(r2Support, 0, r2Support.Length);
-            Array.Clear(eSupport, 0, eSupport.Length);
-            Array.Clear(r1Support, 0, r1Support.Length);
+            Arrays.ZeroMemory(r2Support);
+            Arrays.ZeroMemory(eSupport);
+            Arrays.ZeroMemory(r1Support);
             m_gf2x.Clear(r2Dense);
             m_gf2x.Clear(tmp);
-            Arrays.Clear(res);
+            Arrays.ZeroMemory(res);
         }
 
         private int BarrettReduce(int x)
@@ -337,57 +337,66 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
         /**
          * Constant-time materialisation of a fixed-weight sparse vector (given as its support
-         * indices) into a freshly-zeroed dense long[] target. Branchless mask-OR over every
-         * (i, j) pair, so neither timing nor cache-access patterns leak the secret support.
+         * indices) into a dense ulong[] target, every word of which is overwritten. Branchless mask-OR
+         * over every (i, j) pair, so neither timing nor cache-access patterns leak the secret support.
          */
         private void WriteSupportToVector(ulong[] v, uint[] support, int weight)
         {
             int[] indexTab = new int[m_wr];
-            long[] bitTab = new long[m_wr];
+            ulong[] bitTab = new ulong[m_wr];
             for (int i = 0; i < weight; i++)
             {
                 indexTab[i] = (int)(support[i] >> 6);
-                bitTab[i] = 1L << ((int)support[i] & 0x3F);
+                bitTab[i] = 1UL << ((int)support[i] & 0x3F);
             }
             for (int i = 0; i < v.Length; i++)
             {
-                long val = 0;
+                ulong val = 0;
                 for (int j = 0; j < weight; j++)
                 {
                     int tmp = i - indexTab[j];
-                    val |= bitTab[j] & ~((tmp | -tmp) >> 31);
+                    long mask = ~((tmp | -tmp) >> 31);
+                    val |= bitTab[j] & (ulong)mask;
                 }
-                v[i] = (ulong)val;
+                v[i] = val;
             }
+
+            // indexTab and bitTab are the secret support positions
+            Arrays.ZeroMemory(indexTab, 0, indexTab.Length);
+            Arrays.ZeroMemory(bitTab);
         }
 
         /**
          * Constant-time XOR of a fixed-weight sparse vector (given as its support indices) into a
-         * dense long[] target. Equivalent to materialising the sparse vector to a dense long[] and
-         * then XORing it into {@code out}, but in a single pass without the dense intermediate.
-         * The (i, j) iteration pattern matches {@link #writeSupportToVector}'s constant-time
+         * dense ulong[] target. Equivalent to materialising the sparse vector to a dense ulong[] and
+         * then XORing it into <paramref name="v"/>, but in a single pass without the dense intermediate.
+         * The (i, j) iteration pattern matches <see cref="WriteSupportToVector"/>'s constant-time
          * branchless mask-OR, so timing and cache-access do not leak the secret support indices.
          */
         private void AddSupportTo(ulong[] v, uint[] support, int weight)
         {
             int[] indexTab = new int[m_wr];
-            long[] bitTab = new long[m_wr];
+            ulong[] bitTab = new ulong[m_wr];
             for (int i = 0; i < weight; i++)
             {
                 indexTab[i] = (int)(support[i] >> 6);
-                bitTab[i] = 1L << ((int)support[i] & 0x3F);
+                bitTab[i] = 1UL << ((int)support[i] & 0x3F);
             }
             for (int i = 0; i < v.Length; i++)
             {
-                long val = (long)v[i];
+                ulong val = v[i];
                 for (int j = 0; j < weight; j++)
                 {
                     int tmp = i - indexTab[j];
-                    //val |= bitTab[j] & ~((tmp | -tmp) >> 31);
-                    val ^= bitTab[j] & ~((tmp | -tmp) >> 31);
+                    long mask = ~((tmp | -tmp) >> 31);
+                    val ^= bitTab[j] & (ulong)mask;
                 }
-                v[i] = (ulong)val;
+                v[i] = val;
             }
+
+            // indexTab and bitTab are the secret support positions
+            Arrays.ZeroMemory(indexTab, 0, indexTab.Length);
+            Arrays.ZeroMemory(bitTab);
         }
 
         private uint[] SampleSupport1(Shake256RandomGenerator random, int weight)
@@ -404,6 +413,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
             uint[] support = new uint[m_wr];
             Pack.LE_To_UInt32(rand, 0, support);
+            Arrays.ZeroMemory(rand);
 
             int i = weight;
             while (--i >= 0)
