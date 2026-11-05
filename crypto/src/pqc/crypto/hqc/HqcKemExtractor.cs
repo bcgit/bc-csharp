@@ -21,6 +21,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
         public byte[] ExtractSecret(byte[] encapsulation)
         {
+            if (encapsulation == null)
+                throw new ArgumentNullException(nameof(encapsulation));
+            // Decaps reads u, v and the salt at fixed offsets and only compares u and v, so without this check
+            // trailing bytes would be ignored and a lengthened ciphertext would decapsulate to the same secret
+            if (encapsulation.Length != m_engine.CipherTextBytes)
+                throw new ArgumentException($"Expected length {m_engine.CipherTextBytes}", nameof(encapsulation));
+
             byte[] ss = new byte[64];
 
             m_engine.Decaps(ss, ct: encapsulation, m_privateKey.GetExpandedKey());

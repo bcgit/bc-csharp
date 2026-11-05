@@ -356,6 +356,10 @@
             <li>DTLS: Bound the range tracking when reassembling handshake messages to avoid malicious fragmentation DoS.</li>
             <li>TLS: TlsUtilities.ReadFully now reads incrementally to avoid allocating the full declared length up front.</li>
             <li>Pkix: Bound the total number of nodes visited by PkixCertPathBuilder per build (configurable via Properties.X509MaxCertPathBuildNodes).</li>
+            <li>
+                HQC: HqcKemExtractor now rejects encapsulations of the wrong length. Decapsulation ignored any bytes beyond the expected
+                ciphertext length, so a ciphertext with trailing bytes appended decapsulated to the same shared secret as the original.
+            </li>
         </ul>
         <h5>Additional Features and Functionality</h5>
         <ul>

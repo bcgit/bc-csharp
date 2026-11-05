@@ -117,6 +117,39 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         [TestCaseSource(nameof(ParametersValues))]
         [Parallelizable(ParallelScope.All)]
+        public void WrongLengthEncapsulation(HqcParameters parameters)
+        {
+            // Regression test: Decaps reads u, v and the salt at fixed offsets and only compares u and v, so a
+            // ciphertext with trailing bytes appended used to decapsulate to the honest shared secret (and a short
+            // one failed inside the engine). The extractor must reject both up front.
+            var kpg = new HqcKeyPairGenerator();
+            kpg.Init(new HqcKeyGenerationParameters(Random, parameters));
+            var kp = kpg.GenerateKeyPair();
+
+            var encapsulated = new HqcKemGenerator(Random).GenerateEncapsulated(kp.Public);
+            byte[] ct = encapsulated.GetEncapsulation();
+
+            var extractor = new HqcKemExtractor((HqcPrivateKeyParameters)kp.Private);
+            Assert.AreEqual(parameters.EncapsulationLength, extractor.EncapsulationLength);
+            Assert.True(Arrays.AreEqual(encapsulated.GetSecret(), extractor.ExtractSecret(ct)),
+                parameters + ": valid decaps");
+
+            byte[] extended = Arrays.Append(ct, 0x00);
+            Assert.Throws<ArgumentException>(() => extractor.ExtractSecret(extended),
+                parameters + ": accepted an extended encapsulation");
+
+            byte[] truncated = Arrays.CopySegment(ct, 0, ct.Length - 1);
+            Assert.Throws<ArgumentException>(() => extractor.ExtractSecret(truncated),
+                parameters + ": accepted a truncated encapsulation");
+
+            Assert.Throws<ArgumentException>(() => extractor.ExtractSecret(new byte[0]),
+                parameters + ": accepted an empty encapsulation");
+            Assert.Throws<ArgumentNullException>(() => extractor.ExtractSecret(null),
+                parameters + ": accepted a null encapsulation");
+        }
+
+        [TestCaseSource(nameof(ParametersValues))]
+        [Parallelizable(ParallelScope.All)]
         public void SeedOnlyPrivateKey(HqcParameters parameters)
         {
             // The decapsulation key encoding is the 32-byte seedKEM (HQC specification 2026-10-12, Table 9): a key
