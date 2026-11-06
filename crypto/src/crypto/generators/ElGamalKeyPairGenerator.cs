@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Generators
      */
     // TODO[api] sealed
     public class ElGamalKeyPairGenerator
-		: IAsymmetricCipherKeyPairGenerator
+        : IAsymmetricCipherKeyPairGenerator
     {
         private ElGamalKeyGenerationParameters m_parameters;
 
@@ -24,13 +24,13 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-			ElGamalParameters egp = m_parameters.Parameters;
-			DHParameters dhp = new DHParameters(egp.P, egp.G, null, 0, egp.L);
+            ElGamalParameters egp = m_parameters.Parameters;
+            DHParameters dhp = new DHParameters(egp.P, egp.G, null, 0, egp.L);
 
-			BigInteger x = DHKeyGeneratorHelper.CalculatePrivate(dhp, m_parameters.Random);
-			BigInteger y = DHKeyGeneratorHelper.CalculatePublic(dhp, x);
+            BigInteger x = DHKeyGeneratorHelper.CalculatePrivate(dhp, m_parameters.Random);
+            BigInteger y = DHKeyGeneratorHelper.CalculatePublic(dhp, x);
 
-			return new AsymmetricCipherKeyPair(
+            return new AsymmetricCipherKeyPair(
                 new ElGamalPublicKeyParameters(y, egp),
                 new ElGamalPrivateKeyParameters(x, egp));
         }

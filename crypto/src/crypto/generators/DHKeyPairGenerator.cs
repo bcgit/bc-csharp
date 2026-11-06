@@ -13,23 +13,23 @@ namespace Org.BouncyCastle.Crypto.Generators
      */
     // TODO[api] sealed
     public class DHKeyPairGenerator
-		: IAsymmetricCipherKeyPairGenerator
+        : IAsymmetricCipherKeyPairGenerator
     {
-		private DHKeyGenerationParameters m_parameters;
+        private DHKeyGenerationParameters m_parameters;
 
-		public virtual void Init(KeyGenerationParameters parameters)
+        public virtual void Init(KeyGenerationParameters parameters)
         {
             m_parameters = (DHKeyGenerationParameters)parameters;
         }
 
-		public virtual AsymmetricCipherKeyPair GenerateKeyPair()
+        public virtual AsymmetricCipherKeyPair GenerateKeyPair()
         {
-			DHParameters dhp = m_parameters.Parameters;
+            DHParameters dhp = m_parameters.Parameters;
 
-			BigInteger x = DHKeyGeneratorHelper.CalculatePrivate(dhp, m_parameters.Random);
-			BigInteger y = DHKeyGeneratorHelper.CalculatePublic(dhp, x);
+            BigInteger x = DHKeyGeneratorHelper.CalculatePrivate(dhp, m_parameters.Random);
+            BigInteger y = DHKeyGeneratorHelper.CalculatePublic(dhp, x);
 
-			return new AsymmetricCipherKeyPair(
+            return new AsymmetricCipherKeyPair(
                 new DHPublicKeyParameters(y, dhp),
                 new DHPrivateKeyParameters(x, dhp));
         }

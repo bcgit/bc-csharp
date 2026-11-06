@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 {
     internal static class DHKeyGeneratorHelper
     {
-        internal static BigInteger CalculatePrivate(DHParameters dhParams, SecureRandom	random)
+        internal static BigInteger CalculatePrivate(DHParameters dhParams, SecureRandom random)
         {
             int limit = dhParams.L;
 
@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
-        internal static BigInteger CalculatePublic(DHParameters	dhParams, BigInteger x)
+        internal static BigInteger CalculatePublic(DHParameters dhParams, BigInteger x)
         {
             return dhParams.G.ModPow(x, dhParams.P);
         }
