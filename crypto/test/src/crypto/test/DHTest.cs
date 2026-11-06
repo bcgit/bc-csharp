@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 using NUnit.Framework;
 
@@ -7,11 +8,15 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Agreement;
+using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
@@ -330,15 +335,127 @@ namespace Org.BouncyCastle.Crypto.Tests
             BigInteger g2 = new BigInteger("2592F5A99FE46313650CCE66C94C15DBED9F4A45BD05C329986CF5D3E12139F0405A47C6385FEA27BFFEDC4CBABC5BB151F3BEE7CC3D51567F1E2B12A975AA9F48A70BDAAE7F5B87E70ADCF902490A3CBEFEDA41EBA8E12E02B56120B5FDEFBED07F5EAD3AE020DF3C8233216F8F0D35E13A7AE4DA5CBCC0D91EADBF20C281C6", 16);
             int l2 = 1024;
 
-            try
+            /*
+             * PKCS#3 sec. 6 allows l up to the length of p (bc-java github #2554), and sec. 7.1 then makes x an l-bit
+             * integer. This p is about 0.7 * 2^1024, so x is at or above p - 1 about 60% of the time, which is
+             * harmless.
+             */
+            kpGen.Init(new DHKeyGenerationParameters(random, new DHParameters(p2, g2, null, l2)));
+            for (int i = 0; i < 200; ++i)
             {
-                new DHKeyGenerationParameters(random, new DHParameters(p2, g2, null, l2));
-                Assert.Fail("oversized DH 'l' value accepted");
+                CheckFullLengthKeyPair(p2, l2, kpGen.GenerateKeyPair());
             }
-            catch (ArgumentException)
-            {
-                // expected
-            }
+
+            ElGamalKeyPairGenerator egGen = new ElGamalKeyPairGenerator();
+            egGen.Init(new ElGamalKeyGenerationParameters(random, new ElGamalParameters(p2, g2, l2)));
+            CheckFullLengthKeyPair(p2, l2, egGen.GenerateKeyPair());
+
+            /*
+             * x = p - 1 is a valid l-bit value here (and passes the NAF weight floor), but gives y = 1: the generators
+             * must redraw rather than fail (DH) or hand out the degenerate key (ElGamal).
+             */
+            BigInteger pSub1 = p2.Subtract(BigInteger.One);
+            Assert.GreaterOrEqual(WNafUtilities.GetNafWeight(pSub1), l2 >> 2);
+
+            byte[] pSub1Bytes = BigIntegers.AsUnsignedByteArray(128, pSub1);
+            byte[] next = SecureRandom.GetNextBytes(random, 128);
+
+            FixedSecureRandom fixedRandom = FixedSecureRandom.From(pSub1Bytes, next);
+            kpGen.Init(new DHKeyGenerationParameters(fixedRandom, new DHParameters(p2, g2, null, l2)));
+            CheckRedrawnKeyPair(p2, l2, kpGen.GenerateKeyPair(), fixedRandom);
+
+            fixedRandom = FixedSecureRandom.From(pSub1Bytes, next);
+            DHKeyPairGenerator dhGen = new DHKeyPairGenerator();
+            dhGen.Init(new DHKeyGenerationParameters(fixedRandom, new DHParameters(p2, g2, null, l2)));
+            CheckRedrawnKeyPair(p2, l2, dhGen.GenerateKeyPair(), fixedRandom);
+
+            fixedRandom = FixedSecureRandom.From(pSub1Bytes, next);
+            egGen.Init(new ElGamalKeyGenerationParameters(fixedRandom, new ElGamalParameters(p2, g2, l2)));
+            CheckRedrawnKeyPair(p2, l2, egGen.GenerateKeyPair(), fixedRandom);
+
+            var e = Assert.Throws<ArgumentException>(() => new DHParameters(p2, g2, null, l2 + 1));
+            StringAssert.StartsWith("when l value specified, it must not be greater than bitlength(p)", e.Message);
+        }
+
+        /*
+         * bc-java github #2554: with l == bitLength(p) and p just above 2^(l-1), drawing x from [2^(l-1), p - 2] left
+         * too few candidates to pass the NAF weight floor, so key generation never returned. p = 2^1023 + 1155 is
+         * prime.
+         */
+        [Test]
+        public void NearPowerOfTwoPrime()
+        {
+            BigInteger p = BigInteger.One.ShiftLeft(1023).Add(BigInteger.ValueOf(1155));
+            BigInteger g = BigInteger.Two;
+            int l = 1024;
+
+            Assert.IsTrue(p.IsProbablePrime(100), "p not prime");
+
+            Task task = Task.Run(() => ImplNearPowerOfTwoChecks(p, g, l));
+            Assert.IsTrue(task.Wait(TimeSpan.FromSeconds(60)),
+                "key generation with l == bitLength(p) and p near 2^(l-1) did not complete");
+        }
+
+        /*
+         * A private value length l can come with parameters chosen by someone else, so key generation refuses one
+         * below twice the security strength of p (SP 800-56A Rev3 sec. 5.6.1.1), unless the override property is set.
+         */
+        [Test]
+        public void ShortPrivateValueLength()
+        {
+            SecureRandom random = new SecureRandom();
+            BigInteger p = BigInteger.One.ShiftLeft(1023).Add(BigInteger.ValueOf(1155));
+            BigInteger g = BigInteger.Two;
+            string msg = "when l value specified, it must not be less than 160 for a 1024 bit p";
+
+            // parameters carrying a short l can still be built
+            DHParameters shortL = new DHParameters(p, g, null, 159);
+
+            var e = Assert.Throws<ArgumentException>(
+                () => new DHBasicKeyPairGenerator().Init(new DHKeyGenerationParameters(random, shortL)));
+            StringAssert.StartsWith(msg, e.Message);
+
+            e = Assert.Throws<ArgumentException>(
+                () => new DHKeyPairGenerator().Init(new DHKeyGenerationParameters(random, shortL)));
+            StringAssert.StartsWith(msg, e.Message);
+
+            e = Assert.Throws<ArgumentException>(() => new ElGamalKeyPairGenerator().Init(
+                new ElGamalKeyGenerationParameters(random, new ElGamalParameters(p, g, 159))));
+            StringAssert.StartsWith(msg, e.Message);
+
+            DHKeyPairGenerator kpGen = new DHKeyPairGenerator();
+            kpGen.Init(new DHKeyGenerationParameters(random, new DHParameters(p, g, null, 160)));
+            Assert.AreEqual(160, ((DHPrivateKeyParameters)kpGen.GenerateKeyPair().Private).X.BitLength);
+
+            Properties.WithThreadProperty(Properties.DHAllowShortPrivateValue, "true",
+                () => kpGen.Init(new DHKeyGenerationParameters(random, new DHParameters(p, g, null, 64))));
+            Assert.AreEqual(64, ((DHPrivateKeyParameters)kpGen.GenerateKeyPair().Private).X.BitLength);
+        }
+
+        // The floor at each step: SP 800-57 strengths below 4096 bits, SP 800-56A Appendix D from 4096 bits up.
+        private static readonly TestCaseData[] PrivateValueLengthFloorCases =
+        {
+            new TestCaseData(DHStandardGroups.rfc7919_ffdhe2048, 224).SetArgDisplayNames("ffdhe2048"),
+            new TestCaseData(DHStandardGroups.rfc7919_ffdhe3072, 256).SetArgDisplayNames("ffdhe3072"),
+            new TestCaseData(DHStandardGroups.rfc3526_4096, 304).SetArgDisplayNames("rfc3526_4096"),
+            new TestCaseData(DHStandardGroups.rfc3526_6144, 352).SetArgDisplayNames("rfc3526_6144"),
+            new TestCaseData(DHStandardGroups.rfc3526_8192, 400).SetArgDisplayNames("rfc3526_8192"),
+        };
+
+        [TestCaseSource(nameof(PrivateValueLengthFloorCases))]
+        public void PrivateValueLengthFloor(DHParameters group, int floor)
+        {
+            SecureRandom random = new SecureRandom();
+            BigInteger p = group.P, g = group.G;
+
+            var e = Assert.Throws<ArgumentException>(() => new DHKeyPairGenerator().Init(
+                new DHKeyGenerationParameters(random, new DHParameters(p, g, null, floor - 1))));
+            StringAssert.StartsWith(
+                "when l value specified, it must not be less than " + floor + " for a " + p.BitLength + " bit p",
+                e.Message);
+
+            new DHKeyPairGenerator().Init(new DHKeyGenerationParameters(random, new DHParameters(p, g, null, floor)));
+            new DHKeyPairGenerator().Init(new DHKeyGenerationParameters(random, group));
         }
 
         [Test]
@@ -492,6 +609,77 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         [Test, Explicit]
         public void BenchGenerateParameters512() => ImplBenchGenerateParameters(512, 100);
+
+        private static void CheckFullLengthKeyPair(BigInteger p, int l, AsymmetricCipherKeyPair kp)
+        {
+            BigInteger x, y;
+            if (kp.Private is DHPrivateKeyParameters dhPriv)
+            {
+                x = dhPriv.X;
+                y = ((DHPublicKeyParameters)kp.Public).Y;
+            }
+            else
+            {
+                x = ((ElGamalPrivateKeyParameters)kp.Private).X;
+                y = ((ElGamalPublicKeyParameters)kp.Public).Y;
+            }
+
+            Assert.AreEqual(l, x.BitLength, "private value length");
+            Assert.IsTrue(y.CompareTo(BigInteger.Two) >= 0 && y.CompareTo(p.Subtract(BigInteger.Two)) <= 0,
+                "public value outside [2, p - 2]: " + y.ToString(16));
+        }
+
+        private static void CheckRedrawnKeyPair(BigInteger p, int l, AsymmetricCipherKeyPair kp,
+            FixedSecureRandom fixedRandom)
+        {
+            CheckFullLengthKeyPair(p, l, kp);
+
+            // the first draw (x = p - 1) was refused and the second used
+            Assert.IsTrue(fixedRandom.IsExhausted, "x = p - 1 not redrawn");
+        }
+
+        private static void ImplNearPowerOfTwoChecks(BigInteger p, BigInteger g, int l)
+        {
+            SecureRandom random = new SecureRandom();
+            DHParameters dhParams = new DHParameters(p, g, null, l);
+
+            DHBasicKeyPairGenerator kpGen = new DHBasicKeyPairGenerator();
+            kpGen.Init(new DHKeyGenerationParameters(random, dhParams));
+
+            AsymmetricCipherKeyPair kp1 = kpGen.GenerateKeyPair();
+            AsymmetricCipherKeyPair kp2 = kpGen.GenerateKeyPair();
+            CheckFullLengthKeyPair(p, l, kp1);
+            CheckFullLengthKeyPair(p, l, kp2);
+
+            DHBasicAgreement a1 = new DHBasicAgreement();
+            DHBasicAgreement a2 = new DHBasicAgreement();
+            a1.Init(new ParametersWithRandom(kp1.Private, random));
+            a2.Init(new ParametersWithRandom(kp2.Private, random));
+            Assert.AreEqual(a1.CalculateAgreement(kp2.Public), a2.CalculateAgreement(kp1.Public),
+                "near power of two DH agreement failed");
+
+            DHKeyPairGenerator dhGen = new DHKeyPairGenerator();
+            dhGen.Init(new DHKeyGenerationParameters(random, dhParams));
+            CheckFullLengthKeyPair(p, l, dhGen.GenerateKeyPair());
+
+            ElGamalKeyPairGenerator egGen = new ElGamalKeyPairGenerator();
+            egGen.Init(new ElGamalKeyGenerationParameters(random, new ElGamalParameters(p, g, l)));
+            for (int i = 0; i < 10; ++i)
+            {
+                AsymmetricCipherKeyPair kp = egGen.GenerateKeyPair();
+                CheckFullLengthKeyPair(p, l, kp);
+
+                // exercises the negative (p - 1) - x decryption exponent when x >= p - 1
+                ElGamalEngine eng = new ElGamalEngine();
+                byte[] msg = SecureRandom.GetNextBytes(random, 64);
+                msg[0] |= 0x01;
+                eng.Init(true, new ParametersWithRandom(kp.Public, random));
+                byte[] ct = eng.ProcessBlock(msg, 0, msg.Length);
+                eng.Init(false, kp.Private);
+                byte[] pt = eng.ProcessBlock(ct, 0, ct.Length);
+                Assert.IsTrue(Arrays.AreEqual(msg, pt), "near power of two ElGamal round trip failed");
+            }
+        }
 
         private static DHBasicKeyPairGenerator GetDHBasicKeyPairGenerator(BigInteger g, BigInteger p, int privateValueSize)
         {

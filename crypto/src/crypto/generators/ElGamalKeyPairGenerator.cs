@@ -19,7 +19,12 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         public void Init(KeyGenerationParameters parameters)
         {
-            m_parameters = (ElGamalKeyGenerationParameters)parameters;
+            var elGamalParameters = (ElGamalKeyGenerationParameters)parameters;
+
+            ElGamalParameters egp = elGamalParameters.Parameters;
+            DHKeyGeneratorHelper.CheckPrivateValueLength(egp.P, egp.L, nameof(parameters));
+
+            m_parameters = elGamalParameters;
         }
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
@@ -27,8 +32,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             ElGamalParameters egp = m_parameters.Parameters;
             DHParameters dhp = new DHParameters(egp.P, egp.G, null, 0, egp.L);
 
-            BigInteger x = DHKeyGeneratorHelper.CalculatePrivate(dhp, m_parameters.Random);
-            BigInteger y = DHKeyGeneratorHelper.CalculatePublic(dhp, x);
+            DHKeyGeneratorHelper.CalculateKeyPair(dhp, m_parameters.Random, out BigInteger x, out BigInteger y);
 
             return new AsymmetricCipherKeyPair(
                 new ElGamalPublicKeyParameters(y, egp),

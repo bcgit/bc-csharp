@@ -19,15 +19,19 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         public virtual void Init(KeyGenerationParameters parameters)
         {
-            m_parameters = (DHKeyGenerationParameters)parameters;
+            var dhParameters = (DHKeyGenerationParameters)parameters;
+
+            DHParameters dhp = dhParameters.Parameters;
+            DHKeyGeneratorHelper.CheckPrivateValueLength(dhp.P, dhp.L, nameof(parameters));
+
+            m_parameters = dhParameters;
         }
 
         public virtual AsymmetricCipherKeyPair GenerateKeyPair()
         {
             DHParameters dhp = m_parameters.Parameters;
 
-            BigInteger x = DHKeyGeneratorHelper.CalculatePrivate(dhp, m_parameters.Random);
-            BigInteger y = DHKeyGeneratorHelper.CalculatePublic(dhp, x);
+            DHKeyGeneratorHelper.CalculateKeyPair(dhp, m_parameters.Random, out BigInteger x, out BigInteger y);
 
             return new AsymmetricCipherKeyPair(
                 new DHPublicKeyParameters(y, dhp),

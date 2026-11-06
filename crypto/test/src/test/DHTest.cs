@@ -5,6 +5,7 @@ using NUnit.Framework;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Agreement;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
@@ -618,6 +619,85 @@ namespace Org.BouncyCastle.Tests
             {
                 // Expected
             }
+        }
+
+        /*
+         * bc-java github #2554: a private value length equal to the length of p, as Oracle JDBC Native Network
+         * Encryption passes it, is accepted, and the private value is an l-bit integer (PKCS#3 sec. 6 and 7.1).
+         */
+        [Test]
+        public void FullLengthPrivateValue()
+        {
+            DHParameters group = DHStandardGroups.rfc7919_ffdhe2048;
+            BigInteger p = group.P;
+            DHParameters dhParams = new DHParameters(p, group.G, null, p.BitLength);
+
+            IAsymmetricCipherKeyPairGenerator kpGen = GeneratorUtilities.GetKeyPairGenerator("DH");
+            kpGen.Init(new DHKeyGenerationParameters(Random, dhParams));
+
+            AsymmetricCipherKeyPair kp1 = kpGen.GenerateKeyPair();
+            AsymmetricCipherKeyPair kp2 = kpGen.GenerateKeyPair();
+
+            DHPrivateKeyParameters priv1 = (DHPrivateKeyParameters)kp1.Private;
+            DHPublicKeyParameters pub1 = (DHPublicKeyParameters)kp1.Public;
+            Assert.AreEqual(p.BitLength, priv1.X.BitLength, "private value not full length");
+            Assert.IsTrue(pub1.Y.CompareTo(BigInteger.Two) >= 0 && pub1.Y.CompareTo(p.Subtract(BigInteger.Two)) <= 0,
+                "public value outside [2, p - 2]");
+
+            IBasicAgreement ka1 = AgreementUtilities.GetBasicAgreement("DH");
+            ka1.Init(kp1.Private);
+            IBasicAgreement ka2 = AgreementUtilities.GetBasicAgreement("DH");
+            ka2.Init(kp2.Private);
+            Assert.AreEqual(ka1.CalculateAgreement(kp2.Public), ka2.CalculateAgreement(kp1.Public),
+                "full length private value agreement failed");
+
+            // keys carrying l == bitLength(p) encode and parse with l kept (they used to be refused at parse)
+            var pub = (DHPublicKeyParameters)PublicKeyFactory.CreateKey(
+                SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pub1).GetEncoded());
+            var priv = (DHPrivateKeyParameters)PrivateKeyFactory.CreateKey(
+                PrivateKeyInfoFactory.CreatePrivateKeyInfo(priv1).GetEncoded());
+            Assert.AreEqual(p.BitLength, pub.Parameters.L, "public key l not kept");
+            Assert.AreEqual(p.BitLength, priv.Parameters.L, "private key l not kept");
+            Assert.AreEqual(pub1, pub, "decoded public key differs");
+            Assert.AreEqual(priv1, priv, "decoded private key differs");
+
+            IAsymmetricCipherKeyPairGenerator egGen = GeneratorUtilities.GetKeyPairGenerator("ElGamal");
+            egGen.Init(new ElGamalKeyGenerationParameters(Random, new ElGamalParameters(p, group.G, p.BitLength)));
+            BigInteger egX = ((ElGamalPrivateKeyParameters)egGen.GenerateKeyPair().Private).X;
+            Assert.AreEqual(p.BitLength, egX.BitLength, "ElGamal private value not full length");
+        }
+
+        /*
+         * A private value length l below twice the security strength of p is refused when generating a key; keys that
+         * carry one can still be read and used.
+         */
+        [Test]
+        public void ShortPrivateValueLength()
+        {
+            DHParameters group = DHStandardGroups.rfc7919_ffdhe2048;
+            DHParameters shortParams = new DHParameters(group.P, group.G, null, 64);
+            string msg = "when l value specified, it must not be less than 224 for a 2048 bit p";
+
+            var e = Assert.Throws<ArgumentException>(() => GeneratorUtilities.GetKeyPairGenerator("DH").Init(
+                new DHKeyGenerationParameters(Random, shortParams)));
+            StringAssert.StartsWith(msg, e.Message);
+
+            e = Assert.Throws<ArgumentException>(() => GeneratorUtilities.GetKeyPairGenerator("ElGamal").Init(
+                new ElGamalKeyGenerationParameters(Random, new ElGamalParameters(group.P, group.G, 64))));
+            StringAssert.StartsWith(msg, e.Message);
+
+            IAsymmetricCipherKeyPairGenerator kpGen = GeneratorUtilities.GetKeyPairGenerator("DH");
+            Properties.WithThreadProperty(Properties.DHAllowShortPrivateValue, "true",
+                () => kpGen.Init(new DHKeyGenerationParameters(Random, shortParams)));
+            AsymmetricCipherKeyPair recipient = kpGen.GenerateKeyPair();
+
+            var pub = (DHPublicKeyParameters)PublicKeyFactory.CreateKey(
+                SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(recipient.Public).GetEncoded());
+            Assert.AreEqual(64, pub.Parameters.L, "recipient l not kept");
+
+            IBasicAgreement ka = AgreementUtilities.GetBasicAgreement("DH");
+            ka.Init(recipient.Private);
+            ka.CalculateAgreement(pub);
         }
     }
 }

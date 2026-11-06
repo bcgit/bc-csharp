@@ -60,8 +60,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 throw new ArgumentException("m value must be < bitlength of p", nameof(m));
             if (l != 0)
             {
-                if (l >= p.BitLength)
-                    throw new ArgumentException("when l value specified, it must be less than bitlength(p)", nameof(l));
+                // PKCS#3 sec. 6: 2^(l-1) <= p, so l may be up to the length of p
+                if (l > p.BitLength)
+                {
+                    throw new ArgumentException("when l value specified, it must not be greater than bitlength(p)",
+                        nameof(l));
+                }
                 if (l < m)
                     throw new ArgumentException("when l value specified, it may not be less than m value", nameof(l));
             }

@@ -81,6 +81,19 @@ namespace Org.BouncyCastle.Utilities
         /// </remarks>
         public static readonly string CmsAllowLenientRsaPkcs1 = "Org.BouncyCastle.Cms.AllowLenientRsaPkcs1";
 
+        /// <summary>
+        /// Allow DH and ElGamal key pair generation with a private value length l below twice the security strength
+        /// of p.
+        /// </summary>
+        /// <remarks>
+        /// SP 800-56A Rev3 sec. 5.6.1.1 requires l to be at least 2s, for a security strength s of p taken here from
+        /// SP 800-56A Appendix D from 4096-bit p up (152, 176 and 200 bits for 4096, 6144 and 8192-bit p, as for the
+        /// groups in DHStandardGroups) and otherwise, or where it is higher, from SP 800-57. l can arrive with
+        /// parameters chosen by someone else, and a short l makes the generated private value easy to recover. Keys
+        /// and parameters that carry a short l can always be read and used. Defaults to 'false'.
+        /// </remarks>
+        public static readonly string DHAllowShortPrivateValue = "Org.BouncyCastle.DH.AllowShortPrivateValue";
+
         public static readonly string DHMaxSize = "Org.BouncyCastle.DH.MaxSize";
 
         public static readonly string DsaMaxSize = "Org.BouncyCastle.Dsa.MaxSize";
