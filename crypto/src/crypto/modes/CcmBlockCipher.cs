@@ -27,6 +27,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         private int macSize;
         private KeyParameter keyParam;
         private byte[] lastKey;
+        // Set once an encryption has used the current key and nonce, and cleared only by Init: a second message
+        // under them would reuse the keystream, so it is refused, as GcmBlockCipher and ChaCha20Poly1305 do.
+        private bool nonceUsed;
         private readonly MemoryStream associatedText = new MemoryStream();
         private readonly MemoryStream data = new MemoryStream();
 
@@ -132,6 +135,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (nonce.Length < 7 || nonce.Length > 13)
                 throw new ArgumentException("nonce must have length from 7 to 13 octets");
+
+            nonceUsed = false;
 
             Reset();
         }
@@ -317,6 +322,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             // Need to keep the CTR and CBC Mac parts around and reset
             if (keyParam == null)
                 throw new InvalidOperationException("CCM cipher unitialized.");
+            if (forEncryption && nonceUsed)
+                throw new InvalidOperationException("CCM cipher cannot be reused for encryption");
 
             int n = nonce.Length;
             int q = 15 - n;
@@ -352,6 +359,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 outputLen = inLen + macSize;
                 Check.OutputLength(output, outOff, outputLen, "output buffer too short");
+
+                nonceUsed = true;
 
                 CalculateMac(input, inOff, inLen, macBlock);
 
@@ -445,6 +454,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             // Need to keep the CTR and CBC Mac parts around and reset
             if (keyParam == null)
                 throw new InvalidOperationException("CCM cipher unitialized.");
+            if (forEncryption && nonceUsed)
+                throw new InvalidOperationException("CCM cipher cannot be reused for encryption");
 
             int n = nonce.Length;
             int q = 15 - n;
@@ -480,6 +491,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 outputLen = inLen + macSize;
                 Check.OutputLength(output, outputLen, "output buffer too short");
+
+                nonceUsed = true;
 
                 CalculateMac(input, macBlock);
 

@@ -810,8 +810,9 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         /*
          * Re-initialising for encryption with the same key and nonce is rejected (a repeated key+nonce
-         * is catastrophic for the CCM construction), matching GCMBlockCipher / KGCMBlockCipher.
-         * reset()-based reuse, a fresh nonce, and re-init for decryption are all still allowed.
+         * is catastrophic for the CCM construction), matching GCMBlockCipher / KGCMBlockCipher, and so is
+         * a second encryption on the same instance, with or without Reset(). A fresh nonce and re-init for
+         * decryption are still allowed.
          */
         private void KCcmNonceReuseTests()
         {
@@ -823,9 +824,18 @@ namespace Org.BouncyCastle.Crypto.Tests
             c.Init(true, new AeadParameters(new KeyParameter(key), 128, nonce));
             KCcmEncryptBlock(c);
 
-            // Reset()-based reuse must still work (it does not re-init)
+            // a second encryption under the same key and nonce is refused, Reset() or not
             c.Reset();
-            KCcmEncryptBlock(c);
+            try
+            {
+                KCcmEncryptBlock(c);
+                Fail("KCCM encryption reuse not detected after Reset()");
+            }
+            catch (InvalidOperationException e)
+            {
+                IsTrue("wrong KCCM reuse message: " + e.Message,
+                    "KCCM cipher cannot be reused for encryption".Equals(e.Message));
+            }
 
             // re-init for encryption with the same key+nonce must be rejected
             try

@@ -29,6 +29,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         private byte[] nonce;
         // Previous key seen on Init(true, ...) - used with nonce only to reject nonce reuse for encryption.
         private byte[] lastKey;
+        // Set once an encryption has used the current key and nonce, and cleared only by Init: a second message
+        // under them would reuse the keystream, so it is refused, as GcmBlockCipher and ChaCha20Poly1305 do.
+        private bool nonceUsed;
 
         private byte[] G1;
         private byte[] buffer;
@@ -186,6 +189,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             engine.Init(true, keyParameter);
 
+            nonceUsed = false;
+
             Reset();
         }
 
@@ -319,6 +324,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public int ProcessPacket(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
+            CheckNonceUnused();
             Check.DataLength(input, inOff, len, "input buffer too short");
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -331,6 +337,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 Check.DataLength(len % blockSize != 0, "partial blocks not supported");
                 Check.OutputLength(output, outOff, len + macSize, "output buffer too short");
+
+                nonceUsed = true;
 
                 CalculateMac(input, inOff, len);
                 engine.ProcessBlock(nonce, 0, s, 0);
@@ -398,6 +406,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int ProcessPacket(ReadOnlySpan<byte> input, Span<byte> output)
         {
+            CheckNonceUnused();
             int len = input.Length;
 
             ProcessAssociatedText();
@@ -407,6 +416,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 Check.DataLength(len % blockSize != 0, "partial blocks not supported");
                 Check.OutputLength(output, len + macSize, "output buffer too short");
+
+                nonceUsed = true;
 
                 CalculateMac(input);
                 engine.ProcessBlock(nonce, s);
@@ -623,6 +634,12 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 ProcessAadBytes(initialAssociatedText, 0, initialAssociatedText.Length);
             }
+        }
+
+        private void CheckNonceUnused()
+        {
+            if (forEncryption && nonceUsed)
+                throw new InvalidOperationException("KCCM cipher cannot be reused for encryption");
         }
 
         private byte GetFlag(bool hasAssocText, int macSize)

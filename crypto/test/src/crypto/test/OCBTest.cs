@@ -185,7 +185,20 @@ namespace Org.BouncyCastle.Crypto.Tests
             IAeadBlockCipher decCipher = InitOcbCipher(false, parameters);
 
             CheckTestCase(encCipher, decCipher, testName, macLengthBytes, P, C);
-            CheckTestCase(encCipher, decCipher, testName + " (reused)", macLengthBytes, P, C);
+
+            // a second encryption under the same key and nonce is refused (decryption stays reusable)
+            try
+            {
+                encCipher.ProcessBytes(P, 0, P.Length, new byte[encCipher.GetOutputSize(P.Length)], 0);
+                Fail("OCB encryption reuse not detected: " + testName);
+            }
+            catch (InvalidOperationException e)
+            {
+                IsTrue("wrong OCB reuse message: " + e.Message,
+                    "OCB cipher cannot be reused for encryption".Equals(e.Message));
+            }
+
+            CheckTestCase(InitOcbCipher(true, parameters), decCipher, testName + " (reused)", macLengthBytes, P, C);
 
             // Key reuse: re-initialising for encryption with the same key+nonce is now rejected (nonce
             // reuse is catastrophic for OCB). Re-init for decryption with the reused key stays allowed.

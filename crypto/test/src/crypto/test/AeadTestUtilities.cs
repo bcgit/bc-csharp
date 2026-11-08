@@ -81,8 +81,28 @@ namespace Org.BouncyCastle.Crypto.Tests
             // Establish baseline answer
             Crypt(cipher1, plaintext, ciphertext);
 
-            // Test encryption resets
-            CheckReset(test, cipher1, cipherParameters, true, plaintext, ciphertext);
+            // An encryption has used the key and nonce: a second message on the same instance, with or without
+            // Reset(), would reuse them, so it must be refused until a new Init
+            try
+            {
+                Crypt(cipher1, plaintext, new byte[ciphertext.Length]);
+                Fail(test, "Encrypt reuse without Init not refused.");
+            }
+            catch (InvalidOperationException)
+            {
+                // Expected
+            }
+
+            cipher1.Reset();
+            try
+            {
+                Crypt(cipher1, plaintext, new byte[ciphertext.Length]);
+                Fail(test, "Encrypt reuse after Reset not refused.");
+            }
+            catch (InvalidOperationException)
+            {
+                // Expected
+            }
 
             // Test decryption resets with fresh instance
             cipher2.Init(false, cipherParameters);
@@ -301,6 +321,10 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             cipher.Init(true, aeadParameters);
 
+            // a new message under the same key and nonce is refused once the nonce has been used, so each
+            // encryption below starts from Init with a nonce of its own rather than from Reset()
+            int nonceCounter = 0x10000;
+
             int expectedUpdateOutputSize = cipher.GetUpdateOutputSize(plaintext.Length);
             byte[] ciphertext = new byte[cipher.GetOutputSize(plaintext.Length)];
 
@@ -313,7 +337,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 // Expected
             }
-            cipher.Reset();
+            cipher.Init(true, VaryNonce(aeadParameters, ++nonceCounter));
 
             if (expectedUpdateOutputSize > 0)
             {
@@ -341,7 +365,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 {
                     // Expected
                 }
-                cipher.Reset();
+                cipher.Init(true, VaryNonce(aeadParameters, ++nonceCounter));
 
                 // Repeat checking with entire input at once
                 try
@@ -354,7 +378,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 {
                     // Expected
                 }
-                cipher.Reset();
+                cipher.Init(true, VaryNonce(aeadParameters, ++nonceCounter));
             }
 
             // Remember the actual ciphertext for later
@@ -362,7 +386,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             actualOutputSize += cipher.DoFinal(ciphertext, actualOutputSize);
             int macSize = cipher.GetMac().Length;
 
-            cipher.Reset();
+            cipher.Init(true, VaryNonce(aeadParameters, ++nonceCounter));
             try
             {
                 cipher.ProcessBytes(plaintext, 0, plaintext.Length, ciphertext, 0);
