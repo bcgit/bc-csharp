@@ -136,7 +136,9 @@ namespace Org.BouncyCastle.Security.Tests
                 if (algorithm.StartsWith("ML-DSA-", StringComparison.OrdinalIgnoreCase) ||
                     algorithm.StartsWith("SLH-DSA-", StringComparison.OrdinalIgnoreCase) ||
                     // Composite ML-DSA (e.g. MLDSA44-ECDSA-P256-SHA256); covered by CompositeMLDsaTest
-                    algorithm.StartsWith("MLDSA", StringComparison.OrdinalIgnoreCase))
+                    algorithm.StartsWith("MLDSA", StringComparison.OrdinalIgnoreCase) ||
+                    // XMSS, XMSSMT: stateful; covered by XmssUtilitiesRegistrationTests
+                    algorithm.StartsWith("XMSS", StringComparison.OrdinalIgnoreCase))
                 {
                     // TODO[pqc]
                     continue;
