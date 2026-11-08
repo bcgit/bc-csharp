@@ -6,6 +6,8 @@ using Org.BouncyCastle.Asn1.Cryptlib;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Gnu;
+using Org.BouncyCastle.Asn1.Iana;
+using Org.BouncyCastle.Asn1.Isara;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.UA;
@@ -13,9 +15,11 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Signers.Xmss;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security
@@ -207,6 +211,15 @@ namespace Org.BouncyCastle.Security
             else if (SlhDsaParameters.ByOid.TryGetValue(algOid, out SlhDsaParameters slhDsaParameters))
             {
                 return GetSlhDsaPublicKey(slhDsaParameters, keyInfo.PublicKey);
+            }
+            else if (algOid.Equals(PqcObjectIdentifiers.xmss)
+                || algOid.Equals(PqcObjectIdentifiers.xmss_mt)
+                || algOid.Equals(IsaraObjectIdentifiers.id_alg_xmss)
+                || algOid.Equals(IsaraObjectIdentifiers.id_alg_xmssmt)
+                || algOid.Equals(IanaObjectIdentifiers.id_alg_xmss_hashsig)
+                || algOid.Equals(IanaObjectIdentifiers.id_alg_xmssmt_hashsig))
+            {
+                return XmssKeyUtilities.CreatePublicKey(keyInfo);
             }
             else if (UAObjectIdentifiers.dstu4145be.Equals(algOid)
                 ||   UAObjectIdentifiers.dstu4145le.Equals(algOid))
