@@ -16,8 +16,9 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// </summary>
     /// <remarks>
     /// The XMSS key records its root twice - its own root field, and the root node inside the BDS traversal state -
-    /// and an XMSS^MT key does the same with the root of its top layer's state. The index cross-checks are XMSS^MT
-    /// ones that sign through the XMSS^MT signer, and arrive with it.
+    /// and an XMSS^MT key does the same with the root of its top layer's state. An XMSS^MT key also records its
+    /// position twice - its index, and its per-layer traversal states - and the index cross-checks refuse a key whose
+    /// two records disagree where it is encoded, rolled or signed with.
     /// </remarks>
     [TestFixture]
     public class PositionRecordCrossCheckTests
@@ -148,6 +149,147 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
                 new XmssMTPrivateKeyParameters.Builder(parameters).WithPrivateKey(encoded).Build();
 
             Assert.IsTrue(Arrays.AreEqual(privKey.GetRoot(), decoded.GetRoot()));
+        }
+
+        /// <summary>
+        /// The compatibility half. Walk a key across every index it has, encoding at each one, and confirm the
+        /// encoding still decodes to a key that signs verifiably. A cross-check that is too strict rejects legitimate
+        /// keys - the boundary at a leaf index of 0, where a layer legitimately still shows the previous subtree's
+        /// last leaf, is the case that makes that a real risk here.
+        /// </summary>
+        [Test]
+        [Explicit] // slow: ~13s
+        public void TestEveryIndexOfAKeyStillEncodesAndSigns()
+        {
+            XmssMTParameters parameters = new XmssMTParameters(Height, Layers, new Sha256Digest());
+            XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
+
+            kpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(), parameters));
+
+            AsymmetricCipherKeyPair kp = kpg.GenerateKeyPair();
+            XmssMTPrivateKeyParameters privKey = (XmssMTPrivateKeyParameters)kp.Private;
+            XmssMTPublicKeyParameters pubKey = (XmssMTPublicKeyParameters)kp.Public;
+
+            long maxIndex = privKey.GetBdsState().MaxIndex;
+
+            for (long index = 0; index <= maxIndex; index++)
+            {
+                Assert.AreEqual(index, privKey.Index, "key is not where the walk expects it");
+
+                byte[] encoded = privKey.GetEncoded();
+                XmssMTPrivateKeyParameters decoded = new XmssMTPrivateKeyParameters.Builder(parameters)
+                    .WithPrivateKey(encoded).Build();
+
+                Assert.AreEqual(index, decoded.Index, "decoded key sits at a different index");
+
+                byte[] message = new byte[]{ (byte)index, (byte)(index >> 8) };
+
+                XmssMTSigner signer = new XmssMTSigner();
+                signer.Init(true, decoded);
+                signer.BlockUpdate(message, 0, message.Length);
+                byte[] signature = signer.GenerateSignature();
+
+                XmssMTSigner verifier = new XmssMTSigner();
+                verifier.Init(false, pubKey);
+                verifier.BlockUpdate(message, 0, message.Length);
+                Assert.IsTrue(verifier.VerifySignature(signature), "signature at index " + index + " does not verify");
+
+                privKey.RollKey();
+            }
+
+            // and the exhausted key past the end, whose state map is empty and so has no layer to disagree with
+            // anything
+            Assert.AreEqual(maxIndex + 1, privKey.Index);
+            Assert.AreEqual(0, privKey.GetUsagesRemaining());
+        }
+
+        /// <summary>
+        /// A layer zero state left behind where the index has moved on - what a partial write or a storage layer that
+        /// restored half a key produces - must not be written out as a key, because decoding it back is refused and
+        /// because the position it describes is one the key has already signed at.
+        /// </summary>
+        [Test]
+        public void TestEncodingRefusesAStateThatLagsTheIndex()
+        {
+            XmssMTPrivateKeyParameters privKey = Desynchronised();
+
+            InvalidOperationException e = Assert.Throws<InvalidOperationException>(() => privKey.GetEncoded(),
+                "a key whose two records of its position disagree was encoded");
+            StringAssert.StartsWith("BDS state has wrong index for layer 0", e.Message);
+        }
+
+        /// <summary>
+        /// The same pair, refused where it next moves rather than where it is written: a roll carries a lagging state
+        /// forward rather than repairing it, so the key would go on signing at positions its state says it has
+        /// already been to.
+        /// </summary>
+        [Test]
+        public void TestRollRefusesAStateThatLagsTheIndex()
+        {
+            XmssMTPrivateKeyParameters privKey = Desynchronised();
+
+            InvalidOperationException e = Assert.Throws<InvalidOperationException>(() => privKey.RollKey(),
+                "a key whose two records of its position disagree was rolled");
+            StringAssert.StartsWith("BDS state has wrong index for layer 0", e.Message);
+        }
+
+        /// <summary>
+        /// The same pair again, refused where it would be spent. The roll runs from the finally the signature is built
+        /// inside, so leaving the refusal to it would spend the one-time key and advance the key before the exception
+        /// is raised; the assertion on the index is the one that matters.
+        /// </summary>
+        [Test]
+        public void TestSigningRefusesAStateThatLagsTheIndex()
+        {
+            XmssMTPrivateKeyParameters privKey = Desynchronised();
+
+            long index = privKey.Index;
+
+            XmssMTSigner signer = new XmssMTSigner();
+
+            signer.Init(true, privKey);
+            signer.BlockUpdate(new byte[]{ 0x01 }, 0, 1);
+
+            InvalidOperationException e = Assert.Throws<InvalidOperationException>(() => signer.GenerateSignature(),
+                "a key whose two records of its position disagree signed");
+            StringAssert.StartsWith("BDS state has wrong index for layer 0", e.Message);
+
+            Assert.AreEqual(index, privKey.Index, "a refused signature must not move the key");
+        }
+
+        /// <summary>
+        /// A key sitting at an index its own layer zero state does not agree with, built the way the failure actually
+        /// arises: the state map the key holds is the live one, so a layer zero state kept from before a roll can be
+        /// put back into it afterwards, which is what a half-restored key looks like from the inside.
+        /// </summary>
+        private static XmssMTPrivateKeyParameters Desynchronised()
+        {
+            XmssMTParameters parameters = new XmssMTParameters(Height, Layers, new Sha256Digest());
+            XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
+
+            kpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(), parameters));
+
+            XmssMTPrivateKeyParameters privKey = (XmssMTPrivateKeyParameters)kpg.GenerateKeyPair().Private;
+
+            // sign twice so layer zero exists and is off the subtree boundary the cross-check allows
+            XmssMTSigner signer = new XmssMTSigner();
+            signer.Init(true, privKey);
+            for (int i = 0; i != 2; i++)
+            {
+                signer.BlockUpdate(new byte[]{ (byte)i }, 0, 1);
+                signer.GenerateSignature();
+            }
+
+            Bds stale = privKey.GetBdsState().Get(0);
+            Assert.IsNotNull(stale, "no layer zero state to keep");
+
+            privKey.RollKey();
+            Assert.AreNotEqual(XmssUtilities.GetLeafIndex(privKey.Index, Height / Layers), stale.Index,
+                "layer zero already agrees with the index after the roll");
+
+            privKey.GetBdsState().Put(0, stale);
+
+            return privKey;
         }
     }
 }

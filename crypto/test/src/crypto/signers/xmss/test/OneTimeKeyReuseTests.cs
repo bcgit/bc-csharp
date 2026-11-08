@@ -305,6 +305,88 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         }
 
         /// <summary>
+        /// The leaf 0 allowance covers the marked state carried over from the last leaf of the previous subtree, and
+        /// nothing else. A marked layer zero state at leaf 0 is the one the signature at leaf 0 spent, left in place
+        /// by a roll that did not complete; built from it, a key is refused, and so is the same key read back from
+        /// its encoding.
+        /// </summary>
+        [Test]
+        public void TestMTSigningIsRefusedOnASpentLayerZeroStateAtLeafZero()
+        {
+            XmssMTParameters parameters = new XmssMTParameters(Height, Layers, new Sha256Digest());
+            XmssMTPrivateKeyParameters key = MTKey(parameters);
+            long boundary = 1L << parameters.XmssParameters.Height;
+
+            for (long i = 0; i != boundary; i++)
+            {
+                XmssEngine.GenerateMTSignature(key, new byte[]{ (byte)i });
+            }
+
+            // the map the signature at the boundary installs a fresh layer zero into, signs from, and marks
+            BdsStateMap spent = key.GetBdsState();
+
+            XmssEngine.GenerateMTSignature(key, new byte[]{ 0x10 });
+
+            Assert.AreEqual(0, spent.Get(0).Index, "the spent layer zero state sits at leaf 0");
+            Assert.IsTrue(spent.Get(0).IsUsed, "and is marked");
+
+            // the key as a roll that threw would have left it: at the boundary index, holding that map
+            XmssMTPrivateKeyParameters stuck = new XmssMTPrivateKeyParameters.Builder(parameters)
+                .WithSecretKeySeed(key.GetSecretKeySeed()).WithSecretKeyPrf(key.GetSecretKeyPrf())
+                .WithPublicSeed(key.GetPublicSeed()).WithRoot(key.GetRoot())
+                .WithIndex(boundary).WithBdsState(spent).Build();
+            XmssMTPrivateKeyParameters restored = new XmssMTPrivateKeyParameters.Builder(parameters)
+                .WithPrivateKey(stuck.GetEncoded()).Build();
+
+            InvalidOperationException e = Assert.Throws<InvalidOperationException>(
+                () => XmssEngine.GenerateMTSignature(stuck, new byte[]{ 0x11 }),
+                "a spent layer zero state at leaf 0 must not sign again");
+            Assert.AreEqual("one time key at index " + boundary + " has already signed", e.Message);
+
+            e = Assert.Throws<InvalidOperationException>(
+                () => XmssEngine.GenerateMTSignature(restored, new byte[]{ 0x12 }),
+                "nor once read back from its encoding");
+            Assert.AreEqual("one time key at index " + boundary + " has already signed", e.Message);
+        }
+
+        /// <summary>
+        /// The other side of <see cref="TestMTSigningIsRefusedOnASpentLayerZeroStateAtLeafZero"/>: a key standing
+        /// on the first leaf of a subtree, holding the marked state carried over from the last leaf of the one
+        /// before, signs straight through the boundary.
+        /// </summary>
+        [Test]
+        public void TestMTSigningRollsOverALayerBoundary()
+        {
+            XmssMTParameters parameters = new XmssMTParameters(Height, Layers, new Sha256Digest());
+            XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
+
+            kpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(), parameters));
+
+            AsymmetricCipherKeyPair kp = kpg.GenerateKeyPair();
+            XmssMTPrivateKeyParameters key = (XmssMTPrivateKeyParameters)kp.Private;
+            XmssMTPublicKeyParameters publicKey = (XmssMTPublicKeyParameters)kp.Public;
+            int boundary = 1 << parameters.XmssParameters.Height;
+
+            for (int i = 0; i != boundary; i++)
+            {
+                XmssEngine.GenerateMTSignature(key, new byte[]{ (byte)i });
+            }
+
+            Assert.AreEqual(boundary, key.Index);
+            Assert.AreEqual(boundary - 1, key.GetBdsState().Get(0).Index, "the carried state at the last leaf");
+            Assert.IsTrue(key.GetBdsState().Get(0).IsUsed, "is marked");
+
+            for (int i = boundary; i != boundary + 2; i++)
+            {
+                byte[] message = new byte[]{ (byte)i };
+                byte[] signature = XmssEngine.GenerateMTSignature(key, message);
+
+                Assert.IsTrue(XmssEngine.VerifyMTSignature(publicKey, message, signature), "signature " + i);
+            }
+            Assert.AreEqual(boundary + 2, key.Index);
+        }
+
+        /// <summary>
         /// Rolling the key replaces its state map, but signing still installs subtree states into the map as it
         /// descends the layers, so the builder copies a map it is handed rather than adopting it: adopting it would
         /// leave two keys reading authentication paths out of one map while each sits at its own index.

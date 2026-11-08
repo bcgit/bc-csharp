@@ -13,9 +13,8 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
 {
     /// <summary>Destroy() on the key parameter classes (github #2432).</summary>
     /// <remarks>
-    /// testXMSSMTDestroy signs through the XMSS^MT signer and arrives with it. The methods after
-    /// <see cref="TestXmssDestroy"/> assert what is wiped, for both families: on Destroy(), and in the traversal
-    /// states and state maps a key replaces as it moves on.
+    /// The methods after <see cref="TestXmssMTDestroy"/> assert what is wiped, for both families: on Destroy(), and in
+    /// the traversal states and state maps a key replaces as it moves on.
     /// </remarks>
     [TestFixture]
     public class KeyDestructionTests
@@ -53,6 +52,22 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         }
 
         private static bool Verify(XmssSigner signer, XmssPublicKeyParameters key, byte[] sig)
+        {
+            signer.Init(false, key);
+            signer.BlockUpdate(Msg, 0, Msg.Length);
+
+            return signer.VerifySignature(sig);
+        }
+
+        private static byte[] Sign(XmssMTSigner signer, XmssMTPrivateKeyParameters key)
+        {
+            signer.Init(true, key);
+            signer.BlockUpdate(Msg, 0, Msg.Length);
+
+            return signer.GenerateSignature();
+        }
+
+        private static bool Verify(XmssMTSigner signer, XmssMTPublicKeyParameters key, byte[] sig)
         {
             signer.Init(false, key);
             signer.BlockUpdate(Msg, 0, Msg.Length);
@@ -106,6 +121,51 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
                 "the shard stopped signing when its source was destroyed");
 
             // idempotent
+            priv.Destroy();
+            Assert.IsTrue(priv.IsDestroyed);
+        }
+
+        [Test]
+        public void TestXmssMTDestroy()
+        {
+            AsymmetricCipherKeyPair kp = XmssMTKeyPair();
+            XmssMTPrivateKeyParameters priv = (XmssMTPrivateKeyParameters)kp.Private;
+            XmssMTPublicKeyParameters pub = (XmssMTPublicKeyParameters)kp.Public;
+
+            byte[] sig = Sign(new XmssMTSigner(), priv);
+
+            XmssMTPrivateKeyParameters shard = priv.ExtractKeyShard(2);
+
+            long index = priv.Index;
+            byte[] publicSeed = priv.GetPublicSeed();
+            byte[] root = priv.GetRoot();
+
+            Assert.IsFalse(priv.IsDestroyed);
+
+            priv.Destroy();
+
+            Assert.IsTrue(priv.IsDestroyed);
+
+            CheckThrowsDestroyed("GetSecretKeySeed", () => priv.GetSecretKeySeed());
+            CheckThrowsDestroyed("GetSecretKeyPrf", () => priv.GetSecretKeyPrf());
+            CheckThrowsDestroyed("GetEncoded", () => priv.GetEncoded());
+            CheckThrowsDestroyed("GetNextKey", () => priv.GetNextKey());
+            CheckThrowsDestroyed("ExtractKeyShard", () => priv.ExtractKeyShard(1));
+            CheckThrowsDestroyed("GenerateSignature", () => Sign(new XmssMTSigner(), priv));
+
+            Assert.AreEqual(index, priv.Index, "a refused signature advanced the index");
+            Assert.IsFalse(priv.GetBdsState().IsUsed, "a refused signature marked the traversal state used");
+
+            Assert.IsTrue(Arrays.AreEqual(publicSeed, priv.GetPublicSeed()));
+            Assert.IsTrue(Arrays.AreEqual(root, priv.GetRoot()));
+            Assert.IsNotNull(priv.Parameters);
+
+            Assert.IsTrue(Verify(new XmssMTSigner(), pub, sig), "a signature made before Destroy() no longer verifies");
+
+            Assert.IsFalse(shard.IsDestroyed);
+            Assert.IsTrue(Verify(new XmssMTSigner(), pub, Sign(new XmssMTSigner(), shard)),
+                "the shard stopped signing when its source was destroyed");
+
             priv.Destroy();
             Assert.IsTrue(priv.IsDestroyed);
         }
@@ -254,6 +314,74 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
 
             Assert.AreSame(owned, fifth.GetBdsState());
             Assert.AreNotSame(owned, sixth.GetBdsState());
+        }
+
+        /// <summary>
+        /// The XMSS^MT counterpart of <see cref="TwoKeysFromOneBuilder_ShareNoSecrets"/>: two keys built from one
+        /// builder share no secret array, no state map and no layer state, so destroying one leaves the other
+        /// signing verifiably.
+        /// </summary>
+        [Test]
+        public void MTTwoKeysFromOneBuilder_ShareNoSecrets()
+        {
+            AsymmetricCipherKeyPair kp = XmssMTKeyPair();
+            XmssMTPrivateKeyParameters source = (XmssMTPrivateKeyParameters)kp.Private;
+            XmssMTPublicKeyParameters pub = (XmssMTPublicKeyParameters)kp.Public;
+
+            // past the first signature, so the bottom layer is built and both layers are there to be shared
+            Sign(new XmssMTSigner(), source);
+
+            XmssMTPrivateKeyParameters.Builder builder = new XmssMTPrivateKeyParameters.Builder(source.Parameters)
+                .WithSecretKeySeed(source.GetSecretKeySeed()).WithSecretKeyPrf(source.GetSecretKeyPrf())
+                .WithPublicSeed(source.GetPublicSeed()).WithRoot(source.GetRoot()).WithIndex(source.Index)
+                .WithBdsState(source.GetBdsState());
+
+            XmssMTPrivateKeyParameters first = builder.Build();
+            XmssMTPrivateKeyParameters second = builder.Build();
+
+            Assert.AreNotSame(first.LiveSecretKeySeed, second.LiveSecretKeySeed);
+            Assert.AreNotSame(first.LiveSecretKeyPrf, second.LiveSecretKeyPrf);
+            Assert.AreNotSame(first.GetBdsState(), second.GetBdsState());
+            for (int layer = 0; layer != Layers; layer++)
+            {
+                Assert.IsNotNull(first.GetBdsState().Get(layer), "layer " + layer);
+                Assert.AreNotSame(first.GetBdsState().Get(layer), second.GetBdsState().Get(layer), "layer " + layer);
+            }
+
+            first.Destroy();
+
+            Assert.IsFalse(IsZero(second.LiveSecretKeySeed), "destroying one key wiped the other's seed");
+            Assert.IsFalse(IsZero(second.LiveSecretKeyPrf), "destroying one key wiped the other's PRF key");
+            Assert.IsTrue(Verify(new XmssMTSigner(), pub, Sign(new XmssMTSigner(), second)),
+                "the surviving key no longer signs verifiably");
+
+            // and the same for keys built from seeds alone, whose state each builds for itself
+            XmssMTPrivateKeyParameters.Builder seeds = new XmssMTPrivateKeyParameters.Builder(source.Parameters)
+                .WithSecretKeySeed(source.GetSecretKeySeed()).WithSecretKeyPrf(source.GetSecretKeyPrf())
+                .WithPublicSeed(source.GetPublicSeed()).WithRoot(source.GetRoot()).WithIndex(3);
+            XmssMTPrivateKeyParameters third = seeds.Build();
+            XmssMTPrivateKeyParameters fourth = seeds.Build();
+
+            Assert.AreNotSame(third.LiveSecretKeySeed, fourth.LiveSecretKeySeed);
+
+            third.Destroy();
+
+            Assert.IsFalse(IsZero(fourth.LiveSecretKeySeed), "destroying one key wiped the other's seed");
+            Assert.IsTrue(Verify(new XmssMTSigner(), pub, Sign(new XmssMTSigner(), fourth)),
+                "the surviving key no longer signs verifiably");
+
+            // a state map built for one key is adopted by the first Build() alone; a second gets a copy
+            BdsStateMap owned = new BdsStateMap(source.GetBdsState(), source.GetBdsState().MaxIndex);
+            XmssMTPrivateKeyParameters.Builder adopting = new XmssMTPrivateKeyParameters.Builder(source.Parameters)
+                .WithSecretKeySeed(source.GetSecretKeySeed()).WithSecretKeyPrf(source.GetSecretKeyPrf())
+                .WithPublicSeed(source.GetPublicSeed()).WithRoot(source.GetRoot()).WithIndex(source.Index)
+                .WithOwnedBdsState(owned);
+            XmssMTPrivateKeyParameters fifth = adopting.Build();
+            XmssMTPrivateKeyParameters sixth = adopting.Build();
+
+            Assert.AreSame(owned, fifth.GetBdsState());
+            Assert.AreNotSame(owned, sixth.GetBdsState());
+            Assert.AreNotSame(owned.Get(0), sixth.GetBdsState().Get(0));
         }
 
         /// <summary>

@@ -346,7 +346,6 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         /// named for it. Copying one before that, then naming the digest on the copy, and handing one straight to
         /// the key builder with no digest named at all, all leave a state map a key can sign through.
         /// </summary>
-        /// <remarks>Java signs through XMSSMTSigner; here through the engine the signer calls.</remarks>
         [Test]
         public void TestDecodedStateMapCanBeCopiedBeforeItsDigestIsNamed()
         {
@@ -601,11 +600,18 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         /// </summary>
         private static void SignsThrough(XmssMTPrivateKeyParameters privKey)
         {
+            XmssMTSigner signer = new XmssMTSigner();
+            XmssMTPrivateKeyParameters key = privKey;
             int leavesPerSubtree = 1 << (MTHeight / MTLayers);
 
             for (int i = 0; i != leavesPerSubtree + 1; i++)
             {
-                Assert.IsNotNull(XmssEngine.GenerateMTSignature(privKey, new byte[]{ (byte)i }));
+                signer.Init(true, key);
+                signer.BlockUpdate(new byte[]{ (byte)i }, 0, 1);
+
+                Assert.IsNotNull(signer.GenerateSignature());
+
+                key = (XmssMTPrivateKeyParameters)signer.GetUpdatedPrivateKey();
             }
         }
 

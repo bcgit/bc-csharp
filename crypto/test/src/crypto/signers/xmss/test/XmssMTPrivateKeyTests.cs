@@ -17,9 +17,8 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// <summary>Test cases for XmssMTPrivateKeyParameters class.</summary>
     /// <remarks>
     /// <para>
-    /// The Java methods that sign do so through XMSSMTSigner; here they sign through the engine the signer calls,
-    /// <see cref="XmssEngine.GenerateMTSignature"/>, which is all the signer does with the key. The second half of
-    /// <see cref="TestPrivateKeySerialisation"/>, through the private key factory, arrives with the key factories.
+    /// The second half of <see cref="TestPrivateKeySerialisation"/>, through the private key factory, arrives with
+    /// the key factories.
     /// </para>
     /// <para>
     /// The methods after <see cref="TestPrivateKeyParsingSha256"/> compare what this key and the engine under it
@@ -42,12 +41,14 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             int height = 6, layers = 2;
             XmssMTParameters parameters = new XmssMTParameters(height, layers, new Sha256Digest());
             AsymmetricCipherKeyPair kp = Generate(parameters, new SecureRandom());
-            XmssMTPrivateKeyParameters advanced = (XmssMTPrivateKeyParameters)kp.Private;
 
+            XmssMTSigner signer = new XmssMTSigner();
+            signer.Init(true, kp.Private);
             for (int i = 0; i != 5; i++)
             {
-                XmssEngine.GenerateMTSignature(advanced, Strings.ToByteArray("message"));
+                XmssHarnessTests.Sign(signer, Strings.ToByteArray("message"));
             }
+            XmssMTPrivateKeyParameters advanced = (XmssMTPrivateKeyParameters)signer.GetUpdatedPrivateKey();
             Assert.AreEqual(5, advanced.Index);
 
             byte[] enc = advanced.GetEncoded();
@@ -74,9 +75,39 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
                 new XmssMTPrivateKeyParameters.Builder(parameters).WithPrivateKey(enc).Build();
             Assert.AreEqual(5, decoded.Index);
 
-            byte[] sig = XmssEngine.GenerateMTSignature(decoded, Strings.ToByteArray("message"));
-            Assert.IsTrue(XmssEngine.VerifyMTSignature((XmssMTPublicKeyParameters)kp.Public,
-                Strings.ToByteArray("message"), sig));
+            XmssMTSigner s2 = new XmssMTSigner();
+            s2.Init(true, decoded);
+            byte[] sig = XmssHarnessTests.Sign(s2, Strings.ToByteArray("message"));
+            XmssMTSigner v = new XmssMTSigner();
+            v.Init(false, kp.Public);
+            Assert.IsTrue(XmssHarnessTests.Verify(v, Strings.ToByteArray("message"), sig));
+        }
+
+        /// <summary>
+        /// An index outside 0 to maxIndex + 1 is refused whatever the traversal state came from. With a state map
+        /// the per-layer check compares only the low bits of each position, so these two indices, 2^h away from
+        /// the key's own, agree with the map on every layer and need the bound of their own.
+        /// </summary>
+        [Test]
+        public void TestIndexOutOfRangeRejectedWithAStateMap()
+        {
+            XmssMTParameters parameters = new XmssMTParameters(4, 2, new Sha256Digest());
+            XmssMTPrivateKeyParameters key =
+                (XmssMTPrivateKeyParameters)Generate(parameters, new SecureRandom()).Private;
+
+            XmssEngine.GenerateMTSignature(key, Message);
+
+            long span = 1L << parameters.Height;
+            foreach (long index in new long[]{ key.Index - span, key.Index + span })
+            {
+                XmssMTPrivateKeyParameters.Builder builder = new XmssMTPrivateKeyParameters.Builder(parameters)
+                    .WithSecretKeySeed(key.GetSecretKeySeed()).WithSecretKeyPrf(key.GetSecretKeyPrf())
+                    .WithPublicSeed(key.GetPublicSeed()).WithRoot(key.GetRoot())
+                    .WithIndex(index).WithBdsState(key.GetBdsState());
+
+                ArgumentException e = Assert.Throws<ArgumentException>(() => builder.Build(), "index " + index);
+                Assert.AreEqual("index out of bounds", e.Message);
+            }
         }
 
         /// <summary>
@@ -86,14 +117,14 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         /// the binding tolerates that one position.
         /// </summary>
         [Test]
-        [Explicit] // slow: ~17s
+        [Explicit] // slow: ~15s
         public void TestEveryIndexRoundTrips()
         {
             int height = 6, layers = 3;
             XmssMTParameters parameters = new XmssMTParameters(height, layers, new Sha256Digest());
             AsymmetricCipherKeyPair kp = Generate(parameters, new SecureRandom());
             XmssMTPrivateKeyParameters key = (XmssMTPrivateKeyParameters)kp.Private;
-            XmssMTPublicKeyParameters pub = (XmssMTPublicKeyParameters)kp.Public;
+            XmssMTSigner signer = new XmssMTSigner();
 
             int total = 1 << height;
             for (int i = 0; i != total; i++)
@@ -102,15 +133,20 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
                     .WithPrivateKey(key.GetEncoded()).Build();
                 Assert.AreEqual(key.Index, decoded.Index);
 
-                byte[] sig = XmssEngine.GenerateMTSignature(decoded, Strings.ToByteArray("message"));
-                Assert.IsTrue(XmssEngine.VerifyMTSignature(pub, Strings.ToByteArray("message"), sig),
-                    "index " + key.Index);
+                XmssMTSigner ds = new XmssMTSigner();
+                ds.Init(true, decoded);
+                byte[] sig = XmssHarnessTests.Sign(ds, Strings.ToByteArray("message"));
+                XmssMTSigner v = new XmssMTSigner();
+                v.Init(false, kp.Public);
+                Assert.IsTrue(XmssHarnessTests.Verify(v, Strings.ToByteArray("message"), sig), "index " + key.Index);
 
                 if (i == total - 1)
                 {
                     break;
                 }
-                XmssEngine.GenerateMTSignature(key, Strings.ToByteArray("message"));
+                signer.Init(true, key);
+                XmssHarnessTests.Sign(signer, Strings.ToByteArray("message"));
+                key = (XmssMTPrivateKeyParameters)signer.GetUpdatedPrivateKey();
             }
         }
 

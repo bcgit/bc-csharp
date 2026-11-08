@@ -18,8 +18,7 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// its last leaf, which is the placeholder traversal state installed when the final one-time key is consumed.
     /// </summary>
     /// <remarks>
-    /// The XMSS^MT half of <see cref="TestRestoredExhaustedKeyRefusesToSign"/> arrives with the XMSS^MT signer, and
-    /// the PrivateKeyInfo round trips with the key factories.
+    /// The PrivateKeyInfo round trips arrive with the key factories.
     /// </remarks>
     [TestFixture]
     public class ExhaustedKeyTests
@@ -164,7 +163,6 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         /// A restored exhausted key refuses to sign. Restoring one that could sign again would reuse a one-time key,
         /// which is the failure RFC 8391 sec. 1.1 exists to prevent.
         /// </summary>
-        /// <remarks>XMSS half: the XMSS^MT half arrives with the XMSS^MT signer.</remarks>
         [Test]
         public void TestRestoredExhaustedKeyRefusesToSign()
         {
@@ -180,6 +178,18 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
 
             ExhaustedPrivateKeyException e = Assert.Throws<ExhaustedPrivateKeyException>(
                 () => signer.GenerateSignature());
+            Assert.AreEqual("no usages of private key remaining", e.Message);
+
+            XmssMTParameters mtParams = XmssMTParams();
+            XmssMTPrivateKeyParameters mtRestored = new XmssMTPrivateKeyParameters.Builder(mtParams)
+                .WithPrivateKey(ExhaustedXmssMT(mtParams).GetEncoded()).Build();
+
+            XmssMTSigner mtSigner = new XmssMTSigner();
+
+            mtSigner.Init(true, mtRestored);
+            mtSigner.BlockUpdate(message, 0, message.Length);
+
+            e = Assert.Throws<ExhaustedPrivateKeyException>(() => mtSigner.GenerateSignature());
             Assert.AreEqual("no usages of private key remaining", e.Message);
         }
 

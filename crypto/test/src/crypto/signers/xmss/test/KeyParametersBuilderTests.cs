@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// <summary>The XMSS / XMSS^MT key parameter builders.</summary>
     /// <remarks>
     /// The Java tests are written in XMSS / XMSS^MT pairs, and both halves are here, except where a remark says
-    /// otherwise: testMTRecoveryAtTheExhaustedIndex signs, and arrives with the XMSS^MT signer.
+    /// otherwise.
     /// </remarks>
     [TestFixture]
     public class KeyParametersBuilderTests
@@ -257,9 +257,8 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         /// unused key covers index 0 alone and carries maximum index 0: it signs once, and then it is spent.
         /// </summary>
         /// <remarks>
-        /// The XMSS half, and the XMSS^MT key's half up to its signature. The rest of the XMSS^MT half - the shard
-        /// through PrivateKeyInfo and back, and its one signature through the XMSS^MT signer - arrives with the key
-        /// factories.
+        /// Java's XMSS^MT half reads the shard back through PrivateKeyInfo; that round trip arrives with the key
+        /// factories, and the raw encoding is round-tripped here in its place.
         /// </remarks>
         [Test]
         public void TestSingleUseShardCoversOneSignature()
@@ -286,7 +285,8 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
                 () => signer.GenerateSignature());
             Assert.AreEqual("no usages of private key remaining", e.Message);
 
-            XmssMTPrivateKeyParameters mt = (XmssMTPrivateKeyParameters)GenerateXmssMT().Private;
+            AsymmetricCipherKeyPair mtKp = GenerateXmssMT();
+            XmssMTPrivateKeyParameters mt = (XmssMTPrivateKeyParameters)mtKp.Private;
             XmssMTPrivateKeyParameters mtShard = mt.GetNextKey();
 
             Assert.AreEqual(0, mtShard.Index);
@@ -300,6 +300,21 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
 
             Assert.AreEqual(0, restored.Index);
             Assert.AreEqual(1, restored.GetUsagesRemaining());
+
+            XmssMTSigner mtSigner = new XmssMTSigner();
+
+            mtSigner.Init(true, mtShard);
+            mtSigner.BlockUpdate(message, 0, message.Length);
+            byte[] mtSignature = mtSigner.GenerateSignature();
+
+            XmssMTSigner mtVerifier = new XmssMTSigner();
+            mtVerifier.Init(false, mtKp.Public);
+            Assert.IsTrue(XmssHarnessTests.Verify(mtVerifier, message, mtSignature), "the shard's signature");
+
+            mtSigner.BlockUpdate(message, 0, message.Length);
+
+            e = Assert.Throws<ExhaustedPrivateKeyException>(() => mtSigner.GenerateSignature());
+            Assert.AreEqual("no usages of private key remaining", e.Message);
         }
 
         /// <summary>
@@ -328,12 +343,12 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         }
 
         /// <summary>
-        /// The pre-signing part of the XMSS^MT half of <see cref="TestRecoveryAtTheExhaustedIndex"/>: 2^h rebuilds
-        /// to the state RollKey() leaves behind, an empty map whose maximum index is the last leaf.
+        /// The XMSS^MT half of <see cref="TestRecoveryAtTheExhaustedIndex"/>: 2^h is in range and is the position
+        /// RollKey() stops at, so it rebuilds to the state RollKey() leaves behind - an empty map whose maximum index
+        /// is the last leaf - which refuses to sign.
         /// </summary>
-        /// <remarks>testMTRecoveryAtTheExhaustedIndex itself signs, and arrives with the XMSS^MT signer.</remarks>
         [Test]
-        public void MTRecoveryAtTheExhaustedIndex_Key()
+        public void TestMTRecoveryAtTheExhaustedIndex()
         {
             XmssMTParameters parameters = XmssMTParams();
             byte[] seed = new byte[parameters.TreeDigestSize];
@@ -344,9 +359,15 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             Assert.AreEqual(0, spent.GetUsagesRemaining());
             Assert.AreEqual((1L << Height) - 1, spent.GetBdsState().MaxIndex);
 
+            XmssMTSigner signer = new XmssMTSigner();
+
+            signer.Init(true, spent);
+            signer.BlockUpdate(new byte[]{ 1, 2, 3 }, 0, 3);
+
             ExhaustedPrivateKeyException e = Assert.Throws<ExhaustedPrivateKeyException>(
-                () => XmssEngine.GenerateMTSignature(spent, new byte[]{ 1, 2, 3 }), "spent key signed");
+                () => signer.GenerateSignature(), "spent key signed");
             Assert.AreEqual("no usages of private key remaining", e.Message);
+            Assert.AreEqual(1L << Height, spent.Index, "a refused signature moved the key");
         }
 
         /// <summary>A generator asked for a key pair before Init() says so rather than dereferencing nothing.</summary>
@@ -356,6 +377,15 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             InvalidOperationException e = Assert.Throws<InvalidOperationException>(
                 () => new XmssKeyPairGenerator().GenerateKeyPair());
             Assert.AreEqual("XmssKeyPairGenerator not initialised", e.Message);
+        }
+
+        /// <summary>As <see cref="GenerateKeyPairBeforeInitRefused"/>, for the XMSS^MT generator.</summary>
+        [Test]
+        public void MTGenerateKeyPairBeforeInitRefused()
+        {
+            InvalidOperationException e = Assert.Throws<InvalidOperationException>(
+                () => new XmssMTKeyPairGenerator().GenerateKeyPair());
+            Assert.AreEqual("XmssMTKeyPairGenerator not initialised", e.Message);
         }
 
         /// <summary>A maxIndex given to the builder has to be the one the state carries.</summary>

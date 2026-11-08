@@ -21,9 +21,9 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// every index of a key.
     /// </summary>
     /// <remarks>
-    /// The XMSS half of each Java method. The key encodings Java checks here are SubjectPublicKeyInfo and
-    /// PrivateKeyInfo, and arrive with the key factories; the XMSS^MT vectors and halves arrive with the XMSS^MT
-    /// signer. The vectors for both are kept here so the table matches Java's.
+    /// The key encodings Java checks here are SubjectPublicKeyInfo and PrivateKeyInfo, and arrive with the key
+    /// factories, together with the XMSSMT-SHA2_20/2_256 set, which Java checks for its encodings alone. Their vectors
+    /// are kept here so the table matches Java's.
     /// </remarks>
     [TestFixture]
     public class PromotionKnownAnswerTests
@@ -105,7 +105,26 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             CheckXmss("XMSS-SHA2_10_192", new XmssParameters(10, NistObjectIdentifiers.IdSha256, 24), SeedFor(12));
         }
 
-        /// <remarks>XMSS half: the XMSS^MT signer's arrives with it.</remarks>
+        /// <remarks>The SubjectPublicKeyInfo / PrivateKeyInfo checks arrive with the key factories.</remarks>
+        [Test]
+        public void TestXmssMTKeysAndSignatures()
+        {
+            for (int i = 0; i != 4; i++)
+            {
+                string label = "XMSSMT h4d2/" + i;
+                AsymmetricCipherKeyPair kp = XmssMtKey(new XmssMTParameters(4, 2, Digest(i)), SeedFor(20 + i));
+
+                XmssMTSigner signer = new XmssMTSigner();
+                signer.Init(true, kp.Private);
+                byte[] sig = XmssHarnessTests.Sign(signer, Message);
+                Assert.AreEqual(Expected(label, "sig"), Sha256(sig), label + ": signature");
+
+                XmssMTSigner verifier = new XmssMTSigner();
+                verifier.Init(false, kp.Public);
+                Assert.IsTrue(XmssHarnessTests.Verify(verifier, Message, sig), label + ": signature did not verify");
+            }
+        }
+
         [Test]
         public void TestSignaturesAtEveryIndexOfAKey()
         {
@@ -120,6 +139,18 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             }
             Assert.AreEqual(Expected("XMSS h4/0 every index", "sigs"), DoFinal(all),
                 "XMSS: signatures over every index");
+
+            XmssMTSigner mtSigner = new XmssMTSigner();
+            mtSigner.Init(true, XmssMtKey(new XmssMTParameters(4, 2, Digest(0)), SeedFor(31)).Private);
+
+            all = new Sha256Digest();
+            for (int i = 0; i != 1 << 4; i++)
+            {
+                byte[] sig = XmssHarnessTests.Sign(mtSigner, Message);
+                all.BlockUpdate(sig, 0, sig.Length);
+            }
+            Assert.AreEqual(Expected("XMSSMT h4d2/0 every index", "sigs"), DoFinal(all),
+                "XMSS^MT: signatures over every index");
         }
 
         /// <summary>
@@ -154,7 +185,6 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         /// <see cref="ParametersWithRandom"/> has nothing to drive: the signature is byte-identical to the one signed
         /// without the wrapper.
         /// </summary>
-        /// <remarks>XMSS half: the XMSS^MT signer's arrives with it.</remarks>
         [Test]
         public void TestParametersWithRandomAcceptedForSigning()
         {
@@ -172,6 +202,18 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             plainSigner.Init(true, XmssKey(parameters, seed).Private);
             Assert.IsTrue(Arrays.AreEqual(wrapped, XmssHarnessTests.Sign(plainSigner, Message)),
                 "XMSS: ParametersWithRandom changed the signature");
+
+            XmssMTParameters mtParams = new XmssMTParameters(4, 2, Digest(0));
+            byte[] mtSeed = SeedFor(32);
+
+            XmssMTSigner wrappedMtSigner = new XmssMTSigner();
+            wrappedMtSigner.Init(true, new ParametersWithRandom(XmssMtKey(mtParams, mtSeed).Private, random));
+            byte[] mtWrapped = XmssHarnessTests.Sign(wrappedMtSigner, Message);
+
+            XmssMTSigner plainMtSigner = new XmssMTSigner();
+            plainMtSigner.Init(true, XmssMtKey(mtParams, mtSeed).Private);
+            Assert.IsTrue(Arrays.AreEqual(mtWrapped, XmssHarnessTests.Sign(plainMtSigner, Message)),
+                "XMSS^MT: ParametersWithRandom changed the signature");
         }
 
         private static void CheckXmss(string label, XmssParameters parameters, byte[] seed)
@@ -216,6 +258,13 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         {
             XmssKeyPairGenerator gen = new XmssKeyPairGenerator();
             gen.Init(new XmssKeyGenerationParameters(FixedRandom(seed), parameters));
+            return gen.GenerateKeyPair();
+        }
+
+        private static AsymmetricCipherKeyPair XmssMtKey(XmssMTParameters parameters, byte[] seed)
+        {
+            XmssMTKeyPairGenerator gen = new XmssMTKeyPairGenerator();
+            gen.Init(new XmssMTKeyGenerationParameters(FixedRandom(seed), parameters));
             return gen.GenerateKeyPair();
         }
 

@@ -12,9 +12,8 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
 {
     /// <summary>Test cases for the XMSS^MT signature class.</summary>
     /// <remarks>
-    /// Java signs through its XMSSMT test harness, whose sign() is XMSSMTSigner over the key; here the key signs
-    /// through the engine the signer calls. The methods after <see cref="TestConstructor"/> cover the decode
-    /// refusals the XMSS signature fixture covers for its own encoding.
+    /// The methods after <see cref="TestConstructor"/> cover the decode refusals the XMSS signature fixture covers
+    /// for its own encoding.
     /// </remarks>
     [TestFixture]
     public class XmssMTSignatureTests
@@ -26,11 +25,9 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             int layers = 3;
             byte[] message = new byte[1024];
             XmssMTParameters parameters = new XmssMTParameters(totalHeight, layers, new Sha256Digest());
-            XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
-            kpg.Init(new XmssMTKeyGenerationParameters(new XmssHarnessTests.NullPrng(), parameters));
-            XmssMTPrivateKeyParameters privateKey = (XmssMTPrivateKeyParameters)kpg.GenerateKeyPair().Private;
-
-            byte[] signature1 = XmssEngine.GenerateMTSignature(privateKey, message);
+            XmssHarnessTests.XmssMT xmssMT = new XmssHarnessTests.XmssMT(parameters, new XmssHarnessTests.NullPrng());
+            xmssMT.GenerateKeys();
+            byte[] signature1 = xmssMT.Sign(message);
             XmssMTSignature mtSignature = new XmssMTSignature.Builder(parameters).WithSignature(signature1).Build();
             byte[] signature2 = mtSignature.ToByteArray();
             Assert.IsTrue(Arrays.AreEqual(signature1, signature2));

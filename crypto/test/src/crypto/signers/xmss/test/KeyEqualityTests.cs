@@ -17,7 +17,6 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// key pair share a bucket of a set or a dictionary and are told apart inside it.
     /// </para>
     /// <para>
-    /// testXmssMtSignatureMovesTheAnswerNotTheBucket arrives with the XMSS^MT signer.
     /// <see cref="RollMovesTheAnswerNotTheBucket"/> asserts the property of
     /// <see cref="TestXmssSignatureMovesTheAnswerNotTheBucket"/> through RollKey().
     /// </para>
@@ -219,6 +218,26 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             Assert.IsFalse(before.Equals(after), "keys at different indices are not equal");
             Assert.IsFalse(after.Equals(before), "keys at different indices are not equal");
             Assert.AreEqual(before.GetHashCode(), after.GetHashCode(), "a roll must not move the key's bucket");
+        }
+
+        [Test]
+        public void TestXmssMtSignatureMovesTheAnswerNotTheBucket()
+        {
+            XmssMTPrivateKeyParameters key = NewXmssMtKey();
+            XmssMTPrivateKeyParameters before = DecodeXmssMt(key, key.GetEncoded());
+
+            XmssMTSigner signer = new XmssMTSigner();
+
+            signer.Init(true, key);
+            signer.BlockUpdate(new byte[]{ 0x5a }, 0, 1);
+            signer.GenerateSignature();
+
+            XmssMTPrivateKeyParameters after = (XmssMTPrivateKeyParameters)signer.GetUpdatedPrivateKey();
+
+            Assert.AreEqual(before.Index + 1, after.Index);
+            Assert.IsFalse(before.Equals(after), "keys at different indices are not equal");
+            Assert.IsFalse(after.Equals(before), "keys at different indices are not equal");
+            Assert.AreEqual(before.GetHashCode(), after.GetHashCode(), "a signature must not move the key's bucket");
         }
 
         /// <summary>As <see cref="RollMovesTheAnswerNotTheBucket"/>, for an XMSS^MT key.</summary>

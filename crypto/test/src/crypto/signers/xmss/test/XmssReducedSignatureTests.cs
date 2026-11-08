@@ -14,13 +14,42 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// Test cases for XmssReducedSignature class.
     /// </summary>
     /// <remarks>
-    /// The two Java parsing tests take their reduced signature out of an XMSS^MT signature and arrive with it. The
-    /// methods after <see cref="TestConstructor"/> check the same encoding on reduced signatures assembled from
-    /// their parts.
+    /// The two Java parsing tests take their reduced signature out of an XMSS^MT signature. The methods after
+    /// <see cref="TestConstructor"/> check the same encoding on reduced signatures assembled from their parts.
     /// </remarks>
     [TestFixture]
     public class XmssReducedSignatureTests
     {
+        [Test]
+        public void TestSignatureParsingSha256()
+        {
+            CheckSignatureParsing(new XmssMTParameters(8, 2, new Sha256Digest()),
+                new XmssParameters(4, new Sha256Digest()));
+        }
+
+        [Test]
+        public void TestSignatureParsingSha512()
+        {
+            CheckSignatureParsing(new XmssMTParameters(4, 2, new Sha512Digest()),
+                new XmssParameters(2, new Sha512Digest()));
+        }
+
+        private static void CheckSignatureParsing(XmssMTParameters parameters, XmssParameters layerParameters)
+        {
+            XmssHarnessTests.XmssMT mt = new XmssHarnessTests.XmssMT(parameters, new XmssHarnessTests.NullPrng());
+            mt.GenerateKeys();
+            byte[] message = new byte[1024];
+            byte[] sig1 = mt.Sign(message);
+            XmssMTSignature sig2 = new XmssMTSignature.Builder(parameters).WithSignature(sig1).Build();
+
+            XmssReducedSignature reducedSignature1 = sig2.ReducedSignatures[0];
+            byte[] reducedSignatureBinary = reducedSignature1.ToByteArray();
+            XmssReducedSignature reducedSignature2 = new XmssReducedSignature.Builder(layerParameters)
+                .WithReducedSignature(reducedSignatureBinary, 0).Build();
+
+            Assert.IsTrue(Arrays.AreEqual(reducedSignatureBinary, reducedSignature2.ToByteArray()));
+        }
+
         [Test]
         public void TestConstructor()
         {

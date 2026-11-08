@@ -108,14 +108,25 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss
             bdsState.Put(rootLayerIndex, bdsRoot);
 
             /* set XMSS^MT root / create public key */
-            XmssMTPrivateKeyParameters privateKey = new XmssMTPrivateKeyParameters.Builder(parameters)
+            XmssMTPrivateKeyParameters.Builder privateKeyBuilder = new XmssMTPrivateKeyParameters.Builder(parameters)
                 .WithSecretKeySeed(secretKeySeed).WithSecretKeyPrf(secretKeyPrf).WithPublicSeed(publicSeed)
-                .WithRoot(root).WithBdsState(bdsState).Build();
+                .WithRoot(root).WithOwnedBdsState(bdsState);
+            XmssMTPrivateKeyParameters privateKey;
+            try
+            {
+                privateKey = privateKeyBuilder.Build();
+            }
+            finally
+            {
+                // a Build() that throws has still been handed the secrets
+                privateKeyBuilder.ClearSecrets();
+            }
             XmssMTPublicKeyParameters publicKey = new XmssMTPublicKeyParameters.Builder(parameters).WithRoot(root)
                 .WithPublicSeed(publicSeed).Build();
 
-            // the builders took copies, the state map included; the root layer's state built here retains the WOTS+
-            // secret key of the last leaf it walked
+            // the key holds copies of its own, and its builder's have been wiped. The state map, adopted by the key,
+            // has a root layer state that retains the WOTS+ secret key of the last leaf it walked; a state imports a
+            // fresh one before each leaf it computes, so it can go
             Arrays.ZeroMemory(secretKeySeed);
             Arrays.ZeroMemory(secretKeyPrf);
             bdsState.ClearSecrets();
@@ -303,12 +314,17 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss
                 throw new InvalidOperationException("not initialized");
             //
             // as the XMSS path, on the layer zero state - the one whose leaf signs the message, and so the one a
-            // second signature must never reuse. The allowance is the one BdsStateMap.ValidateIndex makes: on the
-            // first leaf of a subtree the signer builds layer zero fresh, so the marked state carried over from the
-            // end of the previous subtree is legitimate there and is about to be thrown away.
+            // second signature must never reuse. The one allowance: on the first leaf of a subtree the signer builds
+            // layer zero fresh, so the marked state carried over from the end of the previous subtree, at its last
+            // leaf, is legitimate there and is about to be thrown away - provided it is the state of the subtree just
+            // before, which the index check below confirms. A marked state at leaf 0 is not that one: it is the state
+            // the signature at leaf 0 spent, left by a roll that did not complete, and bc-java's check, which skips
+            // every leaf 0 position, would sign leaf 0 again from it.
             //
-            if (XmssUtilities.GetLeafIndex(privateKey.Index, xmssParams.Height) != 0
-                && privateKey.GetBdsState().IsUsed)
+            Bds layerZero = privateKey.GetBdsState().Get(0);
+            if (layerZero != null && layerZero.IsUsed
+                && !(XmssUtilities.GetLeafIndex(privateKey.Index, xmssParams.Height) == 0
+                    && layerZero.Index == (1 << xmssParams.Height) - 1))
             {
                 throw new InvalidOperationException(
                     "one time key at index " + privateKey.Index + " has already signed");

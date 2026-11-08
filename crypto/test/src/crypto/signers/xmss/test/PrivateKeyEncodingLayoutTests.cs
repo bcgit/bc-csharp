@@ -22,14 +22,14 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// the offsets, taken from this file rather than from the codec's own constants, and the checksum recomputed here.
     /// </para>
     /// <para>
-    /// testXmssMtKeyEncodingLayout arrives with the XMSS^MT signer. <see cref="XmssKeyEncodingLayout_Rolled"/> checks
-    /// the same layout on a key moved on by RollKey(), from index 0.
+    /// <see cref="XmssKeyEncodingLayout_Rolled"/> checks the same layout on a key moved on by RollKey(), from index 0.
     /// </para>
     /// </remarks>
     [TestFixture]
     public class PrivateKeyEncodingLayoutTests
     {
         private const int BdsStateMagic = 0x42445300;
+        private const int BdsStateMapMagic = 0x42444d00;
         private const int StateVersion = 1;
         private const int ChecksumSize = 32;
 
@@ -71,6 +71,48 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
                 Assert.IsTrue(Arrays.AreEqual(encoding, rebuilt.GetEncoded()), "re-encoded");
 
                 // GetUpdatedPrivateKey() took the key with it, so the signer needs it back to go on
+                signer.Init(true, privKey);
+            }
+        }
+
+        /// <summary>
+        /// As <see cref="TestXmssKeyEncodingLayout"/>, with the index sized by the total height and the state a map of
+        /// one BDS per layer.
+        /// </summary>
+        [Test]
+        public void TestXmssMtKeyEncodingLayout()
+        {
+            XmssMTParameters parameters = new XmssMTParameters(4, 2, new Sha256Digest());
+            XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
+
+            kpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(), parameters));
+
+            AsymmetricCipherKeyPair kp = kpg.GenerateKeyPair();
+            XmssMTSigner signer = new XmssMTSigner();
+
+            signer.Init(true, kp.Private);
+
+            for (int index = 0; index != 3; index++)
+            {
+                signer.Update((byte)index);
+                signer.GenerateSignature();
+
+                XmssMTPrivateKeyParameters privKey = (XmssMTPrivateKeyParameters)signer.GetUpdatedPrivateKey();
+                int n = parameters.TreeDigestSize;
+                int indexSize = (parameters.Height + 7) / 8;
+                byte[] encoding = privKey.GetEncoded();
+
+                Assert.AreEqual(1, indexSize);
+                Assert.AreEqual(index + 1, encoding[0]);
+                CheckFields(encoding, indexSize, n, privKey.GetSecretKeySeed(), privKey.GetSecretKeyPrf(),
+                    privKey.GetPublicSeed(), privKey.GetRoot());
+                CheckState(encoding, indexSize + 4 * n, BdsStateMapMagic, privKey.GetPublicSeed());
+
+                XmssMTPrivateKeyParameters rebuilt = new XmssMTPrivateKeyParameters.Builder(parameters)
+                    .WithPrivateKey(encoding).Build();
+
+                Assert.IsTrue(Arrays.AreEqual(encoding, rebuilt.GetEncoded()), "re-encoded");
+
                 signer.Init(true, privKey);
             }
         }

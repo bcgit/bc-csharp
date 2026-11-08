@@ -1,4 +1,6 @@
-﻿using Org.BouncyCastle.Crypto.Parameters;
+﻿using System;
+
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers.Xmss;
 using Org.BouncyCastle.Security;
 
@@ -15,7 +17,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         /// Initialise with an <see cref="XmssMTKeyGenerationParameters"/> instance; the <see cref="SecureRandom"/> and
         /// parameter set are taken from it.
         /// </summary>
-        /// <exception cref="System.InvalidCastException">If <paramref name="parameters"/> is not an
+        /// <exception cref="InvalidCastException">If <paramref name="parameters"/> is not an
         /// <see cref="XmssMTKeyGenerationParameters"/>.</exception>
         public void Init(KeyGenerationParameters parameters)
         {
@@ -26,6 +28,13 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
         /// <summary>Generate a new XMSS^MT private key / public key pair.</summary>
-        public AsymmetricCipherKeyPair GenerateKeyPair() => XmssEngine.GenerateMTKeyPair(m_parameters, m_random);
+        /// <exception cref="InvalidOperationException">If <see cref="Init"/> has not been called.</exception>
+        public AsymmetricCipherKeyPair GenerateKeyPair()
+        {
+            if (m_parameters == null)
+                throw new InvalidOperationException("XmssMTKeyPairGenerator not initialised");
+
+            return XmssEngine.GenerateMTKeyPair(m_parameters, m_random);
+        }
     }
 }

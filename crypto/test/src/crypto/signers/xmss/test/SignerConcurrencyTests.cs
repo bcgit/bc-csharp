@@ -26,10 +26,9 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// every index the signer has spent.
     /// </para>
     /// <para>
-    /// The XMSS method, and the two XMSS^MT state map methods, which drive the engine directly;
-    /// testStoredXMSSMTKeyNeverSitsOnASignedIndex arrives with the XMSS^MT signer.
-    /// <see cref="SameKeyTwoSigners_DistinctIndexes"/> covers two signers holding one key, which the Java fixture
-    /// does not assert directly.
+    /// The two XMSS^MT state map methods drive the engine directly, as Java's do.
+    /// <see cref="SameKeyTwoSigners_DistinctIndexes"/> and <see cref="MTSameKeyTwoSigners_DistinctIndexes"/> cover
+    /// two signers holding one key, which the Java fixture does not assert directly.
     /// </para>
     /// </remarks>
     [TestFixture]
@@ -143,6 +142,94 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             Assert.IsTrue(checkedTrials > 0, "no trial both signed and stored a key");
         }
 
+        [Test]
+        [Explicit] // slow: ~21s
+        public void TestStoredXmssMTKeyNeverSitsOnASignedIndex()
+        {
+            CheckStoredXmssMTKeyNeverSitsOnASignedIndex(Trials);
+        }
+
+        /// <summary>
+        /// <see cref="TestStoredXmssMTKeyNeverSitsOnASignedIndex"/> over a few trials, so the race between a signature
+        /// and a collection on the XMSS^MT signer is exercised in the default run.
+        /// </summary>
+        [Test]
+        public void StoredXmssMTKeyNeverSitsOnASignedIndex_FewTrials()
+        {
+            CheckStoredXmssMTKeyNeverSitsOnASignedIndex(10);
+        }
+
+        private static void CheckStoredXmssMTKeyNeverSitsOnASignedIndex(int trials)
+        {
+            XmssMTParameters parameters = new XmssMTParameters(Height, Layers, new Sha256Digest());
+            SecureRandom random = new SecureRandom();
+            int checkedTrials = 0;
+
+            for (int trial = 0; trial != trials; trial++)
+            {
+                XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
+
+                kpg.Init(new XmssMTKeyGenerationParameters(random, parameters));
+
+                AsymmetricCipherKeyPair kp = kpg.GenerateKeyPair();
+                XmssMTSigner signer = new XmssMTSigner();
+
+                signer.Init(true, kp.Private);
+                signer.BlockUpdate(new byte[]{ 1, 2, 3 }, 0, 3);
+
+                long signed = -1L;
+                long stored = -1L;
+                ManualResetEventSlim go = new ManualResetEventSlim(false);
+
+                Thread signing = new Thread(() =>
+                {
+                    try
+                    {
+                        go.Wait();
+                        // the same index, in the ceil(h / 8) bytes XMSS^MT gives it (RFC 8391 sec. 4.2.5)
+                        signed = XmssHarnessTests.MTIndexOf(signer.GenerateSignature(), parameters);
+                    }
+                    catch (Exception)
+                    {
+                        // a key already handed over is a legitimate outcome of the other ordering
+                    }
+                });
+
+                Thread collecting = new Thread(() =>
+                {
+                    try
+                    {
+                        go.Wait();
+
+                        XmssMTPrivateKeyParameters key = (XmssMTPrivateKeyParameters)signer.GetUpdatedPrivateKey();
+
+                        if (key != null)
+                        {
+                            stored = XmssHarnessTests.MTIndexOf(key.GetEncoded(), parameters);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
+                });
+
+                signing.Start();
+                collecting.Start();
+                go.Set();
+                signing.Join();
+                collecting.Join();
+
+                if (signed >= 0 && stored >= 0)
+                {
+                    Assert.IsTrue(stored > signed, "XMSS^MT key stored at index " + stored + " after index "
+                        + signed + " was signed");
+                    checkedTrials++;
+                }
+            }
+
+            Assert.IsTrue(checkedTrials > 0, "no trial both signed and stored a key");
+        }
+
         /// <summary>
         /// Two signers initialised with the same private key object, signing alternately and then concurrently,
         /// never emit two signatures at one index, and every signature verifies.
@@ -227,6 +314,90 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             }
 
             // and the key they share is spent for both
+            Assert.Throws<ExhaustedPrivateKeyException>(() => XmssHarnessTests.Sign(signers[0], new byte[1]));
+            Assert.Throws<ExhaustedPrivateKeyException>(() => XmssHarnessTests.Sign(signers[1], new byte[1]));
+        }
+
+        /// <summary>
+        /// As <see cref="SameKeyTwoSigners_DistinctIndexes"/>, for the XMSS^MT signer: the sixteen indices cross the
+        /// boundaries between the bottom layer's subtrees, where a signature rebuilds layer zero.
+        /// </summary>
+        [Test]
+        public void MTSameKeyTwoSigners_DistinctIndexes()
+        {
+            XmssMTParameters parameters = new XmssMTParameters(Height, Layers, new Sha256Digest());
+            XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
+
+            kpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(), parameters));
+
+            AsymmetricCipherKeyPair kp = kpg.GenerateKeyPair();
+            XmssMTPrivateKeyParameters privKey = (XmssMTPrivateKeyParameters)kp.Private;
+            XmssMTSigner[] signers = new XmssMTSigner[]{ new XmssMTSigner(), new XmssMTSigner() };
+
+            signers[0].Init(true, privKey);
+            signers[1].Init(true, privKey);
+
+            List<KeyValuePair<byte[], byte[]>> sigs = new List<KeyValuePair<byte[], byte[]>>();
+
+            for (int i = 0; i != 8; i++)
+            {
+                byte[] message = new byte[]{ (byte)i };
+                sigs.Add(new KeyValuePair<byte[], byte[]>(message, XmssHarnessTests.Sign(signers[i % 2], message)));
+            }
+
+            Thread[] threads = new Thread[2];
+            Exception[] failures = new Exception[2];
+            for (int t = 0; t != 2; t++)
+            {
+                XmssMTSigner signer = signers[t];
+                byte tag = (byte)(0x80 + t);
+                int slot = t;
+                threads[t] = new Thread(() =>
+                {
+                    try
+                    {
+                        for (int i = 0; i != 4; i++)
+                        {
+                            byte[] message = new byte[]{ tag, (byte)i };
+                            byte[] sig = XmssHarnessTests.Sign(signer, message);
+                            lock (sigs)
+                            {
+                                sigs.Add(new KeyValuePair<byte[], byte[]>(message, sig));
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        failures[slot] = e;
+                    }
+                });
+            }
+            foreach (Thread thread in threads)
+            {
+                thread.Start();
+            }
+            foreach (Thread thread in threads)
+            {
+                thread.Join();
+            }
+            for (int t = 0; t != 2; t++)
+            {
+                Assert.IsNull(failures[t], "signing thread " + t + " failed: " + failures[t]);
+            }
+
+            Assert.AreEqual(1 << Height, sigs.Count);
+            Assert.AreEqual(0, privKey.GetUsagesRemaining());
+
+            XmssMTSigner verifier = new XmssMTSigner();
+            verifier.Init(false, kp.Public);
+            HashSet<long> seen = new HashSet<long>();
+            foreach (KeyValuePair<byte[], byte[]> pair in sigs)
+            {
+                long index = XmssHarnessTests.MTIndexOf(pair.Value, parameters);
+                Assert.IsTrue(seen.Add(index), "one-time key at index " + index + " signed twice");
+                Assert.IsTrue(XmssHarnessTests.Verify(verifier, pair.Key, pair.Value), "index " + index);
+            }
+
             Assert.Throws<ExhaustedPrivateKeyException>(() => XmssHarnessTests.Sign(signers[0], new byte[1]));
             Assert.Throws<ExhaustedPrivateKeyException>(() => XmssHarnessTests.Sign(signers[1], new byte[1]));
         }

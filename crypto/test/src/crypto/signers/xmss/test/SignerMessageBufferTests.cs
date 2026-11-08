@@ -10,15 +10,16 @@ using Org.BouncyCastle.Security;
 namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
 {
     /// <summary>
-    /// <see cref="XmssSigner.Init"/> starts a fresh operation, so a message absorbed before it must not survive into
-    /// the new one. A signer reused across operations would otherwise sign or verify the leftover bytes concatenated
-    /// with the ones the caller actually presented - and on the signing side it would spend a one-time key doing so.
+    /// <see cref="XmssSigner.Init"/> and <see cref="XmssMTSigner.Init"/> start a fresh operation, so a message absorbed
+    /// before it must not survive into the new one. A signer reused across operations would otherwise sign or verify
+    /// the leftover bytes concatenated with the ones the caller actually presented - and on the signing side it would
+    /// spend a one-time key doing so.
     /// </summary>
-    /// <remarks>The XMSS half of each Java method; the XMSS^MT halves arrive with the XMSS^MT signer.</remarks>
     [TestFixture]
     public class SignerMessageBufferTests
     {
         private const int Height = 4;
+        private const int Layers = 2;
 
         private static readonly byte[] Leftover = new byte[]{ 0xde, 0xad, 0xbe, 0xef };
         private static readonly byte[] Message = new byte[]{ 1, 2, 3, 4, 5 };
@@ -31,6 +32,25 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
                 new Sha256Digest())));
 
             return kpg.GenerateKeyPair();
+        }
+
+        private static AsymmetricCipherKeyPair XmssMTKeyPair()
+        {
+            XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
+
+            kpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(), new XmssMTParameters(Height, Layers,
+                new Sha256Digest())));
+
+            return kpg.GenerateKeyPair();
+        }
+
+        private static bool Verifies(XmssMTSigner verifier, AsymmetricCipherKeyPair kp, byte[] message,
+            byte[] signature)
+        {
+            verifier.Init(false, kp.Public);
+            verifier.BlockUpdate(message, 0, message.Length);
+
+            return verifier.VerifySignature(signature);
         }
 
         private static bool Verifies(XmssSigner verifier, AsymmetricCipherKeyPair kp, byte[] message,
@@ -59,6 +79,17 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             signer.BlockUpdate(Message, 0, Message.Length);
 
             Assert.IsTrue(Verifies(new XmssSigner(), kp, Message, signer.GenerateSignature()));
+
+            AsymmetricCipherKeyPair mtKp = XmssMTKeyPair();
+            XmssMTSigner mtSigner = new XmssMTSigner();
+
+            mtSigner.Init(true, mtKp.Private);
+            mtSigner.BlockUpdate(Leftover, 0, Leftover.Length);
+
+            mtSigner.Init(true, mtKp.Private);
+            mtSigner.BlockUpdate(Message, 0, Message.Length);
+
+            Assert.IsTrue(Verifies(new XmssMTSigner(), mtKp, Message, mtSigner.GenerateSignature()));
         }
 
         /// <summary>
@@ -82,6 +113,21 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             verifier.BlockUpdate(Leftover, 0, Leftover.Length);
 
             Assert.IsTrue(Verifies(verifier, kp, Message, signature));
+
+            AsymmetricCipherKeyPair mtKp = XmssMTKeyPair();
+            XmssMTSigner mtSigner = new XmssMTSigner();
+
+            mtSigner.Init(true, mtKp.Private);
+            mtSigner.BlockUpdate(Message, 0, Message.Length);
+
+            byte[] mtSignature = mtSigner.GenerateSignature();
+
+            XmssMTSigner mtVerifier = new XmssMTSigner();
+
+            mtVerifier.Init(false, mtKp.Public);
+            mtVerifier.BlockUpdate(Leftover, 0, Leftover.Length);
+
+            Assert.IsTrue(Verifies(mtVerifier, mtKp, Message, mtSignature));
         }
 
         /// <summary>
@@ -101,6 +147,17 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             signer.BlockUpdate(Message, 0, Message.Length);
 
             Assert.IsTrue(Verifies(new XmssSigner(), kp, Message, signer.GenerateSignature()));
+
+            AsymmetricCipherKeyPair mtKp = XmssMTKeyPair();
+            XmssMTSigner mtSigner = new XmssMTSigner();
+
+            mtSigner.Init(false, mtKp.Public);
+            mtSigner.BlockUpdate(Leftover, 0, Leftover.Length);
+
+            mtSigner.Init(true, mtKp.Private);
+            mtSigner.BlockUpdate(Message, 0, Message.Length);
+
+            Assert.IsTrue(Verifies(new XmssMTSigner(), mtKp, Message, mtSigner.GenerateSignature()));
         }
 
         /// <summary>
@@ -118,6 +175,15 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             signer.BlockUpdate(Message, 1, Message.Length - 1);
 
             Assert.IsTrue(Verifies(new XmssSigner(), kp, Message, signer.GenerateSignature()));
+
+            AsymmetricCipherKeyPair mtKp = XmssMTKeyPair();
+            XmssMTSigner mtSigner = new XmssMTSigner();
+
+            mtSigner.Init(true, mtKp.Private);
+            mtSigner.Update(Message[0]);
+            mtSigner.BlockUpdate(Message, 1, Message.Length - 1);
+
+            Assert.IsTrue(Verifies(new XmssMTSigner(), mtKp, Message, mtSigner.GenerateSignature()));
         }
 
         /// <summary>
@@ -152,6 +218,38 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             signer.BlockUpdate(Message.AsSpan(0, 2));
             signer.BlockUpdate(Message.AsSpan(2));
             Assert.IsTrue(Verifies(new XmssSigner(), kp, Message, signer.GenerateSignature()));
+#endif
+        }
+
+        /// <summary>As <see cref="FailureAndResetDiscardTheBufferedMessage"/>, for the XMSS^MT signer.</summary>
+        [Test]
+        public void MTFailureAndResetDiscardTheBufferedMessage()
+        {
+            AsymmetricCipherKeyPair kp = XmssMTKeyPair();
+            XmssMTSigner signer = new XmssMTSigner();
+
+            signer.Init(true, kp.Private);
+            signer.BlockUpdate(Message, 0, Message.Length);
+            byte[] signature = signer.GenerateSignature();
+
+            XmssMTSigner verifier = new XmssMTSigner();
+            verifier.Init(false, kp.Public);
+            verifier.BlockUpdate(Leftover, 0, Leftover.Length);
+            Assert.IsFalse(verifier.VerifySignature(signature));
+            verifier.BlockUpdate(Message, 0, Message.Length);
+            Assert.IsTrue(verifier.VerifySignature(signature));
+
+            signer.Init(true, kp.Private);
+            signer.BlockUpdate(Leftover, 0, Leftover.Length);
+            signer.Reset();
+            signer.BlockUpdate(Message, 0, Message.Length);
+            Assert.IsTrue(Verifies(new XmssMTSigner(), kp, Message, signer.GenerateSignature()));
+
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            signer.Init(true, kp.Private);
+            signer.BlockUpdate(Message.AsSpan(0, 2));
+            signer.BlockUpdate(Message.AsSpan(2));
+            Assert.IsTrue(Verifies(new XmssMTSigner(), kp, Message, signer.GenerateSignature()));
 #endif
         }
     }

@@ -97,18 +97,33 @@ namespace Org.BouncyCastle.Crypto.Parameters
             {
                 /* set */
                 m_index = builder.m_index;
+                // copies of the builder's arrays rather than the arrays themselves: a builder can build more than one
+                // key, and keys sharing their secret arrays would share a Destroy() - one key's would wipe the seeds
+                // the other goes on signing with, spending its indices on signatures that do not verify
                 byte[] tmpSecretKeySeed = builder.m_secretKeySeed;
-                m_secretKeySeed = XmssEngine.ValidateOrAllocate(tmpSecretKeySeed, n, "secretKeySeed");
+                m_secretKeySeed = Arrays.Clone(XmssEngine.ValidateOrAllocate(tmpSecretKeySeed, n, "secretKeySeed"));
                 byte[] tmpSecretKeyPrf = builder.m_secretKeyPrf;
-                m_secretKeyPrf = XmssEngine.ValidateOrAllocate(tmpSecretKeyPrf, n, "secretKeyPRF");
+                m_secretKeyPrf = Arrays.Clone(XmssEngine.ValidateOrAllocate(tmpSecretKeyPrf, n, "secretKeyPRF"));
                 byte[] tmpPublicSeed = builder.m_publicSeed;
-                m_publicSeed = XmssEngine.ValidateOrAllocate(tmpPublicSeed, n, "publicSeed");
+                m_publicSeed = Arrays.Clone(XmssEngine.ValidateOrAllocate(tmpPublicSeed, n, "publicSeed"));
                 byte[] tmpRoot = builder.m_root;
-                m_root = XmssEngine.ValidateOrAllocate(tmpRoot, n, "root");
+                m_root = Arrays.Clone(XmssEngine.ValidateOrAllocate(tmpRoot, n, "root"));
                 BdsStateMap tmpBdsState = builder.m_bdsState;
                 if (tmpBdsState != null)
                 {
-                    m_bdsState = tmpBdsState;
+                    // likewise the traversal state map, whose layers a signature marks and installs into in place: a
+                    // map handed to the builder is copied for each key built, and only a map built for this one key
+                    // is adopted, once
+                    if (builder.m_bdsStateOwned)
+                    {
+                        m_bdsState = tmpBdsState;
+                        builder.m_bdsStateOwned = false;
+                    }
+                    else
+                    {
+                        m_bdsState = tmpBdsState.WithMaxIndex(tmpBdsState.MaxIndex, m_params.TreeDigestOid,
+                            m_params.TreeDigestSize);
+                    }
                 }
                 else
                 {
@@ -117,6 +132,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 }
                 if (builder.m_maxIndex >= 0 && builder.m_maxIndex != m_bdsState.MaxIndex)
                     throw new ArgumentException("maxIndex set but not reflected in state");
+                // whatever the state came from: with a state map, the index check below compares only the low bits of
+                // each layer's position, and an empty map compares nothing, so a negative index or one past the end
+                // would otherwise build a key that signs outside its range
+                if (!XmssEngine.IsStoredIndexValid(m_params.Height, builder.m_index)
+                    || builder.m_index > m_bdsState.MaxIndex + 1)
+                {
+                    throw new ArgumentException("index out of bounds");
+                }
 
                 try
                 {
@@ -154,6 +177,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
         }
 
+        /// <remarks>
+        /// The builder keeps copies of the secret seeds, and of an encoding, so that it can build more than one key;
+        /// they live as long as the builder does, which is best kept short.
+        /// </remarks>
         public sealed class Builder
         {
             /* mandatory */
@@ -166,6 +193,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             internal byte[] m_publicSeed = null;
             internal byte[] m_root = null;
             internal BdsStateMap m_bdsState = null;
+            internal bool m_bdsStateOwned = false;
             internal byte[] m_privateKey = null;
 
             /// <exception cref="ArgumentNullException">If <paramref name="parameters"/> is <c>null</c>.</exception>
@@ -239,16 +267,19 @@ namespace Org.BouncyCastle.Crypto.Parameters
             internal Builder WithBdsState(BdsStateMap val)
             {
                 m_bdsState = val.WithMaxIndex(MaxIndexFor(val), m_params.TreeDigestOid, m_params.TreeDigestSize);
+                m_bdsStateOwned = false;
                 return this;
             }
 
             /// <summary>
             /// As <see cref="WithBdsState"/>, for a state map the caller has just built and shares with nothing: it
-            /// is adopted rather than copied a second time. The maximum index arrives with the map.
+            /// is adopted rather than copied a second time - by the first key built; a further Build() copies it. The
+            /// maximum index arrives with the map.
             /// </summary>
             internal Builder WithOwnedBdsState(BdsStateMap val)
             {
                 m_bdsState = val;
+                m_bdsStateOwned = true;
                 return this;
             }
 
@@ -263,6 +294,18 @@ namespace Org.BouncyCastle.Crypto.Parameters
             {
                 m_privateKey = Arrays.Clone(privateKeyVal);
                 return this;
+            }
+
+            /// <summary>
+            /// Wipe the builder's own copies of the secret seeds and of an encoding, for a caller inside the assembly
+            /// that is done with it: every key built has copies of its own, so this leaves them whole. A builder
+            /// cleared builds nothing further.
+            /// </summary>
+            internal void ClearSecrets()
+            {
+                m_secretKeySeed = XmssEngine.Wipe(m_secretKeySeed);
+                m_secretKeyPrf = XmssEngine.Wipe(m_secretKeyPrf);
+                m_privateKey = XmssEngine.Wipe(m_privateKey);
             }
 
             /// <remarks>
@@ -369,6 +412,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
                     m_bdsState = new BdsStateMap(replaced.MaxIndex);
                 }
 
+                // wiped only now, its successor installed: that is built from it, and a roll that throws keeps it -
+                // the order is required, do not move this above the install
                 XmssEngine.ClearSecrets(replaced);
 
                 ValidateIndex();
@@ -398,11 +443,21 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
                 /* prepare authentication path for next leaf */
                 long index = Index;
-                XmssMTPrivateKeyParameters keyParams = new Builder(m_params)
+                Builder builder = new Builder(m_params)
                     .WithSecretKeySeed(m_secretKeySeed).WithSecretKeyPrf(m_secretKeyPrf)
                     .WithPublicSeed(m_publicSeed).WithRoot(m_root)
                     .WithIndex(index)
-                    .WithOwnedBdsState(new BdsStateMap(m_bdsState, index + usageCount - 1)).Build();
+                    .WithOwnedBdsState(new BdsStateMap(m_bdsState, index + usageCount - 1));
+                XmssMTPrivateKeyParameters keyParams;
+                try
+                {
+                    keyParams = builder.Build();
+                }
+                finally
+                {
+                    // a Build() that throws has still been handed the secrets
+                    builder.ClearSecrets();
+                }
 
                 // each roll wipes the map it gives up; the shard's map is a copy whose every layer has a WOTS+
                 // instance of its own, so that leaves it whole
