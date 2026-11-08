@@ -41,6 +41,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         private int bufOff;
 
         private bool cipherInitialized;
+        // Set once an encryption has used the current key and nonce - a completed DoFinal, or a Reset() after message
+        // data - and cleared only by Init: a second message under them would reuse the nonce, so it is refused, as
+        // GcmBlockCipher and ChaCha20Poly1305 do.
+        private bool nonceUsed;
         private byte[] initialAssociatedText;
 
         // Previous (nonce, key) seen on Init(true, ...) - used only to reject nonce reuse for encryption.
@@ -167,6 +171,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             cipher.Init(true, new ParametersWithIV(null, nonceMac));
 
             Reset();
+
+            nonceUsed = false;
         }
 
         private void InitCipher()
@@ -196,6 +202,11 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual void Reset()
         {
+            if (forEncryption && cipherInitialized)
+            {
+                nonceUsed = true;
+            }
+
             Reset(true);
         }
 
@@ -253,6 +264,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual int ProcessByte(byte input, byte[] outBytes, int outOff)
         {
+            CheckNonceUnused();
             InitCipher();
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -265,6 +277,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public virtual int ProcessByte(byte input, Span<byte> output)
         {
+            CheckNonceUnused();
             InitCipher();
 
             return Process(input, output);
@@ -278,6 +291,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return ProcessBytes(inBytes.AsSpan(inOff, len), Spans.FromNullable(outBytes, outOff));
 #else
+            CheckNonceUnused();
             InitCipher();
 
             int resultLen = 0;
@@ -294,6 +308,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
+            CheckNonceUnused();
             InitCipher();
 
             int len = input.Length;
@@ -313,6 +328,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return DoFinal(outBytes.AsSpan(outOff));
 #else
+            CheckNonceUnused();
             InitCipher();
 
             int extra = bufOff;
@@ -323,6 +339,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             if (forEncryption)
             {
                 Check.OutputLength(outBytes, outOff, extra + macSize, "output buffer too short");
+
+                nonceUsed = true;
 
                 cipher.ProcessBlock(bufBlock, 0, tmp, 0);
 
@@ -369,6 +387,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public virtual int DoFinal(Span<byte> output)
         {
+            CheckNonceUnused();
             InitCipher();
 
             int extra = bufOff;
@@ -383,6 +402,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             if (forEncryption)
             {
                 Check.OutputLength(output, extra + macSize, "output buffer too short");
+
+                nonceUsed = true;
 
                 cipher.ProcessBlock(bufBlock, tmp);
 
@@ -540,6 +561,12 @@ namespace Org.BouncyCastle.Crypto.Modes
             return 0;
         }
 #endif
+
+        private void CheckNonceUnused()
+        {
+            if (nonceUsed)
+                throw new InvalidOperationException("EAX cipher cannot be reused for encryption");
+        }
 
         private bool VerifyMac(byte[] mac, int off)
         {

@@ -106,6 +106,21 @@ namespace Org.BouncyCastle.Crypto.Tests
             outBuf = new byte[encCcm.GetOutputSize(inLen) + 10];
 
             len = encCcm.ProcessPacket(inBuf, 10, inLen, outBuf, 10);
+
+            // a second packet under the same key and nonce is refused; compare the other overload on a fresh instance
+            try
+            {
+                encCcm.ProcessPacket(inBuf, 10, inLen);
+                Fail("CCM encryption reuse not detected");
+            }
+            catch (InvalidOperationException e)
+            {
+                IsTrue("wrong CCM reuse message: " + e.Message,
+                    "CCM cipher cannot be reused for encryption".Equals(e.Message));
+            }
+
+            encCcm = new CcmBlockCipher(AesUtilities.CreateEngine());
+            encCcm.Init(true, new AeadParameters(new KeyParameter(K2), 48, N2, A2));
             output = encCcm.ProcessPacket(inBuf, 10, inLen);
 
             if (len != output.Length || !IsEqual(output, outBuf, 10))

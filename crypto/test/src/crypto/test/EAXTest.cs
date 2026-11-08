@@ -181,7 +181,20 @@ namespace Org.BouncyCastle.Crypto.Tests
             decEax.Init(false, parameters);
 
             RunCheckVectors(count, encEax, decEax, additionalDataType, sa, p, t, c);
-            RunCheckVectors(count, encEax, decEax, additionalDataType, sa, p, t, c);
+
+            // a second encryption under the same key and nonce is refused (decryption stays reusable)
+            try
+            {
+                RunCheckVectors(count, encEax, decEax, additionalDataType, sa, p, t, c);
+                Fail("EAX encryption reuse not detected in test " + count);
+            }
+            catch (InvalidOperationException e)
+            {
+                IsTrue("wrong EAX reuse message: " + e.Message,
+                    "EAX cipher cannot be reused for encryption".Equals(e.Message));
+            }
+
+            RunCheckVectors(count, NewEncryptor(parameters), decEax, additionalDataType, sa, p, t, c);
 
             // Key reuse: re-initialising for encryption with the same key+nonce (here via a null key,
             // i.e. key re-use) is now rejected (nonce reuse is catastrophic for EAX). Re-init for
@@ -199,8 +212,16 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             decEax.Init(false, parameters);
 
-            RunCheckVectors(count, encEax, decEax, additionalDataType, sa, p, t, c);
-            RunCheckVectors(count, encEax, decEax, additionalDataType, sa, p, t, c);
+            AeadParameters fullParameters = new AeadParameters(new KeyParameter(k), macSize, n, a);
+            RunCheckVectors(count, NewEncryptor(fullParameters), decEax, additionalDataType, sa, p, t, c);
+            RunCheckVectors(count, NewEncryptor(fullParameters), decEax, additionalDataType, sa, p, t, c);
+        }
+
+        private static EaxBlockCipher NewEncryptor(AeadParameters parameters)
+        {
+            EaxBlockCipher encEax = new EaxBlockCipher(AesUtilities.CreateEngine());
+            encEax.Init(true, parameters);
+            return encEax;
         }
 
         private void RunCheckVectors(int count, EaxBlockCipher encEax, EaxBlockCipher decEax, string additionalDataType,

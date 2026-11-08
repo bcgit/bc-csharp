@@ -66,6 +66,10 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         // NOTE: The MAC value is preserved after doFinal
         private byte[] macBlock;
+        // Set once an encryption has used the current key and nonce - a completed DoFinal, or a Reset() after message
+        // data - and cleared only by Init: a second message under them would reuse the nonce, so it is refused, as
+        // GcmBlockCipher and ChaCha20Poly1305 do.
+        private bool nonceUsed;
 
         public OcbBlockCipher(IBlockCipher hashCipher, IBlockCipher mainCipher)
         {
@@ -232,6 +236,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             Array.Copy(OffsetMAIN_0, 0, OffsetMAIN, 0, 16);
             this.Checksum = new byte[16];
 
+            this.nonceUsed = false;
+
             if (initialAssociatedText != null)
             {
                 ProcessAadBytes(initialAssociatedText, 0, initialAssociatedText.Length);
@@ -375,6 +381,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual int ProcessByte(byte input, byte[] output, int outOff)
         {
+            CheckNonceUnused();
+
             mainBlock[mainBlockPos] = input;
             if (++mainBlockPos == mainBlock.Length)
             {
@@ -387,6 +395,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public virtual int ProcessByte(byte input, Span<byte> output)
         {
+            CheckNonceUnused();
+
             mainBlock[mainBlockPos] = input;
             if (++mainBlockPos == mainBlock.Length)
             {
@@ -399,6 +409,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
+            CheckNonceUnused();
             Check.DataLength(input, inOff, len, "input buffer too short");
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -423,6 +434,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
+            CheckNonceUnused();
+
             int len = input.Length;
             int resultLen = 0;
 
@@ -442,6 +455,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual int DoFinal(byte[] output, int outOff)
         {
+            CheckNonceUnused();
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return DoFinal(output.AsSpan(outOff));
 #else
@@ -515,6 +530,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 Check.OutputLength(output, outOff, resultLen + macSize, "output buffer too short");
 
+                nonceUsed = true;
+
                 // Append tag to the message
                 Array.Copy(macBlock, 0, output, outOff + resultLen, macSize);
                 resultLen += macSize;
@@ -535,6 +552,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public virtual int DoFinal(Span<byte> output)
         {
+            CheckNonceUnused();
+
             /*
              * For decryption, get the tag from the end of the message
              */
@@ -606,6 +625,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 // Append tag to the message
                 Check.OutputLength(output, resultLen + macSize, "output buffer too short");
+
+                nonceUsed = true;
                 macBlock.AsSpan(0, macSize).CopyTo(output[resultLen..]);
                 resultLen += macSize;
             }
@@ -624,7 +645,18 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual void Reset()
         {
+            if (forEncryption && (mainBlockCount > 0 || mainBlockPos > 0))
+            {
+                nonceUsed = true;
+            }
+
             Reset(true);
+        }
+
+        private void CheckNonceUnused()
+        {
+            if (nonceUsed)
+                throw new InvalidOperationException("OCB cipher cannot be reused for encryption");
         }
 
         protected virtual void Clear(byte[] bs)
