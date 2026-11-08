@@ -182,7 +182,12 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             Assert.IsFalse(Arrays.AreEqual(first, second), "two leaves share a WOTS+ secret key");
         }
 
-        // TestLenForStandardParameterSets: deferred to the task that adds XmssEngine (XmssEngine.GetWotsPlusLen).
+        [Test]
+        public void TestLenForStandardParameterSets()
+        {
+            Assert.AreEqual(67, XmssEngine.GetWotsPlusLen(NistObjectIdentifiers.IdSha256, 32));
+            Assert.AreEqual(131, XmssEngine.GetWotsPlusLen(NistObjectIdentifiers.IdSha512, 64));
+        }
 
         /// <summary>
         /// ImportKeys rejects a seed of the wrong length with the message the rest of the package uses for it,
