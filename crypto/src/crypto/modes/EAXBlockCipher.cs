@@ -357,7 +357,11 @@ namespace Org.BouncyCastle.Crypto.Modes
                 CalculateMac();
 
                 if (!VerifyMac(bufBlock, extra - macSize))
+                {
+                    // GetMac() must not return the expected tag: it is a valid tag for the rejected input
+                    Array.Clear(macBlock, 0, macBlock.Length);
                     throw new InvalidCipherTextException("mac check in EAX failed");
+                }
 
                 Reset(false);
 
@@ -417,7 +421,11 @@ namespace Org.BouncyCastle.Crypto.Modes
                 CalculateMac();
 
                 if (!VerifyMac(bufBlock, extra - macSize))
+                {
+                    // GetMac() must not return the expected tag: it is a valid tag for the rejected input
+                    Array.Clear(macBlock, 0, macBlock.Length);
                     throw new InvalidCipherTextException("mac check in EAX failed");
+                }
 
                 Reset(false);
 

@@ -595,7 +595,11 @@ namespace Org.BouncyCastle.Crypto.Engines
             else
             {
                 if (!Arrays.FixedTimeEquals(TAG_BYTES, tag, 0, m_buf, m_bufPos))
+                {
+                    // GetMac() must not return the expected tag: it is a valid tag for the rejected input
+                    tag = null;
                     throw new InvalidCipherTextException("mac check in " + AlgorithmName + " failed");
+                }
             }
             Reset(!forEncryption);
             return resultLength;
