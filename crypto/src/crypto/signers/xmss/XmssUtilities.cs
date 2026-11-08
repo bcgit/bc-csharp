@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
@@ -116,6 +117,61 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss
                 }
             }
             return tau;
+        }
+
+        /// <summary>
+        /// Encode a BDS traversal state in the versioned <see cref="BdsStateCodec"/> form, with its checksum bound
+        /// to the public seed of the key it belongs to.
+        /// </summary>
+        /// <param name="obj">the state to encode.</param>
+        /// <param name="publicSeed">the owning key's public seed, or null to bind nothing.</param>
+        /// <returns>the encoding.</returns>
+        /// <exception cref="ArgumentException">if <paramref name="obj"/> is not a BDS state.</exception>
+        /// <exception cref="IOException">if the state is not one the codec can write.</exception>
+        internal static byte[] Serialize(object obj, byte[] publicSeed)
+        {
+            if (obj is Bds bds)
+                return BdsStateCodec.Encode(bds, publicSeed);
+
+            // XMSS^MT: the BDS state map is encoded here too, once it exists.
+
+            throw new ArgumentException(
+                "unsupported BDS state type: " + (obj != null ? obj.GetType().FullName : "null"));
+        }
+
+        /// <summary>Decode a BDS state whose checksum was bound to nothing.</summary>
+        internal static object Deserialize(byte[] data, Type type) => Deserialize(data, type, null);
+
+        /// <summary>
+        /// Decode a BDS traversal state, checking its checksum against the public seed of the key it belongs to.
+        /// </summary>
+        /// <remarks>
+        /// Only the versioned <see cref="BdsStateCodec"/> form is read. bc-java also falls back to reading state
+        /// that Java object serialization wrote, through a class-filtering <c>ObjectInputStream</c>; that format
+        /// has no .NET reader and is not ported, so anything without a codec magic is refused here.
+        /// </remarks>
+        /// <param name="data">the encoded state.</param>
+        /// <param name="type">the type of state expected: <see cref="Bds"/>.</param>
+        /// <param name="publicSeed">the owning key's public seed, or null if nothing was bound.</param>
+        /// <returns>the decoded state, of type <paramref name="type"/>.</returns>
+        /// <exception cref="IOException">if the data is not an encoding of that type of state.</exception>
+        internal static object Deserialize(byte[] data, Type type, byte[] publicSeed)
+        {
+            BdsStateCodec.CheckEncodingSize(data);
+            if (BdsStateCodec.IsBdsStateEncoding(data))
+            {
+                if (type != typeof(Bds))
+                    throw new IOException("unexpected BDS state encoding");
+
+                return BdsStateCodec.DecodeBds(data, publicSeed);
+            }
+            if (BdsStateCodec.IsBdsStateMapEncoding(data))
+            {
+                // XMSS^MT: a state map is decoded here once it exists; until then nothing asks for one.
+                throw new IOException("unexpected BDS state map encoding");
+            }
+
+            throw new IOException("unrecognized BDS state encoding");
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using NUnit.Framework;
 
+using Org.BouncyCastle.Crypto.Parameters;
+
 namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
 {
     /// <summary>
@@ -107,6 +109,26 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             Assert.AreEqual("XMSS_SHAKE256_20_192", xmssOid.ToString());
         }
 
-        // TestXmssParamsLookupByOidSP800208: deferred to the task that adds XmssParameters (LookupByOid).
+        [Test]
+        public void TestXmssParamsLookupByOidSP800208()
+        {
+            // SHA-256/192 (n=24)
+            XmssParameters parameters = XmssParameters.LookupByOid(0x0000000d);
+            Assert.IsNotNull(parameters);
+            Assert.AreEqual(10, parameters.Height);
+            Assert.AreEqual(24, parameters.TreeDigestSize);
+
+            // SHAKE256/256 (n=32)
+            parameters = XmssParameters.LookupByOid(0x00000010);
+            Assert.IsNotNull(parameters);
+            Assert.AreEqual(10, parameters.Height);
+            Assert.AreEqual(32, parameters.TreeDigestSize);
+
+            // SHAKE256/192 (n=24)
+            parameters = XmssParameters.LookupByOid(0x00000013);
+            Assert.IsNotNull(parameters);
+            Assert.AreEqual(10, parameters.Height);
+            Assert.AreEqual(24, parameters.TreeDigestSize);
+        }
     }
 }
