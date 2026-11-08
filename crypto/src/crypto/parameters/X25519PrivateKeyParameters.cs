@@ -116,7 +116,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <paramref name="off"/>.
         /// </summary>
         /// <exception cref="InvalidOperationException">If the agreement produces an all-zero secret
-        /// (degenerate peer key).</exception>
+        /// (degenerate peer key); <paramref name="buf"/> is then left unchanged.</exception>
         public void GenerateSecret(X25519PublicKeyParameters publicKey, byte[] buf, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -124,8 +124,21 @@ namespace Org.BouncyCastle.Crypto.Parameters
 #else
             byte[] encoded = new byte[X25519.PointSize];
             publicKey.Encode(encoded, 0);
-            if (!X25519.CalculateAgreement(data, 0, encoded, 0, buf, off))
-                throw new InvalidOperationException("X25519 agreement failed");
+
+            // computed aside and copied out only once checked, so a failed agreement leaves buf as it was rather
+            // than holding the all-zero result
+            byte[] secret = new byte[X25519.PointSize];
+            try
+            {
+                if (!X25519.CalculateAgreement(data, 0, encoded, 0, secret, 0))
+                    throw new InvalidOperationException("X25519 agreement failed");
+
+                Array.Copy(secret, 0, buf, off, X25519.PointSize);
+            }
+            finally
+            {
+                Arrays.ZeroMemory(secret);
+            }
 #endif
         }
 
@@ -133,13 +146,30 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <summary>
         /// Span-based overload of <see cref="GenerateSecret(X25519PublicKeyParameters, byte[], int)"/>.
         /// </summary>
-        /// <exception cref="InvalidOperationException">If the agreement produces an all-zero secret.</exception>
+        /// <exception cref="InvalidOperationException">If the agreement produces an all-zero secret;
+        /// <paramref name="buf"/> is then left unchanged.</exception>
         public void GenerateSecret(X25519PublicKeyParameters publicKey, Span<byte> buf)
         {
             Span<byte> encoded = stackalloc byte[X25519.PointSize];
             publicKey.Encode(encoded);
-            if (!X25519.CalculateAgreement(data, encoded, buf))
-                throw new InvalidOperationException("X25519 agreement failed");
+
+            // a short buffer is still refused before any work is done
+            buf = buf[..X25519.PointSize];
+
+            // computed aside and copied out only once checked, so a failed agreement leaves buf as it was rather
+            // than holding the all-zero result
+            Span<byte> secret = stackalloc byte[X25519.PointSize];
+            try
+            {
+                if (!X25519.CalculateAgreement(data, encoded, secret))
+                    throw new InvalidOperationException("X25519 agreement failed");
+
+                secret.CopyTo(buf);
+            }
+            finally
+            {
+                Arrays.ZeroMemory(secret);
+            }
         }
 #endif
 
