@@ -13,13 +13,15 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
 {
     /// <summary>Destroy() on the key parameter classes (github #2432).</summary>
     /// <remarks>
-    /// The XMSS^MT method arrives with the XMSS^MT keys and signer. The methods after <see cref="TestXmssDestroy"/>
-    /// assert what is wiped: on Destroy(), and in the traversal states a key replaces as it moves on.
+    /// testXMSSMTDestroy signs through the XMSS^MT signer and arrives with it. The methods after
+    /// <see cref="TestXmssDestroy"/> assert what is wiped, for both families: on Destroy(), and in the traversal
+    /// states and state maps a key replaces as it moves on.
     /// </remarks>
     [TestFixture]
     public class KeyDestructionTests
     {
         private const int Height = 4;
+        private const int Layers = 2;
         private static readonly byte[] Msg = new byte[]{ 1, 2, 3, 4 };
 
         private static AsymmetricCipherKeyPair XmssKeyPair()
@@ -28,6 +30,16 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
 
             kpg.Init(new XmssKeyGenerationParameters(new SecureRandom(),
                 new XmssParameters(Height, new Sha256Digest())));
+
+            return kpg.GenerateKeyPair();
+        }
+
+        private static AsymmetricCipherKeyPair XmssMTKeyPair()
+        {
+            XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
+
+            kpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(),
+                new XmssMTParameters(Height, Layers, new Sha256Digest())));
 
             return kpg.GenerateKeyPair();
         }
@@ -242,6 +254,186 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
 
             Assert.AreSame(owned, fifth.GetBdsState());
             Assert.AreNotSame(owned, sixth.GetBdsState());
+        }
+
+        /// <summary>
+        /// The XMSS^MT counterpart of <see cref="Destroy_ThenGetEncoded_Throws"/>: the seeds and the WOTS+ secret
+        /// every layer's state retains are zeroed, every operation that reads or moves the key is refused, and a
+        /// signature is refused before the index moves.
+        /// </summary>
+        [Test]
+        public void MTDestroy_ThenGetEncoded_Throws()
+        {
+            AsymmetricCipherKeyPair kp = XmssMTKeyPair();
+            XmssMTPrivateKeyParameters priv = (XmssMTPrivateKeyParameters)kp.Private;
+            byte[] sig = XmssEngine.GenerateMTSignature(priv, Msg);
+            XmssMTPrivateKeyParameters shard = priv.ExtractKeyShard(2);
+
+            byte[] seedCopy = priv.GetSecretKeySeed();
+            Assert.IsTrue(AnyLayerHoldsASecret(priv.GetBdsState()), "no WOTS+ secret retained to wipe");
+
+            long index = priv.Index;
+
+            priv.Destroy();
+
+            Assert.IsTrue(priv.IsDestroyed);
+            CheckThrowsDestroyed("GetSecretKeySeed", () => priv.GetSecretKeySeed());
+            CheckThrowsDestroyed("GetSecretKeyPrf", () => priv.GetSecretKeyPrf());
+            CheckThrowsDestroyed("GetEncoded", () => priv.GetEncoded());
+            CheckThrowsDestroyed("RollKey", () => priv.RollKey());
+            CheckThrowsDestroyed("GetNextKey", () => priv.GetNextKey());
+            CheckThrowsDestroyed("ExtractKeyShard", () => priv.ExtractKeyShard(1));
+            CheckThrowsDestroyed("GenerateMTSignature", () => XmssEngine.GenerateMTSignature(priv, Msg));
+
+            Assert.AreEqual(index, priv.Index, "a refused operation advanced the index");
+            Assert.IsTrue(IsZero(priv.LiveSecretKeySeed), "secret key seed not wiped");
+            Assert.IsTrue(IsZero(priv.LiveSecretKeyPrf), "secret key PRF not wiped");
+            Assert.IsFalse(AnyLayerHoldsASecret(priv.GetBdsState()), "a layer's WOTS+ secret was not wiped");
+            Assert.IsFalse(IsZero(seedCopy), "a copy handed out before Destroy() was wiped");
+
+            XmssMTPublicKeyParameters pub = (XmssMTPublicKeyParameters)kp.Public;
+            Assert.IsTrue(XmssEngine.VerifyMTSignature(pub, Msg, sig));
+            Assert.IsTrue(XmssEngine.VerifyMTSignature(pub, Msg, XmssEngine.GenerateMTSignature(shard, Msg)),
+                "the shard stopped signing when its source was destroyed");
+
+            priv.Destroy();
+            Assert.IsTrue(priv.IsDestroyed);
+        }
+
+        /// <summary>
+        /// The XMSS^MT counterpart of <see cref="RollKey_WipesTheReplacedState"/>: the state map a key replaces as
+        /// it rolls is wiped, every layer of it, once the new one is in place.
+        /// </summary>
+        [Test]
+        public void MTRollKey_WipesTheReplacedStateMap()
+        {
+            AsymmetricCipherKeyPair kp = XmssMTKeyPair();
+            XmssMTPrivateKeyParameters priv = (XmssMTPrivateKeyParameters)kp.Private;
+            priv.RollKey();
+
+            BdsStateMap replaced = priv.GetBdsState();
+            Assert.IsTrue(AnyLayerHoldsASecret(replaced), "no WOTS+ secret retained to wipe");
+
+            priv.RollKey();
+
+            Assert.AreNotSame(replaced, priv.GetBdsState());
+            Assert.IsFalse(AnyLayerHoldsASecret(replaced), "the replaced state map's WOTS+ secrets were not wiped");
+
+            // and the key goes on signing, across the subtree boundary at index 4
+            for (int i = 2; i != 6; i++)
+            {
+                Assert.IsTrue(XmssEngine.VerifyMTSignature((XmssMTPublicKeyParameters)kp.Public, Msg,
+                    XmssEngine.GenerateMTSignature(priv, Msg)), "index " + i);
+            }
+        }
+
+        /// <summary>
+        /// The state maps ExtractKeyShard() and GetNextKey() replace are wiped, and neither the shard, whose map was
+        /// copied from one of them, nor the key is the worse for it.
+        /// </summary>
+        [Test]
+        public void MTExtractKeyShard_WipesTheReplacedStateMaps()
+        {
+            AsymmetricCipherKeyPair kp = XmssMTKeyPair();
+            XmssMTPrivateKeyParameters priv = (XmssMTPrivateKeyParameters)kp.Private;
+            XmssMTPublicKeyParameters pub = (XmssMTPublicKeyParameters)kp.Public;
+            priv.RollKey();
+
+            BdsStateMap replaced = priv.GetBdsState();
+            Assert.IsTrue(AnyLayerHoldsASecret(replaced), "no WOTS+ secret retained to wipe");
+
+            XmssMTPrivateKeyParameters shard = priv.ExtractKeyShard(3);
+
+            Assert.IsFalse(AnyLayerHoldsASecret(replaced), "the replaced state map's WOTS+ secrets were not wiped");
+            Assert.AreEqual(4L, priv.Index);
+            for (int i = 0; i != 3; i++)
+            {
+                Assert.IsTrue(XmssEngine.VerifyMTSignature(pub, Msg, XmssEngine.GenerateMTSignature(shard, Msg)));
+            }
+            Assert.IsTrue(XmssEngine.VerifyMTSignature(pub, Msg, XmssEngine.GenerateMTSignature(priv, Msg)));
+
+            // GetNextKey() is a shard of one
+            BdsStateMap last = priv.GetBdsState();
+            Assert.IsTrue(AnyLayerHoldsASecret(last), "no WOTS+ secret retained to wipe");
+
+            XmssMTPrivateKeyParameters next = priv.GetNextKey();
+
+            Assert.IsFalse(AnyLayerHoldsASecret(last), "the replaced state map's WOTS+ secrets were not wiped");
+            Assert.IsTrue(XmssEngine.VerifyMTSignature(pub, Msg, XmssEngine.GenerateMTSignature(next, Msg)));
+            Assert.AreEqual(0, next.GetUsagesRemaining());
+
+            // and the branch that hands out the whole of what is left, ending on the exhausted placeholder
+            XmssMTPrivateKeyParameters rest = priv.ExtractKeyShard((int)priv.GetUsagesRemaining());
+
+            Assert.AreEqual(0, priv.GetUsagesRemaining());
+            Assert.IsTrue(XmssEngine.VerifyMTSignature(pub, Msg, XmssEngine.GenerateMTSignature(rest, Msg)));
+        }
+
+        /// <summary>
+        /// A layer state a state map replaces as it advances - and the one replaced when a layer is rebuilt for a
+        /// new subtree - is wiped too: it can hold the WOTS+ secret key of a leaf yet to sign with.
+        /// </summary>
+        [Test]
+        public void MTStateMapWipesTheLayerStatesItReplaces()
+        {
+            // layer trees of height 4, so a layer state can be advanced more than once
+            XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
+            kpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(),
+                new XmssMTParameters(8, 2, new Sha256Digest())));
+            XmssMTPrivateKeyParameters priv = (XmssMTPrivateKeyParameters)kpg.GenerateKeyPair().Private;
+            XmssParameters xmssParams = priv.Parameters.XmssParameters;
+            byte[] publicSeed = priv.GetPublicSeed();
+            byte[] secretKeySeed = priv.GetSecretKeySeed();
+            priv.RollKey();
+            priv.RollKey();
+
+            // a map of its own, so nothing the key holds is touched; the step from index 2 to 3 is a leaf, which
+            // leaves that leaf's WOTS+ secret key in the new layer zero state
+            BdsStateMap map = XmssEngine.GetNextBdsStateMap(priv.GetBdsState(), priv.Parameters, priv.Index,
+                publicSeed, secretKeySeed);
+
+            Bds layerZero = map.Get(0);
+            Assert.AreEqual(3, layerZero.Index);
+            Assert.IsFalse(IsZero(BdsWotsSecret(layerZero)), "no WOTS+ secret retained to wipe");
+
+            map.Update(0, publicSeed, secretKeySeed, XmssAddress.OtsHashAddress(0, 0L, 0));
+
+            Assert.AreNotSame(layerZero, map.Get(0));
+            Assert.AreEqual(4, map.Get(0).Index);
+            Assert.IsTrue(IsZero(BdsWotsSecret(layerZero)), "the layer state Update() replaced was not wiped");
+
+            // a layer rebuilt for a new subtree: building a state walks its whole tree, leaving the last leaf's
+            // WOTS+ secret key behind
+            Bds built = new Bds(xmssParams, publicSeed, secretKeySeed, XmssAddress.OtsHashAddress(0, 1L, 0));
+            Assert.IsFalse(IsZero(BdsWotsSecret(built)), "no WOTS+ secret retained to wipe");
+
+            map.Put(0, built);
+            map.Put(0, new Bds(xmssParams, publicSeed, secretKeySeed, XmssAddress.OtsHashAddress(0, 2L, 0)));
+
+            Assert.IsTrue(IsZero(BdsWotsSecret(built)), "the layer state Put() replaced was not wiped");
+
+            // putting back the state already there is not a replacement, and wipes nothing
+            Bds current = map.Get(0);
+            map.Put(0, current);
+            Assert.IsFalse(IsZero(BdsWotsSecret(current)), "a state put back in its own place was wiped");
+        }
+
+        private static bool AnyLayerHoldsASecret(BdsStateMap map)
+        {
+            for (int layer = 0; layer != Layers; layer++)
+            {
+                Bds state = map.Get(layer);
+                if (state != null && !IsZero(BdsWotsSecret(state)))
+                    return true;
+            }
+            return false;
+        }
+
+        private static void CheckThrowsDestroyed(string name, Action op)
+        {
+            InvalidOperationException e = Assert.Throws<InvalidOperationException>(() => op(),
+                name + " did not refuse a destroyed key");
+            Assert.AreEqual("key destroyed", e.Message, name);
         }
 
         private static bool IsZero(byte[] data) => Arrays.AreAllZeroes(data, 0, data.Length);

@@ -5,7 +5,9 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -18,8 +20,8 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// <para>
     /// The three methods of the Java fixture of this name are all about XMSS^MT state maps, and two of them about
     /// state Java object serialization wrote, which is not ported (see <see cref="XmssUtilities.Deserialize"/>).
-    /// The XMSS^MT one arrives with the state map; what is here is the XMSS half of the codec, checked against
-    /// encodings bc-java e40316b produced for the same seeds.
+    /// The third is <see cref="TestDecodedStateMapCanBeCopiedBeforeItsDigestIsNamed"/>; the rest is the codec,
+    /// both halves, checked against encodings bc-java e40316b produced for the same seeds.
     /// </para>
     /// <para>
     /// The Java vectors were made with <c>new BDS(params, publicSeed, secretSeed, new byte[32], index)</c>, the
@@ -337,6 +339,274 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             BdsStateCodec.CheckEncodingSize(new byte[8]);
             BdsStateCodec.CheckEncodingSize(new byte[4 * 1024 * 1024]);
             Assert.Throws<IOException>(() => BdsStateCodec.CheckEncodingSize(new byte[4 * 1024 * 1024 + 1]));
+        }
+
+        /// <summary>
+        /// A state map that has just been decoded carries no WOTS+ instance in any of its layers until a digest is
+        /// named for it. Copying one before that, then naming the digest on the copy, and handing one straight to
+        /// the key builder with no digest named at all, all leave a state map a key can sign through.
+        /// </summary>
+        /// <remarks>Java signs through XMSSMTSigner; here through the engine the signer calls.</remarks>
+        [Test]
+        public void TestDecodedStateMapCanBeCopiedBeforeItsDigestIsNamed()
+        {
+            XmssMTParameters parameters = new XmssMTParameters(MTHeight, MTLayers, new Sha256Digest());
+            XmssMTPrivateKeyParameters privKey = GenerateMTKey(parameters);
+
+            byte[] encoded = XmssEngine.GetEncodedBdsState(privKey.GetBdsState(), privKey.GetPublicSeed());
+            BdsStateMap decoded = XmssEngine.GetBdsStateMapFromEncoding(encoded, privKey.GetPublicSeed());
+
+            // the copy constructor, on a map no digest has been named for
+            BdsStateMap copy = new BdsStateMap(decoded, decoded.MaxIndex);
+
+            Assert.AreEqual(decoded.MaxIndex, copy.MaxIndex);
+
+            // and the digest named afterwards, on the copy - the resulting map signs, so what came back is a state
+            // and not a shell
+            SignsThrough(KeyOn(parameters, privKey,
+                copy.WithWotsDigest(parameters.TreeDigestOid, parameters.TreeDigestSize)));
+
+            // and straight to the builder with no digest named at all. Signing past the first subtree is the half
+            // that matters: a top layer state with no WOTS+ instance is not read until the layer below it runs out
+            // of leaves, so one signature says nothing about it.
+            SignsThrough(KeyOn(parameters, privKey, decoded));
+        }
+
+        /*
+         * A state map as bc-java e40316b wrote it: the traversal state of the XMSS^MT SHA-256 h4/d2 key of
+         * XmssMTPrivateKeyTests.JavaVectors_Sha256_H4D2 after one signature, taken from that key's encoding. Its
+         * public seed is 0x40, 0x41, ..., 0x5f, and its two layers are each a height 2 state.
+         */
+        private const string Sha256H4D2Priv1StateMap =
+            "42444d0000000001000000000000000f00000002000000000000000200000002000000030000000100010000000200" +
+            "000020459a423afd247679ab8102df23c4e781f3a8df70a3d54403bffbed62bce8d3730000000200000000000000200c" +
+            "9f44bad769c5866af8d63b5f84adaa6a404aacddef42ebc96f7e9f7460b07f0000000100000020e27018bee1e998af86" +
+            "1210b1037bfd8ac9b74df3f14a76d40721e9059be195f500000001000000000000000100000000000000201c00478182" +
+            "7c563cab8ad5b6ac41dcd569d3c0a6115417692b8fd580680ab2180000000000000000000000010000000000000000000" +
+            "000202caf15d3d48449094727d18cabe762d012b82643b52ddbeed788b06e37bb916300000001000000020000000200" +
+            "0000030000000000010000000200000020cf4057feb3275804643c06acdfb79de6a4eacb58b0f5791c7b9d2042376217" +
+            "9900000002000000000000002033f925bca69b9e81c6153d57b8346b23cceca97a2b851b81f598b06e6b114414000000" +
+            "0100000020403421e4177823bbbc1b3c7056f9a5949f7d5721fecad65c64ea4f7b64fb73690000000100000000000000" +
+            "010000000000000020e12c101fd563e637d92ff2794e16d2c827dffe463f3f2f328b903f5c0375f64c000000000000000" +
+            "00000000097195a6d78234c5c77c32049afd776f9a68a466dfccf0210c813d2fe9b7917dc";
+
+        /// <summary>
+        /// The Java state map decodes, to two layer states carrying the maximum index it recorded, and encodes back
+        /// to the same bytes.
+        /// </summary>
+        [Test]
+        public void StateMapEncodingMatchesJava()
+        {
+            byte[] publicSeed = MTPublicSeed();
+            byte[] encoding = Hex.Decode(Sha256H4D2Priv1StateMap);
+
+            BdsStateMap map = BdsStateCodec.DecodeBdsStateMap(encoding, publicSeed);
+
+            Assert.AreEqual(15, map.MaxIndex);
+            Assert.AreEqual(1, map.Get(0).Index);
+            Assert.AreEqual(0, map.Get(1).Index);
+            Assert.IsNull(map.Get(2));
+            Assert.IsTrue(Arrays.AreEqual(encoding, BdsStateCodec.Encode(map, publicSeed)));
+
+            // and once the digest is named, as a key does with it, it still encodes the same
+            BdsStateMap named = map.WithWotsDigest(NistObjectIdentifiers.IdSha256, 32);
+            Assert.IsTrue(Arrays.AreEqual(encoding, XmssUtilities.Serialize(named, publicSeed)));
+
+            // no layer sits on the last leaf of a subtree at index 1, so the secret seed is never read
+            named.Validate(new XmssMTParameters(4, 2, NistObjectIdentifiers.IdSha256), 1L, publicSeed, new byte[32]);
+        }
+
+        [Test]
+        public void StateMapSerializeAndDeserializeDispatchOnTheEncoding()
+        {
+            byte[] publicSeed = MTPublicSeed();
+            byte[] mapEncoding = Hex.Decode(Sha256H4D2Priv1StateMap);
+            byte[] bdsEncoding = Hex.Decode(Sha256H4I5Encoding);
+            byte[] bdsSeed = Seed(new XmssParameters(4, NistObjectIdentifiers.IdSha256), 0x00);
+
+            BdsStateMap map = (BdsStateMap)XmssUtilities.Deserialize(mapEncoding, typeof(BdsStateMap), publicSeed);
+            Assert.IsTrue(Arrays.AreEqual(mapEncoding, XmssUtilities.Serialize(map, publicSeed)));
+
+            // each family's encoding refused where the other family's is asked for
+            IOException e = Assert.Throws<IOException>(
+                () => XmssUtilities.Deserialize(mapEncoding, typeof(Bds), publicSeed));
+            Assert.AreEqual("unexpected BDS state map encoding", e.Message);
+            e = Assert.Throws<IOException>(() => XmssUtilities.Deserialize(bdsEncoding, typeof(BdsStateMap), bdsSeed));
+            Assert.AreEqual("unexpected BDS state encoding", e.Message);
+
+            // and a state map bound to another key's public seed
+            byte[] otherSeed = Arrays.Clone(publicSeed);
+            otherSeed[0] ^= 1;
+            e = Assert.Throws<IOException>(() => BdsStateCodec.DecodeBdsStateMap(mapEncoding, otherSeed));
+            Assert.AreEqual("BDS state checksum does not match", e.Message);
+        }
+
+        /// <summary>
+        /// Every proper prefix of a state map encoding, as it stands and with the checksum recomputed over it, and
+        /// every single-byte change to its body with the checksum recomputed, is refused with an
+        /// <see cref="IOException"/> or decodes to a map whose layers still pass the structural checks.
+        /// </summary>
+        [Test]
+        public void StateMapTruncationsAndCorruptionsFailCleanly()
+        {
+            byte[] publicSeed = MTPublicSeed();
+            byte[] encoding = Hex.Decode(Sha256H4D2Priv1StateMap);
+            byte[] body = Arrays.CopyOfRange(encoding, 0, encoding.Length - 32);
+
+            for (int len = 0; len < encoding.Length; len++)
+            {
+                byte[] prefix = Arrays.CopyOfRange(encoding, 0, len);
+
+                Assert.Catch<IOException>(() => BdsStateCodec.DecodeBdsStateMap(prefix, publicSeed), "prefix " + len);
+            }
+            for (int len = 0; len < body.Length; len++)
+            {
+                byte[] rechecked = WithChecksum(Arrays.CopyOfRange(body, 0, len), publicSeed);
+
+                Assert.Catch<IOException>(() => BdsStateCodec.DecodeBdsStateMap(rechecked, publicSeed),
+                    "body " + len);
+            }
+
+            byte[] trailing = WithChecksum(Arrays.Append(body, 0x00), publicSeed);
+            IOException e = Assert.Throws<IOException>(() => BdsStateCodec.DecodeBdsStateMap(trailing, publicSeed));
+            Assert.AreEqual("unexpected data at end of BDS state", e.Message);
+
+            foreach (byte flip in new byte[]{ 0x01, 0x80, 0xff })
+            {
+                for (int i = 0; i < body.Length; i++)
+                {
+                    byte[] corrupt = Arrays.Clone(body);
+                    corrupt[i] ^= flip;
+                    byte[] rechecked = WithChecksum(corrupt, publicSeed);
+
+                    try
+                    {
+                        BdsStateMap map = BdsStateCodec.DecodeBdsStateMap(rechecked, publicSeed);
+                        for (int layer = 0; layer != 2; layer++)
+                        {
+                            map.Get(layer)?.Validate();
+                        }
+                    }
+                    catch (IOException)
+                    {
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// The state map's own header: a maximum index no key can carry, a layer count past the bound, and layers
+        /// out of order or repeated are each refused by name.
+        /// </summary>
+        [Test]
+        public void StateMapHeaderRefusals()
+        {
+            byte[] publicSeed = MTPublicSeed();
+            byte[] body = Arrays.CopyOfRange(Hex.Decode(Sha256H4D2Priv1StateMap), 0,
+                Hex.Decode(Sha256H4D2Priv1StateMap).Length - 32);
+
+            // magic(4) || version(4) || maxIndex(8) || count(4) || layer(4) || state ...
+            byte[] negative = Arrays.Clone(body);
+            negative[8] = 0x80;
+            CheckMapRefused(negative, publicSeed, "negative BDS state map maxIndex");
+
+            byte[] tooMany = Arrays.Clone(body);
+            tooMany[19] = 65;
+            CheckMapRefused(tooMany, publicSeed, "BDS state map size out of bounds");
+
+            byte[] negativeCount = Arrays.Clone(body);
+            negativeCount[16] = 0xff;
+            CheckMapRefused(negativeCount, publicSeed, "BDS state map size out of bounds");
+
+            // the second layer renumbered to the first's number, then below it
+            int secondLayer = SecondLayerOffset(body);
+            foreach (byte layer in new byte[]{ 0, 0xff })
+            {
+                byte[] reordered = Arrays.Clone(body);
+                for (int i = 0; i != 4; i++)
+                {
+                    reordered[secondLayer + i] = layer;
+                }
+                CheckMapRefused(reordered, publicSeed, "invalid BDS state map layer");
+            }
+
+            // and an empty map, which is what a spent key carries, still decodes
+            byte[] empty = Arrays.CopyOfRange(body, 0, 20);
+            empty[19] = 0;
+            Assert.AreEqual(15, BdsStateCodec.DecodeBdsStateMap(WithChecksum(empty, publicSeed), publicSeed)
+                .MaxIndex);
+        }
+
+        /// <summary>
+        /// Where the second layer's number sits in the state map body: after the header, the first layer's number,
+        /// and the first layer's state, whose length is found by encoding that state on its own.
+        /// </summary>
+        private static int SecondLayerOffset(byte[] body)
+        {
+            byte[] publicSeed = MTPublicSeed();
+            BdsStateMap map = BdsStateCodec.DecodeBdsStateMap(WithChecksum(body, publicSeed), publicSeed);
+            // magic, version and checksum framing the single state's encoding, against the map's per layer body
+            int firstStateLength = BdsStateCodec.Encode(map.Get(0), publicSeed).Length - 8 - 32;
+            int offset = 20 + 4 + firstStateLength;
+            Assert.AreEqual(1, (int)Org.BouncyCastle.Crypto.Utilities.Pack.BE_To_UInt32(body, offset));
+            return offset;
+        }
+
+        private static void CheckMapRefused(byte[] body, byte[] publicSeed, string message)
+        {
+            IOException e = Assert.Throws<IOException>(
+                () => BdsStateCodec.DecodeBdsStateMap(WithChecksum(body, publicSeed), publicSeed));
+            Assert.AreEqual(message, e.Message);
+        }
+
+        private static byte[] MTPublicSeed()
+        {
+            byte[] seed = new byte[32];
+            for (int i = 0; i < seed.Length; i++)
+            {
+                seed[i] = (byte)(0x40 + i);
+            }
+            return seed;
+        }
+
+        private const int MTHeight = 4;
+        private const int MTLayers = 2;
+
+        /// <summary>
+        /// The key <paramref name="privKey"/>'s fields describe, carrying the given traversal state, through the
+        /// builder setter that copies what it is given.
+        /// </summary>
+        private static XmssMTPrivateKeyParameters KeyOn(XmssMTParameters parameters,
+            XmssMTPrivateKeyParameters privKey, BdsStateMap state)
+        {
+            return new XmssMTPrivateKeyParameters.Builder(parameters)
+                .WithSecretKeySeed(privKey.GetSecretKeySeed()).WithSecretKeyPrf(privKey.GetSecretKeyPrf())
+                .WithPublicSeed(privKey.GetPublicSeed()).WithRoot(privKey.GetRoot())
+                .WithIndex(privKey.Index)
+                .WithBdsState(state).Build();
+        }
+
+        private static XmssMTPrivateKeyParameters GenerateMTKey(XmssMTParameters parameters)
+        {
+            XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
+
+            kpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(), parameters));
+
+            return (XmssMTPrivateKeyParameters)kpg.GenerateKeyPair().Private;
+        }
+
+        /// <summary>
+        /// Sign with the key over more leaves than one subtree holds, so that every layer above the bottom one is
+        /// advanced at least once - which is where a state a WOTS+ instance was never built for is first read.
+        /// </summary>
+        private static void SignsThrough(XmssMTPrivateKeyParameters privKey)
+        {
+            int leavesPerSubtree = 1 << (MTHeight / MTLayers);
+
+            for (int i = 0; i != leavesPerSubtree + 1; i++)
+            {
+                Assert.IsNotNull(XmssEngine.GenerateMTSignature(privKey, new byte[]{ (byte)i }));
+            }
         }
 
         private static void CheckAgainstJava(XmssParameters p, int index, string root, string encoding,

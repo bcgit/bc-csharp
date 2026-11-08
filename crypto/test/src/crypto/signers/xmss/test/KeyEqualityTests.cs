@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// key pair share a bucket of a set or a dictionary and are told apart inside it.
     /// </para>
     /// <para>
-    /// The XMSS^MT methods, and the XMSS^MT half of <see cref="TestForeignObjects"/>, arrive with the XMSS^MT keys.
+    /// testXmssMtSignatureMovesTheAnswerNotTheBucket arrives with the XMSS^MT signer.
     /// <see cref="RollMovesTheAnswerNotTheBucket"/> asserts the property of
     /// <see cref="TestXmssSignatureMovesTheAnswerNotTheBucket"/> through RollKey().
     /// </para>
@@ -26,6 +26,7 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     public class KeyEqualityTests
     {
         private const int Height = 4;
+        private const int Layers = 2;
 
         private static byte[] Filled(byte b, int n)
         {
@@ -55,8 +56,23 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             return (XmssPrivateKeyParameters)kp.Private;
         }
 
+        private static XmssMTPrivateKeyParameters NewXmssMtKey()
+        {
+            XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
+
+            kpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(),
+                new XmssMTParameters(Height, Layers, new Sha256Digest())));
+
+            AsymmetricCipherKeyPair kp = kpg.GenerateKeyPair();
+
+            return (XmssMTPrivateKeyParameters)kp.Private;
+        }
+
         private static XmssPrivateKeyParameters DecodeXmss(XmssPrivateKeyParameters key, byte[] enc) =>
             new XmssPrivateKeyParameters.Builder(key.Parameters).WithPrivateKey(enc).Build();
+
+        private static XmssMTPrivateKeyParameters DecodeXmssMt(XmssMTPrivateKeyParameters key, byte[] enc) =>
+            new XmssMTPrivateKeyParameters.Builder(key.Parameters).WithPrivateKey(enc).Build();
 
         /// <summary>
         /// Two keys decoded from one encoding are two objects the same key, so they answer equal and hash the same.
@@ -69,6 +85,23 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
 
             XmssPrivateKeyParameters a = DecodeXmss(key, enc);
             XmssPrivateKeyParameters b = DecodeXmss(key, enc);
+
+            Assert.IsFalse(a == b, "two distinct objects wanted");
+            Assert.AreEqual(a, b);
+            Assert.AreEqual(b, a);
+            Assert.AreEqual(a.GetHashCode(), b.GetHashCode());
+            Assert.AreEqual(key, a);
+            Assert.AreEqual(key.GetHashCode(), a.GetHashCode());
+        }
+
+        [Test]
+        public void TestXmssMtDecodedCopiesAgree()
+        {
+            XmssMTPrivateKeyParameters key = NewXmssMtKey();
+            byte[] enc = key.GetEncoded();
+
+            XmssMTPrivateKeyParameters a = DecodeXmssMt(key, enc);
+            XmssMTPrivateKeyParameters b = DecodeXmssMt(key, enc);
 
             Assert.IsFalse(a == b, "two distinct objects wanted");
             Assert.AreEqual(a, b);
@@ -103,20 +136,45 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             Assert.IsFalse(a.GetHashCode() == b.GetHashCode(), "the root has to reach the hash");
         }
 
+        [Test]
+        public void TestXmssMtPublicMaterialDecidesTheBucket()
+        {
+            XmssMTParameters parameters = new XmssMTParameters(Height, Layers, new Sha256Digest());
+            int n = parameters.TreeDigestSize;
+
+            // as on the XMSS side, on a spent key, the one place a root the seeds do not compute is not refused
+            long spent = 1L << parameters.Height;
+            XmssMTPrivateKeyParameters a = new XmssMTPrivateKeyParameters.Builder(parameters)
+                .WithSecretKeySeed(Filled(1, n)).WithSecretKeyPrf(Filled(2, n))
+                .WithPublicSeed(Filled(3, n)).WithRoot(Filled(4, n)).WithIndex(spent).Build();
+
+            XmssMTPrivateKeyParameters b = new XmssMTPrivateKeyParameters.Builder(parameters)
+                .WithSecretKeySeed(Filled(1, n)).WithSecretKeyPrf(Filled(2, n))
+                .WithPublicSeed(Filled(3, n)).WithRoot(Filled(5, n)).WithIndex(spent).Build();
+
+            Assert.IsFalse(a.Equals(b), "keys differing in their root are not equal");
+            Assert.IsFalse(a.GetHashCode() == b.GetHashCode(), "the root has to reach the hash");
+        }
+
         /// <summary>
-        /// The rest of the contract: a key is equal to itself, and to nothing that is not one of these keys.
+        /// The rest of the contract: a key is equal to itself, and to nothing that is not one of these keys. An XMSS
+        /// key and an XMSS^MT key are never equal, whatever they hold.
         /// </summary>
         [Test]
         public void TestForeignObjects()
         {
             XmssPrivateKeyParameters xmss = NewXmssKey();
+            XmssMTPrivateKeyParameters xmssMt = NewXmssMtKey();
 
             Assert.AreEqual(xmss, xmss);
+            Assert.AreEqual(xmssMt, xmssMt);
 
             Assert.IsFalse(xmss.Equals(null));
+            Assert.IsFalse(xmssMt.Equals(null));
             Assert.IsFalse(xmss.Equals("not a key"));
-
-            // XMSS^MT half: arrives with the XMSS^MT keys.
+            Assert.IsFalse(xmssMt.Equals("not a key"));
+            Assert.IsFalse(xmss.Equals(xmssMt));
+            Assert.IsFalse(xmssMt.Equals(xmss));
         }
 
         /// <summary>
@@ -155,6 +213,22 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             XmssPrivateKeyParameters before = DecodeXmss(key, key.GetEncoded());
 
             XmssPrivateKeyParameters after = key.RollKey();
+
+            Assert.AreSame(key, after, "RollKey() advances the key in place");
+            Assert.AreEqual(before.Index + 1, after.Index);
+            Assert.IsFalse(before.Equals(after), "keys at different indices are not equal");
+            Assert.IsFalse(after.Equals(before), "keys at different indices are not equal");
+            Assert.AreEqual(before.GetHashCode(), after.GetHashCode(), "a roll must not move the key's bucket");
+        }
+
+        /// <summary>As <see cref="RollMovesTheAnswerNotTheBucket"/>, for an XMSS^MT key.</summary>
+        [Test]
+        public void MtRollMovesTheAnswerNotTheBucket()
+        {
+            XmssMTPrivateKeyParameters key = NewXmssMtKey();
+            XmssMTPrivateKeyParameters before = DecodeXmssMt(key, key.GetEncoded());
+
+            XmssMTPrivateKeyParameters after = key.RollKey();
 
             Assert.AreSame(key, after, "RollKey() advances the key in place");
             Assert.AreEqual(before.Index + 1, after.Index);

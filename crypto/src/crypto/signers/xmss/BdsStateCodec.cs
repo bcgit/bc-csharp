@@ -24,11 +24,11 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss
     /// <see cref="IOException"/>, running out of data included (<see cref="EndOfStreamException"/>).
     /// </para>
     /// <para>
-    /// This holds the XMSS half: the single-tree state, <see cref="Encode(Bds, byte[])"/> and
-    /// <see cref="DecodeBds"/>. The XMSS^MT state map is written as <see cref="BdsStateMapMagic"/>, version, the
-    /// maximum index, a count and then one layer number and <see cref="WriteBds"/> body per layer, read back with
-    /// <see cref="ReadBds"/> under one <see cref="NodeBudget"/> for the whole map; its encode and decode go
-    /// beside the two here, on the same <see cref="Writer"/>, <see cref="Reader"/>, checksum and size checks.
+    /// The single-tree state is <see cref="Encode(Bds, byte[])"/> and <see cref="DecodeBds"/>. The XMSS^MT state map
+    /// is written by <see cref="Encode(BdsStateMap, byte[])"/> as <see cref="BdsStateMapMagic"/>, version, the
+    /// maximum index, a count and then one layer number and <see cref="WriteBds"/> body per layer, in ascending
+    /// layer order, and read back by <see cref="DecodeBdsStateMap"/> with <see cref="ReadBds"/> under one
+    /// <see cref="NodeBudget"/> for the whole map.
     /// </para>
     /// </remarks>
     internal static class BdsStateCodec
@@ -39,6 +39,7 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss
         private const int StateVersion = 1;
         private const int MaxEncodedStateSize = 4 * 1024 * 1024;
         private const int MaxDigestSize = 64;
+        internal const int MaxStateMapEntries = 64;
         private const int MaxNodes = 4096;
         private const int ChecksumSize = 32;
 
@@ -63,6 +64,61 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss
             Bds state = ReadBds(dataIn, new NodeBudget());
             CheckFinished(dataIn);
             return state;
+        }
+
+        internal static byte[] Encode(BdsStateMap stateMap, byte[] publicSeed)
+        {
+            Writer dataOut = new Writer();
+            dataOut.WriteInt(BdsStateMapMagic);
+            dataOut.WriteInt(StateVersion);
+            dataOut.WriteLong(stateMap.MaxIndex);
+
+            // a snapshot: the map can be one a key is signing with
+            SortedDictionary<int, Bds> states = stateMap.GetStateMap();
+            if (states.Count > MaxStateMapEntries)
+                throw new IOException("too many BDS states");
+
+            dataOut.WriteInt(states.Count);
+            foreach (var entry in states)
+            {
+                dataOut.WriteInt(entry.Key);
+                WriteBds(dataOut, entry.Value);
+            }
+            return CheckedEncoding(WithChecksum(dataOut, publicSeed));
+        }
+
+        /// <remarks>
+        /// The layers come back in strictly ascending order or not at all; each layer's state is read as
+        /// <see cref="DecodeBds"/> reads one, under one node budget for the whole map. The map comes back without
+        /// WOTS+ instances in its layers; the caller gives it them with
+        /// <see cref="BdsStateMap.WithMaxIndex(long, Org.BouncyCastle.Asn1.DerObjectIdentifier, int)"/> before it is
+        /// used.
+        /// </remarks>
+        internal static BdsStateMap DecodeBdsStateMap(byte[] encoding, byte[] publicSeed)
+        {
+            CheckEncodingSize(encoding);
+            Reader dataIn = new Reader(encoding, CheckedBodyLength(encoding, publicSeed));
+            ReadHeader(dataIn, BdsStateMapMagic);
+
+            long maxIndex = dataIn.ReadLong();
+            if (maxIndex < 0)
+                throw new IOException("negative BDS state map maxIndex");
+
+            int stateCount = ReadCount(dataIn, MaxStateMapEntries, "BDS state map");
+            BdsStateMap stateMap = new BdsStateMap(maxIndex);
+            NodeBudget nodeBudget = new NodeBudget();
+            int previousLayer = -1;
+            for (int i = 0; i < stateCount; i++)
+            {
+                int layer = dataIn.ReadInt();
+                if (layer <= previousLayer)
+                    throw new IOException("invalid BDS state map layer");
+
+                stateMap.Put(layer, ReadBds(dataIn, nodeBudget));
+                previousLayer = layer;
+            }
+            CheckFinished(dataIn);
+            return stateMap;
         }
 
         private static void WriteBds(Writer dataOut, Bds state)
@@ -470,6 +526,14 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss
                 m_buffer.Write(m_word, 0, 4);
             }
 
+            internal void WriteLong(long value)
+            {
+                Pack.UInt32_To_BE((uint)(value >> 32), m_word, 0);
+                m_buffer.Write(m_word, 0, 4);
+                Pack.UInt32_To_BE((uint)value, m_word, 0);
+                m_buffer.Write(m_word, 0, 4);
+            }
+
             internal void WriteByte(int value) => m_buffer.WriteByte((byte)value);
 
             internal void WriteNode(XmssNode node) => node.EncodeTo(m_buffer);
@@ -504,6 +568,14 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss
                 Require(4);
                 int value = (int)Pack.BE_To_UInt32(m_buffer, m_position);
                 m_position += 4;
+                return value;
+            }
+
+            internal long ReadLong()
+            {
+                Require(8);
+                long value = (long)Pack.BE_To_UInt64(m_buffer, m_position);
+                m_position += 8;
                 return value;
             }
 

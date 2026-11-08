@@ -12,21 +12,24 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
 {
     /// <summary>
-    /// A used-up XMSS private key has to survive being written out and read back. It is the one state that most
-    /// needs to persist - a key restored from an earlier saved state would sign again with a one-time key it has
+    /// A used-up XMSS / XMSS^MT private key has to survive being written out and read back. It is the one state that
+    /// most needs to persist - a key restored from an earlier saved state would sign again with a one-time key it has
     /// already used - and it is the state the index bound is widest for: an exhausted key carries the index one past
     /// its last leaf, which is the placeholder traversal state installed when the final one-time key is consumed.
     /// </summary>
     /// <remarks>
-    /// The XMSS methods and the XMSS halves of the paired ones. The XMSS^MT methods and halves arrive with the
-    /// XMSS^MT keys, and the PrivateKeyInfo round trips with the key factories.
+    /// The XMSS^MT half of <see cref="TestRestoredExhaustedKeyRefusesToSign"/> arrives with the XMSS^MT signer, and
+    /// the PrivateKeyInfo round trips with the key factories.
     /// </remarks>
     [TestFixture]
     public class ExhaustedKeyTests
     {
         private const int Height = 4;
+        private const int Layers = 2;
 
         private static XmssParameters XmssParams() => new XmssParameters(Height, new Sha256Digest());
+
+        private static XmssMTParameters XmssMTParams() => new XmssMTParameters(Height, Layers, new Sha256Digest());
 
         private static XmssPrivateKeyParameters ExhaustedXmss(XmssParameters parameters)
         {
@@ -46,8 +49,25 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             return privKey;
         }
 
+        private static XmssMTPrivateKeyParameters ExhaustedXmssMT(XmssMTParameters parameters)
+        {
+            XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
+
+            kpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(), parameters));
+
+            XmssMTPrivateKeyParameters privKey = (XmssMTPrivateKeyParameters)kpg.GenerateKeyPair().Private;
+
+            for (int i = 0; i != (1 << parameters.Height); i++)
+            {
+                privKey.RollKey();
+            }
+
+            Assert.AreEqual(0, privKey.GetUsagesRemaining());
+
+            return privKey;
+        }
+
         /// <summary>The encoding of a used-up key can be read back, and what comes back is still used up.</summary>
-        /// <remarks>XMSS half.</remarks>
         [Test]
         public void TestExhaustedKeyRoundTripsAndStaysExhausted()
         {
@@ -61,13 +81,90 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             Assert.AreEqual(privKey.Index, restored.Index);
             Assert.AreEqual((1 << Height) - 1, restored.GetBdsState().MaxIndex);
             Assert.IsTrue(Arrays.AreEqual(privKey.GetEncoded(), restored.GetEncoded()));
+
+            XmssMTParameters mtParams = XmssMTParams();
+            XmssMTPrivateKeyParameters mtPrivKey = ExhaustedXmssMT(mtParams);
+
+            XmssMTPrivateKeyParameters mtRestored = new XmssMTPrivateKeyParameters.Builder(mtParams)
+                .WithPrivateKey(mtPrivKey.GetEncoded()).Build();
+
+            Assert.AreEqual(0, mtRestored.GetUsagesRemaining());
+            Assert.AreEqual(mtPrivKey.Index, mtRestored.Index);
+            Assert.IsTrue(Arrays.AreEqual(mtPrivKey.GetEncoded(), mtRestored.GetEncoded()));
+        }
+
+        /// <summary>
+        /// The raw encoding refuses an exhausted XMSS^MT index it cannot carry, rather than narrowing it.
+        /// </summary>
+        /// <remarks>
+        /// The index field of the raw layout is ceil(h / 8) bytes, and the largest index a key can hold is 2^h - the
+        /// position it stops at when its last one-time key is spent - so at a height that is a multiple of eight the
+        /// field is one bit short. Written narrowed it read back as zero, a key declaring a full tree of unused
+        /// one-time keys, and nothing caught it: 2^h decomposes to the same leaf index as 0 at every layer. Height 8
+        /// over 2 layers, so the field is one byte and the exhausted key sits at 256. Every position below it still
+        /// encodes, which is what the refusal must not cost.
+        /// </remarks>
+        [Test]
+        [Explicit] // slow: ~16s
+        public void TestExhaustedKeyAtAByteAlignedHeightRefusesTheRawEncoding()
+        {
+            XmssMTParameters parameters = new XmssMTParameters(8, 2, new Sha256Digest());
+            XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
+
+            kpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(), parameters));
+
+            XmssMTPrivateKeyParameters privKey = (XmssMTPrivateKeyParameters)kpg.GenerateKeyPair().Private;
+
+            for (int i = 0; i != (1 << 8); i++)
+            {
+                Assert.AreEqual(i, privKey.Index);
+                Assert.IsTrue(privKey.GetEncoded().Length > 0, "a live key's position was refused");
+                privKey.RollKey();
+            }
+
+            Assert.AreEqual(1L << 8, privKey.Index);
+
+            InvalidOperationException e = Assert.Throws<InvalidOperationException>(() => privKey.GetEncoded(),
+                "an index the field cannot hold was written narrowed");
+            Assert.AreEqual("index 256 does not fit the 1 byte index field of a stored private key", e.Message);
+        }
+
+        /// <summary>
+        /// The refusal of <see cref="TestExhaustedKeyAtAByteAlignedHeightRefusesTheRawEncoding"/> on a key rebuilt at
+        /// the exhausted position rather than rolled to it, which is cheap enough for the default run.
+        /// </summary>
+        [Test]
+        public void RecoveredExhaustedKeyAtAByteAlignedHeightRefusesTheRawEncoding()
+        {
+            XmssMTParameters parameters = new XmssMTParameters(8, 2, new Sha256Digest());
+            byte[] seed = new byte[parameters.TreeDigestSize];
+
+            XmssMTPrivateKeyParameters privKey = new XmssMTPrivateKeyParameters.Builder(parameters)
+                .WithSecretKeySeed(seed).WithSecretKeyPrf(seed).WithPublicSeed(seed).WithRoot(seed)
+                .WithIndex(1L << 8).Build();
+
+            Assert.AreEqual(1L << 8, privKey.Index);
+            Assert.AreEqual(0, privKey.GetUsagesRemaining());
+
+            InvalidOperationException e = Assert.Throws<InvalidOperationException>(() => privKey.GetEncoded());
+            Assert.AreEqual("index 256 does not fit the 1 byte index field of a stored private key", e.Message);
+
+            // one bit wider, and the same position is carried
+            XmssMTParameters wider = new XmssMTParameters(9, 3, new Sha256Digest());
+            XmssMTPrivateKeyParameters spent = new XmssMTPrivateKeyParameters.Builder(wider)
+                .WithSecretKeySeed(seed).WithSecretKeyPrf(seed).WithPublicSeed(seed).WithRoot(seed)
+                .WithIndex(1L << 9).Build();
+            XmssMTPrivateKeyParameters restored = new XmssMTPrivateKeyParameters.Builder(wider)
+                .WithPrivateKey(spent.GetEncoded()).Build();
+            Assert.AreEqual(1L << 9, restored.Index);
+            Assert.AreEqual(0, restored.GetUsagesRemaining());
         }
 
         /// <summary>
         /// A restored exhausted key refuses to sign. Restoring one that could sign again would reuse a one-time key,
         /// which is the failure RFC 8391 sec. 1.1 exists to prevent.
         /// </summary>
-        /// <remarks>XMSS half.</remarks>
+        /// <remarks>XMSS half: the XMSS^MT half arrives with the XMSS^MT signer.</remarks>
         [Test]
         public void TestRestoredExhaustedKeyRefusesToSign()
         {
@@ -133,10 +230,52 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         }
 
         /// <summary>
+        /// As <see cref="TestKeyExhaustedByShardExtractionRoundTrips"/>, for an XMSS^MT key: the shard taking all
+        /// that is left, and a smaller shard spent by rolling, both leave encodings that read back exhausted.
+        /// </summary>
+        [Test]
+        public void MTKeyExhaustedByShardExtractionRoundTrips()
+        {
+            XmssMTParameters parameters = XmssMTParams();
+            XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
+
+            kpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(), parameters));
+
+            XmssMTPrivateKeyParameters privKey = (XmssMTPrivateKeyParameters)kpg.GenerateKeyPair().Private;
+
+            XmssMTPrivateKeyParameters shard = privKey.ExtractKeyShard((int)privKey.GetUsagesRemaining());
+
+            Assert.AreEqual(0, privKey.GetUsagesRemaining());
+            Assert.AreEqual(1 << Height, shard.GetUsagesRemaining());
+
+            XmssMTPrivateKeyParameters restored = new XmssMTPrivateKeyParameters.Builder(parameters)
+                .WithPrivateKey(privKey.GetEncoded()).Build();
+
+            Assert.AreEqual(0, restored.GetUsagesRemaining());
+
+            kpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(), parameters));
+
+            XmssMTPrivateKeyParameters parent = (XmssMTPrivateKeyParameters)kpg.GenerateKeyPair().Private;
+            XmssMTPrivateKeyParameters smallShard = parent.ExtractKeyShard(2);
+
+            Assert.AreEqual(1, smallShard.GetBdsState().MaxIndex);
+
+            smallShard.RollKey();
+            smallShard.RollKey();
+
+            Assert.AreEqual(0, smallShard.GetUsagesRemaining());
+
+            XmssMTPrivateKeyParameters restoredShard = new XmssMTPrivateKeyParameters.Builder(parameters)
+                .WithPrivateKey(smallShard.GetEncoded()).Build();
+
+            Assert.AreEqual(0, restoredShard.GetUsagesRemaining());
+            Assert.AreEqual(smallShard.Index, restoredShard.Index);
+        }
+
+        /// <summary>
         /// The two ways a shard request is outside what the key can give: none at all, and more than the key has
         /// left. The message is how a caller catching ArgumentException tells them apart.
         /// </summary>
-        /// <remarks>XMSS half.</remarks>
         [Test]
         public void TestShardRequestsOutsideWhatTheKeyHasAreRefused()
         {
@@ -153,9 +292,30 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             CheckShardRefused(privKey, (int)usages + 1, "usageCount exceeds usages remaining");
 
             Assert.AreEqual(usages, privKey.GetUsagesRemaining(), "a refused shard must not move the key");
+
+            XmssMTParameters mtParams = XmssMTParams();
+            XmssMTKeyPairGenerator mtKpg = new XmssMTKeyPairGenerator();
+
+            mtKpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(), mtParams));
+
+            XmssMTPrivateKeyParameters mtPrivKey = (XmssMTPrivateKeyParameters)mtKpg.GenerateKeyPair().Private;
+            long mtUsages = mtPrivKey.GetUsagesRemaining();
+
+            CheckShardRefused(mtPrivKey, 0, "cannot ask for a shard with 0 keys");
+            CheckShardRefused(mtPrivKey, -1, "cannot ask for a shard with 0 keys");
+            CheckShardRefused(mtPrivKey, (int)mtUsages + 1, "usageCount exceeds usages remaining");
+
+            Assert.AreEqual(mtUsages, mtPrivKey.GetUsagesRemaining(), "a refused shard must not move the key");
         }
 
         private static void CheckShardRefused(XmssPrivateKeyParameters privKey, int usageCount, string message)
+        {
+            ArgumentException e = Assert.Throws<ArgumentException>(() => privKey.ExtractKeyShard(usageCount),
+                "shard of " + usageCount + " was handed out");
+            Assert.AreEqual(message, e.Message);
+        }
+
+        private static void CheckShardRefused(XmssMTPrivateKeyParameters privKey, int usageCount, string message)
         {
             ArgumentException e = Assert.Throws<ArgumentException>(() => privKey.ExtractKeyShard(usageCount),
                 "shard of " + usageCount + " was handed out");

@@ -16,13 +16,14 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// </summary>
     /// <remarks>
     /// The XMSS key records its root twice - its own root field, and the root node inside the BDS traversal state -
-    /// and these are the XMSS methods, and the XMSS half of <see cref="TestAnAbsentRootOnEitherSideIsNotAMismatch"/>.
-    /// The index cross-checks are XMSS^MT ones and arrive with the XMSS^MT keys and signer.
+    /// and an XMSS^MT key does the same with the root of its top layer's state. The index cross-checks are XMSS^MT
+    /// ones that sign through the XMSS^MT signer, and arrive with it.
     /// </remarks>
     [TestFixture]
     public class PositionRecordCrossCheckTests
     {
         private const int Height = 6;
+        private const int Layers = 3;
 
         /// <summary>
         /// A root that disagrees is a key built around a traversal state describing a different tree. Signatures
@@ -81,7 +82,6 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         /// value; a version that refused the absent case would refuse the placeholder state of a spent key. A key
         /// built from its seeds without a root is refused by the builder instead, before any comparison.
         /// </summary>
-        /// <remarks>XMSS half: the lazily built XMSS^MT layer arrives with the XMSS^MT state map.</remarks>
         [Test]
         public void TestAnAbsentRootOnEitherSideIsNotAMismatch()
         {
@@ -103,6 +103,51 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
                     .WithPublicSeed(privKey.GetPublicSeed())
                     .WithBdsState(state).Build());
             Assert.AreEqual("root is null", e.Message);
+
+            // the other side absent: an XMSS^MT layer is built lazily, so a map whose top layer is not there yet has
+            // nothing to compare and must not be refused for it
+            XmssMTParameters mtParams = new XmssMTParameters(Height, Layers, new Sha256Digest());
+
+            new BdsStateMap(1L << Height).ValidateRoot(mtParams, privKey.GetRoot());
+        }
+
+        /// <summary>
+        /// The XMSS^MT counterpart of <see cref="TestARootThatDisagreesWithTheStateIsRefused"/>: the top tree's root
+        /// is the public root, so the top layer's state carries a second copy of the key's root, and a stored key
+        /// whose two copies disagree is refused.
+        /// </summary>
+        [Test]
+        public void TestATopLayerRootThatDisagreesIsRefused()
+        {
+            XmssMTParameters parameters = new XmssMTParameters(Height, Layers, new Sha256Digest());
+            XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
+
+            kpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(), parameters));
+
+            XmssMTPrivateKeyParameters privKey = (XmssMTPrivateKeyParameters)kpg.GenerateKeyPair().Private;
+
+            Assert.IsNotNull(privKey.GetBdsState().Get(Layers - 1), "no top layer state to compare against");
+
+            byte[] encoded = privKey.GetEncoded();
+            int n = parameters.TreeDigestSize;
+            int rootOffset = (parameters.Height + 7) / 8 + 3 * n;
+
+            for (int b = 0; b != n; b++)
+            {
+                byte[] corrupt = Arrays.Clone(encoded);
+
+                corrupt[rootOffset + b] ^= 0x01;
+
+                ArgumentException e = Assert.Throws<ArgumentException>(
+                    () => new XmssMTPrivateKeyParameters.Builder(parameters).WithPrivateKey(corrupt).Build(),
+                    "corrupt root byte " + b + " accepted");
+                Assert.AreEqual("BDS state root does not match the private key root", e.Message, "byte " + b);
+            }
+
+            XmssMTPrivateKeyParameters decoded =
+                new XmssMTPrivateKeyParameters.Builder(parameters).WithPrivateKey(encoded).Build();
+
+            Assert.IsTrue(Arrays.AreEqual(privKey.GetRoot(), decoded.GetRoot()));
         }
     }
 }

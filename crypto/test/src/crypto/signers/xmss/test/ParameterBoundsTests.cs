@@ -14,9 +14,8 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// parameter classes take one from whoever asks.
     /// </summary>
     /// <remarks>
-    /// The XMSS methods, and the XMSS half of <see cref="TestSecurityParameterOutsideRegisteredSetsRefused"/>. The
-    /// XMSS^MT methods and half arrive with the XMSS^MT parameters, and the two that read a height or a layer count
-    /// out of an encoded key with the key factories.
+    /// The two Java methods that read a height or a layer count out of an encoded key arrive with the key
+    /// factories.
     /// </remarks>
     [TestFixture]
     public class ParameterBoundsTests
@@ -62,7 +61,6 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         /// computed from whatever arrives. What refuses one that no registered parameter set defines is the WOTS+
         /// parameter set lookup.
         /// </summary>
-        /// <remarks>XMSS half.</remarks>
         [Test]
         public void TestSecurityParameterOutsideRegisteredSetsRefused()
         {
@@ -75,6 +73,11 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
                 ArgumentException e = Assert.Throws<ArgumentException>(
                     () => new XmssParameters(10, NistObjectIdentifiers.IdSha256, sizes[i]),
                     "n = " + sizes[i] + " accepted for XMSS");
+                Assert.AreEqual("cannot find OID for digest algorithm: SHA-256", e.Message);
+
+                e = Assert.Throws<ArgumentException>(
+                    () => new XmssMTParameters(20, 2, NistObjectIdentifiers.IdSha256, sizes[i]),
+                    "n = " + sizes[i] + " accepted for XMSS^MT");
                 Assert.AreEqual("cannot find OID for digest algorithm: SHA-256", e.Message);
             }
 
@@ -114,6 +117,85 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
                 new XmssParameters(2, NistObjectIdentifiers.IdSha256)));
 
             Assert.IsNotNull(kpg.GenerateKeyPair().Private);
+        }
+
+        [Test]
+        public void TestLayerCountRefused()
+        {
+            // zero divided into the total height, and a negative that divides into it cleanly
+            int[][] cases = new int[][]{ new int[]{ 4, 0 }, new int[]{ 2, 0 }, new int[]{ 4, -1 }, new int[]{ 4, -2 },
+                new int[]{ 60, int.MinValue } };
+
+            for (int i = 0; i != cases.Length; i++)
+            {
+                ArgumentException e = Assert.Throws<ArgumentException>(
+                    () => new XmssMTParameters(cases[i][0], cases[i][1], NistObjectIdentifiers.IdSha256),
+                    "layers " + cases[i][1] + " accepted");
+                Assert.AreEqual("layers must be >= 1", e.Message);
+            }
+        }
+
+        [Test]
+        public void TestTotalHeightAboveMaximumRefused()
+        {
+            // a total height of 63 leaves every index reading as invalid, and 64 wraps the maximum index to 0 - both
+            // silent, so neither shows up as a failure to build the key
+            int[][] cases = new int[][]{ new int[]{ 63, 3 }, new int[]{ 64, 4 }, new int[]{ 640, 64 },
+                new int[]{ 1200, 120 } };
+
+            for (int i = 0; i != cases.Length; i++)
+            {
+                ArgumentException e = Assert.Throws<ArgumentException>(
+                    () => new XmssMTParameters(cases[i][0], cases[i][1], NistObjectIdentifiers.IdSha256),
+                    "total height " + cases[i][0] + " accepted");
+                Assert.AreEqual("totalHeight must be <= 62", e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Every parameter set RFC 8391 sec. 5.4 registers has to remain constructible - the bounds are on what the
+        /// arithmetic can carry, not a narrowing of the registered sets.
+        /// </summary>
+        [Test]
+        public void TestRegisteredHypertreeSetsStillConstruct()
+        {
+            int[][] cases = new int[][]{ new int[]{ 20, 2 }, new int[]{ 20, 4 }, new int[]{ 40, 2 },
+                new int[]{ 40, 4 }, new int[]{ 40, 8 }, new int[]{ 60, 3 }, new int[]{ 60, 6 }, new int[]{ 60, 12 } };
+
+            for (int i = 0; i != cases.Length; i++)
+            {
+                XmssMTParameters parameters = new XmssMTParameters(cases[i][0], cases[i][1],
+                    NistObjectIdentifiers.IdSha256);
+
+                Assert.AreEqual(cases[i][0], parameters.Height);
+                Assert.AreEqual(cases[i][1], parameters.Layers);
+            }
+        }
+
+        /// <summary>
+        /// The other refusals of a total height and a layer count that do not make a hypertree, each reported as
+        /// the parameter that was wrong.
+        /// </summary>
+        [Test]
+        public void HypertreeShapeRefused()
+        {
+            ArgumentException e = Assert.Throws<ArgumentException>(
+                () => new XmssMTParameters(1, 1, NistObjectIdentifiers.IdSha256));
+            Assert.AreEqual("totalHeight must be > 1", e.Message);
+
+            e = Assert.Throws<ArgumentException>(() => new XmssMTParameters(10, 3, NistObjectIdentifiers.IdSha256));
+            Assert.AreEqual("layers must divide totalHeight without remainder", e.Message);
+
+            e = Assert.Throws<ArgumentException>(() => new XmssMTParameters(4, 4, NistObjectIdentifiers.IdSha256));
+            Assert.AreEqual("height / layers must be greater than 1", e.Message);
+
+            // the tallest hypertree, and the per layer bound beneath it: 62 over 2 is 31, past the XMSS maximum
+            Assert.AreEqual(62, new XmssMTParameters(XmssMTParameters.MaxHeight, 31,
+                NistObjectIdentifiers.IdSha256).Height);
+            e = Assert.Throws<ArgumentException>(() => new XmssMTParameters(62, 2, NistObjectIdentifiers.IdSha256));
+            Assert.AreEqual("height must be <= 30", e.Message);
+
+            Assert.Throws<ArgumentNullException>(() => new XmssMTParameters(20, 2, (IDigest)null));
         }
     }
 }

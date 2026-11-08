@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
     /// <para>
     /// The four seed and root fields are n bytes each and the traversal state is variable length and last, so only
     /// the head is fixed and only the head can be length checked. What differs between the families is the width
-    /// of the index field: <see cref="XmssIndexSize"/>, and the XMSS^MT width beside it once that family exists.
+    /// of the index field: <see cref="XmssIndexSize"/>, and <see cref="MtIndexSize"/> for XMSS^MT.
     /// </para>
     /// <para>
     /// The equality and hash code both key classes share are here too, as <see cref="FieldsEqual"/> over a
@@ -36,6 +36,19 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// 2^h, the position an exhausted key sits at, one past its last leaf - is 2^30.
         /// </remarks>
         internal const int XmssIndexSize = 4;
+
+        /// <summary>
+        /// The width of an XMSS^MT index field, the fewest whole bytes that hold a leaf index of a hypertree of this
+        /// total height.
+        /// </summary>
+        /// <remarks>
+        /// Unlike the XMSS field this is not always wide enough for every index the key can hold: a total height
+        /// that is a multiple of eight leaves exactly h bits, and the exhausted position 2^h needs h + 1 of them.
+        /// <see cref="Encode"/> refuses that index rather than writing it narrowed. Of the standard parameter sets
+        /// that is the XMSSMT_*_40/* family, whose exhausted index would need a sixth byte.
+        /// </remarks>
+        /// <param name="totalHeight">the height of the whole hypertree.</param>
+        internal static int MtIndexSize(int totalHeight) => (totalHeight + 7) / 8;
 
         private readonly long m_index;
         private readonly byte[] m_secretKeySeed;

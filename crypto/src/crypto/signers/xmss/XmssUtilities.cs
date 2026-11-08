@@ -102,6 +102,8 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss
             return index < (1L << height);
         }
 
+        internal static long GetTreeIndex(long index, int xmssTreeHeight) => index >> xmssTreeHeight;
+
         internal static int GetLeafIndex(long index, int xmssTreeHeight) =>
             (int)(index & ((1L << xmssTreeHeight) - 1L));
 
@@ -119,11 +121,27 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss
             return tau;
         }
 
+        internal static bool IsNewBdsInitNeeded(long globalIndex, int xmssHeight, int layer)
+        {
+            if (globalIndex == 0)
+                return false;
+
+            return globalIndex % (long)System.Math.Pow(1 << xmssHeight, layer + 1) == 0;
+        }
+
+        internal static bool IsNewAuthenticationPathNeeded(long globalIndex, int xmssHeight, int layer)
+        {
+            if (globalIndex == 0)
+                return false;
+
+            return (globalIndex + 1) % (long)System.Math.Pow(1 << xmssHeight, layer) == 0;
+        }
+
         /// <summary>
         /// Encode a BDS traversal state in the versioned <see cref="BdsStateCodec"/> form, with its checksum bound
         /// to the public seed of the key it belongs to.
         /// </summary>
-        /// <param name="obj">the state to encode.</param>
+        /// <param name="obj">the state to encode, a <see cref="Bds"/> or a <see cref="BdsStateMap"/>.</param>
         /// <param name="publicSeed">the owning key's public seed, or null to bind nothing.</param>
         /// <returns>the encoding.</returns>
         /// <exception cref="ArgumentException">if <paramref name="obj"/> is not a BDS state.</exception>
@@ -132,8 +150,8 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss
         {
             if (obj is Bds bds)
                 return BdsStateCodec.Encode(bds, publicSeed);
-
-            // XMSS^MT: the BDS state map is encoded here too, once it exists.
+            if (obj is BdsStateMap stateMap)
+                return BdsStateCodec.Encode(stateMap, publicSeed);
 
             throw new ArgumentException(
                 "unsupported BDS state type: " + (obj != null ? obj.GetType().FullName : "null"));
@@ -151,7 +169,7 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss
         /// has no .NET reader and is not ported, so anything without a codec magic is refused here.
         /// </remarks>
         /// <param name="data">the encoded state.</param>
-        /// <param name="type">the type of state expected: <see cref="Bds"/>.</param>
+        /// <param name="type">the type of state expected: <see cref="Bds"/> or <see cref="BdsStateMap"/>.</param>
         /// <param name="publicSeed">the owning key's public seed, or null if nothing was bound.</param>
         /// <returns>the decoded state, of type <paramref name="type"/>.</returns>
         /// <exception cref="IOException">if the data is not an encoding of that type of state.</exception>
@@ -167,8 +185,10 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss
             }
             if (BdsStateCodec.IsBdsStateMapEncoding(data))
             {
-                // XMSS^MT: a state map is decoded here once it exists; until then nothing asks for one.
-                throw new IOException("unexpected BDS state map encoding");
+                if (type != typeof(BdsStateMap))
+                    throw new IOException("unexpected BDS state map encoding");
+
+                return BdsStateCodec.DecodeBdsStateMap(data, publicSeed);
             }
 
             throw new IOException("unrecognized BDS state encoding");

@@ -14,19 +14,27 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
 {
     /// <summary>The XMSS / XMSS^MT key parameter builders.</summary>
     /// <remarks>
-    /// The Java tests are written in XMSS / XMSS^MT pairs. The XMSS half of each is here; the XMSS^MT halves, and
-    /// the two XMSS^MT methods, arrive with the XMSS^MT keys.
+    /// The Java tests are written in XMSS / XMSS^MT pairs, and both halves are here, except where a remark says
+    /// otherwise: testMTRecoveryAtTheExhaustedIndex signs, and arrives with the XMSS^MT signer.
     /// </remarks>
     [TestFixture]
     public class KeyParametersBuilderTests
     {
         private const int Height = 4;
+        private const int Layers = 2;
 
         private static XmssParameters XmssParams() => new XmssParameters(Height, new Sha256Digest());
+
+        private static XmssMTParameters XmssMTParams() => new XmssMTParameters(Height, Layers, new Sha256Digest());
 
         /// <summary>The root the seeds compute, which a key built from them must declare.</summary>
         private static byte[] RootOf(XmssParameters parameters, byte[] secretKeySeed, byte[] publicSeed) =>
             new Bds(parameters, publicSeed, secretKeySeed, XmssAddress.OtsHashAddress(0, 0L, 0)).Root.GetValue();
+
+        /// <summary>The XMSS^MT root the seeds compute: the root of the top layer's first tree.</summary>
+        private static byte[] MTRootOf(XmssMTParameters parameters, byte[] secretKeySeed, byte[] publicSeed) =>
+            new Bds(parameters.XmssParameters, publicSeed, secretKeySeed,
+                XmssAddress.OtsHashAddress(parameters.Layers - 1, 0L, 0)).Root.GetValue();
 
         /// <summary>A null parameter set is rejected where it is passed. All builders share the wording.</summary>
         [Test]
@@ -39,7 +47,11 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             e = Assert.Throws<ArgumentNullException>(() => new XmssPublicKeyParameters.Builder(null));
             StringAssert.StartsWith("params == null", e.Message);
 
-            // XMSS^MT half: arrives with the XMSS^MT keys.
+            e = Assert.Throws<ArgumentNullException>(() => new XmssMTPrivateKeyParameters.Builder(null));
+            StringAssert.StartsWith("params == null", e.Message);
+
+            e = Assert.Throws<ArgumentNullException>(() => new XmssMTPublicKeyParameters.Builder(null));
+            StringAssert.StartsWith("params == null", e.Message);
         }
 
         /// <summary>
@@ -102,15 +114,25 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
                 () => new XmssSignature.Builder(XmssParams()).WithRandom(shortSeed).Build());
             Assert.AreEqual("size of random needs to be equal to size of digest", e.Message);
 
+            e = Assert.Throws<ArgumentException>(
+                () => new XmssMTSignature.Builder(XmssMTParams()).WithRandom(shortSeed).Build());
+            Assert.AreEqual("size of random needs to be equal to size of digest", e.Message);
+
             e = Assert.Throws<ArgumentException>(() => new XmssPublicKeyParameters.Builder(XmssParams())
                 .WithRoot(shortSeed).WithPublicSeed(seed).Build());
             Assert.AreEqual("size of root needs to be equal to size of digest", e.Message);
+
+            e = Assert.Throws<ArgumentException>(() => new XmssMTPublicKeyParameters.Builder(XmssMTParams())
+                .WithRoot(seed).WithPublicSeed(shortSeed).Build());
+            Assert.AreEqual("size of publicSeed needs to be equal to size of digest", e.Message);
 
             e = Assert.Throws<ArgumentException>(() => new XmssPrivateKeyParameters.Builder(XmssParams())
                 .WithSecretKeySeed(shortSeed).WithSecretKeyPrf(seed).WithPublicSeed(seed).WithRoot(seed).Build());
             Assert.AreEqual("size of secretKeySeed needs to be equal to size of digest", e.Message);
 
-            // XMSS^MT half: arrives with the XMSS^MT keys.
+            e = Assert.Throws<ArgumentException>(() => new XmssMTPrivateKeyParameters.Builder(XmssMTParams())
+                .WithSecretKeySeed(seed).WithSecretKeyPrf(shortSeed).WithPublicSeed(seed).WithRoot(seed).Build());
+            Assert.AreEqual("size of secretKeyPRF needs to be equal to size of digest", e.Message);
         }
 
         /// <summary>The private key builder will not hand back a key whose seeds it had to invent.</summary>
@@ -121,7 +143,9 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
                 () => new XmssPrivateKeyParameters.Builder(XmssParams()).Build());
             Assert.AreEqual("publicSeed or secretKeySeed is null", e.Message);
 
-            // XMSS^MT half: arrives with the XMSS^MT keys.
+            e = Assert.Throws<InvalidOperationException>(
+                () => new XmssMTPrivateKeyParameters.Builder(XmssMTParams()).Build());
+            Assert.AreEqual("publicSeed or secretKeySeed is null", e.Message);
         }
 
         /// <summary>The seed check is a disjunction - an imported private key carries its own seeds.</summary>
@@ -133,7 +157,10 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
                 .WithPrivateKey(xmss.GetEncoded()).Build();
             Assert.IsTrue(Arrays.AreEqual(xmss.GetEncoded(), recovered.GetEncoded()));
 
-            // XMSS^MT half: arrives with the XMSS^MT keys.
+            XmssMTPrivateKeyParameters mt = (XmssMTPrivateKeyParameters)GenerateXmssMT().Private;
+            XmssMTPrivateKeyParameters mtRecovered = new XmssMTPrivateKeyParameters.Builder(XmssMTParams())
+                .WithPrivateKey(mt.GetEncoded()).Build();
+            Assert.IsTrue(Arrays.AreEqual(mt.GetEncoded(), mtRecovered.GetEncoded()));
         }
 
         /// <summary>A generated key can be used 2^h times.</summary>
@@ -146,7 +173,9 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             Assert.AreEqual(expected, xmss.GetUsagesRemaining());
             Assert.AreEqual(expected - 1, xmss.GetBdsState().MaxIndex);
 
-            // XMSS^MT half: arrives with the XMSS^MT keys.
+            XmssMTPrivateKeyParameters mt = (XmssMTPrivateKeyParameters)GenerateXmssMT().Private;
+            Assert.AreEqual(expected, mt.GetUsagesRemaining());
+            Assert.AreEqual(expected - 1, mt.GetBdsState().MaxIndex);
         }
 
         /// <summary>
@@ -227,7 +256,11 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         /// A shard covers the range [index...index + usageCount), so the single use shard GetNextKey() takes from an
         /// unused key covers index 0 alone and carries maximum index 0: it signs once, and then it is spent.
         /// </summary>
-        /// <remarks>XMSS half: the XMSS^MT half arrives with the XMSS^MT signer and the key factories.</remarks>
+        /// <remarks>
+        /// The XMSS half, and the XMSS^MT key's half up to its signature. The rest of the XMSS^MT half - the shard
+        /// through PrivateKeyInfo and back, and its one signature through the XMSS^MT signer - arrives with the key
+        /// factories.
+        /// </remarks>
         [Test]
         public void TestSingleUseShardCoversOneSignature()
         {
@@ -251,6 +284,68 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
 
             ExhaustedPrivateKeyException e = Assert.Throws<ExhaustedPrivateKeyException>(
                 () => signer.GenerateSignature());
+            Assert.AreEqual("no usages of private key remaining", e.Message);
+
+            XmssMTPrivateKeyParameters mt = (XmssMTPrivateKeyParameters)GenerateXmssMT().Private;
+            XmssMTPrivateKeyParameters mtShard = mt.GetNextKey();
+
+            Assert.AreEqual(0, mtShard.Index);
+            Assert.AreEqual(0, mtShard.GetBdsState().MaxIndex);
+            Assert.AreEqual(1, mtShard.GetUsagesRemaining());
+            Assert.AreEqual(1, mt.Index);
+
+            // maximum index 0 means what it says, so it survives being written out and read back
+            XmssMTPrivateKeyParameters restored = new XmssMTPrivateKeyParameters.Builder(XmssMTParams())
+                .WithPrivateKey(mtShard.GetEncoded()).Build();
+
+            Assert.AreEqual(0, restored.Index);
+            Assert.AreEqual(1, restored.GetUsagesRemaining());
+        }
+
+        /// <summary>
+        /// The XMSS^MT half of <see cref="TestRecoveryIndexCheckedBeforeTheTreeIsWalked"/>. An index the hypertree
+        /// cannot hold is refused rather than falling through to a placeholder state map that nothing downstream
+        /// can tell from a legitimate one: XMSS^MT builds each layer's state lazily, so a map with no layers in it
+        /// passes both the structural check and the per-layer index check.
+        /// </summary>
+        [Test]
+        public void TestMTRecoveryIndexCheckedBeforeTheTreeIsWalked()
+        {
+            XmssMTParameters parameters = XmssMTParams();
+            byte[] seed = new byte[parameters.TreeDigestSize];
+            long[] outOfRange = new long[]{ -1L, (1L << Height) + 1, long.MaxValue };
+
+            for (int i = 0; i != outOfRange.Length; i++)
+            {
+                Stopwatch started = Stopwatch.StartNew();
+
+                ArgumentException e = Assert.Throws<ArgumentException>(
+                    () => RecoverXmssMTAt(parameters, seed, outOfRange[i]), "index " + outOfRange[i] + " accepted");
+                Assert.AreEqual("index out of bounds", e.Message);
+
+                Assert.IsTrue(started.ElapsedMilliseconds < 5000, "index " + outOfRange[i] + " was walked");
+            }
+        }
+
+        /// <summary>
+        /// The pre-signing part of the XMSS^MT half of <see cref="TestRecoveryAtTheExhaustedIndex"/>: 2^h rebuilds
+        /// to the state RollKey() leaves behind, an empty map whose maximum index is the last leaf.
+        /// </summary>
+        /// <remarks>testMTRecoveryAtTheExhaustedIndex itself signs, and arrives with the XMSS^MT signer.</remarks>
+        [Test]
+        public void MTRecoveryAtTheExhaustedIndex_Key()
+        {
+            XmssMTParameters parameters = XmssMTParams();
+            byte[] seed = new byte[parameters.TreeDigestSize];
+
+            XmssMTPrivateKeyParameters spent = RecoverXmssMTAt(parameters, seed, 1L << Height);
+
+            Assert.AreEqual(1L << Height, spent.Index);
+            Assert.AreEqual(0, spent.GetUsagesRemaining());
+            Assert.AreEqual((1L << Height) - 1, spent.GetBdsState().MaxIndex);
+
+            ExhaustedPrivateKeyException e = Assert.Throws<ExhaustedPrivateKeyException>(
+                () => XmssEngine.GenerateMTSignature(spent, new byte[]{ 1, 2, 3 }), "spent key signed");
             Assert.AreEqual("no usages of private key remaining", e.Message);
         }
 
@@ -279,6 +374,25 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             XmssPrivateKeyParameters key = new XmssPrivateKeyParameters.Builder(parameters).WithSecretKeySeed(seed)
                 .WithSecretKeyPrf(seed).WithPublicSeed(seed).WithRoot(root).WithMaxIndex((1 << Height) - 1).Build();
             Assert.AreEqual(1 << Height, key.GetUsagesRemaining());
+        }
+
+        /// <summary>As <see cref="MaxIndexNotReflectedInStateRejected"/>, for the XMSS^MT builder.</summary>
+        [Test]
+        public void MTMaxIndexNotReflectedInStateRejected()
+        {
+            XmssMTParameters parameters = XmssMTParams();
+            byte[] seed = new byte[parameters.TreeDigestSize];
+            byte[] root = MTRootOf(parameters, seed, seed);
+
+            ArgumentException e = Assert.Throws<ArgumentException>(() => new XmssMTPrivateKeyParameters.Builder(
+                parameters).WithSecretKeySeed(seed).WithSecretKeyPrf(seed).WithPublicSeed(seed).WithRoot(root)
+                .WithMaxIndex(3).Build());
+            Assert.AreEqual("maxIndex set but not reflected in state", e.Message);
+
+            XmssMTPrivateKeyParameters key = new XmssMTPrivateKeyParameters.Builder(parameters)
+                .WithSecretKeySeed(seed).WithSecretKeyPrf(seed).WithPublicSeed(seed).WithRoot(root)
+                .WithMaxIndex((1L << Height) - 1).Build();
+            Assert.AreEqual(1L << Height, key.GetUsagesRemaining());
         }
 
         /// <summary>A state from the builder that is not at the builder's index is refused.</summary>
@@ -328,11 +442,76 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             Assert.AreEqual(1, rebuilt.Index);
         }
 
+        /// <summary>
+        /// The XMSS^MT counterpart of <see cref="SeedRebuildRequiresTheComputedRoot"/>, at index 0 as well: a key
+        /// rebuilt there holds the top layer key generation makes, so its root is compared as it is anywhere else.
+        /// </summary>
+        [Test]
+        public void MTSeedRebuildRequiresTheComputedRoot()
+        {
+            XmssMTPrivateKeyParameters key = (XmssMTPrivateKeyParameters)GenerateXmssMT().Private;
+            byte[] otherRoot = key.GetRoot();
+            otherRoot[0] ^= 1;
+
+            foreach (long index in new long[]{ 0L, 1L })
+            {
+                InvalidOperationException ie = Assert.Throws<InvalidOperationException>(() =>
+                    new XmssMTPrivateKeyParameters.Builder(key.Parameters).WithSecretKeySeed(key.GetSecretKeySeed())
+                        .WithSecretKeyPrf(key.GetSecretKeyPrf()).WithPublicSeed(key.GetPublicSeed())
+                        .WithIndex(index).Build(), "index " + index);
+                Assert.AreEqual("root is null", ie.Message);
+
+                ArgumentException e = Assert.Throws<ArgumentException>(() => new XmssMTPrivateKeyParameters.Builder(
+                    key.Parameters).WithSecretKeySeed(key.GetSecretKeySeed()).WithSecretKeyPrf(key.GetSecretKeyPrf())
+                    .WithPublicSeed(key.GetPublicSeed()).WithRoot(otherRoot).WithIndex(index).Build(),
+                    "index " + index);
+                Assert.AreEqual("BDS state root does not match the private key root", e.Message);
+            }
+        }
+
+        /// <summary>
+        /// A key rebuilt from its seeds at index 0 is the key key generation made, and signs. bc-java rebuilds an
+        /// empty state map there and refuses to sign from it as not initialized.
+        /// </summary>
+        [Test]
+        public void MTRebuildAtIndexZeroSigns()
+        {
+            AsymmetricCipherKeyPair kp = GenerateXmssMT();
+            XmssMTPrivateKeyParameters key = (XmssMTPrivateKeyParameters)kp.Private;
+
+            XmssMTPrivateKeyParameters rebuilt = new XmssMTPrivateKeyParameters.Builder(key.Parameters)
+                .WithSecretKeySeed(key.GetSecretKeySeed()).WithSecretKeyPrf(key.GetSecretKeyPrf())
+                .WithPublicSeed(key.GetPublicSeed()).WithRoot(key.GetRoot()).WithIndex(0L).Build();
+
+            Assert.AreEqual(key, rebuilt);
+            Assert.IsTrue(Arrays.AreEqual(key.GetEncoded(), rebuilt.GetEncoded()));
+
+            byte[] message = new byte[]{ 1, 2, 3 };
+            byte[] signature = XmssEngine.GenerateMTSignature(rebuilt, message);
+            Assert.AreEqual(1L, rebuilt.Index);
+            Assert.IsTrue(XmssEngine.VerifyMTSignature((XmssMTPublicKeyParameters)kp.Public, message, signature));
+        }
+
         private static XmssPrivateKeyParameters RecoverXmssAt(XmssParameters parameters, byte[] seed, int index)
         {
             return new XmssPrivateKeyParameters.Builder(parameters)
                 .WithSecretKeySeed(seed).WithSecretKeyPrf(seed).WithPublicSeed(seed).WithRoot(seed)
                 .WithIndex(index).Build();
+        }
+
+        private static XmssMTPrivateKeyParameters RecoverXmssMTAt(XmssMTParameters parameters, byte[] seed,
+            long index)
+        {
+            return new XmssMTPrivateKeyParameters.Builder(parameters)
+                .WithSecretKeySeed(seed).WithSecretKeyPrf(seed).WithPublicSeed(seed).WithRoot(seed)
+                .WithIndex(index).Build();
+        }
+
+        private static AsymmetricCipherKeyPair GenerateXmssMT()
+        {
+            XmssMTKeyPairGenerator gen = new XmssMTKeyPairGenerator();
+            gen.Init(new XmssMTKeyGenerationParameters(new SecureRandom(), XmssMTParams()));
+            return gen.GenerateKeyPair();
         }
 
         private static AsymmetricCipherKeyPair GenerateXmss()

@@ -26,7 +26,8 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// every index the signer has spent.
     /// </para>
     /// <para>
-    /// The XMSS method; the XMSS^MT methods arrive with the XMSS^MT signer.
+    /// The XMSS method, and the two XMSS^MT state map methods, which drive the engine directly;
+    /// testStoredXMSSMTKeyNeverSitsOnASignedIndex arrives with the XMSS^MT signer.
     /// <see cref="SameKeyTwoSigners_DistinctIndexes"/> covers two signers holding one key, which the Java fixture
     /// does not assert directly.
     /// </para>
@@ -35,6 +36,7 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     public class SignerConcurrencyTests
     {
         private const int Height = 4;
+        private const int Layers = 2;
         private const int Trials = 120;
 
         [Test]
@@ -227,6 +229,148 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             // and the key they share is spent for both
             Assert.Throws<ExhaustedPrivateKeyException>(() => XmssHarnessTests.Sign(signers[0], new byte[1]));
             Assert.Throws<ExhaustedPrivateKeyException>(() => XmssHarnessTests.Sign(signers[1], new byte[1]));
+        }
+
+        /// <summary>
+        /// A state map can be copied while the key that holds it is signing: a signature installs the layer states
+        /// it builds lazily into the live map as it descends, and the copy has to see the map before that signature
+        /// or after it, never part way through being restructured.
+        /// </summary>
+        [Test]
+        public void TestStateMapCanBeCopiedWhileTheKeyIsSigning()
+        {
+            XmssMTParameters parameters = new XmssMTParameters(6, 3, new Sha256Digest());
+            XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
+
+            kpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(), parameters));
+
+            XmssMTPrivateKeyParameters key = (XmssMTPrivateKeyParameters)kpg.GenerateKeyPair().Private;
+            int signatures = 1 << 6;
+            Exception failure = null;
+            int done = 0;
+
+            Thread copying = new Thread(() =>
+            {
+                try
+                {
+                    while (Volatile.Read(ref done) == 0)
+                    {
+                        BdsStateMap live = key.GetBdsState();
+                        BdsStateMap copy = new BdsStateMap(live, live.MaxIndex);
+
+                        for (int layer = 0; layer != 3; layer++)
+                        {
+                            Bds state = copy.Get(layer);
+
+                            // a layer built lazily is legitimately absent; one present must be whole, which a
+                            // copy taken out of a map mid-restructure is not
+                            if (state != null)
+                            {
+                                state.Validate(parameters.XmssParameters);
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    failure = e;
+                }
+            });
+
+            copying.Start();
+
+            try
+            {
+                for (int i = 0; i != signatures; i++)
+                {
+                    XmssEngine.GenerateMTSignature(key, new byte[]{ (byte)i });
+                }
+            }
+            finally
+            {
+                Volatile.Write(ref done, 1);
+                copying.Join();
+            }
+
+            Assert.IsNull(failure, "copying the state map of a signing key: " + failure);
+        }
+
+        /// <summary>
+        /// Validating the top layer's root reads the map, so it takes the lock every other read of the map takes:
+        /// hold the map's lock and the call must wait for it.
+        /// </summary>
+        /// <remarks>
+        /// Asserted as the lock discipline rather than as an outcome. Without the lock the call returns in
+        /// microseconds, so the second it is given here is the difference between waiting and not, not a timing
+        /// margin being trusted.
+        /// </remarks>
+        [Test]
+        public void TestValidatingTheRootWaitsForTheStateMapItReads()
+        {
+            XmssMTParameters parameters = new XmssMTParameters(Height, Layers, new Sha256Digest());
+            XmssMTKeyPairGenerator kpg = new XmssMTKeyPairGenerator();
+
+            kpg.Init(new XmssMTKeyGenerationParameters(new SecureRandom(), parameters));
+
+            XmssMTPrivateKeyParameters key = (XmssMTPrivateKeyParameters)kpg.GenerateKeyPair().Private;
+
+            BdsStateMap stateMap = key.GetBdsState();
+            byte[] root = key.GetRoot();
+
+            // the top layer is the one ValidateRoot looks at, and it is there from key generation - so the call has
+            // real work to do inside the lock rather than falling out of a null check
+            Assert.IsNotNull(stateMap.Get(Layers - 1), "the top layer's state");
+
+            using (ManualResetEventSlim held = new ManualResetEventSlim(false))
+            using (ManualResetEventSlim release = new ManualResetEventSlim(false))
+            using (ManualResetEventSlim validated = new ManualResetEventSlim(false))
+            {
+                Exception failure = null;
+
+                Thread holder = new Thread(() =>
+                {
+                    lock (stateMap)
+                    {
+                        held.Set();
+                        release.Wait();
+                    }
+                });
+
+                Thread validating = new Thread(() =>
+                {
+                    try
+                    {
+                        stateMap.ValidateRoot(parameters, root);
+                    }
+                    catch (Exception e)
+                    {
+                        failure = e;
+                    }
+
+                    validated.Set();
+                });
+
+                holder.Start();
+                held.Wait();
+                validating.Start();
+
+                try
+                {
+                    Assert.IsFalse(validated.Wait(TimeSpan.FromSeconds(1)),
+                        "ValidateRoot must take the lock every other read of the map takes");
+                }
+                finally
+                {
+                    release.Set();
+                }
+
+                Assert.IsTrue(validated.Wait(TimeSpan.FromSeconds(10)), "and complete once it is released");
+
+                holder.Join();
+                validating.Join();
+
+                Assert.IsNull(failure, "validating the root of a held state map: " + failure);
+            }
         }
     }
 }
