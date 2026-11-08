@@ -983,7 +983,11 @@ namespace Org.BouncyCastle.Crypto.Modes
                 byte[] msgMac = new byte[macSize];
                 Array.Copy(bufBlock, extra, msgMac, 0, macSize);
                 if (!Arrays.FixedTimeEquals(this.macBlock, msgMac))
+                {
+                    // GetMac() must not return the expected tag: it is a valid tag for the rejected input
+                    this.macBlock = null;
                     throw new InvalidCipherTextException("mac check in GCM failed");
+                }
             }
 
             Reset(false);
@@ -1104,7 +1108,11 @@ namespace Org.BouncyCastle.Crypto.Modes
                 Span<byte> msgMac = stackalloc byte[macSize];
                 bufBlock.AsSpan(extra, macSize).CopyTo(msgMac);
                 if (!Arrays.FixedTimeEquals(this.macBlock, msgMac))
+                {
+                    // GetMac() must not return the expected tag: it is a valid tag for the rejected input
+                    this.macBlock = null;
                     throw new InvalidCipherTextException("mac check in GCM failed");
+                }
             }
 
             Reset(false);
