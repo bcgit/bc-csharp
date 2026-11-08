@@ -6,10 +6,12 @@ using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
+using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
 {
@@ -21,9 +23,8 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// every index of a key.
     /// </summary>
     /// <remarks>
-    /// The key encodings Java checks here are SubjectPublicKeyInfo and PrivateKeyInfo, and arrive with the key
-    /// factories, together with the XMSSMT-SHA2_20/2_256 set, which Java checks for its encodings alone. Their vectors
-    /// are kept here so the table matches Java's.
+    /// The key encodings are SubjectPublicKeyInfo and PrivateKeyInfo, through the key factories, and each is also
+    /// read back to a key that writes it again unchanged.
     /// </remarks>
     [TestFixture]
     public class PromotionKnownAnswerTests
@@ -83,8 +84,6 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
                 "c3b5fb018973b031218b0ed3e4bf0f43e050c3338970105359830d3ebd5de753" },
         };
 
-        /// <remarks>XMSS half: the SubjectPublicKeyInfo / PrivateKeyInfo checks arrive with the key factories.
-        /// </remarks>
         [Test]
         public void TestXmssKeysAndSignatures()
         {
@@ -94,18 +93,18 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             }
         }
 
-        /// <remarks>XMSS half: the key encoding checks and the XMSS^MT set arrive later.</remarks>
         [Test]
-        [Explicit] // slow: ~78s
+        [Explicit] // slow: ~60s
         public void TestStandardParameterSets()
         {
             CheckXmss("XMSS-SHA2_10_256", new XmssParameters(10, new Sha256Digest()), SeedFor(10));
             CheckXmss("XMSS-SHAKE256_10_192", new XmssParameters(10, NistObjectIdentifiers.IdShake256Len, 24),
                 SeedFor(11));
             CheckXmss("XMSS-SHA2_10_192", new XmssParameters(10, NistObjectIdentifiers.IdSha256, 24), SeedFor(12));
+            CheckEncodings("XMSSMT-SHA2_20/2_256", XmssMtKey(new XmssMTParameters(20, 2, new Sha256Digest()),
+                SeedFor(13)));
         }
 
-        /// <remarks>The SubjectPublicKeyInfo / PrivateKeyInfo checks arrive with the key factories.</remarks>
         [Test]
         public void TestXmssMTKeysAndSignatures()
         {
@@ -113,6 +112,8 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             {
                 string label = "XMSSMT h4d2/" + i;
                 AsymmetricCipherKeyPair kp = XmssMtKey(new XmssMTParameters(4, 2, Digest(i)), SeedFor(20 + i));
+
+                CheckEncodings(label, kp);
 
                 XmssMTSigner signer = new XmssMTSigner();
                 signer.Init(true, kp.Private);
@@ -220,6 +221,8 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         {
             AsymmetricCipherKeyPair kp = XmssKey(parameters, seed);
 
+            CheckEncodings(label, kp);
+
             XmssSigner signer = new XmssSigner();
             signer.Init(true, kp.Private);
             byte[] sig = XmssHarnessTests.Sign(signer, Message);
@@ -228,6 +231,21 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             XmssSigner verifier = new XmssSigner();
             verifier.Init(false, kp.Public);
             Assert.IsTrue(XmssHarnessTests.Verify(verifier, Message, sig), label + ": signature did not verify");
+        }
+
+        private static void CheckEncodings(string label, AsymmetricCipherKeyPair kp)
+        {
+            byte[] pub = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public).GetEncoded();
+            byte[] priv = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private).GetEncoded();
+
+            Assert.AreEqual(Expected(label, "pub"), Sha256(pub), label + ": public key encoding");
+            Assert.AreEqual(Expected(label, "priv"), Sha256(priv), label + ": private key encoding");
+
+            // and the encodings read back to keys that encode the same way
+            Assert.IsTrue(Arrays.AreEqual(pub, SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(
+                PublicKeyFactory.CreateKey(pub)).GetEncoded()), label + ": public key did not round trip");
+            Assert.IsTrue(Arrays.AreEqual(priv, PrivateKeyInfoFactory.CreatePrivateKeyInfo(
+                PrivateKeyFactory.CreateKey(priv)).GetEncoded()), label + ": private key did not round trip");
         }
 
         private static string Expected(string label, string what)

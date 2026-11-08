@@ -17,10 +17,6 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// <summary>Test cases for XmssMTPrivateKeyParameters class.</summary>
     /// <remarks>
     /// <para>
-    /// The second half of <see cref="TestPrivateKeySerialisation"/>, through the private key factory, arrives with
-    /// the key factories.
-    /// </para>
-    /// <para>
     /// The methods after <see cref="TestPrivateKeyParsingSha256"/> compare what this key and the engine under it
     /// produce with what bc-java produces for the same seeds.
     /// </para>
@@ -155,8 +151,9 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         /// <see cref="IOException"/> as the cause: nothing in this port reads Java serialization at all.
         /// </summary>
         /// <remarks>
-        /// The Java method lives in this fixture although it is about an XMSS key. Its second half, the same bytes
-        /// through the private key factory, arrives with the key factories.
+        /// The Java method lives in this fixture although it is about an XMSS key. Its second half hands the same bytes
+        /// to the private key factory, which refuses them as a PrivateKeyInfo before any key is built; Java generates
+        /// an unrelated height 10 key pair there and does nothing with it, which is left out.
         /// </remarks>
         [Test]
         public void TestPrivateKeySerialisation()
@@ -181,6 +178,9 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             ArgumentException e = Assert.Throws<ArgumentException>(
                 () => new XmssPrivateKeyParameters.Builder(parameters).WithPrivateKey(output).Build());
             Assert.IsInstanceOf<IOException>(e.InnerException);
+
+            // same exploit, other method
+            Assert.Catch<ArgumentException>(() => PrivateKeyFactory.CreateKey(output));
         }
 
         /// <summary>A generated key's encoding reads back to a key that encodes the same.</summary>

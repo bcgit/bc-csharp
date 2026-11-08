@@ -7,6 +7,7 @@ using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -256,10 +257,6 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         /// A shard covers the range [index...index + usageCount), so the single use shard GetNextKey() takes from an
         /// unused key covers index 0 alone and carries maximum index 0: it signs once, and then it is spent.
         /// </summary>
-        /// <remarks>
-        /// Java's XMSS^MT half reads the shard back through PrivateKeyInfo; that round trip arrives with the key
-        /// factories, and the raw encoding is round-tripped here in its place.
-        /// </remarks>
         [Test]
         public void TestSingleUseShardCoversOneSignature()
         {
@@ -294,9 +291,11 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             Assert.AreEqual(1, mtShard.GetUsagesRemaining());
             Assert.AreEqual(1, mt.Index);
 
-            // maximum index 0 means what it says, so it survives being written out and read back
-            XmssMTPrivateKeyParameters restored = new XmssMTPrivateKeyParameters.Builder(XmssMTParams())
-                .WithPrivateKey(mtShard.GetEncoded()).Build();
+            // maximum index 0 now means what it says, so it has to survive being written out and read back: the
+            // encoding records a maximum index short of the tree's, where one covering the whole tree is left to the
+            // reader to infer
+            XmssMTPrivateKeyParameters restored = (XmssMTPrivateKeyParameters)PrivateKeyFactory.CreateKey(
+                PrivateKeyInfoFactory.CreatePrivateKeyInfo(mtShard).GetEncoded());
 
             Assert.AreEqual(0, restored.Index);
             Assert.AreEqual(1, restored.GetUsagesRemaining());

@@ -9,6 +9,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Signers.Xmss;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
@@ -186,6 +187,9 @@ namespace Org.BouncyCastle.X509
                 // TODO[pqc] Avoid redundant copies?
                 return new SubjectPublicKeyInfo(algID, publicKey: slhDsaKey.GetEncoded());
             }
+
+            if (publicKey is XmssPublicKeyParameters || publicKey is XmssMTPublicKeyParameters)
+                return XmssKeyUtilities.CreateSubjectPublicKeyInfo(publicKey);
 
             throw new ArgumentException("Class provided no convertible: " + Platform.GetTypeName(publicKey));
         }

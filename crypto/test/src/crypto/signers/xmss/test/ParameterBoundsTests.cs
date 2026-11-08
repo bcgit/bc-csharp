@@ -3,8 +3,11 @@
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
@@ -13,10 +16,6 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// A tree height is only meaningful up to the point where an int index can still count the tree's leaves, and the
     /// parameter classes take one from whoever asks.
     /// </summary>
-    /// <remarks>
-    /// The two Java methods that read a height or a layer count out of an encoded key arrive with the key
-    /// factories.
-    /// </remarks>
     [TestFixture]
     public class ParameterBoundsTests
     {
@@ -170,6 +169,44 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
                 Assert.AreEqual(cases[i][0], parameters.Height);
                 Assert.AreEqual(cases[i][1], parameters.Layers);
             }
+        }
+
+        /// <summary>
+        /// The height in an XmssKeyParams is whatever the encoded key said it was, so it reaches the parameter set
+        /// straight off the wire and is reported the way the rest of a malformed key is.
+        /// </summary>
+        /// <remarks>Java reports it as an IOException; the key factories here report a malformed key as an
+        /// ArgumentException.</remarks>
+        [Test]
+        public void TestHeightFromEncodedKeyReported()
+        {
+            AlgorithmIdentifier treeDigest = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha256);
+            AlgorithmIdentifier algId = new AlgorithmIdentifier(PqcObjectIdentifiers.xmss,
+                new XmssKeyParams(31, treeDigest));
+
+            ArgumentException e = Assert.Throws<ArgumentException>(() => PublicKeyFactory.CreateKey(
+                new SubjectPublicKeyInfo(algId, new XmssPublicKey(new byte[32], new byte[32]))),
+                "height 31 in public key parameters accepted");
+            Assert.AreEqual("malformed XMSS public key: height must be <= 30", e.Message);
+
+            e = Assert.Throws<ArgumentException>(() => PrivateKeyFactory.CreateKey(new PrivateKeyInfo(algId,
+                new XmssPrivateKey(0, new byte[32], new byte[32], new byte[32], new byte[32], null))),
+                "height 31 in private key parameters accepted");
+            Assert.AreEqual("malformed XMSS private key: height must be <= 30", e.Message);
+        }
+
+        /// <summary>As for the XMSS height, the layer count reaches the parameter set straight off the wire.</summary>
+        [Test]
+        public void TestLayerCountFromEncodedKeyReported()
+        {
+            AlgorithmIdentifier treeDigest = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha256);
+            AlgorithmIdentifier algId = new AlgorithmIdentifier(PqcObjectIdentifiers.xmss_mt,
+                new XmssMTKeyParams(4, 0, treeDigest));
+
+            ArgumentException e = Assert.Throws<ArgumentException>(() => PublicKeyFactory.CreateKey(
+                new SubjectPublicKeyInfo(algId, new XmssPublicKey(new byte[32], new byte[32]))),
+                "zero layers in public key parameters accepted");
+            Assert.AreEqual("malformed XMSS^MT public key: layers must be >= 1", e.Message);
         }
 
         /// <summary>
