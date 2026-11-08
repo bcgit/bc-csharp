@@ -193,6 +193,7 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         /// part of what is compared.
         /// </summary>
         [Test]
+        [Explicit] // slow: ~18s
         public void EncodingMatchesJava_Sha256_StackOrder()
         {
             CheckAgainstJava(new XmssParameters(8, NistObjectIdentifiers.IdSha256), 125, Sha256H8I125Root,

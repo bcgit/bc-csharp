@@ -15,8 +15,7 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// <summary>The XMSS / XMSS^MT key parameter builders.</summary>
     /// <remarks>
     /// The Java tests are written in XMSS / XMSS^MT pairs. The XMSS half of each is here; the XMSS^MT halves, and
-    /// the two XMSS^MT methods, arrive with the XMSS^MT keys. testSingleUseShardCoversOneSignature and
-    /// testRecoveryAtTheExhaustedIndex sign through XmssSigner and arrive with it.
+    /// the two XMSS^MT methods, arrive with the XMSS^MT keys.
     /// </remarks>
     [TestFixture]
     public class KeyParametersBuilderTests
@@ -199,11 +198,11 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         }
 
         /// <summary>
-        /// 2^h, the index of a key with every leaf spent, rebuilds to the state RollKey() leaves there. The Java
-        /// method goes on to sign through XmssSigner; that part arrives with the signer.
+        /// 2^h is the index of a key with every leaf spent. It is inside the range the encoded-key path accepts and is
+        /// what RollKey() leaves behind, so a state the encoding can carry can be rebuilt - and it cannot sign.
         /// </summary>
         [Test]
-        public void RecoveryAtTheExhaustedIndex_Key()
+        public void TestRecoveryAtTheExhaustedIndex()
         {
             XmssParameters parameters = XmssParams();
             byte[] seed = new byte[parameters.TreeDigestSize];
@@ -213,15 +212,27 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             Assert.AreEqual(1 << Height, spent.Index);
             Assert.AreEqual(0, spent.GetUsagesRemaining());
             Assert.AreEqual((1 << Height) - 1, spent.GetBdsState().MaxIndex);
+
+            XmssSigner signer = new XmssSigner();
+
+            signer.Init(true, spent);
+            signer.BlockUpdate(new byte[]{ 1, 2, 3 }, 0, 3);
+
+            ExhaustedPrivateKeyException e = Assert.Throws<ExhaustedPrivateKeyException>(
+                () => signer.GenerateSignature(), "spent key signed");
+            Assert.AreEqual("no usages of private key remaining", e.Message);
         }
 
         /// <summary>
-        /// GetNextKey() takes a single-use shard: index 0 alone, maximum index 0, and the key it came from moves to
-        /// index 1. The Java method goes on to sign through XmssSigner; that part arrives with the signer.
+        /// A shard covers the range [index...index + usageCount), so the single use shard GetNextKey() takes from an
+        /// unused key covers index 0 alone and carries maximum index 0: it signs once, and then it is spent.
         /// </summary>
+        /// <remarks>XMSS half: the XMSS^MT half arrives with the XMSS^MT signer and the key factories.</remarks>
         [Test]
-        public void SingleUseShardCoversOneIndex_Key()
+        public void TestSingleUseShardCoversOneSignature()
         {
+            byte[] message = new byte[]{ 1, 2, 3 };
+
             XmssPrivateKeyParameters xmss = (XmssPrivateKeyParameters)GenerateXmss().Private;
             XmssPrivateKeyParameters xmssShard = xmss.GetNextKey();
 
@@ -229,6 +240,27 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             Assert.AreEqual(0, xmssShard.GetBdsState().MaxIndex);
             Assert.AreEqual(1, xmssShard.GetUsagesRemaining());
             Assert.AreEqual(1, xmss.Index);
+
+            XmssSigner signer = new XmssSigner();
+
+            signer.Init(true, xmssShard);
+            signer.BlockUpdate(message, 0, message.Length);
+            signer.GenerateSignature();
+
+            signer.BlockUpdate(message, 0, message.Length);
+
+            ExhaustedPrivateKeyException e = Assert.Throws<ExhaustedPrivateKeyException>(
+                () => signer.GenerateSignature());
+            Assert.AreEqual("no usages of private key remaining", e.Message);
+        }
+
+        /// <summary>A generator asked for a key pair before Init() says so rather than dereferencing nothing.</summary>
+        [Test]
+        public void GenerateKeyPairBeforeInitRefused()
+        {
+            InvalidOperationException e = Assert.Throws<InvalidOperationException>(
+                () => new XmssKeyPairGenerator().GenerateKeyPair());
+            Assert.AreEqual("XmssKeyPairGenerator not initialised", e.Message);
         }
 
         /// <summary>A maxIndex given to the builder has to be the one the state carries.</summary>

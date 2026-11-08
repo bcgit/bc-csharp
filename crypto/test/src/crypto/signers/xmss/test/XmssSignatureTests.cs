@@ -5,7 +5,9 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
@@ -14,14 +16,98 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// Test cases for XmssSignature class.
     /// </summary>
     /// <remarks>
-    /// The Java methods that take their signature from a generated key - the two parsing tests,
-    /// testSignatureWrongSizeRejected and testVerifyRejectsWrongSize - arrive with the signer and its test harness.
     /// The methods after <see cref="TestConstructor"/> check the same encoding on signatures assembled from their
-    /// parts, and the verifier's root computation on an authentication path the BDS state hands out.
+    /// parts - for a SHAKE parameter set too - and the verifier's root computation on an authentication path the
+    /// BDS state hands out.
     /// </remarks>
     [TestFixture]
     public class XmssSignatureTests
     {
+        [Test]
+        [Explicit] // slow: ~29s
+        public void TestSignatureParsingSha256()
+        {
+            CheckSignatureParsing(new XmssParameters(10, new Sha256Digest()));
+        }
+
+        [Test]
+        [Explicit] // slow: ~54s
+        public void TestSignatureParsingSha512()
+        {
+            CheckSignatureParsing(new XmssParameters(10, new Sha512Digest()));
+        }
+
+        private static void CheckSignatureParsing(XmssParameters p)
+        {
+            XmssHarnessTests.Xmss xmss = new XmssHarnessTests.Xmss(p, new XmssHarnessTests.NullPrng());
+            xmss.GenerateKeys();
+            byte[] message = new byte[1024];
+            byte[] sig1 = xmss.Sign(message);
+            XmssSignature sig2 = new XmssSignature.Builder(p).WithSignature(sig1).Build();
+
+            byte[] sig3 = sig2.ToByteArray();
+            Assert.IsTrue(Arrays.AreEqual(sig1, sig3));
+        }
+
+        /// <summary>
+        /// An XMSS signature is a (4 + n + (len + h) * n)-byte string (RFC 8391 sec. 4.1.8), so a signature
+        /// carrying trailing data - or a truncated one - is not a signature for these parameters (github #2408).
+        /// </summary>
+        [Test]
+        [Explicit] // slow: ~36s
+        public void TestSignatureWrongSizeRejected()
+        {
+            XmssParameters p = new XmssParameters(10, new Sha256Digest());
+            XmssHarnessTests.Xmss xmss = new XmssHarnessTests.Xmss(p, new XmssHarnessTests.NullPrng());
+            xmss.GenerateKeys();
+            byte[] sig = xmss.Sign(new byte[1024]);
+
+            byte[][] wrongSize = new byte[][]
+            {
+                Arrays.Append(sig, 0x2a),
+                Arrays.CopyOfRange(sig, 0, sig.Length - 1),
+                new byte[0]
+            };
+
+            for (int i = 0; i != wrongSize.Length; i++)
+            {
+                ArgumentException e = Assert.Throws<ArgumentException>(
+                    () => new XmssSignature.Builder(p).WithSignature(wrongSize[i]).Build(),
+                    "no exception on signature of wrong size: " + i);
+                Assert.AreEqual("signature has wrong size", e.Message);
+            }
+
+            Assert.Throws<ArgumentNullException>(() => new XmssSignature.Builder(p).WithSignature(null));
+        }
+
+        /// <summary>
+        /// The parse-level check above has to reach verification: a signature with bytes appended, or one cut
+        /// short, must answer false rather than verify (github #2408).
+        /// </summary>
+        [Test]
+        public void TestVerifyRejectsWrongSize()
+        {
+            byte[] msg = Strings.ToByteArray("Cthulhu Fthagn --What a wonderful phrase!");
+
+            XmssKeyPairGenerator kpGen = new XmssKeyPairGenerator();
+
+            kpGen.Init(new XmssKeyGenerationParameters(new SecureRandom(), new XmssParameters(4, new Sha256Digest())));
+
+            AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
+
+            XmssSigner signer = new XmssSigner();
+
+            signer.Init(true, kp.Private);
+
+            byte[] sig = XmssHarnessTests.Sign(signer, msg);
+
+            signer.Init(false, kp.Public);
+
+            Assert.IsTrue(XmssHarnessTests.Verify(signer, msg, sig));
+            Assert.IsFalse(XmssHarnessTests.Verify(signer, msg, Arrays.Append(sig, 0x2a)));
+            Assert.IsFalse(XmssHarnessTests.Verify(signer, msg, Arrays.CopyOfRange(sig, 0, sig.Length - 1)));
+        }
+
         [Test]
         public void TestConstructor()
         {
@@ -42,36 +128,6 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
             CheckParsingRoundTrip(new XmssParameters(4, NistObjectIdentifiers.IdSha256));
             CheckParsingRoundTrip(new XmssParameters(4, NistObjectIdentifiers.IdSha512));
             CheckParsingRoundTrip(new XmssParameters(4, NistObjectIdentifiers.IdShake256Len, 24));
-        }
-
-        /// <summary>
-        /// An XMSS signature is a (4 + n + (len + h) * n)-byte string (RFC 8391 sec. 4.1.8), so a signature
-        /// carrying trailing data - or a truncated one - is not a signature for these parameters.
-        /// </summary>
-        [Test]
-        public void SignatureWrongSizeRejected()
-        {
-            XmssParameters p = new XmssParameters(10, NistObjectIdentifiers.IdSha256);
-            byte[] sig = Assembled(p, 5).ToByteArray();
-
-            Assert.AreEqual(4 + 32 + (67 + 10) * 32, sig.Length);
-
-            byte[][] wrongSize = new byte[][]
-            {
-                Arrays.Append(sig, 0x2a),
-                Arrays.CopyOfRange(sig, 0, sig.Length - 1),
-                new byte[0]
-            };
-
-            for (int i = 0; i != wrongSize.Length; i++)
-            {
-                ArgumentException e = Assert.Throws<ArgumentException>(
-                    () => new XmssSignature.Builder(p).WithSignature(wrongSize[i]).Build(),
-                    "no exception on signature of wrong size: " + i);
-                Assert.AreEqual("signature has wrong size", e.Message);
-            }
-
-            Assert.Throws<ArgumentNullException>(() => new XmssSignature.Builder(p).WithSignature(null));
         }
 
         /// <summary>

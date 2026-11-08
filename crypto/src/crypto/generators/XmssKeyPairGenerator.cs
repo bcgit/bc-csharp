@@ -28,6 +28,13 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
         /// <summary>Generate a new XMSS private key / public key pair.</summary>
-        public AsymmetricCipherKeyPair GenerateKeyPair() => XmssEngine.GenerateKeyPair(m_parameters, m_random);
+        /// <exception cref="InvalidOperationException">If <see cref="Init"/> has not been called.</exception>
+        public AsymmetricCipherKeyPair GenerateKeyPair()
+        {
+            if (m_parameters == null)
+                throw new InvalidOperationException("XmssKeyPairGenerator not initialised");
+
+            return XmssEngine.GenerateKeyPair(m_parameters, m_random);
+        }
     }
 }

@@ -17,9 +17,9 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// key pair share a bucket of a set or a dictionary and are told apart inside it.
     /// </para>
     /// <para>
-    /// The XMSS^MT methods, and the XMSS^MT half of <see cref="TestForeignObjects"/>, arrive with the XMSS^MT keys;
-    /// testXmssSignatureMovesTheAnswerNotTheBucket arrives with the signer.
-    /// <see cref="RollMovesTheAnswerNotTheBucket"/> asserts the same property through RollKey().
+    /// The XMSS^MT methods, and the XMSS^MT half of <see cref="TestForeignObjects"/>, arrive with the XMSS^MT keys.
+    /// <see cref="RollMovesTheAnswerNotTheBucket"/> asserts the property of
+    /// <see cref="TestXmssSignatureMovesTheAnswerNotTheBucket"/> through RollKey().
     /// </para>
     /// </remarks>
     [TestFixture]
@@ -120,7 +120,33 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         }
 
         /// <summary>
-        /// As testXmssSignatureMovesTheAnswerNotTheBucket, with RollKey() moving the key instead of a signature.
+        /// A signature moves the answer Equals() gives and leaves the bucket GetHashCode() picks alone. The key at the
+        /// earlier index is decoded from an encoding taken before signing rather than held as a reference, because
+        /// RollKey() advances the key in place and hands back the same object.
+        /// </summary>
+        [Test]
+        public void TestXmssSignatureMovesTheAnswerNotTheBucket()
+        {
+            XmssPrivateKeyParameters key = NewXmssKey();
+            XmssPrivateKeyParameters before = DecodeXmss(key, key.GetEncoded());
+
+            XmssSigner signer = new XmssSigner();
+
+            signer.Init(true, key);
+            signer.BlockUpdate(new byte[]{ 0x5a }, 0, 1);
+            signer.GenerateSignature();
+
+            XmssPrivateKeyParameters after = (XmssPrivateKeyParameters)signer.GetUpdatedPrivateKey();
+
+            Assert.AreEqual(before.Index + 1, after.Index);
+            Assert.IsFalse(before.Equals(after), "keys at different indices are not equal");
+            Assert.IsFalse(after.Equals(before), "keys at different indices are not equal");
+            Assert.AreEqual(before.GetHashCode(), after.GetHashCode(), "a signature must not move the key's bucket");
+        }
+
+        /// <summary>
+        /// As <see cref="TestXmssSignatureMovesTheAnswerNotTheBucket"/>, with RollKey() moving the key instead of a
+        /// signature.
         /// </summary>
         [Test]
         public void RollMovesTheAnswerNotTheBucket()

@@ -77,18 +77,32 @@ namespace Org.BouncyCastle.Crypto.Parameters
             else
             {
                 /* set */
+                // copies of the builder's arrays rather than the arrays themselves: a builder can build more than one
+                // key, and keys sharing their secret arrays would share a Destroy() - one key's would wipe the seeds
+                // the other goes on signing with, spending its indices on signatures that do not verify
                 byte[] tmpSecretKeySeed = builder.m_secretKeySeed;
-                m_secretKeySeed = XmssEngine.ValidateOrAllocate(tmpSecretKeySeed, n, "secretKeySeed");
+                m_secretKeySeed = Arrays.Clone(XmssEngine.ValidateOrAllocate(tmpSecretKeySeed, n, "secretKeySeed"));
                 byte[] tmpSecretKeyPrf = builder.m_secretKeyPrf;
-                m_secretKeyPrf = XmssEngine.ValidateOrAllocate(tmpSecretKeyPrf, n, "secretKeyPRF");
+                m_secretKeyPrf = Arrays.Clone(XmssEngine.ValidateOrAllocate(tmpSecretKeyPrf, n, "secretKeyPRF"));
                 byte[] tmpPublicSeed = builder.m_publicSeed;
-                m_publicSeed = XmssEngine.ValidateOrAllocate(tmpPublicSeed, n, "publicSeed");
+                m_publicSeed = Arrays.Clone(XmssEngine.ValidateOrAllocate(tmpPublicSeed, n, "publicSeed"));
                 byte[] tmpRoot = builder.m_root;
-                m_root = XmssEngine.ValidateOrAllocate(tmpRoot, n, "root");
+                m_root = Arrays.Clone(XmssEngine.ValidateOrAllocate(tmpRoot, n, "root"));
                 Bds tmpBdsState = builder.m_bdsState;
                 if (tmpBdsState != null)
                 {
-                    m_bdsState = tmpBdsState;
+                    // likewise the traversal state, which a signature marks in place: a state handed to the builder
+                    // is copied for each key built, and only a state built for this one key is adopted, once
+                    if (builder.m_bdsStateOwned)
+                    {
+                        m_bdsState = tmpBdsState;
+                        builder.m_bdsStateOwned = false;
+                    }
+                    else
+                    {
+                        m_bdsState = tmpBdsState.WithMaxIndex(tmpBdsState.MaxIndex, m_params.TreeDigestOid,
+                            m_params.TreeDigestSize);
+                    }
                 }
                 else
                 {
@@ -147,16 +161,21 @@ namespace Org.BouncyCastle.Crypto.Parameters
             {
                 CheckDestroyed();
 
+                Bds replaced = m_bdsState;
+
                 /* prepare authentication path for next leaf */
-                if (m_bdsState.Index < m_bdsState.MaxIndex)
+                if (replaced.Index < replaced.MaxIndex)
                 {
-                    m_bdsState = XmssEngine.GetNextBdsState(m_bdsState, m_publicSeed, m_secretKeySeed);
+                    m_bdsState = XmssEngine.GetNextBdsState(replaced, m_publicSeed, m_secretKeySeed);
                 }
                 else
                 {
                     // no more nodes left.
-                    m_bdsState = new Bds(m_params, m_bdsState.MaxIndex, m_bdsState.MaxIndex + 1);
+                    m_bdsState = new Bds(m_params, replaced.MaxIndex, replaced.MaxIndex + 1);
                 }
+
+                // the state given up can still hold the WOTS+ secret key of a leaf this key has yet to sign with
+                XmssEngine.ClearSecrets(replaced);
 
                 return this;
             }
@@ -195,24 +214,40 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 XmssEngine.ValidateShardSize(usageCount, usagesRemaining);
 
                 /* prepare authentication path for next leaf */
-                XmssPrivateKeyParameters keyParams = new Builder(m_params)
+                Builder builder = new Builder(m_params)
                     .WithSecretKeySeed(m_secretKeySeed).WithSecretKeyPrf(m_secretKeyPrf)
                     .WithPublicSeed(m_publicSeed).WithRoot(m_root)
                     .WithIndex(Index)
                     .WithOwnedBdsState(m_bdsState.WithMaxIndex(m_bdsState.Index + usageCount - 1,
-                        m_params.TreeDigestOid, m_params.TreeDigestSize)).Build();
+                        m_params.TreeDigestOid, m_params.TreeDigestSize));
+                XmssPrivateKeyParameters keyParams;
+                try
+                {
+                    keyParams = builder.Build();
+                }
+                finally
+                {
+                    // a Build() that throws has still been handed the secrets
+                    builder.ClearSecrets();
+                }
 
+                // each state given up can still hold the WOTS+ secret key of a leaf yet to sign with; the shard's
+                // state is a copy with a WOTS+ instance of its own, so wiping these leaves it whole
                 if (usageCount == usagesRemaining)
                 {
                     // we're finished.
-                    m_bdsState = new Bds(m_params, m_bdsState.MaxIndex, Index + usageCount);
+                    Bds replaced = m_bdsState;
+                    m_bdsState = new Bds(m_params, replaced.MaxIndex, replaced.Index + usageCount);
+                    XmssEngine.ClearSecrets(replaced);
                 }
                 else
                 {
                     // update the tree to the new index.
                     for (int i = 0; i != usageCount; i++)
                     {
-                        m_bdsState = XmssEngine.GetNextBdsState(m_bdsState, m_publicSeed, m_secretKeySeed);
+                        Bds replaced = m_bdsState;
+                        m_bdsState = XmssEngine.GetNextBdsState(replaced, m_publicSeed, m_secretKeySeed);
+                        XmssEngine.ClearSecrets(replaced);
                     }
                 }
 
@@ -220,6 +255,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
         }
 
+        /// <remarks>
+        /// The builder keeps copies of the secret seeds, and of an encoding, so that it can build more than one key;
+        /// they live as long as the builder does, which is best kept short.
+        /// </remarks>
         public sealed class Builder
         {
             /* mandatory */
@@ -232,6 +271,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             internal byte[] m_publicSeed = null;
             internal byte[] m_root = null;
             internal Bds m_bdsState = null;
+            internal bool m_bdsStateOwned = false;
             internal byte[] m_privateKey = null;
 
             /// <exception cref="ArgumentNullException">If <paramref name="parameters"/> is <c>null</c>.</exception>
@@ -298,16 +338,18 @@ namespace Org.BouncyCastle.Crypto.Parameters
             internal Builder WithBdsState(Bds valBds)
             {
                 m_bdsState = valBds.WithMaxIndex(valBds.MaxIndex, m_params.TreeDigestOid, m_params.TreeDigestSize);
+                m_bdsStateOwned = false;
                 return this;
             }
 
             /// <summary>
             /// As <see cref="WithBdsState"/>, for a state the caller has just built and shares with nothing: it is
-            /// adopted rather than copied a second time.
+            /// adopted rather than copied a second time - by the first key built; a further Build() copies it.
             /// </summary>
             internal Builder WithOwnedBdsState(Bds valBds)
             {
                 m_bdsState = valBds;
+                m_bdsStateOwned = true;
                 return this;
             }
 
@@ -315,6 +357,18 @@ namespace Org.BouncyCastle.Crypto.Parameters
             {
                 m_privateKey = Arrays.Clone(privateKeyVal);
                 return this;
+            }
+
+            /// <summary>
+            /// Wipe the builder's own copies of the secret seeds and of an encoding, for a caller inside the assembly
+            /// that is done with it: every key built has copies of its own, so this leaves them whole. A builder
+            /// cleared builds nothing further.
+            /// </summary>
+            internal void ClearSecrets()
+            {
+                m_secretKeySeed = XmssEngine.Wipe(m_secretKeySeed);
+                m_secretKeyPrf = XmssEngine.Wipe(m_secretKeyPrf);
+                m_privateKey = XmssEngine.Wipe(m_privateKey);
             }
 
             /// <remarks>

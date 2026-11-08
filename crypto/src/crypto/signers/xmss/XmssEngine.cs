@@ -41,16 +41,27 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss
             Bds bdsState = new Bds(parameters, publicSeed, secretKeySeed, XmssAddress.OtsHashAddress(0, 0L, 0));
             byte[] root = bdsState.Root.GetValue();
 
-            XmssPrivateKeyParameters privateKey = new XmssPrivateKeyParameters.Builder(parameters)
+            XmssPrivateKeyParameters.Builder privateKeyBuilder = new XmssPrivateKeyParameters.Builder(parameters)
                 .WithSecretKeySeed(secretKeySeed).WithSecretKeyPrf(secretKeyPrf)
                 .WithPublicSeed(publicSeed).WithRoot(root)
-                .WithOwnedBdsState(bdsState).Build();
+                .WithOwnedBdsState(bdsState);
+            XmssPrivateKeyParameters privateKey;
+            try
+            {
+                privateKey = privateKeyBuilder.Build();
+            }
+            finally
+            {
+                // a Build() that throws has still been handed the secrets
+                privateKeyBuilder.ClearSecrets();
+            }
 
             XmssPublicKeyParameters publicKey = new XmssPublicKeyParameters.Builder(parameters).WithRoot(root)
                 .WithPublicSeed(publicSeed).Build();
 
-            // the builders took copies. The state, adopted by the key, retains the WOTS+ secret key of the last leaf it
-            // walked; a state imports a fresh one before each leaf it computes, so it can go
+            // the key holds copies of its own, and its builder's have been wiped. The state, adopted by the key,
+            // retains the WOTS+ secret key of the last leaf it walked; a state imports a fresh one before each leaf it
+            // computes, so it can go
             Arrays.ZeroMemory(secretKeySeed);
             Arrays.ZeroMemory(secretKeyPrf);
             bdsState.ClearSecrets();
@@ -293,6 +304,17 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss
             int len = System.Math.Min(n, 8);
             Pack.UInt64_To_BE_Low((ulong)index, concatenated, (3 * n) - len, len);
             return concatenated;
+        }
+
+        /// <summary>Zeroize <paramref name="secret"/>, if there is one, and answer null for the field holding it.
+        /// </summary>
+        internal static byte[] Wipe(byte[] secret)
+        {
+            if (secret != null)
+            {
+                Arrays.ZeroMemory(secret);
+            }
+            return null;
         }
 
         /// <summary>

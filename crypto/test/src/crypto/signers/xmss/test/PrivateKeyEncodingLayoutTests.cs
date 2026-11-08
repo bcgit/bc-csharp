@@ -22,8 +22,8 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
     /// the offsets, taken from this file rather than from the codec's own constants, and the checksum recomputed here.
     /// </para>
     /// <para>
-    /// The Java methods take their keys from XmssSigner and XmssMTSigner, and arrive with them.
-    /// <see cref="XmssKeyEncodingLayout_Rolled"/> checks the same layout on a key moved on by RollKey().
+    /// testXmssMtKeyEncodingLayout arrives with the XMSS^MT signer. <see cref="XmssKeyEncodingLayout_Rolled"/> checks
+    /// the same layout on a key moved on by RollKey(), from index 0.
     /// </para>
     /// </remarks>
     [TestFixture]
@@ -34,6 +34,48 @@ namespace Org.BouncyCastle.Crypto.Signers.Xmss.Tests
         private const int ChecksumSize = 32;
 
         /// <summary>index(4) || secretKeySeed(n) || secretKeyPRF(n) || publicSeed(n) || root(n) || BDS state.</summary>
+        [Test]
+        public void TestXmssKeyEncodingLayout()
+        {
+            XmssParameters parameters = new XmssParameters(4, new Sha256Digest());
+            XmssKeyPairGenerator kpg = new XmssKeyPairGenerator();
+
+            kpg.Init(new XmssKeyGenerationParameters(new SecureRandom(), parameters));
+
+            AsymmetricCipherKeyPair kp = kpg.GenerateKeyPair();
+            XmssSigner signer = new XmssSigner();
+
+            signer.Init(true, kp.Private);
+
+            // three indices: the state stored at index 1 holds far fewer nodes than one further in
+            for (int index = 0; index != 3; index++)
+            {
+                signer.Update((byte)index);
+                signer.GenerateSignature();
+
+                // the key to store, which is the one after the index just spent
+                XmssPrivateKeyParameters privKey = (XmssPrivateKeyParameters)signer.GetUpdatedPrivateKey();
+                int n = parameters.TreeDigestSize;
+                byte[] encoding = privKey.GetEncoded();
+
+                Assert.AreEqual(index + 1, (int)Pack.BE_To_UInt32(encoding, 0));
+                CheckFields(encoding, 4, n, privKey.GetSecretKeySeed(), privKey.GetSecretKeyPrf(),
+                    privKey.GetPublicSeed(), privKey.GetRoot());
+                CheckState(encoding, 4 + 4 * n, BdsStateMagic, privKey.GetPublicSeed());
+
+                // the asserted bytes are also what the key they decode to encodes back to, so this is the layout of a
+                // stored key however it was arrived at, not only of a freshly rolled one
+                XmssPrivateKeyParameters rebuilt = new XmssPrivateKeyParameters.Builder(parameters)
+                    .WithPrivateKey(encoding).Build();
+
+                Assert.IsTrue(Arrays.AreEqual(encoding, rebuilt.GetEncoded()), "re-encoded");
+
+                // GetUpdatedPrivateKey() took the key with it, so the signer needs it back to go on
+                signer.Init(true, privKey);
+            }
+        }
+
+        /// <summary>As <see cref="TestXmssKeyEncodingLayout"/>, on a key moved on by RollKey().</summary>
         [Test]
         public void XmssKeyEncodingLayout_Rolled()
         {
