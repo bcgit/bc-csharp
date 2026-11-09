@@ -360,6 +360,14 @@
                 HQC: HqcKemExtractor now rejects encapsulations of the wrong length. Decapsulation ignored any bytes beyond the expected
                 ciphertext length, so a ciphertext with trailing bytes appended decapsulated to the same shared secret as the original.
             </li>
+            <li>
+                HQC: The GF(2^8) arithmetic used by Reed-Solomon encoding and decoding no longer uses log/exp/inverse/square lookup
+                tables indexed by secret-derived values, which could leak them through cache timing; it is now table-free and branch-free.
+            </li>
+            <li>
+                HQC: Remove secret-dependent branches from decapsulation. Reed-Muller decoding (FindPeaks) used conditional expressions,
+                and the FFT error-position step used Math.Abs, on values derived from the secret error vector; both now use masks.
+            </li>
         </ul>
         <h5>Additional Features and Functionality</h5>
         <ul>

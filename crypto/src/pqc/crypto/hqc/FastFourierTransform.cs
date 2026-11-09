@@ -270,13 +270,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             errorSet[0] ^= (byte)(1 ^ Utils.ToUnsigned16Bits(-input[0] >> 15));
             errorSet[0] ^= (byte)(1 ^ Utils.ToUnsigned16Bits(-input[mSize] >> 15));
 
+            // input[i] is a field element (0 to 255) and is zero exactly at a root of the error locator polynomial, so
+            // -input[i] >> 15 is -1 for a non-root and 0 for a root. Its low bit is taken with a mask rather than with
+            // Math.Abs, which tests the sign of its argument and so may branch on this secret-derived value.
             for (int i = 1; i < mSize; i++)
             {
                 int tmp = gfMulOrder - logArrays[gammaSumSet[i]];
-                errorSet[tmp] ^= (byte)(1 ^ System.Math.Abs(-input[i] >> 15));
+                errorSet[tmp] ^= (byte)(1 ^ ((-input[i] >> 15) & 1));
 
                 tmp = gfMulOrder - logArrays[gammaSumSet[i] ^ 1];
-                errorSet[tmp] ^= (byte)(1 ^ System.Math.Abs(-input[mSize + i] >> 15));
+                errorSet[tmp] ^= (byte)(1 ^ ((-input[mSize + i] >> 15) & 1));
             }
         }
     }

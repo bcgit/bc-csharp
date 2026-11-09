@@ -82,6 +82,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             }
         }
 
+        /**
+         * dRM.Decode.FindPeaks: the position of the Hadamard coefficient of largest magnitude, the smallest such
+         * position on a tie, with the most significant bit set when that coefficient is positive.
+         * <p>
+         * NOTE: the coefficients are derived from the decrypted codeword and the secret error, so every comparison
+         * here is a mask computed with arithmetic shifts and every update a masked select; there are no ternaries,
+         * which the JIT may compile to branches. The magnitudes are small (at most 128 * rm_multiplicity), so none of
+         * the subtractions can overflow.
+         * </p>
+         */
         private static int FindPeaks(int[] input)
         {
             int peakAbsVal = 0;
@@ -91,14 +101,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             for (int i = 0; i < 128; i++)
             {
                 int t = input[i];
-                int posMask = t > 0 ? -1 : 0;
+                int posMask = -t >> 31; // t > 0
                 int abs = (posMask & t) | (~posMask & -t);
 
-                peakVal = abs > peakAbsVal ? t : peakVal;
-                peakPos = abs > peakAbsVal ? i : peakPos;
-                peakAbsVal = abs > peakAbsVal ? abs : peakAbsVal;
+                int gtMask = (peakAbsVal - abs) >> 31; // abs > peakAbsVal
+                peakVal ^= gtMask & (t ^ peakVal);
+                peakPos ^= gtMask & (i ^ peakPos);
+                peakAbsVal ^= gtMask & (abs ^ peakAbsVal);
             }
-            int tmp = peakVal > 0 ? 1 : 0;
+            int tmp = (-peakVal >> 31) & 1; // peakVal > 0
             peakPos |= 128 * tmp;
             return peakPos;
         }
