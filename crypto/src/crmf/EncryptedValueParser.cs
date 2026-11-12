@@ -9,29 +9,26 @@ namespace Org.BouncyCastle.Crmf
         private readonly EncryptedValue m_value;
         private readonly IEncryptedValuePadder m_padder;
 
-        /**
-         * Basic constructor - create a parser to read the passed in value.
-         *
-         * @param value the value to be parsed.
-         */
+        /// <summary>Basic constructor - create a parser to read the passed in value.</summary>
+        /// <param name="value">The value to be parsed.</param>
         public EncryptedValueParser(EncryptedValue value)
             : this(value, null)
         {
         }
 
-        /**
-         * Create a parser to read the passed in value, assuming the padder was
-         * applied to the data prior to encryption.
-         *
-         * @param value  the value to be parsed.
-         * @param padder the padder to be used to remove padding from the decrypted value..
-         */
+        /// <summary>
+        /// Create a parser to read the passed in value, assuming the padder was applied to the data prior to
+        /// encryption.
+        /// </summary>
+        /// <param name="value">The value to be parsed.</param>
+        /// <param name="padder">The padder to be used to remove padding from the decrypted value.</param>
         public EncryptedValueParser(EncryptedValue value, IEncryptedValuePadder padder)
         {
             m_value = value;
             m_padder = padder;
         }
 
+        /// <summary>Gets the algorithm the encrypted value is intended for, or null if not specified.</summary>
         public virtual AlgorithmIdentifier IntendedAlg => m_value.IntendedAlg;
 
         // TODO[crmf]

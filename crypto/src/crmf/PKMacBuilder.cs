@@ -38,6 +38,7 @@ namespace Org.BouncyCastle.Crmf
         }
     }
 
+    /// <summary>Builder for the password based MAC (PKMAC) used to authenticate CRMF requests.</summary>
     public class PKMacBuilder
     {
         private AlgorithmIdentifier owf;
@@ -99,12 +100,10 @@ namespace Org.BouncyCastle.Crmf
             this.provider = provider;
         }
 
-        /**
-         * Set the salt length in octets.
-         *
-         * @param saltLength length in octets of the salt to be generated.
-         * @return the generator
-         */
+        /// <summary>Set the salt length in octets.</summary>
+        /// <param name="saltLength">The length in octets of the salt to be generated.</param>
+        /// <returns>This builder.</returns>
+        /// <exception cref="ArgumentException"><paramref name="saltLength"/> is less than 8.</exception>
         public PKMacBuilder SetSaltLength(int saltLength)
         {
             if (saltLength < 8)
@@ -159,6 +158,11 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        /// <summary>Create a MAC factory for a password based MAC algorithm, taking its parameters from the algorithm.
+        /// </summary>
+        /// <param name="algorithm">A password based MAC algorithm identifier, with its parameters.</param>
+        /// <param name="password">The password.</param>
+        /// <exception cref="ArgumentException">The algorithm is not password based MAC.</exception>
         public IMacFactory Get(AlgorithmIdentifier algorithm, char[] password)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -174,6 +178,11 @@ namespace Org.BouncyCastle.Crmf
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Create a MAC factory for a password based MAC algorithm, taking its parameters from the algorithm.
+        /// </summary>
+        /// <param name="algorithm">A password based MAC algorithm identifier, with its parameters.</param>
+        /// <param name="password">The password.</param>
+        /// <exception cref="ArgumentException">The algorithm is not password based MAC.</exception>
         public IMacFactory Get(AlgorithmIdentifier algorithm, ReadOnlySpan<char> password)
         {
             if (!CmpObjectIdentifiers.passwordBasedMac.Equals(algorithm.Algorithm))
@@ -206,6 +215,9 @@ namespace Org.BouncyCastle.Crmf
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Build an IMacFactory.</summary>
+        /// <param name="password">The password.</param>
+        /// <returns>An <see cref="IMacFactory"/>.</returns>
         public IMacFactory Build(ReadOnlySpan<char> password)
         {
             PbmParameter pbmParameter = parameters;

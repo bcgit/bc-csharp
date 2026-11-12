@@ -5,10 +5,15 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Crmf
 {
-    public interface IPKMacPrimitivesProvider   
+    /// <summary>Provider of the digests and MACs used for PKMAC calculations.</summary>
+    public interface IPKMacPrimitivesProvider
     {
-	    IDigest CreateDigest(AlgorithmIdentifier digestAlg);
+        /// <summary>Create the digest for the given algorithm.</summary>
+        /// <param name="digestAlg">The digest algorithm.</param>
+        IDigest CreateDigest(AlgorithmIdentifier digestAlg);
 
+        /// <summary>Create the MAC for the given algorithm.</summary>
+        /// <param name="macAlg">The MAC algorithm.</param>
         IMac CreateMac(AlgorithmIdentifier macAlg);
     }
 }

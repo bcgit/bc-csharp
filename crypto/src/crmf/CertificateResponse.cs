@@ -11,25 +11,23 @@ namespace Org.BouncyCastle.Crmf
     {
         private readonly CertResponse m_certResponse;
 
+        /// <summary>Wrap a CertResponse structure.</summary>
+        /// <param name="certResponse">The ASN.1 structure.</param>
         public CertificateResponse(CertResponse certResponse)
         {
             m_certResponse = certResponse;
         }
 
-        /**
-         * Return true if the response contains an encrypted certificate.
-         *
-         * @return true if certificate in response encrypted, false otherwise.
-         */
+        /// <summary>Gets whether the response contains an encrypted certificate.</summary>
         public virtual bool HasEncryptedCertificate =>
             m_certResponse.CertifiedKeyPair.CertOrEncCert.HasEncryptedCertificate;
 
-        /**
-         * Return a CMSEnvelopedData representing the encrypted certificate contained in the response.
-         *
-         * @return a CMEEnvelopedData if an encrypted certificate is present.
-         * @throws IllegalStateException if no encrypted certificate is present, or there is an issue with the enveloped data.
-         */
+        /// <summary>Return a CmsEnvelopedData representing the encrypted certificate contained in the response.
+        /// </summary>
+        /// <returns>The enveloped data, if an encrypted certificate is present.</returns>
+        /// <exception cref="InvalidOperationException">
+        /// No encrypted certificate is present, or it is encrypted for more than one recipient.
+        /// </exception>
         public virtual CmsEnvelopedData GetEncryptedCertificate()
         {
             if (!HasEncryptedCertificate)
@@ -70,12 +68,9 @@ namespace Org.BouncyCastle.Crmf
         }
 #endif
 
-        /**
-         * Return the CMPCertificate representing the plaintext certificate in the response.
-         *
-         * @return a CMPCertificate if a plaintext certificate is present.
-         * @throws IllegalStateException if no plaintext certificate is present.
-         */
+        /// <summary>Return the CmpCertificate representing the plaintext certificate in the response.</summary>
+        /// <returns>The certificate, if a plaintext certificate is present.</returns>
+        /// <exception cref="InvalidOperationException">No plaintext certificate is present.</exception>
         public virtual CmpCertificate GetCertificate()
         {
             if (HasEncryptedCertificate)
@@ -84,11 +79,7 @@ namespace Org.BouncyCastle.Crmf
             return m_certResponse.CertifiedKeyPair.CertOrEncCert.Certificate;
         }
 
-        /**
-         * Return this object's underlying ASN.1 structure.
-         *
-         * @return a CertResponse
-         */
+        /// <summary>Return this object's underlying ASN.1 structure.</summary>
         public virtual CertResponse ToAsn1Structure() => m_certResponse;
     }
 }

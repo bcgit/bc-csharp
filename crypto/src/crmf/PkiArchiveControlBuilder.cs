@@ -10,17 +10,20 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Crmf
 {
+    /// <summary>Builder for <see cref="PkiArchiveControl"/> objects.</summary>
+    /// <remarks>
+    /// The private key is enveloped for the recipients added with <see cref="AddRecipientGenerator"/> when
+    /// <see cref="Build"/> is called.
+    /// </remarks>
     public class PkiArchiveControlBuilder
     {
         private readonly CmsEnvelopedDataGenerator m_envGen;
         private readonly CmsProcessableByteArray m_keyContent;
 
-        /// <summary>
-        ///Basic constructor - specify the contents of the PKIArchiveControl structure.
-        /// </summary>
-        /// <param name="privateKeyInfo">the private key to be archived.</param>
-        /// <param name="generalName">the general name to be associated with the private key.</param>
-        ///
+        /// <summary>Basic constructor - specify the contents of the PKIArchiveControl structure.</summary>
+        /// <param name="privateKeyInfo">The private key to be archived.</param>
+        /// <param name="generalName">The general name to be associated with the private key.</param>
+        /// <exception cref="InvalidOperationException">The key and name could not be encoded.</exception>
         public PkiArchiveControlBuilder(PrivateKeyInfo privateKeyInfo, GeneralName generalName)
         {
             EncKeyWithID encKeyWithID = new EncKeyWithID(privateKeyInfo, generalName);
@@ -37,9 +40,9 @@ namespace Org.BouncyCastle.Crmf
             m_envGen = new CmsEnvelopedDataGenerator();
         }
 
-        ///<summary>Add a recipient generator to this control.</summary>
-        ///<param name="recipientGen"> recipient generator created for a specific recipient.</param>
-        ///<returns>this builder object.</returns>
+        /// <summary>Add a recipient generator to this control.</summary>
+        /// <param name="recipientGen">A recipient generator created for a specific recipient.</param>
+        /// <returns>This builder object.</returns>
         public PkiArchiveControlBuilder AddRecipientGenerator(RecipientInfoGenerator recipientGen)
         {
             m_envGen.AddRecipientInfoGenerator(recipientGen);
@@ -47,8 +50,8 @@ namespace Org.BouncyCastle.Crmf
         }
 
         /// <summary>Build the PKIArchiveControl using the passed in encryptor to encrypt its contents.</summary>
-        /// <param name="contentEncryptor">a suitable content encryptor.</param>
-        /// <returns>a PKIArchiveControl object.</returns>
+        /// <param name="contentEncryptor">A suitable content encryptor.</param>
+        /// <returns>A PkiArchiveControl object.</returns>
         public PkiArchiveControl Build(ICipherBuilderWithKey contentEncryptor)
         {
             CmsEnvelopedData envData = m_envGen.Generate(m_keyContent, contentEncryptor);
