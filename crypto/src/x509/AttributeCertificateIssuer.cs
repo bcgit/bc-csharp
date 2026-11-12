@@ -18,6 +18,8 @@ namespace Org.BouncyCastle.X509
             form = issuer.Issuer;
         }
 
+        /// <summary>Set the issuer to a name, using the v2 form.</summary>
+        /// <param name="principal">The name of the issuer.</param>
         public AttributeCertificateIssuer(X509Name principal)
         {
             form = new V2Form(new GeneralNames(new GeneralName(principal)));
@@ -113,8 +115,12 @@ namespace Org.BouncyCastle.X509
             return false;
         }
 
+        /// <summary>Return a copy of this issuer.</summary>
         public object Clone() => new AttributeCertificateIssuer(AttCertIssuer.GetInstance(form));
 
+        /// <summary>Test whether the given certificate is the issuer's certificate.</summary>
+        /// <param name="x509Cert">The certificate to test.</param>
+        /// <returns>true if the certificate matches, false otherwise or if it is null.</returns>
         public bool Match(X509Certificate x509Cert)
         {
             if (x509Cert == null)
@@ -134,6 +140,7 @@ namespace Org.BouncyCastle.X509
             return MatchesDN(x509Cert.SubjectDN, (GeneralNames)form);
         }
 
+        /// <summary>Two issuers are equal if their underlying ASN.1 structures are equal.</summary>
         public override bool Equals(object obj)
         {
             if (obj == this)
@@ -143,6 +150,7 @@ namespace Org.BouncyCastle.X509
                 && this.form.Equals(that.form);
         }
 
+        /// <summary>Returns a hash code derived from the underlying ASN.1 structure.</summary>
         public override int GetHashCode() => form.GetHashCode();
     }
 }

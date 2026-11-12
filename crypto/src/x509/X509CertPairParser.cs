@@ -9,6 +9,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.X509
 {
+    /// <summary>Parser for cross certificate pairs, in DER or PEM form.</summary>
     public class X509CertPairParser
     {
         private Stream currentStream;
@@ -21,18 +22,19 @@ namespace Org.BouncyCastle.X509
             }
         }
 
-        /// <summary>
-        /// Create loading data from byte array.
-        /// </summary>
-        /// <param name="input"></param>
+        /// <summary>Read the next certificate pair from the encoded data.</summary>
+        /// <param name="input">The encoded data.</param>
         public X509CertificatePair ReadCertPair(byte[] input) => ReadCertPair(new MemoryStream(input, false));
 
-        /// <summary>
-        /// Create loading data from byte array.
-        /// </summary>
-        /// <param name="input"></param>
+        /// <summary>Read all the certificate pairs from the encoded data.</summary>
+        /// <param name="input">The encoded data.</param>
         public IList<X509CertificatePair> ReadCertPairs(byte[] input) => ReadCertPairs(new MemoryStream(input, false));
 
+        /// <summary>Read the next certificate pair from the stream.</summary>
+        /// <param name="inStream">The stream to read from.</param>
+        /// <returns>The pair, or null if the end of the stream has been reached.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="inStream"/> is null.</exception>
+        /// <exception cref="CertificateException">The data cannot be parsed.</exception>
         public X509CertificatePair ReadCertPair(Stream inStream)
         {
             if (inStream == null)
@@ -78,6 +80,10 @@ namespace Org.BouncyCastle.X509
             }
         }
 
+        /// <summary>Read all the remaining certificate pairs from the stream.</summary>
+        /// <param name="inStream">The stream to read from.</param>
+        /// <returns>The pairs read; the list may be empty.</returns>
+        /// <exception cref="CertificateException">The data cannot be parsed.</exception>
         public IList<X509CertificatePair> ReadCertPairs(Stream inStream)
         {
             var certPairs = new List<X509CertificatePair>();

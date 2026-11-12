@@ -41,9 +41,12 @@ namespace Org.BouncyCastle.X509
             m_reverse = reverse == null ? null : new X509Certificate(reverse);
         }
 
+        /// <summary>Return the ASN.1 CertificatePair structure for the pair.</summary>
         public CertificatePair GetCertificatePair() =>
             new CertificatePair(m_forward?.CertificateStructure, m_reverse?.CertificateStructure);
 
+        /// <summary>Return the DER encoding of the pair.</summary>
+        /// <exception cref="CertificateEncodingException">The pair could not be encoded.</exception>
         public byte[] GetEncoded()
         {
             try
@@ -62,6 +65,7 @@ namespace Org.BouncyCastle.X509
         /// <summary>Returns the certificate from this CA to the other CA.</summary>
         public X509Certificate Reverse => m_reverse;
 
+        /// <summary>Two pairs are equal if their forward and reverse certificates are equal.</summary>
         public override bool Equals(object obj)
         {
             if (obj == this)
@@ -72,6 +76,7 @@ namespace Org.BouncyCastle.X509
                 && Objects.Equals(this.m_reverse, that.m_reverse);
         }
 
+        /// <summary>Returns a hash code derived from the forward and reverse certificates.</summary>
         public override int GetHashCode()
         {
             int hash = -1;

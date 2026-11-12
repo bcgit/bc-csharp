@@ -20,14 +20,23 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security
 {
+    /// <summary>Factory for public keys, creating the appropriate key parameters from a SubjectPublicKeyInfo.</summary>
     public static class PublicKeyFactory
     {
+        /// <summary>Create a public key from an encoded SubjectPublicKeyInfo.</summary>
+        /// <param name="keyInfoData">The encoded SubjectPublicKeyInfo.</param>
         public static AsymmetricKeyParameter CreateKey(byte[] keyInfoData) =>
             CreateKey(SubjectPublicKeyInfo.GetInstance(keyInfoData));
 
+        /// <summary>Create a public key from an encoded SubjectPublicKeyInfo read from a stream.</summary>
+        /// <param name="inStr">The stream to read from.</param>
         public static AsymmetricKeyParameter CreateKey(Stream inStr) =>
             CreateKey(SubjectPublicKeyInfo.GetInstance(Asn1Object.FromStream(inStr)));
 
+        /// <summary>Create a public key from a SubjectPublicKeyInfo.</summary>
+        /// <param name="keyInfo">The SubjectPublicKeyInfo.</param>
+        /// <exception cref="SecurityUtilityException">The key algorithm is not recognised.</exception>
+        /// <exception cref="ArgumentException">The key data is invalid for its algorithm.</exception>
         public static AsymmetricKeyParameter CreateKey(SubjectPublicKeyInfo keyInfo)
         {
             AlgorithmIdentifier algID = keyInfo.Algorithm;

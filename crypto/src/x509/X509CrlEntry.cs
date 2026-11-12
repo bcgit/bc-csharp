@@ -30,7 +30,8 @@ namespace Org.BouncyCastle.X509
         private volatile bool m_hashValueSet;
         private volatile int m_hashValue;
 
-        // TODO[api] Rename to 'crlEntry'
+        /// <summary>Create an entry for a CRL that is not an indirect CRL.</summary>
+        /// <param name="c">The ASN.1 <see cref="CrlEntry"/> object.</param>
         public X509CrlEntry(CrlEntry c)
         {
             m_crlEntry = c ?? throw new ArgumentNullException(nameof(c));
@@ -67,6 +68,7 @@ namespace Org.BouncyCastle.X509
             m_certificateIssuer = certificateIssuer;
         }
 
+        /// <summary>Gets the underlying ASN.1 structure.</summary>
         public virtual CrlEntry CrlEntry => m_crlEntry;
 
         internal static X509Name LoadCertificateIssuer(CrlEntry c, bool isIndirect, X509Name previousCertificateIssuer)
@@ -94,10 +96,17 @@ namespace Org.BouncyCastle.X509
             return null;
         }
 
+        /// <summary>Return the issuer of the revoked certificate.</summary>
+        /// <returns>
+        /// The issuer name, or null if the CRL is not an indirect CRL or no issuer can be determined.
+        /// </returns>
         public X509Name GetCertificateIssuer() => m_certificateIssuer;
 
+        /// <summary>Returns the extensions of the entry, or null if there are none.</summary>
         protected override X509Extensions GetX509Extensions() => m_crlEntry.Extensions;
 
+        /// <summary>Return the DER encoding of the entry.</summary>
+        /// <exception cref="CrlException">The entry could not be encoded.</exception>
         public byte[] GetEncoded()
         {
             try
@@ -110,12 +119,16 @@ namespace Org.BouncyCastle.X509
             }
         }
 
+        /// <summary>Gets the serial number of the revoked certificate.</summary>
         public BigInteger SerialNumber => m_crlEntry.UserCertificate.Value;
 
+        /// <summary>Gets the date on which the certificate was revoked.</summary>
         public DateTime RevocationDate => m_crlEntry.RevocationDate.ToDateTime();
 
+        /// <summary>Gets whether the entry has any extensions.</summary>
         public bool HasExtensions => m_crlEntry.Extensions != null;
 
+        /// <summary>Two entries are equal if their underlying ASN.1 structures are equal.</summary>
         public override bool Equals(object other)
         {
             if (this == other)
@@ -137,6 +150,7 @@ namespace Org.BouncyCastle.X509
                 && Objects.Equals(this.m_certificateIssuer, that.m_certificateIssuer);
         }
 
+        /// <summary>Returns a hash code derived from the underlying ASN.1 structure.</summary>
         public override int GetHashCode()
         {
             if (!m_hashValueSet)
@@ -148,6 +162,7 @@ namespace Org.BouncyCastle.X509
             return m_hashValue;
         }
 
+        /// <summary>Returns a textual description of the entry.</summary>
         public override string ToString()
         {
             StringBuilder buf = new StringBuilder();

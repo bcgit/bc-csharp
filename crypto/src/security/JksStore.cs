@@ -16,6 +16,8 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Security
 {
+    /// <summary>A reader and writer for Java KeyStore (JKS) files.</summary>
+    /// <remarks>Entries are looked up by alias, ignoring case.</remarks>
     public class JksStore
     {
         private static readonly int Magic = unchecked((int)0xFEEDFEED);
@@ -30,6 +32,7 @@ namespace Org.BouncyCastle.Security
         private readonly Dictionary<string, JksKeyEntry> m_keyEntries =
             new Dictionary<string, JksKeyEntry>(StringComparer.OrdinalIgnoreCase);
 
+        /// <summary>Create an empty store.</summary>
         public JksStore()
         {
         }
@@ -200,6 +203,9 @@ namespace Org.BouncyCastle.Security
         }
 #endif
 
+        /// <summary>Return the certificate chain of the key entry with the given alias.</summary>
+        /// <param name="alias">The alias.</param>
+        /// <returns>A copy of the chain, or null if there is no such key entry.</returns>
         public X509Certificate[] GetCertificateChain(string alias)
         {
             if (m_keyEntries.TryGetValue(alias, out var keyEntry))
@@ -208,6 +214,11 @@ namespace Org.BouncyCastle.Security
             return null;
         }
 
+        /// <summary>Return the certificate for the given alias.</summary>
+        /// <param name="alias">The alias.</param>
+        /// <returns>
+        /// The trusted certificate, or the first certificate of a key entry's chain, or null if there is none.
+        /// </returns>
         public X509Certificate GetCertificate(string alias)
         {
             if (m_certificateEntries.TryGetValue(alias, out var certEntry))
@@ -222,6 +233,9 @@ namespace Org.BouncyCastle.Security
             return null;
         }
 
+        /// <summary>Return the creation date of the entry with the given alias.</summary>
+        /// <param name="alias">The alias.</param>
+        /// <returns>The date, or null if there is no such entry.</returns>
         public DateTime? GetCreationDate(string alias)
         {
             if (m_certificateEntries.TryGetValue(alias, out var certEntry))
@@ -339,6 +353,8 @@ namespace Org.BouncyCastle.Security
             m_certificateEntries.Add(alias, new JksTrustedCertEntry(DateTime.UtcNow, cert));
         }
 
+        /// <summary>Delete the entry with the given alias, if there is one.</summary>
+        /// <param name="alias">The alias.</param>
         public void DeleteEntry(string alias)
         {
             if (!m_keyEntries.Remove(alias))
@@ -347,6 +363,7 @@ namespace Org.BouncyCastle.Security
             }
         }
 
+        /// <summary>Gets the aliases of all the entries in the store.</summary>
         public IEnumerable<string> Aliases
         {
             get
@@ -357,26 +374,36 @@ namespace Org.BouncyCastle.Security
             }
         }
 
+        /// <summary>Return whether the store has an entry with the given alias.</summary>
+        /// <param name="alias">The alias.</param>
         public bool ContainsAlias(string alias)
         {
             return IsCertificateEntry(alias) || IsKeyEntry(alias);
         }
 
+        /// <summary>Gets the number of entries in the store.</summary>
         public int Count
         {
             get { return m_certificateEntries.Count + m_keyEntries.Count; }
         }
 
+        /// <summary>Return whether the entry with the given alias is a key entry.</summary>
+        /// <param name="alias">The alias.</param>
         public bool IsKeyEntry(string alias)
         {
             return m_keyEntries.ContainsKey(alias);
         }
 
+        /// <summary>Return whether the entry with the given alias is a trusted certificate entry.</summary>
+        /// <param name="alias">The alias.</param>
         public bool IsCertificateEntry(string alias)
         {
             return m_certificateEntries.ContainsKey(alias);
         }
 
+        /// <summary>Return the alias of the trusted certificate entry holding the given certificate.</summary>
+        /// <param name="cert">The certificate.</param>
+        /// <returns>The alias, or null if the certificate is not in a trusted certificate entry.</returns>
         public string GetCertificateAlias(X509Certificate cert)
         {
             foreach (var entry in m_certificateEntries)
@@ -973,6 +1000,7 @@ namespace Org.BouncyCastle.Security
             {
             }
 
+            /// <summary>Wipe the buffered store contents on disposal.</summary>
             protected override void Dispose(bool disposing)
             {
                 if (disposing)

@@ -11,6 +11,9 @@ namespace Org.BouncyCastle.X509
     /// </summary>
     public class DeltaCertificateTool
     {
+        /// <summary>Create a delta certificate descriptor extension describing the given delta certificate.</summary>
+        /// <param name="isCritical">Whether the extension is to be marked critical.</param>
+        /// <param name="deltaCert">The delta certificate.</param>
         public static Asn1.X509.Extension CreateDeltaCertificateExtension(bool isCritical,
             X509CertificateStructure deltaCert)
         {
@@ -31,9 +34,16 @@ namespace Org.BouncyCastle.X509
             return new Asn1.X509.Extension(extnID, critical, extnValue);
         }
 
+        /// <summary>Create a delta certificate descriptor extension describing the given delta certificate.</summary>
+        /// <param name="isCritical">Whether the extension is to be marked critical.</param>
+        /// <param name="deltaCert">The delta certificate.</param>
         public static Asn1.X509.Extension CreateDeltaCertificateExtension(bool isCritical, X509Certificate deltaCert) =>
             CreateDeltaCertificateExtension(isCritical, deltaCert.CertificateStructure);
 
+        /// <summary>Reconstruct the delta certificate from the base certificate's descriptor extension.</summary>
+        /// <param name="baseTbsCert">The to-be-signed part of the base certificate.</param>
+        /// <exception cref="InvalidOperationException">The base certificate has no delta certificate descriptor.
+        /// </exception>
         public static X509CertificateStructure ExtractDeltaCertificate(TbsCertificateStructure baseTbsCert)
         {
             var baseExtensions = baseTbsCert.Extensions;
@@ -59,9 +69,20 @@ namespace Org.BouncyCastle.X509
             return new X509CertificateStructure(tbsCertificate, signature, descriptor.SignatureValue);
         }
 
+        /// <summary>Reconstruct the delta certificate from the base certificate's descriptor extension.</summary>
+        /// <param name="baseCert">The base certificate.</param>
+        /// <exception cref="InvalidOperationException">The base certificate has no delta certificate descriptor.
+        /// </exception>
         public static X509Certificate ExtractDeltaCertificate(X509Certificate baseCert) =>
             new X509Certificate(ExtractDeltaCertificate(baseCert.TbsCertificate));
 
+        /// <summary>
+        /// Remove from a delta certificate descriptor the fields that duplicate those of the base certificate.
+        /// </summary>
+        /// <param name="descriptor">The full descriptor.</param>
+        /// <param name="tbsCertificate">The to-be-signed part of the base certificate.</param>
+        /// <param name="tbsExtensions">The extensions of the base certificate.</param>
+        /// <returns>The trimmed descriptor.</returns>
         public static DeltaCertificateDescriptor TrimDeltaCertificateDescriptor(DeltaCertificateDescriptor descriptor,
             TbsCertificateStructure tbsCertificate, X509Extensions tbsExtensions)
         {

@@ -10,6 +10,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.X509
 {
+    /// <summary>Parser for X.509 attribute certificates, in DER, PEM or PKCS#7 form.</summary>
     public class X509AttrCertParser
     {
         private static readonly PemParser PemAttrCertParser = new PemParser("ATTRIBUTE CERTIFICATE");
@@ -161,6 +162,9 @@ namespace Org.BouncyCastle.X509
         public IList<X509V2AttributeCertificate> ReadAttrCerts(Stream inStream) =>
             new List<X509V2AttributeCertificate>(ParseAttrCerts(inStream));
 
+        /// <summary>Returns the certificates read from <paramref name="inStream"/>, one at a time as they are read.
+        /// </summary>
+        /// <param name="inStream">The stream to read from.</param>
         public IEnumerable<X509V2AttributeCertificate> ParseAttrCerts(Stream inStream)
         {
             X509V2AttributeCertificate attrCert;

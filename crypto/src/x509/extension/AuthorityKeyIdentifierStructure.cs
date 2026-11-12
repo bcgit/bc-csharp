@@ -11,6 +11,8 @@ namespace Org.BouncyCastle.X509.Extension
     public class AuthorityKeyIdentifierStructure
         : AuthorityKeyIdentifier
     {
+        /// <summary>Create from the value of an authority key identifier extension.</summary>
+        /// <param name="encodedValue">The extension value.</param>
         public AuthorityKeyIdentifierStructure(Asn1OctetString encodedValue)
 #pragma warning disable CS0618 // Type or member is obsolete
             : base(Asn1Sequence.GetInstance(encodedValue.GetOctets()))

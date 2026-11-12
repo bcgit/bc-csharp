@@ -10,6 +10,8 @@ using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.X509.Store
 {
+    /// <summary>A selector for X.509 CRLs, matching them against configurable criteria.</summary>
+    /// <remarks>Criteria that have not been set are not applied.</remarks>
     public class X509CrlStoreSelector
         : ISelector<X509Crl>, ICheckingAttrCert, ICheckingCertificate
     {
@@ -28,10 +30,13 @@ namespace Org.BouncyCastle.X509.Store
         private bool m_issuingDistributionPointEnabled;
         private BigInteger m_maxBaseCrlNumber;
 
+        /// <summary>Create a selector with no criteria.</summary>
         public X509CrlStoreSelector()
         {
         }
 
+        /// <summary>Create a selector with the criteria of another selector.</summary>
+        /// <param name="o">The selector to copy.</param>
         public X509CrlStoreSelector(X509CrlStoreSelector o)
         {
             m_certificateChecking = o.CertificateChecking;
@@ -48,8 +53,12 @@ namespace Org.BouncyCastle.X509.Store
             m_issuingDistributionPoint = o.IssuingDistributionPoint;
         }
 
+        /// <summary>Return a copy of this selector.</summary>
         public virtual object Clone() => new X509CrlStoreSelector(this);
 
+        /// <summary>Add an issuer name; a matching CRL must have one of the issuers added.</summary>
+        /// <param name="issuer">The issuer name.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="issuer"/> is null.</exception>
         public void AddIssuer(X509Name issuer)
         {
             if (issuer == null)
@@ -63,12 +72,19 @@ namespace Org.BouncyCastle.X509.Store
             m_issuers.Add(issuer);
         }
 
+        /// <summary>Gets or sets the certificate being checked.</summary>
+        /// <remarks>
+        /// This is not a criterion, but optional information that may help finding CRLs relevant to the certificate.
+        /// </remarks>
         public X509Certificate CertificateChecking
         {
             get { return m_certificateChecking; }
             set { m_certificateChecking = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the time at which matching CRLs must be current (after thisUpdate and before nextUpdate).
+        /// </summary>
         public DateTime? DateAndTime
         {
             get { return m_dateAndTime; }
@@ -100,12 +116,14 @@ namespace Org.BouncyCastle.X509.Store
             }
         }
 
+        /// <summary>Gets or sets the highest CRL number that matching CRLs may have.</summary>
         public BigInteger MaxCrlNumber
         {
             get { return m_maxCrlNumber; }
             set { m_maxCrlNumber = value; }
         }
 
+        /// <summary>Gets or sets the lowest CRL number that matching CRLs may have.</summary>
         public BigInteger MinCrlNumber
         {
             get { return m_minCrlNumber; }
@@ -182,6 +200,9 @@ namespace Org.BouncyCastle.X509.Store
             set { m_maxBaseCrlNumber = value; }
         }
 
+        /// <summary>Test whether a CRL meets all the criteria that have been set.</summary>
+        /// <param name="c">The CRL to test.</param>
+        /// <returns>true if the CRL matches, false otherwise or if it is null.</returns>
         public virtual bool Match(X509Crl c)
         {
             if (c == null)
@@ -275,13 +296,17 @@ namespace Org.BouncyCastle.X509.Store
         }
     }
 
+    /// <summary>Implemented by selectors that carry the attribute certificate being checked.</summary>
     public interface ICheckingAttrCert
     {
+        /// <summary>Gets the attribute certificate being checked.</summary>
         X509V2AttributeCertificate AttrCertChecking { get; }
     }
 
+    /// <summary>Implemented by selectors that carry the certificate being checked.</summary>
     public interface ICheckingCertificate
     {
+        /// <summary>Gets the certificate being checked.</summary>
         X509Certificate CertificateChecking { get; }
     }
 }

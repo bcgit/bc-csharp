@@ -10,6 +10,8 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Security
 {
+    /// <summary>A cryptographically strong random number generator, built on an <see cref="IRandomGenerator"/>.
+    /// </summary>
     public class SecureRandom
         : Random
     {
@@ -37,9 +39,15 @@ namespace Org.BouncyCastle.Security
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         // System.Buffers.SpanAction<byte, in SecureRandom>
+        /// <summary>Fill the buffer with random bytes from the given source.</summary>
+        /// <param name="buffer">The buffer to fill.</param>
+        /// <param name="secureRandom">The source of randomness.</param>
         public static void Fill(Span<byte> buffer, SecureRandom secureRandom) => secureRandom.NextBytes(buffer);
 #endif
 
+        /// <summary>Return a new array of random bytes from the given source.</summary>
+        /// <param name="secureRandom">The source of randomness.</param>
+        /// <param name="length">The number of bytes.</param>
         public static byte[] GetNextBytes(SecureRandom secureRandom, int length)
         {
             byte[] result = new byte[length];
@@ -76,8 +84,10 @@ namespace Org.BouncyCastle.Security
             throw new ArgumentException("Unrecognised PRNG algorithm: " + algorithm, "algorithm");
         }
 
+        /// <summary>The underlying random byte generator.</summary>
         protected readonly IRandomGenerator generator;
 
+        /// <summary>Create an auto-seeded instance based on a SHA-256 digest generator.</summary>
         public SecureRandom()
             : this(CreatePrng("SHA256", autoSeed: true))
         {
@@ -97,6 +107,9 @@ namespace Org.BouncyCastle.Security
             this.generator = generator;
         }
 
+        /// <summary>Use the specified instance of IRandomGenerator as random source, auto-seeding it.</summary>
+        /// <param name="generator">The source to generate all random bytes from.</param>
+        /// <param name="autoSeedLengthInBytes">The number of bytes of seed material to add to the generator.</param>
         public SecureRandom(IRandomGenerator generator, int autoSeedLengthInBytes)
             : base(0)
         {
@@ -105,6 +118,8 @@ namespace Org.BouncyCastle.Security
             this.generator = generator;
         }
 
+        /// <summary>Generate seed material from the platform's cryptographic random source.</summary>
+        /// <param name="length">The number of bytes.</param>
         public virtual byte[] GenerateSeed(int length)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -117,19 +132,31 @@ namespace Org.BouncyCastle.Security
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Fill the buffer with seed material from the platform's cryptographic random source.</summary>
+        /// <param name="seed">The buffer to fill.</param>
         public virtual void GenerateSeed(Span<byte> seed) => RandomNumberGenerator.Fill(seed);
 #endif
 
+        /// <summary>Add seed material to the underlying generator.</summary>
+        /// <param name="seed">The seed material.</param>
         public virtual void SetSeed(byte[] seed) => generator.AddSeedMaterial(seed);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Add seed material to the underlying generator.</summary>
+        /// <param name="seed">The seed material.</param>
         public virtual void SetSeed(Span<byte> seed) => generator.AddSeedMaterial(seed);
 #endif
 
+        /// <summary>Add seed material to the underlying generator.</summary>
+        /// <param name="seed">The seed material.</param>
         public virtual void SetSeed(long seed) => generator.AddSeedMaterial(seed);
 
+        /// <summary>Return a non-negative random integer.</summary>
         public override int Next() => NextInt() & int.MaxValue;
 
+        /// <summary>Return a non-negative random integer less than <paramref name="maxValue"/>.</summary>
+        /// <param name="maxValue">The exclusive upper bound.</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxValue"/> is negative.</exception>
         public override int Next(int maxValue)
         {
             if (maxValue < 2)
@@ -160,6 +187,12 @@ namespace Org.BouncyCastle.Security
             return result;
         }
 
+        /// <summary>Return a random integer in the range from <paramref name="minValue"/> up to, but excluding,
+        /// <paramref name="maxValue"/>.</summary>
+        /// <param name="minValue">The inclusive lower bound.</param>
+        /// <param name="maxValue">The exclusive upper bound.</param>
+        /// <exception cref="ArgumentException"><paramref name="maxValue"/> is less than <paramref name="minValue"/>.
+        /// </exception>
         public override int Next(int minValue, int maxValue)
         {
             if (maxValue <= minValue)
@@ -183,11 +216,19 @@ namespace Org.BouncyCastle.Security
             }
         }
 
+        /// <summary>Fill the array with random bytes.</summary>
+        /// <param name="buf">The array to fill.</param>
         public override void NextBytes(byte[] buf) => generator.NextBytes(buf);
 
+        /// <summary>Fill part of the array with random bytes.</summary>
+        /// <param name="buf">The array to fill.</param>
+        /// <param name="off">The index of the first byte to fill.</param>
+        /// <param name="len">The number of bytes to fill.</param>
         public virtual void NextBytes(byte[] buf, int off, int len) => generator.NextBytes(buf, off, len);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Fill the buffer with random bytes.</summary>
+        /// <param name="buffer">The buffer to fill.</param>
         public override void NextBytes(Span<byte> buffer)
         {
             if (generator != null)
@@ -205,6 +246,7 @@ namespace Org.BouncyCastle.Security
 
         private static readonly double DoubleScale = 1.0 / Convert.ToDouble(1L << 53);
 
+        /// <summary>Return a random floating point number in the range from 0.0 up to, but excluding, 1.0.</summary>
         public override double NextDouble()
         {
             ulong x = (ulong)NextLong() >> 11;
@@ -212,6 +254,7 @@ namespace Org.BouncyCastle.Security
             return Convert.ToDouble(x) * DoubleScale;
         }
 
+        /// <summary>Return a random 32-bit integer.</summary>
         public virtual int NextInt()
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -223,6 +266,7 @@ namespace Org.BouncyCastle.Security
             return (int)Pack.BE_To_UInt32(bytes);
         }
 
+        /// <summary>Return a random 64-bit integer.</summary>
         public virtual long NextLong()
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
