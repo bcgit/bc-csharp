@@ -19,11 +19,13 @@ using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.Tsp
 {
+    /// <summary>The resolution to which the generation time of a time-stamp token is rounded down.</summary>
     public enum Resolution
     {
         R_SECONDS, R_TENTHS_OF_SECONDS, R_HUNDREDTHS_OF_SECONDS, R_MILLISECONDS
     }
 
+    /// <summary>Utility methods for the time stamp protocol.</summary>
     public class TspUtil
     {
         // TODO Migrate this information to DigestUtilities

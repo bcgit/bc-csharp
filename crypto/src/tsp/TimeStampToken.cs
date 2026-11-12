@@ -14,6 +14,11 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Tsp
 {
+    /// <summary>An RFC 3161 time-stamp token: CMS SignedData whose content is a TSTInfo, signed by the TSA.</summary>
+    /// <remarks>
+    /// Use <see cref="TimeStampInfo"/> to read the time-stamp details and <see cref="Validate"/> to check the token
+    /// against the TSA's certificate.
+    /// </remarks>
     public class TimeStampToken
     {
         private readonly CmsSignedData m_tsToken;
@@ -21,11 +26,21 @@ namespace Org.BouncyCastle.Tsp
         private readonly TimeStampTokenInfo m_tstInfo;
         private readonly EssCertIDv2 m_certID;
 
+        /// <summary>Create from a CMS ContentInfo structure.</summary>
+        /// <param name="contentInfo">The ContentInfo wrapping the token's SignedData.</param>
+        /// <exception cref="TspException">The token cannot be processed.</exception>
+        /// <exception cref="TspValidationException">The content is not a valid time stamp.</exception>
+        /// <exception cref="ArgumentException">The token has other than exactly one signer.</exception>
         public TimeStampToken(Asn1.Cms.ContentInfo contentInfo)
             : this(new CmsSignedData(contentInfo))
         {
         }
 
+        /// <summary>Create from CMS SignedData.</summary>
+        /// <param name="signedData">The SignedData holding the TSTInfo and the TSA's signature.</param>
+        /// <exception cref="TspException">The token cannot be processed.</exception>
+        /// <exception cref="TspValidationException">The content is not a valid time stamp.</exception>
+        /// <exception cref="ArgumentException">The token has other than exactly one signer.</exception>
         public TimeStampToken(CmsSignedData signedData)
         {
             m_tsToken = signedData;
@@ -94,18 +109,25 @@ namespace Org.BouncyCastle.Tsp
             }
         }
 
+        /// <summary>Gets the time-stamp details carried in the token.</summary>
         public TimeStampTokenInfo TimeStampInfo => m_tstInfo;
 
+        /// <summary>Gets the identifier of the TSA's signing certificate.</summary>
         public SignerID SignerID => m_tsaSignerInfo.SignerID;
 
+        /// <summary>Gets the signed attributes of the TSA's signature.</summary>
         public Asn1.Cms.AttributeTable SignedAttributes => m_tsaSignerInfo.SignedAttributes;
 
+        /// <summary>Gets the unsigned attributes of the TSA's signature, or null if there are none.</summary>
         public Asn1.Cms.AttributeTable UnsignedAttributes => m_tsaSignerInfo.UnsignedAttributes;
 
+        /// <summary>Return the attribute certificates carried in the token.</summary>
         public IStore<X509V2AttributeCertificate> GetAttributeCertificates() => m_tsToken.GetAttributeCertificates();
 
+        /// <summary>Return the certificates carried in the token.</summary>
         public IStore<X509Certificate> GetCertificates() => m_tsToken.GetCertificates();
 
+        /// <summary>Return the CRLs carried in the token.</summary>
         public IStore<X509Crl> GetCrls() => m_tsToken.GetCrls();
 
         /// <summary>Validate the time stamp token.</summary>
@@ -118,6 +140,9 @@ namespace Org.BouncyCastle.Tsp
         /// A successful call to validate means all the above are true.
         /// </para>
         /// </remarks>
+        /// <param name="cert">The certificate of the TSA.</param>
+        /// <exception cref="TspValidationException">The token fails one of the checks above.</exception>
+        /// <exception cref="TspException">The certificate or token cannot be processed.</exception>
         public void Validate(X509Certificate cert)
         {
             try
