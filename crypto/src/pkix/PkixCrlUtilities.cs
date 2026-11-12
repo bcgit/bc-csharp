@@ -8,16 +8,32 @@ using Org.BouncyCastle.X509.Store;
 namespace Org.BouncyCastle.Pkix
 {
     // TODO[api] Make static
+    /// <summary>Utility methods for finding the CRLs that apply to a certification path.</summary>
     public class PkixCrlUtilities
     {
+        /// <summary>Find all CRLs in the stores of the parameters that match the selector.</summary>
+        /// <param name="crlSelector">The selector for the CRLs of interest.</param>
+        /// <param name="paramsPkix">The PKIX parameters, whose CRL stores are searched.</param>
+        /// <returns>The matching CRLs. May be empty but is never null.</returns>
         // TODO[api] Redundant
         public virtual ISet<X509Crl> FindCrls(X509CrlStoreSelector crlSelector, PkixParameters paramsPkix) =>
             ImplFindCrls(crlSelector, paramsPkix);
 
+        /// <summary>Find all CRLs in the stores of the parameters that match the selector.</summary>
+        /// <param name="crlSelector">The selector for the CRLs of interest.</param>
+        /// <param name="paramsPkix">The PKIX parameters, whose CRL stores are searched.</param>
+        /// <returns>The matching CRLs. May be empty but is never null.</returns>
         // TODO[api] Rename 'paramsPkix' to 'pkixParams'
         public virtual ISet<X509Crl> FindCrls(ISelector<X509Crl> crlSelector, PkixParameters paramsPkix) =>
             ImplFindCrls(crlSelector, paramsPkix);
 
+        /// <summary>
+        /// Find the CRLs that match the selector and are current at the validity date (RFC 5280, 6.3.3).
+        /// </summary>
+        /// <param name="crlSelector">The selector for the CRLs of interest.</param>
+        /// <param name="paramsPkix">The PKIX parameters, whose CRL stores are searched.</param>
+        /// <param name="currentDate">The current date, used to determine the validity date.</param>
+        /// <returns>The matching CRLs. May be empty but is never null.</returns>
         // TODO[api] Redundant
         public virtual ISet<X509Crl> FindCrls(X509CrlStoreSelector crlSelector, PkixParameters paramsPkix,
             DateTime currentDate)
@@ -26,6 +42,13 @@ namespace Org.BouncyCastle.Pkix
             return ImplFindCrls(crlSelector, paramsPkix, validityDate);
         }
 
+        /// <summary>
+        /// Find the CRLs that match the selector and are current at the validity date (RFC 5280, 6.3.3).
+        /// </summary>
+        /// <param name="crlSelector">The selector for the CRLs of interest.</param>
+        /// <param name="paramsPkix">The PKIX parameters, whose CRL stores are searched.</param>
+        /// <param name="currentDate">The current date, used to determine the validity date.</param>
+        /// <returns>The matching CRLs. May be empty but is never null.</returns>
         // TODO[api] Rename 'paramsPkix' to 'pkixParams'
         public virtual ISet<X509Crl> FindCrls(ISelector<X509Crl> crlSelector, PkixParameters paramsPkix,
             DateTime currentDate)

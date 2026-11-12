@@ -134,8 +134,8 @@ namespace Org.BouncyCastle.Pkix
         /// <param name="pubKey">the public key of the most-trusted CA</param>
         /// <param name="nameConstraints">a byte array containing the ASN.1 DER encoding of a
         /// NameConstraints extension to be used for checking name
-        /// constraints. Only the value of the extension is included, not 
-        /// the OID or criticality flag. Specify null to omit the 
+        /// constraints. Only the value of the extension is included, not
+        /// the OID or criticality flag. Specify null to omit the
         /// parameter.</param>
         /// throws NullPointerException, IllegalArgumentException
         // TODO[api] Remove, along with the 'caName' field
@@ -187,6 +187,7 @@ namespace Org.BouncyCastle.Pkix
             nc = NameConstraints.GetInstance(bytes);
         }
 
+        /// <summary>Returns a copy of the DER encoding of the name constraints, or null if there are none.</summary>
         public byte[] GetNameConstraints => Arrays.Clone(ncBytes);
 
         /// <summary>

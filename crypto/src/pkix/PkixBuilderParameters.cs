@@ -7,9 +7,12 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Pkix
 {
-    /// <summary>
-    /// Summary description for PkixBuilderParameters.
+    /// <summary>The parameters for building a PKIX certification path with <see cref="PkixCertPathBuilder"/>.
     /// </summary>
+    /// <remarks>
+    /// In addition to the settings in <see cref="PkixParameters"/>, these specify the constraints on the target
+    /// certificate, the maximum path length and the certificates that must not be used in a path.
+    /// </remarks>
     public class PkixBuilderParameters
         : PkixParameters
     {
@@ -17,17 +20,11 @@ namespace Org.BouncyCastle.Pkix
 
         private HashSet<X509Certificate> excludedCerts = new HashSet<X509Certificate>();
 
-        /**
-         * Returns an instance of <code>PkixBuilderParameters</code>.
-         * <p>
-         * This method can be used to get a copy from other
-         * <code>PKIXBuilderParameters</code>, <code>PKIXParameters</code>,
-         * and <code>ExtendedPKIXParameters</code> instances.
-         * </p>
-         *
-         * @param pkixParams The PKIX parameters to create a copy of.
-         * @return An <code>PkixBuilderParameters</code> instance.
-         */
+        /// <summary>Returns an instance of <c>PkixBuilderParameters</c>.</summary>
+        /// <remarks>This method can be used to get a copy from other <see cref="PkixParameters"/> instances.
+        /// </remarks>
+        /// <param name="pkixParams">The PKIX parameters to create a copy of.</param>
+        /// <returns>A <c>PkixBuilderParameters</c> instance.</returns>
         public static PkixBuilderParameters GetInstance(PkixParameters pkixParams)
         {
             PkixBuilderParameters parameters = new PkixBuilderParameters(
@@ -38,11 +35,23 @@ namespace Org.BouncyCastle.Pkix
             return parameters;
         }
 
+        /// <summary>Create parameters with constraints on the target certificate.</summary>
+        /// <param name="trustAnchors">A set of <see cref="TrustAnchor"/>s.</param>
+        /// <param name="targetConstraintsCert">A selector for the target certificate (or null for none).</param>
+        /// <exception cref="System.ArgumentNullException"><paramref name="trustAnchors"/> is null.</exception>
+        /// <exception cref="System.ArgumentException"><paramref name="trustAnchors"/> contains no trust anchors.</exception>
         public PkixBuilderParameters(ISet<TrustAnchor> trustAnchors, ISelector<X509Certificate> targetConstraintsCert)
             : this(trustAnchors, targetConstraintsCert, targetConstraintsAttrCert: null)
         {
         }
 
+        /// <summary>Create parameters with constraints on the target certificate and attribute certificate.
+        /// </summary>
+        /// <param name="trustAnchors">A set of <see cref="TrustAnchor"/>s.</param>
+        /// <param name="targetConstraintsCert">A selector for the target certificate (or null for none).</param>
+        /// <param name="targetConstraintsAttrCert">A selector for the target attribute certificate (or null).</param>
+        /// <exception cref="System.ArgumentNullException"><paramref name="trustAnchors"/> is null.</exception>
+        /// <exception cref="System.ArgumentException"><paramref name="trustAnchors"/> contains no trust anchors.</exception>
         public PkixBuilderParameters(ISet<TrustAnchor> trustAnchors, ISelector<X509Certificate> targetConstraintsCert,
             ISelector<X509V2AttributeCertificate> targetConstraintsAttrCert)
             : base(trustAnchors)
@@ -64,6 +73,9 @@ namespace Org.BouncyCastle.Pkix
             SetTargetConstraintsAttrCert(targetConstraintsAttrCert);
         }
 
+        /// <summary>Gets or sets the maximum number of intermediate certificates allowed in a path.</summary>
+        /// <remarks>The default is 5. A value of -1 means there is no limit.</remarks>
+        /// <exception cref="InvalidParameterException">The value set is less than -1.</exception>
         public virtual int MaxPathLength
         {
             get { return maxPathLength; }
@@ -113,13 +125,12 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        /**
-         * Can alse handle <code>ExtendedPKIXBuilderParameters</code> and
-         * <code>PKIXBuilderParameters</code>.
-         *
-         * @param params Parameters to set.
-         * @see Org.BouncyCastle.X509.ExtendedPKIXParameters#setParams(java.security.cert.PKIXParameters)
-         */
+        /// <summary>Copies the settings of the given parameters into this instance.</summary>
+        /// <remarks>
+        /// If <paramref name="parameters"/> is itself a <see cref="PkixBuilderParameters"/> the maximum path length and
+        /// excluded certificates are copied too.
+        /// </remarks>
+        /// <param name="parameters">The parameters to copy.</param>
         protected override void SetParams(PkixParameters parameters)
         {
             base.SetParams(parameters);
@@ -130,12 +141,9 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        /**
-         * Makes a copy of this <code>PKIXParameters</code> object. Changes to the
-         * copy will not affect the original and vice versa.
-         *
-         * @return a copy of this <code>PKIXParameters</code> object
-         */
+        /// <summary>Makes a copy of these parameters. Changes to the copy will not affect the original and vice versa.
+        /// </summary>
+        /// <returns>A copy of these parameters.</returns>
         public override object Clone()
         {
             PkixBuilderParameters parameters = new PkixBuilderParameters(
@@ -146,6 +154,7 @@ namespace Org.BouncyCastle.Pkix
             return parameters;
         }
 
+        /// <summary>Returns a formatted string describing the parameters.</summary>
         public override string ToString()
         {
             StringBuilder s = new StringBuilder();

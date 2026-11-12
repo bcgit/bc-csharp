@@ -7,36 +7,17 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Pkix
 {
-    /**
-     * The <i>Service Provider Interface</i> (<b>SPI</b>)
-     * for the {@link CertPathValidator CertPathValidator} class. All
-     * <code>CertPathValidator</code> implementations must include a class (the
-     * SPI class) that extends this class (<code>CertPathValidatorSpi</code>)
-     * and implements all of its methods. In general, instances of this class
-     * should only be accessed through the <code>CertPathValidator</code> class.
-     * For details, see the Java Cryptography Architecture.<br />
-     * <br />
-     * <b>Concurrent Access</b><br />
-     * <br />
-     * Instances of this class need not be protected against concurrent
-     * access from multiple threads. Threads that need to access a single
-     * <code>CertPathValidatorSpi</code> instance concurrently should synchronize
-     * amongst themselves and provide the necessary locking before calling the
-     * wrapping <code>CertPathValidator</code> object.<br />
-     * <br />
-     * However, implementations of <code>CertPathValidatorSpi</code> may still
-     * encounter concurrency issues, since multiple threads each
-     * manipulating a different <code>CertPathValidatorSpi</code> instance need not
-     * synchronize.
-     */
-    /// <summary>
-    /// CertPathValidatorSpi implementation for X.509 Certificate validation a la RFC
-    /// 3280.
+    /// <summary>Validates X.509 certification paths according to the algorithm in RFC 5280 (formerly RFC 3280).
     /// </summary>
+    /// <remarks>
+    /// Instances need not be protected against concurrent access from multiple threads. Threads that need to share
+    /// an instance should synchronize amongst themselves.
+    /// </remarks>
     public class PkixCertPathValidator
     {
         private readonly bool m_isForCrlCheck;
 
+        /// <summary>Create a validator.</summary>
         public PkixCertPathValidator()
             : this(isForCrlCheck: false)
         {
@@ -47,6 +28,15 @@ namespace Org.BouncyCastle.Pkix
             m_isForCrlCheck = isForCrlCheck;
         }
 
+        /// <summary>Validate the given certification path.</summary>
+        /// <param name="certPath">The certification path to validate.</param>
+        /// <param name="paramsPkix">The parameters (trust anchors, stores, revocation settings) to use.</param>
+        /// <returns>The result of a successful validation.</returns>
+        /// <exception cref="ArgumentException">The parameters contain no trust anchors.</exception>
+        /// <exception cref="PkixCertPathValidatorException">
+        /// The path is empty or fails validation; <see cref="PkixCertPathValidatorException.Index"/> identifies the
+        /// offending certificate where known.
+        /// </exception>
         // TODO[api] Rename 'paramsPkix' to 'pkixParams'
         public virtual PkixCertPathValidatorResult Validate(PkixCertPath certPath, PkixParameters paramsPkix)
         {
