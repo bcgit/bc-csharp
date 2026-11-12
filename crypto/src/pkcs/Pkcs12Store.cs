@@ -111,6 +111,12 @@ namespace Org.BouncyCastle.Pkcs
             this.enableOracleTrustedKeyUsage = enableOracleTrustedKeyUsage;
         }
 
+        /// <summary>Load a key bag into the store.</summary>
+        /// <param name="privKeyInfo">The private key.</param>
+        /// <param name="bagAttributes">The attributes of the bag.</param>
+        /// <param name="unmarkedKeyEntry">
+        /// The key entry without a key identifier, if one has been seen; updated if this bag provides one.
+        /// </param>
         protected virtual void LoadKeyBag(PrivateKeyInfo privKeyInfo, Asn1Set bagAttributes,
             ref AsymmetricKeyEntry unmarkedKeyEntry)
         {
@@ -182,6 +188,16 @@ namespace Org.BouncyCastle.Pkcs
             }
         }
 
+        /// <summary>Load a shrouded (encrypted) key bag into the store.</summary>
+        /// <param name="encPrivKeyInfo">The encrypted private key.</param>
+        /// <param name="bagAttributes">The attributes of the bag.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="wrongPkcs12Zero">
+        /// true to use the historically incorrect PKCS#12 password encoding for empty passwords.
+        /// </param>
+        /// <param name="unmarkedKeyEntry">
+        /// The key entry without a key identifier, if one has been seen; updated if this bag provides one.
+        /// </param>
         protected virtual void LoadPkcs8ShroudedKeyBag(EncryptedPrivateKeyInfo encPrivKeyInfo, Asn1Set bagAttributes,
             char[] password, bool wrongPkcs12Zero, ref AsymmetricKeyEntry unmarkedKeyEntry)
         {

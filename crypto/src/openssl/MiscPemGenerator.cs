@@ -20,9 +20,7 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.OpenSsl
 {
-    /**
-    * PEM generator for the original set of PEM objects used in Open SSL.
-    */
+    /// <summary>PEM generator for the original set of PEM objects used in OpenSSL.</summary>
     public class MiscPemGenerator
         : PemObjectGenerator
     {
@@ -31,11 +29,18 @@ namespace Org.BouncyCastle.OpenSsl
         private readonly char[] password;
         private readonly SecureRandom random;
 
+        /// <summary>Create a generator for an unencrypted object.</summary>
+        /// <param name="obj">The object to generate PEM for.</param>
         public MiscPemGenerator(object obj)
             : this(obj, null, null, null)
         {
         }
 
+        /// <summary>Create a generator for an object that may be encrypted.</summary>
+        /// <param name="obj">The object to generate PEM for.</param>
+        /// <param name="algorithm">The encryption algorithm to use, or null to leave the object unencrypted.</param>
+        /// <param name="password">The password to encrypt with; required if an algorithm is given.</param>
+        /// <param name="random">The source of randomness for the encryption, or null to use the default.</param>
         public MiscPemGenerator(object obj, string algorithm, char[] password, SecureRandom random)
         {
             this.obj = obj;
@@ -205,10 +210,10 @@ namespace Org.BouncyCastle.OpenSsl
         }
 #else
         private static PemObject CreatePemObject(
-            object			obj,
-            string			algorithm,
-            char[]			password,
-            SecureRandom	random)
+            object obj,
+            string algorithm,
+            char[] password,
+            SecureRandom random)
         {
             if (obj == null)
                 throw new ArgumentNullException("obj");
@@ -265,6 +270,9 @@ namespace Org.BouncyCastle.OpenSsl
         }
 #endif
 
+        /// <summary>Generate the PEM object.</summary>
+        /// <returns>The <see cref="PemObject"/>.</returns>
+        /// <exception cref="PemGenerationException">The object could not be encoded or encrypted.</exception>
         public PemObject Generate()
         {
             try
