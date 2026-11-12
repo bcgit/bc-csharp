@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.X509
     public abstract class X509ExtensionBase
         : IX509Extension
     {
+        /// <summary>Return the extensions carried by this object, or null if there are none.</summary>
         protected abstract X509Extensions GetX509Extensions();
 
         protected virtual ISet<string> GetExtensionOids(bool critical)

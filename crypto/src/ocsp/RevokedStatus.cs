@@ -12,11 +12,15 @@ namespace Org.BouncyCastle.Ocsp
     {
         private readonly RevokedInfo m_revokedInfo;
 
+        /// <summary>Create from an existing ASN.1 RevokedInfo structure.</summary>
+        /// <param name="revokedInfo">The ASN.1 structure.</param>
         public RevokedStatus(RevokedInfo revokedInfo)
         {
             m_revokedInfo = revokedInfo;
         }
 
+        /// <summary>Create a status with a revocation time and no reason.</summary>
+        /// <param name="revocationDate">The time at which the certificate was revoked.</param>
         public RevokedStatus(DateTime revocationDate)
         {
             var revocationTime = Rfc5280Asn1Utilities.CreateGeneralizedTime(revocationDate);
@@ -24,6 +28,9 @@ namespace Org.BouncyCastle.Ocsp
             m_revokedInfo = new RevokedInfo(revocationTime);
         }
 
+        /// <summary>Create a status with a revocation time and reason.</summary>
+        /// <param name="revocationDate">The time at which the certificate was revoked.</param>
+        /// <param name="reason">The CRLReason code for the revocation.</param>
         public RevokedStatus(DateTime revocationDate, int reason)
         {
             var revocationTime = Rfc5280Asn1Utilities.CreateGeneralizedTime(revocationDate);
@@ -31,8 +38,10 @@ namespace Org.BouncyCastle.Ocsp
             m_revokedInfo = new RevokedInfo(revocationTime, new CrlReason(reason));
         }
 
+        /// <summary>Gets the time at which the certificate was revoked.</summary>
         public DateTime RevocationTime => m_revokedInfo.RevocationTime.ToDateTime();
 
+        /// <summary>Gets whether a revocation reason is available.</summary>
         public bool HasRevocationReason => m_revokedInfo.RevocationReason != null;
 
         /// <summary>Return the revocation reason, if there is one.</summary>
