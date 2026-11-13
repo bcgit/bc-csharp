@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 
 using Org.BouncyCastle.Math.Raw;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.BinPoly.Scalar
 {
@@ -32,15 +33,21 @@ namespace Org.BouncyCastle.Math.BinPoly.Scalar
             var zzBounds = zz[zzOff + 2 * len - 1];
 
             // Diagonal phase overwrites each limb-pair via ImplMulw; the cross-product /
-            // post-processing phase always XORs.
+            // post-processing phase always XORs. The table holds multiples of operand limbs, so wipe it after use.
             ulong[] u = new ulong[16];
-
-            for (int i = 0; i < len; ++i)
+            try
             {
-                ImplMulw(u, x[xOff + i], y[yOff + i], zz, zzOff + (i << 1));
-            }
+                for (int i = 0; i < len; ++i)
+                {
+                    ImplMulw(u, x[xOff + i], y[yOff + i], zz, zzOff + (i << 1));
+                }
 
-            ImplMulPostprocess(len, x, xOff, y, yOff, zz, zzOff, u);
+                ImplMulPostprocess(len, x, xOff, y, yOff, zz, zzOff, u);
+            }
+            finally
+            {
+                Arrays.ZeroMemory(u);
+            }
         }
 
         /// <summary>
