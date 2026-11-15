@@ -725,97 +725,99 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier p521_mayo5 = new DerObjectIdentifier("1.3.9999.8.5.4");
 
         /**
-         * Snova
+         * Snova. Each identifier is a parameter-set leaf with .2 appended for the NIST round-2 version
+         * of the scheme, matching Bouncy Castle Java from 1.88, which reads the bare leaves of 1.81 to
+         * 1.87 but no longer writes them.
          */
         public static readonly DerObjectIdentifier snova = bc_sig.Branch("11");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.1</c>.</summary>
-        public static readonly DerObjectIdentifier snova_24_5_4_ssk = snova.Branch("1");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.2</c>.</summary>
-        public static readonly DerObjectIdentifier snova_24_5_4_esk = snova.Branch("2");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.3</c>.</summary>
-        public static readonly DerObjectIdentifier snova_24_5_4_shake_ssk = snova.Branch("3");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.4</c>.</summary>
-        public static readonly DerObjectIdentifier snova_24_5_4_shake_esk = snova.Branch("4");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.5</c>.</summary>
-        public static readonly DerObjectIdentifier snova_24_5_5_ssk = snova.Branch("5");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.6</c>.</summary>
-        public static readonly DerObjectIdentifier snova_24_5_5_esk = snova.Branch("6");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.7</c>.</summary>
-        public static readonly DerObjectIdentifier snova_24_5_5_shake_ssk = snova.Branch("7");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.8</c>.</summary>
-        public static readonly DerObjectIdentifier snova_24_5_5_shake_esk = snova.Branch("8");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.9</c>.</summary>
-        public static readonly DerObjectIdentifier snova_25_8_3_ssk = snova.Branch("9");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.10</c>.</summary>
-        public static readonly DerObjectIdentifier snova_25_8_3_esk = snova.Branch("10");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.11</c>.</summary>
-        public static readonly DerObjectIdentifier snova_25_8_3_shake_ssk = snova.Branch("11");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.12</c>.</summary>
-        public static readonly DerObjectIdentifier snova_25_8_3_shake_esk = snova.Branch("12");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.13</c>.</summary>
-        public static readonly DerObjectIdentifier snova_29_6_5_ssk = snova.Branch("13");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.14</c>.</summary>
-        public static readonly DerObjectIdentifier snova_29_6_5_esk = snova.Branch("14");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.15</c>.</summary>
-        public static readonly DerObjectIdentifier snova_29_6_5_shake_ssk = snova.Branch("15");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.16</c>.</summary>
-        public static readonly DerObjectIdentifier snova_29_6_5_shake_esk = snova.Branch("16");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.17</c>.</summary>
-        public static readonly DerObjectIdentifier snova_37_8_4_ssk = snova.Branch("17");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.18</c>.</summary>
-        public static readonly DerObjectIdentifier snova_37_8_4_esk = snova.Branch("18");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.19</c>.</summary>
-        public static readonly DerObjectIdentifier snova_37_8_4_shake_ssk = snova.Branch("19");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.20</c>.</summary>
-        public static readonly DerObjectIdentifier snova_37_8_4_shake_esk = snova.Branch("20");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.21</c>.</summary>
-        public static readonly DerObjectIdentifier snova_37_17_2_ssk = snova.Branch("21");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.22</c>.</summary>
-        public static readonly DerObjectIdentifier snova_37_17_2_esk = snova.Branch("22");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.23</c>.</summary>
-        public static readonly DerObjectIdentifier snova_37_17_2_shake_ssk = snova.Branch("23");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.24</c>.</summary>
-        public static readonly DerObjectIdentifier snova_37_17_2_shake_esk = snova.Branch("24");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.25</c>.</summary>
-        public static readonly DerObjectIdentifier snova_49_11_3_ssk = snova.Branch("25");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.26</c>.</summary>
-        public static readonly DerObjectIdentifier snova_49_11_3_esk = snova.Branch("26");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.27</c>.</summary>
-        public static readonly DerObjectIdentifier snova_49_11_3_shake_ssk = snova.Branch("27");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.28</c>.</summary>
-        public static readonly DerObjectIdentifier snova_49_11_3_shake_esk = snova.Branch("28");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.29</c>.</summary>
-        public static readonly DerObjectIdentifier snova_56_25_2_ssk = snova.Branch("29");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.30</c>.</summary>
-        public static readonly DerObjectIdentifier snova_56_25_2_esk = snova.Branch("30");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.31</c>.</summary>
-        public static readonly DerObjectIdentifier snova_56_25_2_shake_ssk = snova.Branch("31");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.32</c>.</summary>
-        public static readonly DerObjectIdentifier snova_56_25_2_shake_esk = snova.Branch("32");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.33</c>.</summary>
-        public static readonly DerObjectIdentifier snova_60_10_4_ssk = snova.Branch("33");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.34</c>.</summary>
-        public static readonly DerObjectIdentifier snova_60_10_4_esk = snova.Branch("34");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.35</c>.</summary>
-        public static readonly DerObjectIdentifier snova_60_10_4_shake_ssk = snova.Branch("35");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.36</c>.</summary>
-        public static readonly DerObjectIdentifier snova_60_10_4_shake_esk = snova.Branch("36");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.37</c>.</summary>
-        public static readonly DerObjectIdentifier snova_66_15_3_ssk = snova.Branch("37");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.38</c>.</summary>
-        public static readonly DerObjectIdentifier snova_66_15_3_esk = snova.Branch("38");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.39</c>.</summary>
-        public static readonly DerObjectIdentifier snova_66_15_3_shake_ssk = snova.Branch("39");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.40</c>.</summary>
-        public static readonly DerObjectIdentifier snova_66_15_3_shake_esk = snova.Branch("40");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.41</c>.</summary>
-        public static readonly DerObjectIdentifier snova_75_33_2_ssk = snova.Branch("41");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.42</c>.</summary>
-        public static readonly DerObjectIdentifier snova_75_33_2_esk = snova.Branch("42");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.43</c>.</summary>
-        public static readonly DerObjectIdentifier snova_75_33_2_shake_ssk = snova.Branch("43");
-        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.44</c>.</summary>
-        public static readonly DerObjectIdentifier snova_75_33_2_shake_esk = snova.Branch("44");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.1.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_24_5_4_ssk = snova.Branch("1").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.2.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_24_5_4_esk = snova.Branch("2").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.3.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_24_5_4_shake_ssk = snova.Branch("3").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.4.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_24_5_4_shake_esk = snova.Branch("4").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.5.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_24_5_5_ssk = snova.Branch("5").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.6.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_24_5_5_esk = snova.Branch("6").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.7.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_24_5_5_shake_ssk = snova.Branch("7").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.8.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_24_5_5_shake_esk = snova.Branch("8").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.9.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_25_8_3_ssk = snova.Branch("9").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.10.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_25_8_3_esk = snova.Branch("10").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.11.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_25_8_3_shake_ssk = snova.Branch("11").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.12.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_25_8_3_shake_esk = snova.Branch("12").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.13.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_29_6_5_ssk = snova.Branch("13").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.14.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_29_6_5_esk = snova.Branch("14").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.15.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_29_6_5_shake_ssk = snova.Branch("15").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.16.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_29_6_5_shake_esk = snova.Branch("16").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.17.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_37_8_4_ssk = snova.Branch("17").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.18.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_37_8_4_esk = snova.Branch("18").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.19.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_37_8_4_shake_ssk = snova.Branch("19").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.20.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_37_8_4_shake_esk = snova.Branch("20").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.21.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_37_17_2_ssk = snova.Branch("21").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.22.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_37_17_2_esk = snova.Branch("22").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.23.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_37_17_2_shake_ssk = snova.Branch("23").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.24.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_37_17_2_shake_esk = snova.Branch("24").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.25.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_49_11_3_ssk = snova.Branch("25").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.26.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_49_11_3_esk = snova.Branch("26").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.27.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_49_11_3_shake_ssk = snova.Branch("27").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.28.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_49_11_3_shake_esk = snova.Branch("28").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.29.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_56_25_2_ssk = snova.Branch("29").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.30.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_56_25_2_esk = snova.Branch("30").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.31.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_56_25_2_shake_ssk = snova.Branch("31").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.32.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_56_25_2_shake_esk = snova.Branch("32").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.33.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_60_10_4_ssk = snova.Branch("33").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.34.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_60_10_4_esk = snova.Branch("34").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.35.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_60_10_4_shake_ssk = snova.Branch("35").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.36.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_60_10_4_shake_esk = snova.Branch("36").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.37.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_66_15_3_ssk = snova.Branch("37").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.38.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_66_15_3_esk = snova.Branch("38").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.39.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_66_15_3_shake_ssk = snova.Branch("39").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.40.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_66_15_3_shake_esk = snova.Branch("40").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.41.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_75_33_2_ssk = snova.Branch("41").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.42.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_75_33_2_esk = snova.Branch("42").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.43.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_75_33_2_shake_ssk = snova.Branch("43").Branch("2");
+        /// <summary>The object identifier <c>1.3.6.1.4.1.22554.2.11.44.2</c>.</summary>
+        public static readonly DerObjectIdentifier snova_75_33_2_shake_esk = snova.Branch("44").Branch("2");
 
         /**
          * NTRU+
