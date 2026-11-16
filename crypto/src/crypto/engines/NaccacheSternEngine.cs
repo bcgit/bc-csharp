@@ -65,13 +65,17 @@ namespace Org.BouncyCastle.Crypto.Engines
                     lookup[i] = new byte[actualPrimeValue][];
                     lookup[i][0] = BigIntegers.AsUnsignedByteArray(modulusLength, BigInteger.One);
 
-                    BigInteger accJ = BigInteger.Zero;
+                    // entry j is g^(j * phi(n) / p). The exponent carries phi(n), the private key, so each is blinded
+                    // with a random multiple of phi(n) before the variable-time ModPow; g is coprime to n, so the
+                    // entries are unchanged. phi(n) / p is exact, as p divides sigma, which divides phi(n).
+                    BigInteger step = priv.PhiN.Divide(actualPrime);
+                    BigInteger comp = BigInteger.Zero;
                     for (int j = 1; j < actualPrimeValue; j++)
                     {
-                        accJ = accJ.Add(priv.PhiN);
-                        BigInteger comp = accJ.Divide(actualPrime);
+                        comp = comp.Add(step);
+                        BigInteger exponent = BigIntegers.CreateBlindedExponent(comp, priv.PhiN, random);
                         lookup[i][j] = BigIntegers.AsUnsignedByteArray(modulusLength,
-                            priv.G.ModPow(comp, priv.Modulus));
+                            priv.G.ModPow(exponent, priv.Modulus));
                     }
                 }
             }
