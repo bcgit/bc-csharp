@@ -3,6 +3,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
+    /// <summary>A generator of SABER key pairs.</summary>
     public class SaberKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
@@ -33,11 +34,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             return new AsymmetricCipherKeyPair(pubKey, privKey);
         }
 
+        /// <inheritdoc/>
         public void Init(KeyGenerationParameters param)
         {
             this.Initialize(param);
         }
 
+        /// <inheritdoc/>
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
             return GenKeyPair();

@@ -4,6 +4,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
+    /// <summary>Base class for Falcon keys.</summary>
     public abstract class FalconKeyParameters
         : AsymmetricKeyParameter
     {
@@ -15,6 +16,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             m_parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
         }
 
+        /// <summary>Gets the parameters.</summary>
         public FalconParameters Parameters => m_parameters;
     }
 }

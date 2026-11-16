@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>The derivation of the one-time signature seeds of an LMS tree from the root seed.</summary>
     // TODO[api] Make internal
     public sealed class SeedDerive
     {
@@ -13,6 +14,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private readonly byte[] m_masterSeed;
         private readonly IDigest m_digest;
 
+        /// <summary>Create a new <see cref="SeedDerive"/>.</summary>
+        /// <param name="I">The i.</param>
+        /// <param name="masterSeed">The master seed.</param>
+        /// <param name="digest">The digest.</param>
         public SeedDerive(byte[] I, byte[] masterSeed, IDigest digest)
         {
             m_I = I;
@@ -20,16 +25,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_digest = digest;
         }
 
+        /// <summary>Return the i.</summary>
         // TODO[api] Remove
         public byte[] GetI() => Arrays.Clone(m_I);
 
+        /// <summary>Return the master seed.</summary>
         // TODO[api] Remove
         public byte[] GetMasterSeed() => Arrays.Clone(m_masterSeed);
 
+        /// <summary>Gets or sets the j.</summary>
         public int J { get; set; }
 
+        /// <summary>Gets or sets the q.</summary>
         public int Q { get; set; }
 
+        /// <summary>Derive a seed.</summary>
+        /// <param name="incJ">true to increment the counter j afterwards.</param>
+        /// <param name="target">The buffer to receive the seed.</param>
+        /// <param name="offset">The offset into <paramref name="target"/> at which to start writing.</param>
+        /// <returns>The target buffer.</returns>
         // TODO[api] Refactor (at promotion) to match the bc-java param order (and overloads)
         public byte[] DeriveSeed(bool incJ, byte[] target, int offset)
         {
@@ -69,9 +83,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return target;
         }
 
+        /// <summary>Gets the i.</summary>
         [Obsolete("Use 'GetI' instead")]
         public byte[] I => m_I;
 
+        /// <summary>Gets the master seed.</summary>
         [Obsolete("Use 'GetMasterSeed' instead")]
         public byte[] MasterSeed => m_masterSeed;
     }

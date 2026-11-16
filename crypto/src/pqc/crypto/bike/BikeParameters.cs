@@ -2,15 +2,19 @@
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
+    /// <summary>The parameter sets of BIKE.</summary>
     public sealed class BikeParameters
         : ICipherParameters
     {
+        /// <summary>The BIKE parameter set for security level 128 bits.</summary>
         // 128 bits security
         public static BikeParameters bike128 = new BikeParameters("bike128", 12323, 142, 134, 256, 5, 3, 128);
 
+        /// <summary>The BIKE parameter set for security level 192 bits.</summary>
         // 192 bits security
         public static BikeParameters bike192 = new BikeParameters("bike192", 24659, 206, 199, 256, 5, 3, 192);
 
+        /// <summary>The BIKE parameter set for security level 256 bits.</summary>
         // 256 bits security
         public static BikeParameters bike256 = new BikeParameters("bike256", 40973, 274, 264, 256, 5, 3, 256);
 
@@ -37,15 +41,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             this.bikeEngine = new BikeEngine(r, w, t, l, nbIter, tau);
         }
 
+        /// <summary>Gets the r.</summary>
         public int R => r;
+        /// <summary>Gets the r byte.</summary>
         public int RByte => (r + 7) / 8;
-        public int LByte => l / 8; 
+        /// <summary>Gets the l byte.</summary>
+        public int LByte => l / 8;
+        /// <summary>Gets the w.</summary>
         public int W => w;
+        /// <summary>Gets the t.</summary>
         public int T => t;
+        /// <summary>Gets the l.</summary>
         public int L => l;
+        /// <summary>Gets the nb iter.</summary>
         public int NbIter => nbIter;
+        /// <summary>Gets the tau.</summary>
         public int Tau => tau;
+        /// <summary>Gets the name.</summary>
         public string Name => name;
+        /// <summary>Gets the default key size.</summary>
         public int DefaultKeySize => defaultKeySize;
         internal BikeEngine BikeEngine => bikeEngine;
     }

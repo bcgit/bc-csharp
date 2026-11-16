@@ -2,6 +2,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
+    /// <summary>Base class for Streamlined NTRU Prime keys.</summary>
     public abstract class SNtruPrimeKeyParameters
         : AsymmetricKeyParameter
     {
@@ -13,6 +14,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             m_primeParameters = primeParameters;
         }
 
+        /// <summary>Gets the parameters.</summary>
         public SNtruPrimeParameters Parameters => m_primeParameters;
     }
 }

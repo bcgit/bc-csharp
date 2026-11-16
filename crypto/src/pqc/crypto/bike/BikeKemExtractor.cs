@@ -3,16 +3,20 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
+    /// <summary>Extracts the shared secret from an encapsulation, for BIKE.</summary>
     public sealed class BikeKemExtractor
         : IEncapsulatedSecretExtractor
     {
         private readonly BikeKeyParameters key;
 
+        /// <summary>Create a new <see cref="BikeKemExtractor"/>.</summary>
+        /// <param name="privParams">The priv params.</param>
         public BikeKemExtractor(BikePrivateKeyParameters privParams)
         {
             this.key = privParams;
         }
 
+        /// <inheritdoc/>
         public byte[] ExtractSecret(byte[] encapsulation)
         {
             BikeParameters parameters = key.Parameters;
@@ -34,6 +38,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             return Arrays.CopyOfRange(session_key, 0, defaultKeySize / 8);
         }
 
+        /// <inheritdoc/>
         public int EncapsulationLength => key.Parameters.RByte + key.Parameters.LByte;
     }
 }

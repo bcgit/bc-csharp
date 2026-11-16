@@ -3,18 +3,21 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
+    /// <summary>A generator of Picnic key pairs.</summary>
     public class PicnicKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
         private SecureRandom random;
         private PicnicParameters parameters;
 
+        /// <inheritdoc/>
         public void Init(KeyGenerationParameters param)
         {
             random = param.Random;
             parameters = ((PicnicKeyGenerationParameters) param).Parameters;
         }
 
+        /// <inheritdoc/>
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
             PicnicEngine engine = parameters.GetEngine();

@@ -4,6 +4,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>The state for incrementally signing or verifying a message with LMS.</summary>
     // TODO[api] Don't implement IDigest on promotion. The context absorbs a fixed prefix at construction and
     // must be finalized exactly once, by OutputQ; only the update methods are meaningful, and the rest of
     // IDigest exists here solely to let callers stream a message in.
@@ -20,6 +21,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private LmsSignedPubKey[] m_signedPubKeys;
         private volatile IDigest m_digest;
 
+        /// <summary>Create a new <see cref="LmsContext"/>.</summary>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="sigParams">The sig params.</param>
+        /// <param name="digest">The digest.</param>
+        /// <param name="C">The c.</param>
+        /// <param name="path">The path.</param>
         // TODO[api] Make internal
         public LmsContext(LMOtsPrivateKey privateKey, LMSigParameters sigParams, IDigest digest, byte[] C,
             byte[][] path)
@@ -33,6 +40,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_signature = null;
         }
 
+        /// <summary>Create a new <see cref="LmsContext"/>.</summary>
+        /// <param name="publicKey">The public key.</param>
+        /// <param name="signature">The signature.</param>
+        /// <param name="digest">The digest.</param>
         // TODO[api] Make internal
         public LmsContext(LMOtsPublicKey publicKey, object signature, IDigest digest)
         {
@@ -45,8 +56,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_path = null;
         }
 
+        /// <summary>Gets the c.</summary>
         public byte[] C => m_c;
 
+        /// <summary>Return the q.</summary>
         // TODO[api] Remove
         [Obsolete("Use 'OutputQ' instead")]
         public byte[] GetQ()
@@ -138,9 +151,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         // The digest is finalized by OutputQ and released, so every later use is a caller error.
         private IDigest Digest => m_digest ?? throw new InvalidOperationException("context already used");
 
+        /// <summary>Gets the public key.</summary>
         // TODO[api] Make internal
         public LMOtsPublicKey PublicKey => m_publicKey;
 
+        /// <summary>Gets the signature.</summary>
         public object Signature => m_signature;
 
         internal LmsSignedPubKey[] SignedPubKeys => m_signedPubKeys;
@@ -151,35 +166,52 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return this;
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName => Digest.AlgorithmName;
 
+        /// <inheritdoc/>
         public int GetDigestSize() => Digest.GetDigestSize();
 
+        /// <inheritdoc/>
         public int GetByteLength() => Digest.GetByteLength();
 
+        /// <inheritdoc/>
         public void Update(byte input)
         {
             Digest.Update(input);
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
             Digest.BlockUpdate(input, inOff, len);
         }
 
+        /// <summary>Not supported: the context must be finalized by <c>OutputQ</c>.</summary>
+        /// <param name="output">Unused.</param>
+        /// <param name="outOff">Unused.</param>
+        /// <returns>Does not return.</returns>
+        /// <exception cref="NotSupportedException">Always.</exception>
         // Finalizing here would return H(prefix || message), which looks like Q but leaves the digest reset:
         // OutputQ would then hash nothing at all and the signature would be over a constant.
         public int DoFinal(byte[] output, int outOff) => throw NoDirectFinalization();
 
+        /// <summary>Not supported: the context cannot be reset.</summary>
+        /// <exception cref="NotSupportedException">Always.</exception>
         // A reset discards the prefix absorbed at construction, which cannot be replaced.
         public void Reset() => throw new NotSupportedException("LmsContext cannot be reset");
 
+        /// <inheritdoc/>
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             Digest.BlockUpdate(input);
         }
 
+        /// <summary>Not supported: the context must be finalized by <c>OutputQ</c>.</summary>
+        /// <param name="output">Unused.</param>
+        /// <returns>Does not return.</returns>
+        /// <exception cref="NotSupportedException">Always.</exception>
         public int DoFinal(Span<byte> output) => throw NoDirectFinalization();
 #endif
 

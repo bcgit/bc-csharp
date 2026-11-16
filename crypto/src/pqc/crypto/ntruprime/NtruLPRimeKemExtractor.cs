@@ -2,11 +2,14 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
+    /// <summary>Extracts the shared secret from an encapsulation, for NTRU LPRime.</summary>
     public class NtruLPRimeKemExtractor : IEncapsulatedSecretExtractor
     {
         private NtruPrimeEngine _primeEngine;
         private readonly NtruLPRimeKeyParameters _primeKey;
 
+        /// <summary>Create a new <see cref="NtruLPRimeKemExtractor"/>.</summary>
+        /// <param name="privParams">The priv params.</param>
         public NtruLPRimeKemExtractor(NtruLPRimeKeyParameters privParams)
         {
             this._primeKey = privParams;
@@ -18,6 +21,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             _primeEngine = param.PrimeEngine;
         }
 
+        /// <inheritdoc/>
         public byte[] ExtractSecret(byte[] encapsulation)
         {
             byte[] session_key = new byte[_primeEngine.SessionKeySize];
@@ -25,6 +29,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             return session_key;
         }
 
+        /// <inheritdoc/>
         public int EncapsulationLength => _primeEngine.CipherTextSize;
     }
 }

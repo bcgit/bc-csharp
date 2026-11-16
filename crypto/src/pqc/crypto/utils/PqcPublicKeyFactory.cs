@@ -24,6 +24,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
+    /// <summary>Factory for creating post-quantum public key objects from X.509 structures.</summary>
     public static class PqcPublicKeyFactory
     {
         private delegate AsymmetricKeyParameter Converter(SubjectPublicKeyInfo keyInfo, object defaultParams);
@@ -71,7 +72,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             Converters[BCObjectIdentifiers.ulightsaberkem90sr3] = SaberConverter;
             Converters[BCObjectIdentifiers.usaberkem90sr3] = SaberConverter;
             Converters[BCObjectIdentifiers.ufiresaberkem90sr3] = SaberConverter;
-            
+
             Converters[BCObjectIdentifiers.picnic] = PicnicConverter;
             Converters[BCObjectIdentifiers.picnicl1fs] = PicnicConverter;
             Converters[BCObjectIdentifiers.picnicl1ur] = PicnicConverter;
