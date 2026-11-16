@@ -73,7 +73,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             BigInteger m = new BigInteger(1, digest, bigEndian: false).Mod(q);
 
             BigInteger k = BigIntegers.CreateRandomInRange(BigInteger.One, q.Subtract(BigInteger.One), Random);
-            var random = FixedSecureRandom.From(new byte[len], BigIntegers.AsUnsignedByteArray(len, k));
+            // zero nonce, its replacement, then one byte for the exponent blinding
+            var random = FixedSecureRandom.From(new byte[len], BigIntegers.AsUnsignedByteArray(len, k), new byte[1]);
 
             var signer = new Gost3410Signer();
             signer.Init(true, new ParametersWithRandom(privateKey, random));

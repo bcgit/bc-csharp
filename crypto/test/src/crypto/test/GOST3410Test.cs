@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
 
             FixedSecureRandom init_random = FixedSecureRandom.From(Hex.Decode("00005EC900007341"), zeroTwo(64));
-            FixedSecureRandom random = FixedSecureRandom.From(Hex.Decode("90F3A564439242F5186EBB224C8E223811B7105C64E4F5390807E6362DF4C72A"));
+            FixedSecureRandom random = FixedSecureRandom.From(Hex.Decode("90F3A564439242F5186EBB224C8E223811B7105C64E4F5390807E6362DF4C72A"), Hex.Decode("01")); // nonce, blinding
             FixedSecureRandom keyRandom = FixedSecureRandom.From(Hex.Decode("3036314538303830343630454235324435324234314132373832433138443046"));
 
             BigInteger pValue = new BigInteger("EE8172AE8996608FB69359B89EB82A69854510E2977A4D63BC97322CE5DC3386EA0A12B343E9190F23177539845839786BB0C345D165976EF2195EC9B1C379E3", 16);
@@ -137,7 +137,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
 
             FixedSecureRandom init_random = FixedSecureRandom.From(Hex.Decode("000000003DFC46F1000000000000000D"), zeroTwo(64));
-            FixedSecureRandom random = FixedSecureRandom.From(Hex.Decode("90F3A564439242F5186EBB224C8E223811B7105C64E4F5390807E6362DF4C72A"));
+            FixedSecureRandom random = FixedSecureRandom.From(Hex.Decode("90F3A564439242F5186EBB224C8E223811B7105C64E4F5390807E6362DF4C72A"), Hex.Decode("01")); // nonce, blinding
             FixedSecureRandom keyRandom = FixedSecureRandom.From(Hex.Decode("3036314538303830343630454235324435324234314132373832433138443046"));
 
             BigInteger pValue = new BigInteger("8b08eb135af966aab39df294538580c7da26765d6d38d30cf1c06aae0d1228c3316a0e29198460fad2b19dc381c15c888c6dfd0fc2c565abb0bf1faff9518f85", 16);

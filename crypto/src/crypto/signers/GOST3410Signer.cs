@@ -70,7 +70,10 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
             while (k.SignValue == 0 || k.CompareTo(parameters.Q) >= 0);
 
-            BigInteger r = parameters.A.ModPow(k, parameters.P).Mod(parameters.Q);
+            // k gives up x through s if it leaks, so the exponent is blinded with a random multiple of q before the
+            // variable-time ModPow; a has order q, so r is unchanged
+            BigInteger blindedK = BigIntegers.CreateBlindedExponent(k, parameters.Q, random);
+            BigInteger r = parameters.A.ModPow(blindedK, parameters.P).Mod(parameters.Q);
 
             // keeping the secret x and nonce k off BigInteger.Mod, whose cost follows the quotient; x is in [1, q-1] by
             // Gost3410PrivateKeyParameters, k is drawn below q, m and r are reduced, and q is prime and so odd
