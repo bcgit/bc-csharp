@@ -46,12 +46,20 @@ namespace Org.BouncyCastle.Cms
             {
                 byte[] encoded = m_content.GetEncoded(Asn1Encodable.Der);
 
-                int index = 1;
-                while ((encoded[index] & 0x80) != 0)
+                // Skip the identifier octets (including any high-tag-number continuation octets) and the
+                // definite-length octets.
+                int index = 0;
+                if ((encoded[index++] & 0x1F) == 0x1F)
                 {
-                    index++;
+                    while ((encoded[index++] & 0x80) != 0)
+                    {
+                    }
                 }
-                index++;
+                int dl = encoded[index++];
+                if ((dl & 0x80) != 0)
+                {
+                    index += dl & 0x7F;
+                }
 
                 outStream.Write(encoded, index, encoded.Length - index);
             }
