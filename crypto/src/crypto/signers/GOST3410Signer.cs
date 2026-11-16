@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             {
                 k = new BigInteger(parameters.Q.BitLength, random);
             }
-            while (k.CompareTo(parameters.Q) >= 0);
+            while (k.SignValue == 0 || k.CompareTo(parameters.Q) >= 0);
 
             BigInteger r = parameters.A.ModPow(k, parameters.P).Mod(parameters.Q);
 

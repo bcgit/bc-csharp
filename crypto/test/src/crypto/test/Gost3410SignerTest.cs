@@ -9,6 +9,7 @@ using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
@@ -52,6 +53,38 @@ namespace Org.BouncyCastle.Crypto.Tests
             var verifier = new Gost3410Signer();
             verifier.Init(false, publicKey);
             Assert.IsFalse(verifier.VerifySignature(digest, r, BigInteger.Zero), "forged (r, 0) verifies");
+        }
+
+        /// <summary>
+        /// A zero nonce must be redrawn: it gives r = 1 and s = x * r, which is the private key.
+        /// </summary>
+        [Test]
+        public void RedrawsZeroNonce()
+        {
+            var kpGen = new Gost3410KeyPairGenerator();
+            kpGen.Init(new Gost3410KeyGenerationParameters(Random, CryptoProObjectIdentifiers.GostR3410x94CryptoProA));
+            AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
+            var privateKey = (Gost3410PrivateKeyParameters)kp.Private;
+            BigInteger p = privateKey.Parameters.P, q = privateKey.Parameters.Q, a = privateKey.Parameters.A;
+            int len = (q.BitLength + 7) / 8;
+
+            byte[] digest = new byte[len];
+            Random.NextBytes(digest);
+            BigInteger m = new BigInteger(1, digest, bigEndian: false).Mod(q);
+
+            BigInteger k = BigIntegers.CreateRandomInRange(BigInteger.One, q.Subtract(BigInteger.One), Random);
+            var random = FixedSecureRandom.From(new byte[len], BigIntegers.AsUnsignedByteArray(len, k));
+
+            var signer = new Gost3410Signer();
+            signer.Init(true, new ParametersWithRandom(privateKey, random));
+            BigInteger[] sig = signer.GenerateSignature(digest);
+
+            Assert.IsTrue(random.IsExhausted, "zero nonce was not redrawn");
+
+            BigInteger r = a.ModPow(k, p).Mod(q);
+            BigInteger s = k.Multiply(m).Add(privateKey.X.Multiply(r)).Mod(q);
+            Assert.AreEqual(r, sig[0]);
+            Assert.AreEqual(s, sig[1]);
         }
 
         [Test]

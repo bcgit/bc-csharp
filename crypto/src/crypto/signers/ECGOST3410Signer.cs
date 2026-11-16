@@ -83,7 +83,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                     {
                         k = BigIntegers.CreateRandomBigInteger(n.BitLength, random);
                     }
-                    while (k.SignValue == 0);
+                    while (k.SignValue == 0 || k.CompareTo(n) >= 0);
 
                     ECPoint p = basePointMultiplier.Multiply(ec.G, k).Normalize();
 
