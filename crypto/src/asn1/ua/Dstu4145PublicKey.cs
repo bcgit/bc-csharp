@@ -31,7 +31,10 @@ namespace Org.BouncyCastle.Asn1.UA
 
         /// <summary>Return an <see cref="Dstu4145PublicKey"/> from the given element, if it is one.</summary>
         /// <param name="element">The element.</param>
-        /// <returns>The <see cref="Dstu4145PublicKey"/>, or null if <paramref name="element"/> is null.</returns>
+        /// <returns>
+        /// The <see cref="Dstu4145PublicKey"/>, or null if <paramref name="element"/> is of another type.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="element"/> is null.</exception>
         public static Dstu4145PublicKey GetOptional(Asn1Encodable element)
         {
             if (element == null)

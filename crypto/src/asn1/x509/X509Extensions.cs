@@ -260,7 +260,10 @@ namespace Org.BouncyCastle.Asn1.X509
 
         /// <summary>Return an <see cref="X509Extensions"/> from the given element, if it is one.</summary>
         /// <param name="element">The element.</param>
-        /// <returns>The <see cref="X509Extensions"/>, or null if <paramref name="element"/> is null.</returns>
+        /// <returns>
+        /// The <see cref="X509Extensions"/>, or null if <paramref name="element"/> is of another type.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="element"/> is null.</exception>
         public static X509Extensions GetOptional(Asn1Encodable element)
         {
             if (element == null)

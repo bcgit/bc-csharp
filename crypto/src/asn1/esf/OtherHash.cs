@@ -32,7 +32,8 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         /// <summary>Return an <see cref="OtherHash"/> from the given element, if it is one.</summary>
         /// <param name="element">The element.</param>
-        /// <returns>The <see cref="OtherHash"/>, or null if <paramref name="element"/> is null.</returns>
+        /// <returns>The <see cref="OtherHash"/>, or null if <paramref name="element"/> is of another type.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="element"/> is null.</exception>
         public static OtherHash GetOptional(Asn1Encodable element)
         {
             if (element == null)

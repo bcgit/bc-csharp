@@ -31,7 +31,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         /// <summary>Return an <see cref="CrlSource"/> from the given element, if it is one.</summary>
         /// <param name="element">The element.</param>
-        /// <returns>The <see cref="CrlSource"/>, or null if <paramref name="element"/> is null.</returns>
+        /// <returns>The <see cref="CrlSource"/>, or null if <paramref name="element"/> is of another type.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="element"/> is null.</exception>
         public static CrlSource GetOptional(Asn1Encodable element)
         {
             if (element == null)

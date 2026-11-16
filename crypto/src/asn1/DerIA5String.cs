@@ -70,7 +70,8 @@ namespace Org.BouncyCastle.Asn1
 
         /// <summary>Return an <see cref="DerIA5String"/> from the given element, if it is one.</summary>
         /// <param name="element">The element.</param>
-        /// <returns>The <see cref="DerIA5String"/>, or null if <paramref name="element"/> is null.</returns>
+        /// <returns>The <see cref="DerIA5String"/>, or null if <paramref name="element"/> is of another type.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="element"/> is null.</exception>
         public static DerIA5String GetOptional(Asn1Encodable element)
         {
             if (element == null)

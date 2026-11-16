@@ -63,7 +63,8 @@ namespace Org.BouncyCastle.Asn1
 
         /// <summary>Return an <see cref="Asn1Null"/> from the given element, if it is one.</summary>
         /// <param name="element">The element.</param>
-        /// <returns>The <see cref="Asn1Null"/>, or null if <paramref name="element"/> is null.</returns>
+        /// <returns>The <see cref="Asn1Null"/>, or null if <paramref name="element"/> is of another type.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="element"/> is null.</exception>
         public static Asn1Null GetOptional(Asn1Encodable element)
         {
             if (element == null)

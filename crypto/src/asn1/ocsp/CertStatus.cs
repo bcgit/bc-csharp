@@ -20,7 +20,8 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
         /// <summary>Return an <see cref="CertStatus"/> from the given element, if it is one.</summary>
         /// <param name="element">The element.</param>
-        /// <returns>The <see cref="CertStatus"/>, or null if <paramref name="element"/> is null.</returns>
+        /// <returns>The <see cref="CertStatus"/>, or null if <paramref name="element"/> is of another type.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="element"/> is null.</exception>
         public static CertStatus GetOptional(Asn1Encodable element)
         {
             if (element == null)

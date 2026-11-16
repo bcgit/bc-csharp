@@ -137,7 +137,10 @@ namespace Org.BouncyCastle.Asn1
 
         /// <summary>Return an <see cref="Asn1TaggedObject"/> from the given element, if it is one.</summary>
         /// <param name="element">The element.</param>
-        /// <returns>The <see cref="Asn1TaggedObject"/>, or null if <paramref name="element"/> is null.</returns>
+        /// <returns>
+        /// The <see cref="Asn1TaggedObject"/>, or null if <paramref name="element"/> is of another type.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="element"/> is null.</exception>
         public static Asn1TaggedObject GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -152,7 +155,10 @@ namespace Org.BouncyCastle.Asn1
         /// <summary>Return an <see cref="Asn1TaggedObject"/> from the given element, if it is one.</summary>
         /// <param name="element">The element.</param>
         /// <param name="tagClass">The tag class.</param>
-        /// <returns>The <see cref="Asn1TaggedObject"/>, or null if <paramref name="element"/> is null.</returns>
+        /// <returns>
+        /// The <see cref="Asn1TaggedObject"/>, or null if <paramref name="element"/> is not tagged with that class.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="element"/> is null.</exception>
         public static Asn1TaggedObject GetOptional(Asn1Encodable element, int tagClass)
         {
             var taggedObject = GetOptional(element);
@@ -165,7 +171,10 @@ namespace Org.BouncyCastle.Asn1
         /// <param name="element">The element.</param>
         /// <param name="tagClass">The tag class.</param>
         /// <param name="tagNo">The tag number.</param>
-        /// <returns>The <see cref="Asn1TaggedObject"/>, or null if <paramref name="element"/> is null.</returns>
+        /// <returns>
+        /// The <see cref="Asn1TaggedObject"/>, or null if <paramref name="element"/> is not tagged with that tag.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="element"/> is null.</exception>
         public static Asn1TaggedObject GetOptional(Asn1Encodable element, int tagClass, int tagNo)
         {
             var taggedObject = GetOptional(element);

@@ -71,7 +71,10 @@ namespace Org.BouncyCastle.Asn1
 
         /// <summary>Return an <see cref="DerVideotexString"/> from the given element, if it is one.</summary>
         /// <param name="element">The element.</param>
-        /// <returns>The <see cref="DerVideotexString"/>, or null if <paramref name="element"/> is null.</returns>
+        /// <returns>
+        /// The <see cref="DerVideotexString"/>, or null if <paramref name="element"/> is of another type.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="element"/> is null.</exception>
         public static DerVideotexString GetOptional(Asn1Encodable element)
         {
             if (element == null)

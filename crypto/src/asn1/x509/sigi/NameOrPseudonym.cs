@@ -39,7 +39,10 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
 
         /// <summary>Return an <see cref="NameOrPseudonym"/> from the given element, if it is one.</summary>
         /// <param name="element">The element.</param>
-        /// <returns>The <see cref="NameOrPseudonym"/>, or null if <paramref name="element"/> is null.</returns>
+        /// <returns>
+        /// The <see cref="NameOrPseudonym"/>, or null if <paramref name="element"/> is of another type.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="element"/> is null.</exception>
         public static NameOrPseudonym GetOptional(Asn1Encodable element)
         {
             if (element == null)

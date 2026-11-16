@@ -24,8 +24,9 @@ namespace Org.BouncyCastle.Asn1.Cms
         /// <summary>Return an <see cref="KeyAgreeRecipientIdentifier"/> from the given element, if it is one.</summary>
         /// <param name="element">The element.</param>
         /// <returns>
-        /// The <see cref="KeyAgreeRecipientIdentifier"/>, or null if <paramref name="element"/> is null.
+        /// The <see cref="KeyAgreeRecipientIdentifier"/>, or null if <paramref name="element"/> is of another type.
         /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="element"/> is null.</exception>
         public static KeyAgreeRecipientIdentifier GetOptional(Asn1Encodable element)
         {
             if (element == null)

@@ -29,7 +29,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         /// <summary>Return an <see cref="PkiFreeText"/> from the given element, if it is one.</summary>
         /// <param name="element">The element.</param>
-        /// <returns>The <see cref="PkiFreeText"/>, or null if <paramref name="element"/> is null.</returns>
+        /// <returns>The <see cref="PkiFreeText"/>, or null if <paramref name="element"/> is of another type.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="element"/> is null.</exception>
         public static PkiFreeText GetOptional(Asn1Encodable element)
         {
             if (element == null)
