@@ -66,17 +66,19 @@ namespace Org.BouncyCastle.Crypto.Engines
                     lookup[i] = new byte[actualPrimeValue][];
                     lookup[i][0] = BigIntegers.AsUnsignedByteArray(modulusLength, BigInteger.One);
 
-                    // entry j is g^(j * phi(n) / p). The exponent carries phi(n), the private key, so each is blinded
-                    // with a random multiple of phi(n) before the variable-time ModPow; g is coprime to n, so the
-                    // entries are unchanged.
-                    BigInteger step = PhiNOverSmallPrime(priv, actualPrime);
-                    BigInteger comp = BigInteger.Zero;
+                    // entry j is g^(j * phi(n) / p) = h^j for h = g^(phi(n) / p), so one exponentiation and then
+                    // repeated multiplication build the table. The exponent carries phi(n), the private key, so it is
+                    // blinded with a random multiple of phi(n) before the variable-time ModPow; g is coprime to n, so h
+                    // is unchanged. The entries are as sensitive as the key (h - 1 shares a prime factor with n), so
+                    // the chain uses the fixed-time ModMult rather than ModMultiply, whose reduction follows the value.
+                    BigInteger exponent = BigIntegers.CreateBlindedExponent(PhiNOverSmallPrime(priv, actualPrime),
+                        priv.PhiN, random);
+                    BigInteger h = priv.G.ModPow(exponent, priv.Modulus);
+                    BigInteger entry = BigInteger.One;
                     for (int j = 1; j < actualPrimeValue; j++)
                     {
-                        comp = comp.Add(step);
-                        BigInteger exponent = BigIntegers.CreateBlindedExponent(comp, priv.PhiN, random);
-                        lookup[i][j] = BigIntegers.AsUnsignedByteArray(modulusLength,
-                            priv.G.ModPow(exponent, priv.Modulus));
+                        entry = BigIntegers.ModMult(priv.Modulus, entry, h);
+                        lookup[i][j] = BigIntegers.AsUnsignedByteArray(modulusLength, entry);
                     }
                 }
             }

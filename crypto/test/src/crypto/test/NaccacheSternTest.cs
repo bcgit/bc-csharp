@@ -280,7 +280,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         /// precomputed table; the index found is the digit, so the search must scan the whole table. This walks a
         /// plaintext range that hits every entry of every table (the paper key's digits are the plaintext modulo
         /// 3, 5, 7, 11, 13 and 17) and checks each recovered value. It also counts the blinding draws: one per
-        /// table entry when the tables are built, then one per prime per decryption.
+        /// prime when the tables are built, then one per prime per decryption.
         /// </summary>
         [Test]
         public void TestEveryDigitAndBlinding()
@@ -296,13 +296,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             var dec = new NaccacheSternEngine();
             dec.Init(false, new ParametersWithRandom(privParameters, counting));
 
-            // building the tables blinds one exponent per non-trivial entry, p - 1 per small prime
-            int tableEntries = 0;
-            foreach (BigInteger smallPrime in smallPrimes)
-            {
-                tableEntries += smallPrime.IntValue - 1;
-            }
-            Assert.AreEqual(tableEntries, counting.Count, "blinding draws building the tables");
+            // building the tables blinds one exponent per small prime, the rest of each table being powers of it
+            Assert.AreEqual(smallPrimes.Count, counting.Count, "blinding draws building the tables");
 
             for (int m = 1; m < 256; ++m)
             {
