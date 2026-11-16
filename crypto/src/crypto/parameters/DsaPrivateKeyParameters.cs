@@ -16,10 +16,19 @@ namespace Org.BouncyCastle.Crypto.Parameters
         public DsaPrivateKeyParameters(BigInteger x, DsaParameters parameters)
             : base(true, parameters)
         {
+            m_x = Validate(x, parameters);
+        }
+
+        private static BigInteger Validate(BigInteger x, DsaParameters parameters)
+        {
             if (x == null)
                 throw new ArgumentNullException(nameof(x));
 
-            m_x = x;
+            // FIPS 186-4 sec. 4.1: x is in [1, q-1]. Parameters may be null (inherited), leaving nothing to check.
+            if (parameters != null && (x.SignValue < 1 || x.CompareTo(parameters.Q) >= 0))
+                throw new ArgumentException("x must be in [1, q-1]", nameof(x));
+
+            return x;
         }
 
         /// <summary>Gets the private value X.</summary>
