@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
@@ -67,8 +68,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                     // entry j is g^(j * phi(n) / p). The exponent carries phi(n), the private key, so each is blinded
                     // with a random multiple of phi(n) before the variable-time ModPow; g is coprime to n, so the
-                    // entries are unchanged. phi(n) / p is exact, as p divides sigma, which divides phi(n).
-                    BigInteger step = priv.PhiN.Divide(actualPrime);
+                    // entries are unchanged.
+                    BigInteger step = PhiNOverSmallPrime(priv, actualPrime);
                     BigInteger comp = BigInteger.Zero;
                     for (int j = 1; j < actualPrimeValue; j++)
                     {
@@ -164,8 +165,8 @@ namespace Org.BouncyCastle.Crypto.Engines
                 // key, so the exponent is blinded before the variable-time ModPow. input^phi(n) = 1 (mod n) for any
                 // input coprime to n, so the result is unchanged; an input sharing a factor with n fails the lookup
                 // either way.
-                BigInteger exponent = BigIntegers.CreateBlindedExponent(priv.PhiN.Divide(primes[i]), priv.PhiN,
-                    random);
+                BigInteger exponent = BigIntegers.CreateBlindedExponent(PhiNOverSmallPrime(priv, primes[i]),
+                    priv.PhiN, random);
                 BigInteger exp = input.ModPow(exponent, priv.Modulus);
                 byte[][] al = lookup[i];
                 if (al.Length != primes[i].IntValue)
@@ -322,6 +323,22 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
 
             return retval.Mod(all);
+        }
+
+        // phi(n) / p for one of the key's small primes, without BigInteger.Divide, whose shift-and-subtract loop follows
+        // the bits of the quotient. p divides sigma, which divides phi(n), so the division is exact and the quotient is
+        // below 2^k for k the modulus bit length; it is therefore phi(n) * p^-1 mod 2^k, one multiplication and a mask.
+        // Only correct when p divides phi(n), hence kept local to this engine.
+        // TODO Consider word-level exact division (one pass using p^-1 mod 2^32) instead of the full multiply; currently
+        // negligible next to the ModPow each result feeds.
+        private static BigInteger PhiNOverSmallPrime(NaccacheSternPrivateKeyParameters priv, BigInteger p)
+        {
+            BigInteger m = BigInteger.One.ShiftLeft(priv.Modulus.BitLength);
+            BigInteger q = priv.PhiN.Multiply(p.ModInverse(m)).Mod(m);
+
+            Debug.Assert(q.Multiply(p).Equals(priv.PhiN));
+
+            return q;
         }
 
         // The index of the match is the plaintext digit for this prime, so returning as soon as it is found (as
