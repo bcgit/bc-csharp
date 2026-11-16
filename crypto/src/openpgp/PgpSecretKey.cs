@@ -328,6 +328,18 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+        /// <summary>Create a new <see cref="PgpSecretKey"/>.</summary>
+        /// <param name="certificationLevel">The certification level.</param>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="pubKey">The public key.</param>
+        /// <param name="privKey">The private key.</param>
+        /// <param name="time">The time.</param>
+        /// <param name="id">The id.</param>
+        /// <param name="encAlgorithm">The enc algorithm.</param>
+        /// <param name="passPhrase">The password.</param>
+        /// <param name="hashedPackets">The hashed packets.</param>
+        /// <param name="unhashedPackets">The unhashed packets.</param>
+        /// <param name="rand">The rand.</param>
         public PgpSecretKey(int certificationLevel, PublicKeyAlgorithmTag algorithm, AsymmetricKeyParameter pubKey,
             AsymmetricKeyParameter privKey, DateTime time, string id, SymmetricKeyAlgorithmTag encAlgorithm,
             char[] passPhrase, PgpSignatureSubpacketVector hashedPackets, PgpSignatureSubpacketVector unhashedPackets,
@@ -337,6 +349,19 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
         }
 
+        /// <summary>Create a new <see cref="PgpSecretKey"/>.</summary>
+        /// <param name="certificationLevel">The certification level.</param>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="pubKey">The public key.</param>
+        /// <param name="privKey">The private key.</param>
+        /// <param name="time">The time.</param>
+        /// <param name="id">The id.</param>
+        /// <param name="encAlgorithm">The enc algorithm.</param>
+        /// <param name="passPhrase">The password.</param>
+        /// <param name="useSha1">true if use sha 1, false otherwise.</param>
+        /// <param name="hashedPackets">The hashed packets.</param>
+        /// <param name="unhashedPackets">The unhashed packets.</param>
+        /// <param name="rand">The rand.</param>
         public PgpSecretKey(int certificationLevel, PublicKeyAlgorithmTag algorithm, AsymmetricKeyParameter pubKey,
             AsymmetricKeyParameter privKey, DateTime time, string id, SymmetricKeyAlgorithmTag encAlgorithm,
             char[] passPhrase, bool useSha1, PgpSignatureSubpacketVector hashedPackets,
@@ -642,7 +667,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                             new AlgorithmIdentifier(curveOid),
                             new DerOctetString(BigIntegers.AsUnsignedByteArray(Ed448.SecretKeySize, ecdsaPriv.X))));
                     }
-                    else 
+                    else
                     {
                         throw new InvalidOperationException();
                     }
@@ -698,6 +723,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+        /// <summary>Return the encoded.</summary>
         public byte[] GetEncoded()
         {
             MemoryStream bOut = new MemoryStream();
@@ -705,6 +731,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return bOut.ToArray();
         }
 
+        /// <summary>Write the encoding of this object.</summary>
+        /// <param name="outStr">The stream to write to.</param>
         public void Encode(Stream outStr)
         {
             BcpgOutputStream bcpgOut = BcpgOutputStream.Wrap(outStr);

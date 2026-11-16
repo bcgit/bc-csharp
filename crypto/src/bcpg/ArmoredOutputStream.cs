@@ -26,10 +26,15 @@ namespace Org.BouncyCastle.Bcpg
     public class ArmoredOutputStream
         : BaseOutputStream
     {
+        /// <summary>The name of the armor header for the character set.</summary>
         public static readonly string HeaderCharset = "Charset";
+        /// <summary>The name of the armor header for comments.</summary>
         public static readonly string HeaderComment = "Comment";
+        /// <summary>The name of the armor header for the hash algorithms of a cleartext signature.</summary>
         public static readonly string HeaderHash = "Hash";
+        /// <summary>The name of the armor header for the message ID.</summary>
         public static readonly string HeaderMessageID = "MessageID";
+        /// <summary>The name of the armor header for the version.</summary>
         public static readonly string HeaderVersion = "Version";
 
         private static readonly string NewLine = Environment.NewLine;
@@ -157,11 +162,16 @@ namespace Org.BouncyCastle.Bcpg
         private string type;
         private readonly Dictionary<string, List<string>> m_headers;
 
+        /// <summary>Create a new <see cref="ArmoredOutputStream"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
         public ArmoredOutputStream(Stream outStream)
             : this(outStream, true)
         {
         }
 
+        /// <summary>Create a new <see cref="ArmoredOutputStream"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
+        /// <param name="addVersionHeader">true if add version header, false otherwise.</param>
         public ArmoredOutputStream(Stream outStream, bool addVersionHeader)
         {
             m_outStream = outStream;
@@ -175,11 +185,18 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+        /// <summary>Create a new <see cref="ArmoredOutputStream"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
+        /// <param name="headers">The headers.</param>
         public ArmoredOutputStream(Stream outStream, IDictionary<string, string> headers)
             : this(outStream, headers, true)
         {
         }
 
+        /// <summary>Create a new <see cref="ArmoredOutputStream"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
+        /// <param name="headers">The headers.</param>
+        /// <param name="addVersionHeader">true if add version header, false otherwise.</param>
         public ArmoredOutputStream(Stream outStream, IDictionary<string, string> headers, bool addVersionHeader)
             : this(outStream, addVersionHeader && !headers.ContainsKey(HeaderVersion))
         {
@@ -270,6 +287,8 @@ namespace Org.BouncyCastle.Bcpg
         public void BeginClearText(HashAlgorithmTag hashAlgorithm) =>
             BeginClearText(new HashAlgorithmTag[]{ hashAlgorithm });
 
+        /// <summary>Start a clear text signed message - backwards compatibility.</summary>
+        /// <param name="hashAlgorithms">The hash algorithms.</param>
         public void BeginClearText(params HashAlgorithmTag[] hashAlgorithms)
         {
             StringBuilder sb = new StringBuilder("-----BEGIN PGP SIGNED MESSAGE-----");
@@ -333,6 +352,9 @@ namespace Org.BouncyCastle.Bcpg
             lastb = 0;
         }
 
+        /// <summary>
+        /// End the cleartext section of a cleartext signed message, so that the signature can follow.
+        /// </summary>
         public void EndClearText()
         {
             clearText = false;
@@ -358,6 +380,7 @@ namespace Org.BouncyCastle.Bcpg
             return s != null && (s.IndexOf('\r') >= 0 || s.IndexOf('\n') >= 0);
         }
 
+        /// <inheritdoc/>
         public override void WriteByte(byte value)
         {
             if (clearText)
@@ -516,8 +539,11 @@ namespace Org.BouncyCastle.Bcpg
             m_outStream.Write(bs, 0, bs.Length);
         }
 
+        /// <summary>Start building an armored output stream.</summary>
+        /// <returns>A new builder.</returns>
         public static Builder Build() => new Builder();
 
+        /// <summary>A builder for <see cref="ArmoredOutputStream"/>.</summary>
         public sealed class Builder
         {
             internal readonly Dictionary<string, List<string>> m_headers = new Dictionary<string, List<string>>();
@@ -527,6 +553,9 @@ namespace Org.BouncyCastle.Bcpg
             {
             }
 
+            /// <summary>Build an armored output stream over a stream.</summary>
+            /// <param name="output">The stream to write the armored data to.</param>
+            /// <returns>The new stream.</returns>
             public ArmoredOutputStream Build(Stream output) => new ArmoredOutputStream(output, this);
 
             /**
@@ -574,6 +603,11 @@ namespace Org.BouncyCastle.Bcpg
              */
             public Builder AddComment(string comment) => AddHeader(HeaderComment, comment);
 
+            /// <summary>
+            /// Add a comment header, shortening the comment with an ellipsis if it is too long for a line.
+            /// </summary>
+            /// <param name="comment">The comment.</param>
+            /// <returns>This builder.</returns>
             public Builder AddEllipsizedComment(string comment)
             {
                 int availableCommentCharsPerLine = 64 - (HeaderComment.Length + 2); // ASCII armor width - header len
@@ -585,6 +619,12 @@ namespace Org.BouncyCastle.Bcpg
                 return AddComment(comment);
             }
 
+            /// <summary>
+            /// Add a comment that may be spread over several lines, splitting the comment across several headers if it
+            /// is too long for a line.
+            /// </summary>
+            /// <param name="comment">The comment.</param>
+            /// <returns>This builder.</returns>
             public Builder AddSplitMultilineComment(string comment)
             {
                 int availableCommentCharsPerLine = 64 - (HeaderComment.Length + 2); // ASCII armor width - header len
@@ -712,6 +752,8 @@ namespace Org.BouncyCastle.Bcpg
                 return this;
             }
 
+            /// <summary>Remove all the headers that have been added.</summary>
+            /// <returns>This builder.</returns>
             public Builder ClearHeaders()
             {
                 m_headers.Clear();

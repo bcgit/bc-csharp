@@ -23,11 +23,14 @@ namespace Org.BouncyCastle.Bcpg
             return new BcpgInputStream(inStr);
         }
 
+        /// <summary>Create a new <see cref="BcpgInputStream"/>.</summary>
+        /// <param name="inputStream">The input stream.</param>
         public BcpgInputStream(Stream inputStream)
         {
             m_in = inputStream;
         }
 
+        /// <inheritdoc/>
         public override int ReadByte()
         {
             if (next)
@@ -39,6 +42,7 @@ namespace Org.BouncyCastle.Bcpg
             return m_in.ReadByte();
         }
 
+        /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
             if (!next)
@@ -55,6 +59,7 @@ namespace Org.BouncyCastle.Bcpg
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int Read(Span<byte> buffer)
         {
             if (!next)
@@ -69,17 +74,33 @@ namespace Org.BouncyCastle.Bcpg
         }
 #endif
 
+        /// <summary>Read the stream to its end.</summary>
+        /// <returns>The data read.</returns>
         public byte[] ReadAll() => Streams.ReadAll(this);
 
+        /// <summary>Read until the buffer is full.</summary>
+        /// <param name="buffer">The buffer to fill.</param>
+        /// <param name="offset">The offset into <paramref name="buffer"/> at which to start.</param>
+        /// <param name="count">The number of bytes to read.</param>
+        /// <exception cref="EndOfStreamException">The stream ended before the buffer was filled.</exception>
         public void ReadFully(byte[] buffer, int offset, int count) =>
             StreamUtilities.RequireBytes(this, buffer, offset, count);
 
+        /// <summary>Read until the buffer is full.</summary>
+        /// <param name="buffer">The buffer to fill.</param>
+        /// <exception cref="EndOfStreamException">The stream ended before the buffer was filled.</exception>
         public void ReadFully(byte[] buffer) => StreamUtilities.RequireBytes(this, buffer);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Read until the buffer is full.</summary>
+        /// <param name="buffer">The buffer to fill.</param>
+        /// <exception cref="EndOfStreamException">The stream ended before the buffer was filled.</exception>
         public void ReadFully(Span<byte> buffer) => StreamUtilities.RequireBytes(this, buffer);
 #endif
 
+        /// <summary>Read a byte, which must be available.</summary>
+        /// <returns>The byte read.</returns>
+        /// <exception cref="EndOfStreamException">The end of the stream was reached.</exception>
         public byte RequireByte() => StreamUtilities.RequireByte(this);
 
         /// <summary>Returns the next packet tag in the stream.</summary>
@@ -110,6 +131,8 @@ namespace Org.BouncyCastle.Bcpg
             return (PacketTag)maskB;
         }
 
+        /// <summary>Read the next packet from the stream.</summary>
+        /// <returns>The packet, or null if the end of the stream was reached.</returns>
         public Packet ReadPacket()
         {
             int hdr = ReadByte();
@@ -221,6 +244,8 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+        /// <summary>Skip any marker packets at the current position.</summary>
+        /// <returns>The tag of the next packet, or -1 if there is none.</returns>
         public PacketTag SkipMarkerPackets()
         {
             PacketTag tag;
@@ -232,6 +257,7 @@ namespace Org.BouncyCastle.Bcpg
             return tag;
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)

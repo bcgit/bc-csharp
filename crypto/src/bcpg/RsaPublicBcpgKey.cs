@@ -23,8 +23,10 @@ namespace Org.BouncyCastle.Bcpg
             m_e = new MPInteger(e);
         }
 
+        /// <summary>Gets the modulus.</summary>
         public BigInteger Modulus => m_n.Value;
 
+        /// <summary>Gets the public exponent.</summary>
         public BigInteger PublicExponent => m_e.Value;
 
         /// <summary>The format, as a string, always "PGP".</summary>
@@ -33,6 +35,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Return the standard PGP encoding of the key.</summary>
         public override byte[] GetEncoded() => BcpgOutputStream.GetEncodedOrNull(this);
 
+        /// <inheritdoc/>
         public override void Encode(BcpgOutputStream bcpgOut) => bcpgOut.WriteObjects(m_n, m_e);
     }
 }

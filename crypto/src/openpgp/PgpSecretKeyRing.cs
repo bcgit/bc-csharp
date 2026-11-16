@@ -34,12 +34,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             this.extraPubKeys = extraPubKeys;
         }
 
+        /// <summary>Create a new <see cref="PgpSecretKeyRing"/>.</summary>
+        /// <param name="encoding">The encoding.</param>
         public PgpSecretKeyRing(
             byte[] encoding)
             : this(new MemoryStream(encoding, writable: false))
         {
         }
 
+        /// <summary>Create a new <see cref="PgpSecretKeyRing"/>.</summary>
+        /// <param name="inputStream">The input stream.</param>
         public PgpSecretKeyRing(
             Stream inputStream)
         {
@@ -169,6 +173,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return CollectionUtilities.Proxy(keysWithSigs);
         }
 
+        /// <summary>Return the public keys.</summary>
         public IEnumerable<PgpPublicKey> GetPublicKeys()
         {
             var pubKeys = new List<PgpPublicKey>();
@@ -231,6 +236,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return CollectionUtilities.Proxy(extraPubKeys);
         }
 
+        /// <summary>Return the encoded.</summary>
         public byte[] GetEncoded()
         {
             var bOut = new MemoryStream();
@@ -238,6 +244,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return bOut.ToArray();
         }
 
+        /// <summary>Write the encoding of this object.</summary>
+        /// <param name="outStr">The stream to write to.</param>
         public void Encode(
             Stream outStr)
         {
@@ -283,11 +291,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="newEncAlgorithm">The algorithm to be used for the encryption.</param>
         /// <param name="rand">Source of randomness.</param>
         public static PgpSecretKeyRing CopyWithNewPassword(
-            PgpSecretKeyRing			ring,
-            char[]						oldPassPhrase,
-            char[]						newPassPhrase,
-            SymmetricKeyAlgorithmTag	newEncAlgorithm,
-            SecureRandom				rand)
+            PgpSecretKeyRing ring,
+            char[] oldPassPhrase,
+            char[] newPassPhrase,
+            SymmetricKeyAlgorithmTag newEncAlgorithm,
+            SecureRandom rand)
         {
             var newKeys = new List<PgpSecretKey>(ring.keys.Count);
 

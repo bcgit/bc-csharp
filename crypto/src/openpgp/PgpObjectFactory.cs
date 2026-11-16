@@ -17,11 +17,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         private bool m_throwForUnknownCriticalPackets = false;
 
+        /// <summary>Create a new <see cref="PgpObjectFactory"/>.</summary>
+        /// <param name="inputStream">The input stream.</param>
         public PgpObjectFactory(Stream inputStream)
         {
             this.bcpgIn = BcpgInputStream.Wrap(inputStream);
         }
 
+        /// <summary>Create a new <see cref="PgpObjectFactory"/>.</summary>
+        /// <param name="bytes">The bytes.</param>
         public PgpObjectFactory(byte[] bytes)
             : this(new MemoryStream(bytes, false))
         {

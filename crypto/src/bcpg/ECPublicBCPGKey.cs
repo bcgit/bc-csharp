@@ -20,20 +20,28 @@ namespace Org.BouncyCastle.Bcpg
             m_point = new MPInteger(bcpgIn).Value;
         }
 
+        /// <summary>Create a new <see cref="ECPublicBcpgKey"/>.</summary>
+        /// <param name="oid">The object identifier.</param>
+        /// <param name="point">The point.</param>
         protected ECPublicBcpgKey(DerObjectIdentifier oid, ECPoint point)
         {
             m_point = MPInteger.ToMpiBigInteger(point);
             m_oid = oid;
         }
 
+        /// <summary>Create a new <see cref="ECPublicBcpgKey"/>.</summary>
+        /// <param name="oid">The object identifier.</param>
+        /// <param name="encodedPoint">The encoded point.</param>
         protected ECPublicBcpgKey(DerObjectIdentifier oid, BigInteger encodedPoint)
         {
             m_point = encodedPoint;
             m_oid = oid;
         }
 
+        /// <summary>Gets the encoded point.</summary>
         public virtual BigInteger EncodedPoint => m_point;
 
+        /// <summary>Gets the curve oid.</summary>
         public virtual DerObjectIdentifier CurveOid => m_oid;
 
         /// <summary>The format, as a string, always "PGP".</summary>
@@ -42,6 +50,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Return the standard PGP encoding of the key.</summary>
         public override byte[] GetEncoded() => BcpgOutputStream.GetEncodedOrNull(this);
 
+        /// <inheritdoc/>
         public override void Encode(BcpgOutputStream bcpgOut)
         {
             byte[] oid = m_oid.GetEncoded();
@@ -50,6 +59,10 @@ namespace Org.BouncyCastle.Bcpg
             MPInteger.Encode(bcpgOut, m_point);
         }
 
+        /// <summary>Read a length-prefixed encoded value, such as a curve OID.</summary>
+        /// <param name="bcpgIn">The stream to read from.</param>
+        /// <returns>The length byte followed by the bytes read.</returns>
+        /// <exception cref="IOException">The length is not valid or not supported.</exception>
         protected static byte[] ReadBytesOfEncodedLength(BcpgInputStream bcpgIn)
         {
             int length = bcpgIn.RequireByte();

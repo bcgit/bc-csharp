@@ -10,11 +10,20 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
         }
 
+        /// <summary>Pad session data (PKCS#5 style) to a multiple of 8 bytes, obscuring its length.</summary>
+        /// <param name="sessionInfo">The session data.</param>
+        /// <returns>The padded data.</returns>
         public static byte[] PadSessionData(byte[] sessionInfo)
         {
             return PadSessionData(sessionInfo, true);
         }
 
+        /// <summary>Pad session data (PKCS#5 style) to a multiple of 8 bytes.</summary>
+        /// <param name="sessionInfo">The session data.</param>
+        /// <param name="obfuscate">
+        /// true to pad to at least 40 bytes so that the length of the session key is not revealed.
+        /// </param>
+        /// <returns>The padded data.</returns>
         public static byte[] PadSessionData(byte[] sessionInfo, bool obfuscate)
         {
             int length = sessionInfo.Length;
@@ -37,6 +46,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return result;
         }
 
+        /// <summary>Remove the padding from session data, checking it in constant time.</summary>
+        /// <param name="encoded">The padded data.</param>
+        /// <returns>The session data.</returns>
+        /// <exception cref="InvalidOperationException">The padding is not valid.</exception>
         public static byte[] UnpadSessionData(byte[] encoded)
         {
             int paddedLength = encoded.Length;
