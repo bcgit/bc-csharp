@@ -604,6 +604,40 @@ namespace Org.BouncyCastle.Math.Tests
         }
 
         [Test]
+        public void TestModInversePow2()
+        {
+            Assert.AreEqual(Zero, Three.ModInverse(One));
+
+            // word boundaries, the 64-bit fast path, and both sides of the stackalloc bound (2048 bits)
+            int[] pows = { 1, 31, 32, 33, 63, 64, 65, 95, 96, 97, 127, 128, 129, 1000, 2047, 2048, 2049, 4096, 4111 };
+
+            foreach (int pow in pows)
+            {
+                BigInteger m = One.ShiftLeft(pow);
+
+                for (int i = 0; i < 10; ++i)
+                {
+                    BigInteger d = new BigInteger(pow + 64, random).SetBit(0);
+
+                    BigInteger small = new BigInteger(1 + i * 7, random).SetBit(0);
+
+                    // values below m, at least m, negative, and short relative to m
+                    BigInteger[] ds = { d.Mod(m).SetBit(0), d, d.Negate(), small, small.Negate() };
+
+                    foreach (BigInteger dv in ds)
+                    {
+                        BigInteger x = dv.ModInverse(m);
+
+                        Assert.IsTrue(x.SignValue >= 0 && x.CompareTo(m) < 0, "pow " + pow + ": range");
+                        Assert.AreEqual(One, x.Multiply(dv).Mod(m), "pow " + pow + ": inverse");
+                    }
+                }
+
+                Assert.Throws<ArithmeticException>(() => Two.ModInverse(m));
+            }
+        }
+
+        [Test]
         public void TestModPow()
         {
             try

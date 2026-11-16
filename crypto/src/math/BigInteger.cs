@@ -1978,34 +1978,98 @@ namespace Org.BouncyCastle.Math
 
             int pow = m.BitLength - 1;
 
-            long inv64 = (long)Raw.Mod.Inverse64((ulong)LongValue);
-            if (pow < 64)
+            if (pow <= 64)
             {
-                inv64 &= ((1L << pow) - 1);
-            }
-
-            BigInteger x = ValueOf(inv64);
-
-            if (pow > 64)
-            {
-                BigInteger d = this.Remainder(m);
-                int bitsCorrect = 64;
-
-                do
+                long inv64 = (long)Raw.Mod.Inverse64((ulong)LongValue);
+                if (pow < 64)
                 {
-                    BigInteger t = x.Multiply(d).Remainder(m);
-                    x = x.Multiply(Two.Subtract(t)).Remainder(m);
-                    bitsCorrect <<= 1;
+                    inv64 &= ((1L << pow) - 1);
                 }
-                while (bitsCorrect < pow);
+
+                BigInteger x = ValueOf(inv64);
+                return x.sign < 0 ? x.Add(m) : x;
             }
 
-            if (x.sign < 0)
+            BigInteger d = sign < 0 || BitLength > pow ? Mod(m) : this;
+            int len = Raw.Nat.GetLengthForBits(pow);
+            int dLen = Raw.Nat.GetLengthForBits(d.BitLength);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (len <= 64)
             {
-                x = x.Add(m);
+                Span<uint> dd = stackalloc uint[len];
+                Span<uint> acc = stackalloc uint[len];
+                Span<uint> z = stackalloc uint[len];
+                Raw.Nat.FromBigInteger(pow, d, dd);
+                acc.Clear();
+                InversePow2(pow, len, dd, dLen, acc, z);
+                return Raw.Nat.ToBigInteger(len, z);
+            }
+            else
+#endif
+            {
+                uint[] dd = Raw.Nat.FromBigInteger(pow, d);
+                uint[] acc = Raw.Nat.Create(len);
+                uint[] z = Raw.Nat.Create(len);
+                InversePow2(pow, len, dd, dLen, acc, z);
+                return Raw.Nat.ToBigInteger(len, z);
+            }
+        }
+
+        // z = d^-1 mod 2^pow, for odd d of dLen significant words, a word at a time (Hensel lifting): acc (initially
+        // zero) holds d * z, and each word of z is chosen to bring the corresponding word of acc to that of 1. As
+        // d * z has at most i + dLen words before step i, each step's carry lands in a still-zero word.
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void InversePow2(int pow, int len, ReadOnlySpan<uint> d, int dLen, Span<uint> acc,
+            Span<uint> z)
+        {
+            // the final mask (and len >= 1) needs pow >= 1; ModInversePow2 only calls this for pow > 64
+            Debug.Assert(pow > 64 && len == Raw.Nat.GetLengthForBits(pow));
+
+            uint dInv = Raw.Mod.Inverse32(d[0]);
+            uint target = 1U;
+
+            for (int i = 0; i < len; ++i)
+            {
+                uint zi = (target - acc[i]) * dInv;
+                z[i] = zi;
+                target = 0U;
+
+                int n = System.Math.Min(dLen, len - i);
+                uint c = Raw.Nat.MulWordAddTo(n, zi, d, acc.Slice(i));
+                if (i + n < len)
+                {
+                    acc[i + n] = c;
+                }
             }
 
-            return x;
+            z[len - 1] &= uint.MaxValue >> -pow;
+        }
+#endif
+
+        private static void InversePow2(int pow, int len, uint[] d, int dLen, uint[] acc, uint[] z)
+        {
+            // the final mask (and len >= 1) needs pow >= 1; ModInversePow2 only calls this for pow > 64
+            Debug.Assert(pow > 64 && len == Raw.Nat.GetLengthForBits(pow));
+
+            uint dInv = Raw.Mod.Inverse32(d[0]);
+            uint target = 1U;
+
+            for (int i = 0; i < len; ++i)
+            {
+                uint zi = (target - acc[i]) * dInv;
+                z[i] = zi;
+                target = 0U;
+
+                int n = System.Math.Min(dLen, len - i);
+                uint c = Raw.Nat.MulWordAddTo(n, zi, d, 0, acc, i);
+                if (i + n < len)
+                {
+                    acc[i + n] = c;
+                }
+            }
+
+            z[len - 1] &= uint.MaxValue >> -pow;
         }
 
         /**
