@@ -19,7 +19,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private NaccacheSternKeyParameters key;
 
-        private IList<BigInteger>[] lookup = null;
+        // one fixed-length encoding per possible digit, per small prime, so the search in decryption can compare
+        // byte by byte without the length itself saying anything
+        private byte[][][] lookup = null;
+
+        private int modulusLength;
+
+        private SecureRandom random;
 
         /// <inheritdoc/>
         public string AlgorithmName
@@ -37,32 +43,41 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             this.forEncryption = forEncryption;
 
-            parameters = ParameterUtilities.IgnoreRandom(parameters);
+            parameters = ParameterUtilities.GetRandom(parameters, out var providedRandom);
 
             key = (NaccacheSternKeyParameters)parameters;
 
             // construct lookup table for faster decryption if necessary
             if (!this.forEncryption)
             {
+                // decryption blinds its private exponents
+                random = CryptoServicesRegistrar.GetSecureRandom(providedRandom);
+
                 NaccacheSternPrivateKeyParameters priv = (NaccacheSternPrivateKeyParameters)key;
+                modulusLength = (priv.Modulus.BitLength + 7) / 8;
                 var primes = priv.SmallPrimesList;
-                lookup = new IList<BigInteger>[primes.Count];
+                lookup = new byte[primes.Count][][];
                 for (int i = 0; i < primes.Count; i++)
                 {
                     BigInteger actualPrime = primes[i];
                     int actualPrimeValue = actualPrime.IntValue;
 
-                    lookup[i] = new List<BigInteger>(actualPrimeValue);
-                    lookup[i].Add(BigInteger.One);
+                    lookup[i] = new byte[actualPrimeValue][];
+                    lookup[i][0] = BigIntegers.AsUnsignedByteArray(modulusLength, BigInteger.One);
 
                     BigInteger accJ = BigInteger.Zero;
                     for (int j = 1; j < actualPrimeValue; j++)
                     {
                         accJ = accJ.Add(priv.PhiN);
                         BigInteger comp = accJ.Divide(actualPrime);
-                        lookup[i].Add(priv.G.ModPow(comp, priv.Modulus));
+                        lookup[i][j] = BigIntegers.AsUnsignedByteArray(modulusLength,
+                            priv.G.ModPow(comp, priv.Modulus));
                     }
                 }
+            }
+            else
+            {
+                random = null;
             }
         }
 
@@ -141,17 +156,23 @@ namespace Org.BouncyCastle.Crypto.Engines
             // Get Chinese Remainders of CipherText
             for (int i = 0; i < primes.Count; i++)
             {
-                BigInteger exp = input.ModPow(priv.PhiN.Divide(primes[i]), priv.Modulus);
-                var al = lookup[i];
-                if (lookup[i].Count != primes[i].IntValue)
+                // input is the caller's ciphertext and the exponent is derived from phi(n), which is the private
+                // key, so the exponent is blinded before the variable-time ModPow. input^phi(n) = 1 (mod n) for any
+                // input coprime to n, so the result is unchanged; an input sharing a factor with n fails the lookup
+                // either way.
+                BigInteger exponent = BigIntegers.CreateBlindedExponent(priv.PhiN.Divide(primes[i]), priv.PhiN,
+                    random);
+                BigInteger exp = input.ModPow(exponent, priv.Modulus);
+                byte[][] al = lookup[i];
+                if (al.Length != primes[i].IntValue)
                 {
                     throw new InvalidCipherTextException("Error in lookup Array for "
                                     + primes[i].IntValue
                                     + ": Size mismatch. Expected ArrayList with length "
                                     + primes[i].IntValue + " but found ArrayList of length "
-                                    + lookup[i].Count);
+                                    + al.Length);
                 }
-                int lookedup = al.IndexOf(exp);
+                int lookedup = FixedTimeIndexOf(al, BigIntegers.AsUnsignedByteArray(modulusLength, exp));
 
                 if (lookedup == -1)
                     throw new InvalidCipherTextException("Lookup failed");
@@ -297,6 +318,31 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
 
             return retval.Mod(all);
+        }
+
+        // The index of the match is the plaintext digit for this prime, so returning as soon as it is found (as
+        // List.IndexOf did) made the running time reveal it. Scan the whole table and select the index by mask.
+        private static int FixedTimeIndexOf(byte[][] table, byte[] value)
+        {
+            int found = 0;                                  // 0 for no match, else index + 1
+
+            for (int j = 0; j < table.Length; ++j)
+            {
+                byte[] candidate = table[j];
+                int diff = 0;
+
+                for (int k = 0; k < value.Length; ++k)
+                {
+                    diff |= candidate[k] ^ value[k];
+                }
+
+                int isEqual = (diff - 1) >> 31;             // -1 when equal, 0 otherwise
+                int stillLooking = (found - 1) >> 31;       // -1 until something has matched
+
+                found |= (j + 1) & isEqual & stillLooking;
+            }
+
+            return found - 1;
         }
     }
 }

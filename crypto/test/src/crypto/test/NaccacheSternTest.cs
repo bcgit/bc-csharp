@@ -274,5 +274,70 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             Assert.AreEqual(Name + ": Okay", resultText);
         }
+
+        /// <summary>
+        /// Decryption recovers the plaintext one digit per small prime, by finding the digit's entry in a
+        /// precomputed table; the index found is the digit, so the search must scan the whole table. This walks a
+        /// plaintext range that hits every entry of every table (the paper key's digits are the plaintext modulo
+        /// 3, 5, 7, 11, 13 and 17) and checks each recovered value. It also counts the blinding draws: one per
+        /// prime, since the exponent carrying phi(n) is blinded and nothing else on the decrypt path draws.
+        /// </summary>
+        [Test]
+        public void TestEveryDigitAndBlinding()
+        {
+            var pubParameters = new NaccacheSternKeyParameters(false, g, n, sigma.BitLength);
+            var privParameters = new NaccacheSternPrivateKeyParameters(g, n, sigma.BitLength, smallPrimes, phi_n);
+
+            var enc = new NaccacheSternEngine();
+            enc.Init(true, pubParameters);
+
+            var counting = new CountingRandom();
+
+            var dec = new NaccacheSternEngine();
+            dec.Init(false, new ParametersWithRandom(privParameters, counting));
+
+            for (int m = 1; m < 256; ++m)
+            {
+                byte[] plain = BigInteger.ValueOf(m).ToByteArray();
+                byte[] cipherText = enc.ProcessBlock(plain, 0, plain.Length);
+
+                counting.Count = 0;
+
+                byte[] recovered = dec.ProcessBlock(cipherText, 0, cipherText.Length);
+
+                Assert.AreEqual(smallPrimes.Count, counting.Count, "blinding draws for m = " + m);
+                Assert.AreEqual(BigInteger.ValueOf(m), new BigInteger(1, recovered), "recovered m = " + m);
+            }
+        }
+
+        /// <summary>
+        /// Counts blinding draws only: the blinding multiple is seven bits, so it is the only single-byte request
+        /// the decrypt path makes.
+        /// </summary>
+        private sealed class CountingRandom
+            : SecureRandom
+        {
+            internal int Count;
+
+            public override void NextBytes(byte[] buf)
+            {
+                if (buf.Length == 1)
+                {
+                    ++Count;
+                }
+                base.NextBytes(buf);
+            }
+
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void NextBytes(Span<byte> buffer)
+            {
+                if (buffer.Length == 1)
+                {
+                    ++Count;
+                }
+                base.NextBytes(buffer);
+            }
+#endif
+        }
     }
 }
