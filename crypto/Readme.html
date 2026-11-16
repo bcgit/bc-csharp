@@ -368,6 +368,11 @@
                 HQC: Remove secret-dependent branches from decapsulation. Reed-Muller decoding (FindPeaks) used conditional expressions,
                 and the FFT error-position step used Math.Abs, on values derived from the secret error vector; both now use masks.
             </li>
+            <li>
+                OpenSsl: MiscPemGenerator (and so PemWriter.WriteObject) now throws ArgumentNullException when an encryption
+                algorithm is given with a null password. Previously the .NET Framework and netstandard2.0 builds threw, while the
+                net6.0 build silently encrypted with an empty password; code relying on that must now pass a password explicitly.
+            </li>
         </ul>
         <h5>Additional Features and Functionality</h5>
         <ul>

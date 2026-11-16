@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 using NUnit.Framework;
@@ -5,6 +6,7 @@ using NUnit.Framework;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Pkcs;
@@ -88,6 +90,23 @@ namespace Org.BouncyCastle.OpenSsl.Tests
             signer.Init(false, keyPair.Public);
             signer.BlockUpdate(message, 0, message.Length);
             Assert.That(signer.VerifySignature(signature), Is.True);
+        }
+
+        [Test]
+        public void EncryptedWithNullPasswordThrows()
+        {
+            var generator = GeneratorUtilities.GetKeyPairGenerator("EC");
+            generator.Init(new ECKeyGenerationParameters(X9ObjectIdentifiers.Prime256v1, Random));
+            var privateKey = generator.GenerateKeyPair().Private;
+
+            var sw = new StringWriter();
+            using (var pemWriter = new PemWriter(sw))
+            {
+                Assert.Throws<ArgumentNullException>(
+                    () => pemWriter.WriteObject(privateKey, "AES-128-CBC", null, Random));
+            }
+
+            Assert.AreEqual("", sw.ToString(), "nothing should be written when encryption cannot be performed");
         }
 
         [Test]

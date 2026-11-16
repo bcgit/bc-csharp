@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.OpenSsl
         /// <param name="obj">The object to generate PEM for.</param>
         /// <param name="algorithm">The encryption algorithm to use, or null to leave the object unencrypted.</param>
         /// <param name="password">The password to encrypt with; required if an algorithm is given.</param>
-        /// <param name="random">The source of randomness for the encryption, or null to use the default.</param>
+        /// <param name="random">The source of randomness for the encryption; required if an algorithm is given.</param>
         public MiscPemGenerator(object obj, string algorithm, char[] password, SecureRandom random)
         {
             this.obj = obj;
@@ -272,13 +272,20 @@ namespace Org.BouncyCastle.OpenSsl
 
         /// <summary>Generate the PEM object.</summary>
         /// <returns>The <see cref="PemObject"/>.</returns>
+        /// <exception cref="ArgumentNullException">An algorithm was given without a password or random source.</exception>
         /// <exception cref="PemGenerationException">The object could not be encoded or encrypted.</exception>
         public PemObject Generate()
         {
             try
             {
                 if (algorithm != null)
+                {
+                    // A null char[] would otherwise convert silently to an empty password on the span-based path.
+                    if (password == null)
+                        throw new ArgumentNullException(nameof(password));
+
                     return CreatePemObject(obj, algorithm, password, random);
+                }
 
                 return CreatePemObject(obj);
             }

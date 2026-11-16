@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 using Org.BouncyCastle.Security;
@@ -32,7 +33,10 @@ namespace Org.BouncyCastle.OpenSsl
         /// </param>
         /// <param name="algorithm">The encryption algorithm to use, or null to write the object unencrypted.</param>
         /// <param name="password">The password to encrypt with; required if an algorithm is given.</param>
-        /// <param name="random">The source of randomness for the encryption, or null to use the default.</param>
+        /// <param name="random">The source of randomness for the encryption; required if an algorithm is given.</param>
+        /// <exception cref="ArgumentNullException">
+        /// An algorithm was given without a password or random source.
+        /// </exception>
         /// <exception cref="IOException">The object could not be written.</exception>
         public void WriteObject(object obj, string algorithm, char[] password, SecureRandom random)
         {
