@@ -5,6 +5,9 @@ using Org.BouncyCastle.Crypto;
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
     /// <summary>The state for incrementally signing or verifying a message with LMS.</summary>
+    // TODO[api] Don't implement IDigest on promotion. The context absorbs a fixed prefix at construction and
+    // must be finalized exactly once, by OutputQ; only the update methods are meaningful, and the rest of
+    // IDigest exists here solely to let callers stream a message in.
     public sealed class LmsContext
         : IDigest
     {
@@ -57,6 +60,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public byte[] C => m_c;
 
         /// <summary>Return the q.</summary>
+        // TODO[api] Remove
         [Obsolete("Use 'OutputQ' instead")]
         public byte[] GetQ()
         {
@@ -183,10 +187,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             Digest.BlockUpdate(input, inOff, len);
         }
 
-        /// <inheritdoc/>
+        /// <summary>Not supported: the context must be finalized by <c>OutputQ</c>.</summary>
+        /// <param name="output">Unused.</param>
+        /// <param name="outOff">Unused.</param>
+        /// <returns>Does not return.</returns>
+        /// <exception cref="NotSupportedException">Always.</exception>
+        // Finalizing here would return H(prefix || message), which looks like Q but leaves the digest reset:
+        // OutputQ would then hash nothing at all and the signature would be over a constant.
         public int DoFinal(byte[] output, int outOff) => throw NoDirectFinalization();
 
-        /// <inheritdoc/>
+        /// <summary>Not supported: the context cannot be reset.</summary>
+        /// <exception cref="NotSupportedException">Always.</exception>
+        // A reset discards the prefix absorbed at construction, which cannot be replaced.
         public void Reset() => throw new NotSupportedException("LmsContext cannot be reset");
 
         /// <inheritdoc/>
@@ -196,7 +208,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             Digest.BlockUpdate(input);
         }
 
-        /// <inheritdoc/>
+        /// <summary>Not supported: the context must be finalized by <c>OutputQ</c>.</summary>
+        /// <param name="output">Unused.</param>
+        /// <returns>Does not return.</returns>
+        /// <exception cref="NotSupportedException">Always.</exception>
         public int DoFinal(Span<byte> output) => throw NoDirectFinalization();
 #endif
 

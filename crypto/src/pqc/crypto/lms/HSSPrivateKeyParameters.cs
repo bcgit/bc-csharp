@@ -11,6 +11,7 @@ using Org.BouncyCastle.Utilities.IO;
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
     /// <summary>An HSS private key.</summary>
+    // TODO[api] Make sealed
     public class HssPrivateKeyParameters
         : LmsKeyParameters, ILmsContextBasedSigner
     {
@@ -422,6 +423,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <summary>Replace the keys and signatures of the hierarchy.</summary>
         /// <param name="newKeys">The new keys.</param>
         /// <param name="newSig">The new signatures.</param>
+        // TODO[api] Remove. Nothing calls this: the hierarchy is replaced by the methods that build it, which
+        // hold the monitor across the read and the write and take ownership of what they built. Sealing the
+        // class (see above) removes it in any case.
         protected void UpdateHierarchy(IList<LmsPrivateKeyParameters> newKeys, IList<LmsSignature> newSig)
         {
             lock (this)
@@ -484,6 +488,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         internal LmsPrivateKeyParameters GetKey(int index) => CurrentHierarchy.GetKey(index);
 
         /// <summary>Return the keys.</summary>
+        // Two reads of the hierarchy, so a caller that needs the keys and the signatures over them to belong to one
+        // snapshot has to take the pair in one step, or check that it did not change between the two.
+        // TODO[api] Remove: bc-java's promoted API keeps both package-private, and nothing outside needs either
         public IList<LmsPrivateKeyParameters> GetKeys() => CurrentHierarchy.Keys;
 
         internal IList<LmsSignature> GetSig() => CurrentHierarchy.Sig;

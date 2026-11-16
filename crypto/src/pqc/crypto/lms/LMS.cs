@@ -15,6 +15,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <param name="masterSecret">The master secret.</param>
         /// <returns>The private key.</returns>
         /// <exception cref="System.ArgumentException">The master secret is too short.</exception>
+        // TODO[api] Remove, it only forwards to LmsEngine.GenerateKey
         public static LmsPrivateKeyParameters GenerateKeys(LMSigParameters parameterSet,
             LMOtsParameters lmOtsParameters, int q, byte[] I, byte[] masterSecret)
         {
@@ -25,12 +26,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <param name="privateKey">The private key.</param>
         /// <param name="message">The message.</param>
         /// <returns>The signature.</returns>
+        // TODO[api] Remove. Nothing in the library signs this way, and bc-java has no such method since its
+        // promotion; LmsEngine carries a copy for the tests.
         public static LmsSignature GenerateSign(LmsPrivateKeyParameters privateKey, byte[] message) =>
             LmsEngine.GenerateSign(privateKey, message);
 
         /// <summary>Generate an LMS signature from a context into which the message has been written.</summary>
         /// <param name="context">The context.</param>
         /// <returns>The signature.</returns>
+        // TODO[api] Remove, it only forwards to LmsEngine
         public static LmsSignature GenerateSign(LmsContext context) => LmsEngine.GenerateSign(context);
 
         /// <summary>Verify an LMS signature of a message.</summary>
@@ -38,6 +42,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <param name="S">The signature.</param>
         /// <param name="message">The message.</param>
         /// <returns>true if the signature is valid, false otherwise.</returns>
+        // TODO[api] Remove, it only forwards to LmsEngine; bc-java kept this form package-private at promotion
         public static bool VerifySignature(LmsPublicKeyParameters publicKey, LmsSignature S, byte[] message) =>
             LmsEngine.VerifySignature(publicKey, S, message);
 
@@ -46,6 +51,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <param name="S">The encoded signature.</param>
         /// <param name="message">The message.</param>
         /// <returns>true if the signature is valid, false otherwise.</returns>
+        // TODO[api] Remove, nothing calls it and ILmsContextBasedVerifier already exposes the context route
         public static bool VerifySignature(LmsPublicKeyParameters publicKey, byte[] S, byte[] message)
         {
             LmsContext context = publicKey.GenerateLmsContext(S);
@@ -59,6 +65,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <param name="publicKey">The public key.</param>
         /// <param name="context">The context.</param>
         /// <returns>true if the signature is valid, false otherwise.</returns>
+        // TODO[api] Remove, it only forwards to LmsEngine
         public static bool VerifySignature(LmsPublicKeyParameters publicKey, LmsContext context) =>
             LmsEngine.VerifySignature(publicKey, context);
     }

@@ -76,6 +76,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <summary>Generate the public key for a private key (RFC 8554 Algorithm 1).</summary>
         /// <param name="privateKey">The private key.</param>
         /// <returns>The public key.</returns>
+        // TODO[api] Remove. Nothing calls this: the key derives its own public key.
         public static LMOtsPublicKey LmsOtsGeneratePublicKey(LMOtsPrivateKey privateKey) =>
             privateKey.GeneratePublicKey();
 
@@ -239,6 +240,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <param name="message">The message.</param>
         /// <param name="prehashed">true if the message has already been hashed.</param>
         /// <returns>true if the signature is valid, false otherwise.</returns>
+        // TODO[api] Remove on promotion
         public static bool LMOtsValidateSignature(LMOtsPublicKey publicKey, LMOtsSignature signature, byte[] message,
             bool prehashed)
         {
@@ -258,6 +260,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <param name="signature">The signature.</param>
         /// <param name="message">The message.</param>
         /// <returns>The calculated public key value.</returns>
+        // TODO[api] Remove on promotion
         public static byte[] LMOtsValidateSignatureCalculate(LMOtsPublicKey publicKey, LMOtsSignature signature,
             byte[] message)
         {
@@ -271,6 +274,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <summary>Calculate the public key value implied by the signature of a context.</summary>
         /// <param name="context">The context.</param>
         /// <returns>The calculated public key value.</returns>
+        // TODO[api] Remove on promotion
         public static byte[] LMOtsValidateSignatureCalculate(LmsContext context) => context.CalculateKc();
 
         /// <summary>

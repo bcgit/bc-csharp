@@ -20,6 +20,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <param name="lmOtsType">The lm ots type.</param>
         /// <param name="T1">The t 1.</param>
         /// <param name="I">The i.</param>
+        // TODO[api] Rename parameters
         public LmsPublicKeyParameters(LMSigParameters parameterSet, LMOtsParameters lmOtsType, byte[] T1, byte[] I)
             : this(LmsParameters.Create(parameterSet, lmOtsType), Arrays.Clone(T1), Arrays.Clone(I))
         {
@@ -86,12 +87,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public override byte[] GetEncoded() => ToByteArray();
 
         /// <summary>Return the sig parameters.</summary>
+        // TODO[api] Remove at promotion
         public LMSigParameters GetSigParameters() => SigParameters;
 
         /// <summary>Return the ots parameters.</summary>
+        // TODO[api] Remove at promotion
         public LMOtsParameters GetOtsParameters() => OtsParameters;
 
         /// <summary>Return the lms parameters.</summary>
+        // TODO[api] Remove at promotion
         public LmsParameters GetLmsParameters() => m_lmsParameters;
 
         /// <summary>Return the t 1.</summary>

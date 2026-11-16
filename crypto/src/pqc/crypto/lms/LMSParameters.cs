@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <summary>Create a new <see cref="LmsParameters"/>.</summary>
         /// <param name="lmSigParameters">The lm sig parameters.</param>
         /// <param name="lmOtsParameters">The lm ots parameters.</param>
+        // TODO[api] Make internal, rename parameters like fields
         public LmsParameters(LMSigParameters lmSigParameters, LMOtsParameters lmOtsParameters)
         {
             m_sigParameters = lmSigParameters ?? throw new ArgumentNullException(nameof(lmSigParameters));
@@ -28,9 +29,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         }
 
         /// <summary>Gets the LM sig parameters.</summary>
+        // TODO[api] Rename to SigParameters
         public LMSigParameters LMSigParameters => m_sigParameters;
 
         /// <summary>Gets the LM ots parameters.</summary>
+        // TODO[api] Rename to OtsParameters
         public LMOtsParameters LMOtsParameters => m_otsParameters;
 
         /// <summary>A pairing of the two parameter sets, so equal by value.</summary>

@@ -26,9 +26,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         }
 
         /// <summary>Return the i.</summary>
+        // TODO[api] Remove
         public byte[] GetI() => Arrays.Clone(m_I);
 
         /// <summary>Return the master seed.</summary>
+        // TODO[api] Remove
         public byte[] GetMasterSeed() => Arrays.Clone(m_masterSeed);
 
         /// <summary>Gets or sets the j.</summary>
@@ -42,6 +44,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <param name="target">The buffer to receive the seed.</param>
         /// <param name="offset">The offset into <paramref name="target"/> at which to start writing.</param>
         /// <returns>The target buffer.</returns>
+        // TODO[api] Refactor (at promotion) to match the bc-java param order (and overloads)
         public byte[] DeriveSeed(bool incJ, byte[] target, int offset)
         {
             if (target.Length - offset < m_digest.GetDigestSize())
