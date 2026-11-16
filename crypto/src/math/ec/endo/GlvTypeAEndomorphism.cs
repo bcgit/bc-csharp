@@ -2,12 +2,18 @@
 
 namespace Org.BouncyCastle.Math.EC.Endo
 {
+    /// <summary>The GLV endomorphism for curves of type A.</summary>
     public class GlvTypeAEndomorphism
         :   GlvEndomorphism
     {
+        /// <summary>The parameters.</summary>
         protected readonly GlvTypeAParameters m_parameters;
+        /// <summary>The point map.</summary>
         protected readonly ECPointMap m_pointMap;
 
+        /// <summary>Create a new <see cref="GlvTypeAEndomorphism"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="parameters">The parameters.</param>
         public GlvTypeAEndomorphism(ECCurve curve, GlvTypeAParameters parameters)
         {
             /*
@@ -20,16 +26,19 @@ namespace Org.BouncyCastle.Math.EC.Endo
             this.m_pointMap = new ScaleYNegateXPointMap(curve.FromBigInteger(parameters.I));
         }
 
+        /// <inheritdoc/>
         public virtual BigInteger[] DecomposeScalar(BigInteger k)
         {
             return EndoUtilities.DecomposeScalar(m_parameters.SplitParams, k);
         }
 
+        /// <inheritdoc/>
         public virtual ECPointMap PointMap
         {
             get { return m_pointMap; }
         }
 
+        /// <inheritdoc/>
         public virtual bool HasEfficientPointMap
         {
             get { return true; }

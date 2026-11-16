@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
     public class FixedPointPreCompInfo
         : PreCompInfo
     {
+        /// <summary>The offset.</summary>
         protected ECPoint m_offset = null;
 
         /**
@@ -22,18 +23,21 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
          */
         protected int m_width = -1;
 
+        /// <summary>Gets or sets the lookup table.</summary>
         public virtual ECLookupTable LookupTable
         {
             get { return m_lookupTable; }
             set { this.m_lookupTable = value; }
         }
 
+        /// <summary>Gets or sets the offset.</summary>
         public virtual ECPoint Offset
         {
-			get { return m_offset; }
-			set { this.m_offset = value; }
-		}
+            get { return m_offset; }
+            set { this.m_offset = value; }
+        }
 
+        /// <summary>Gets or sets the width.</summary>
         public virtual int Width
         {
             get { return m_width; }

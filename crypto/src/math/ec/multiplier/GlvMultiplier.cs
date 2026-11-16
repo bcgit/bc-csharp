@@ -4,12 +4,18 @@ using Org.BouncyCastle.Math.EC.Endo;
 
 namespace Org.BouncyCastle.Math.EC.Multiplier
 {
+    /// <summary>A multiplier using the GLV method for curves with an efficiently computable endomorphism.</summary>
     public class GlvMultiplier
         :   AbstractECMultiplier
     {
+        /// <summary>The curve.</summary>
         protected readonly ECCurve curve;
+        /// <summary>The glv endomorphism.</summary>
         protected readonly GlvEndomorphism glvEndomorphism;
 
+        /// <summary>Create a new <see cref="GlvMultiplier"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="glvEndomorphism">The glv endomorphism.</param>
         public GlvMultiplier(ECCurve curve, GlvEndomorphism glvEndomorphism)
         {
             if (curve == null || curve.Order == null)
@@ -19,6 +25,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             this.glvEndomorphism = glvEndomorphism;
         }
 
+        /// <inheritdoc/>
         protected override ECPoint MultiplyPositive(ECPoint p, BigInteger k)
         {
             if (!curve.Equals(p.Curve))

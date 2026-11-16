@@ -11,8 +11,12 @@ namespace Org.BouncyCastle.Math.EC
     /// <summary>Base class for points on elliptic curves.</summary>
     public abstract class ECPoint
     {
+        /// <summary>The empty array of additional coordinates.</summary>
         protected static readonly ECFieldElement[] EMPTY_ZS = new ECFieldElement[0];
 
+        /// <summary>Get the initial additional coordinates for a point on a curve.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <returns>The coordinates.</returns>
         protected static ECFieldElement[] GetInitialZCoords(ECCurve curve)
         {
             // Cope with null curve, most commonly used by implicitlyCa
@@ -44,13 +48,21 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <summary>The curve.</summary>
         protected internal readonly ECCurve m_curve;
+        /// <summary>The y.</summary>
         protected internal readonly ECFieldElement m_x, m_y;
+        /// <summary>The zs.</summary>
         protected internal readonly ECFieldElement[] m_zs;
 
+        /// <summary>The pre comp table.</summary>
         protected internal IDictionary<string, PreCompInfo> m_preCompTable = null;
 
-        protected ECPoint(ECCurve curve, ECFieldElement	x, ECFieldElement y)
+        /// <summary>Create a new <see cref="ECPoint"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="x">The first operand.</param>
+        /// <param name="y">The second operand.</param>
+        protected ECPoint(ECCurve curve, ECFieldElement x, ECFieldElement y)
             : this(curve, x, y, GetInitialZCoords(curve))
         {
         }
@@ -65,8 +77,12 @@ namespace Org.BouncyCastle.Math.EC
             m_zs = zs;
         }
 
+        /// <summary>Determine whether the point satisfies the equation of its curve.</summary>
+        /// <returns>true if it does, false otherwise.</returns>
         protected abstract bool SatisfiesCurveEquation();
 
+        /// <summary>Determine whether the point has the order of the curve subgroup.</summary>
+        /// <returns>true if it does, false otherwise.</returns>
         protected virtual bool SatisfiesOrder()
         {
             if (BigInteger.One.Equals(Curve.Cofactor))
@@ -79,14 +95,21 @@ namespace Org.BouncyCastle.Math.EC
             return n == null || ECAlgorithms.ReferenceMultiply(this, n).IsInfinity;
         }
 
+        /// <summary>Return the detached point.</summary>
         [Obsolete("Will be removed")]
         public ECPoint GetDetachedPoint() => Normalize().Detach();
 
+        /// <summary>Gets the curve.</summary>
         public virtual ECCurve Curve => m_curve;
 
+        /// <summary>
+        /// Create a copy of this point that is not attached to the precomputation caches of its curve.
+        /// </summary>
+        /// <returns>The copy.</returns>
         [Obsolete("Will be removed")]
         protected abstract ECPoint Detach();
 
+        /// <summary>Gets the curve coordinate system.</summary>
         protected virtual int CurveCoordinateSystem
         {
             get
@@ -132,26 +155,37 @@ namespace Org.BouncyCastle.Math.EC
         /// </remarks>
         public virtual ECFieldElement YCoord => m_y;
 
+        /// <summary>Get an additional coordinate of this point.</summary>
+        /// <param name="index">The index of the coordinate.</param>
+        /// <returns>The coordinate.</returns>
         public virtual ECFieldElement GetZCoord(int index)
         {
             return (index < 0 || index >= m_zs.Length) ? null : m_zs[index];
         }
 
+        /// <summary>Return the z coords.</summary>
         public virtual ECFieldElement[] GetZCoords() =>
             m_zs.Length == 0 ? EMPTY_ZS : Arrays.CopyBuffer(m_zs);
 
+        /// <summary>Gets the raw x coord.</summary>
         protected internal ECFieldElement RawXCoord => m_x;
 
+        /// <summary>Gets the raw y coord.</summary>
         protected internal ECFieldElement RawYCoord => m_y;
 
+        /// <summary>Gets the raw z coords.</summary>
         protected internal ECFieldElement[] RawZCoords => m_zs;
 
+        /// <summary>Check that this point is normalized.</summary>
+        /// <exception cref="InvalidOperationException">The point is not normalized.</exception>
         protected virtual void CheckNormalized()
         {
             if (!IsNormalized())
                 throw new InvalidOperationException("point not in normal form");
         }
 
+        /// <summary>Determine whether this point is normalized, that is, in affine form.</summary>
+        /// <returns>true if the point is normalized, false otherwise.</returns>
         public virtual bool IsNormalized()
         {
             int coord = CurveCoordinateSystem;
@@ -227,11 +261,18 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <summary>Create a point with the affine coordinates scaled.</summary>
+        /// <param name="sx">The scale for the x-coordinate.</param>
+        /// <param name="sy">The scale for the y-coordinate.</param>
+        /// <returns>The new point.</returns>
         protected virtual ECPoint CreateScaledPoint(ECFieldElement sx, ECFieldElement sy) =>
             Curve.CreateRawPoint(RawXCoord.Multiply(sx), RawYCoord.Multiply(sy));
 
+        /// <summary>Gets a value indicating whether this is infinity.</summary>
         public bool IsInfinity => m_x == null && m_y == null;
 
+        /// <summary>Determine whether this point is valid: on the curve and of the correct order.</summary>
+        /// <returns>true if the point is valid, false otherwise.</returns>
         public bool IsValid() => ImplIsValid(false, true);
 
         internal bool IsValidPartial() => ImplIsValid(false, false);
@@ -246,6 +287,9 @@ namespace Org.BouncyCastle.Math.EC
             return !validity.HasFailed();
         }
 
+        /// <summary>Multiply the x-coordinate by a scale factor.</summary>
+        /// <param name="scale">The scale factor.</param>
+        /// <returns>The new point.</returns>
         public virtual ECPoint ScaleX(ECFieldElement scale)
         {
             return IsInfinity
@@ -253,6 +297,9 @@ namespace Org.BouncyCastle.Math.EC
                 : Curve.CreateRawPoint(RawXCoord.Multiply(scale), RawYCoord, RawZCoords);
         }
 
+        /// <summary>Multiply the x-coordinate by a scale factor and negate the y-coordinate.</summary>
+        /// <param name="scale">The scale factor.</param>
+        /// <returns>The new point.</returns>
         public virtual ECPoint ScaleXNegateY(ECFieldElement scale)
         {
             return IsInfinity
@@ -260,6 +307,9 @@ namespace Org.BouncyCastle.Math.EC
                 : Curve.CreateRawPoint(RawXCoord.Multiply(scale), RawYCoord.Negate(), RawZCoords);
         }
 
+        /// <summary>Multiply the y-coordinate by a scale factor.</summary>
+        /// <param name="scale">The scale factor.</param>
+        /// <returns>The new point.</returns>
         public virtual ECPoint ScaleY(ECFieldElement scale)
         {
             return IsInfinity
@@ -267,6 +317,9 @@ namespace Org.BouncyCastle.Math.EC
                 : Curve.CreateRawPoint(RawXCoord, RawYCoord.Multiply(scale), RawZCoords);
         }
 
+        /// <summary>Multiply the y-coordinate by a scale factor and negate the x-coordinate.</summary>
+        /// <param name="scale">The scale factor.</param>
+        /// <returns>The new point.</returns>
         public virtual ECPoint ScaleYNegateX(ECFieldElement scale)
         {
             return IsInfinity
@@ -274,11 +327,15 @@ namespace Org.BouncyCastle.Math.EC
                 : Curve.CreateRawPoint(RawXCoord.Negate(), RawYCoord.Multiply(scale), RawZCoords);
         }
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             return Equals(obj as ECPoint);
         }
 
+        /// <summary>Determine whether this point is equal to another.</summary>
+        /// <param name="other">The point to compare with.</param>
+        /// <returns>true if the points are equal, false otherwise.</returns>
         public virtual bool Equals(ECPoint other)
         {
             if (this == other)
@@ -328,6 +385,7 @@ namespace Org.BouncyCastle.Math.EC
             return p1.XCoord.Equals(p2.XCoord) && p1.YCoord.Equals(p2.YCoord);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             ECCurve c = Curve;
@@ -346,6 +404,7 @@ namespace Org.BouncyCastle.Math.EC
             return hc;
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             if (IsInfinity)
@@ -365,24 +424,50 @@ namespace Org.BouncyCastle.Math.EC
             return sb.ToString();
         }
 
+        /// <summary>Return the encoded.</summary>
         public virtual byte[] GetEncoded() => GetEncoded(false);
 
+        /// <summary>Get the encoding of this point.</summary>
+        /// <param name="compressed">true for the compressed encoding, false for the uncompressed encoding.</param>
+        /// <returns>The encoding.</returns>
         public abstract byte[] GetEncoded(bool compressed);
 
+        /// <summary>Get the length in bytes of the encoding of this point.</summary>
+        /// <param name="compressed">true for the compressed encoding, false for the uncompressed encoding.</param>
+        /// <returns>The length in bytes.</returns>
         public abstract int GetEncodedLength(bool compressed);
 
+        /// <summary>Write the encoding of this point.</summary>
+        /// <param name="compressed">true for the compressed encoding, false for the uncompressed encoding.</param>
+        /// <param name="buf">The buffer to write to.</param>
+        /// <param name="off">The offset into <paramref name="buf"/> at which to write.</param>
         public abstract void EncodeTo(bool compressed, byte[] buf, int off);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Write the encoding of this point.</summary>
+        /// <param name="compressed">true for the compressed encoding, false for the uncompressed encoding.</param>
+        /// <param name="buf">The buffer to write to.</param>
         public abstract void EncodeTo(bool compressed, Span<byte> buf);
 #endif
 
+        /// <summary>Gets the compression y tilde.</summary>
         protected internal abstract bool CompressionYTilde { get; }
 
+        /// <summary>Return the sum of this point and another.</summary>
+        /// <param name="b">The other point.</param>
+        /// <returns>The sum.</returns>
         public abstract ECPoint Add(ECPoint b);
+        /// <summary>Return the difference of this point and another.</summary>
+        /// <param name="b">The point to subtract.</param>
+        /// <returns>The difference.</returns>
         public abstract ECPoint Subtract(ECPoint b);
+        /// <summary>Return the negation of this point.</summary>
+        /// <returns>The negation.</returns>
         public abstract ECPoint Negate();
 
+        /// <summary>Return this point multiplied by 2^e.</summary>
+        /// <param name="e">The exponent.</param>
+        /// <returns>The result.</returns>
         public virtual ECPoint TimesPow2(int e)
         {
             if (e < 0)
@@ -396,11 +481,21 @@ namespace Org.BouncyCastle.Math.EC
             return p;
         }
 
+        /// <summary>Return this point doubled.</summary>
+        /// <returns>The doubled point.</returns>
         public abstract ECPoint Twice();
+        /// <summary>Return this point multiplied by a scalar.</summary>
+        /// <param name="b">The scalar.</param>
+        /// <returns>The product.</returns>
         public abstract ECPoint Multiply(BigInteger b);
 
+        /// <summary>Return twice this point plus another point.</summary>
+        /// <param name="b">The point to add.</param>
+        /// <returns>The result.</returns>
         public virtual ECPoint TwicePlus(ECPoint b) => Twice().Add(b);
 
+        /// <summary>Return this point multiplied by three.</summary>
+        /// <returns>The result.</returns>
         public virtual ECPoint ThreeTimes() => TwicePlus(this);
 
         private class ValidityCallback
@@ -446,14 +541,24 @@ namespace Org.BouncyCastle.Math.EC
         }
     }
 
+    /// <summary>Base class for elliptic curve points.</summary>
     public abstract class ECPointBase
         : ECPoint
     {
+        /// <summary>Create a new <see cref="ECPointBase"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="x">The first operand.</param>
+        /// <param name="y">The second operand.</param>
         protected internal ECPointBase(ECCurve curve, ECFieldElement x, ECFieldElement y)
             : base(curve, x, y)
         {
         }
 
+        /// <summary>Create a new <see cref="ECPointBase"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="x">The first operand.</param>
+        /// <param name="y">The second operand.</param>
+        /// <param name="zs">The zs.</param>
         protected internal ECPointBase(ECCurve curve, ECFieldElement x, ECFieldElement y, ECFieldElement[] zs)
             : base(curve, x, y, zs)
         {
@@ -473,6 +578,7 @@ namespace Org.BouncyCastle.Math.EC
             return buf;
         }
 
+        /// <inheritdoc/>
         public override int GetEncodedLength(bool compressed)
         {
             if (IsInfinity)
@@ -484,6 +590,7 @@ namespace Org.BouncyCastle.Math.EC
             return 1 + XCoord.GetEncodedLength() + YCoord.GetEncodedLength();
         }
 
+        /// <inheritdoc/>
         public override void EncodeTo(bool compressed, byte[] buf, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -512,6 +619,7 @@ namespace Org.BouncyCastle.Math.EC
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override void EncodeTo(bool compressed, Span<byte> buf)
         {
             if (IsInfinity)
@@ -540,21 +648,33 @@ namespace Org.BouncyCastle.Math.EC
         public override ECPoint Multiply(BigInteger k) => Curve.GetMultiplier().Multiply(this, k);
     }
 
+    /// <summary>Base class for points on curves over a prime field.</summary>
     public abstract class AbstractFpPoint
         : ECPointBase
     {
+        /// <summary>Create a new <see cref="AbstractFpPoint"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="x">The first operand.</param>
+        /// <param name="y">The second operand.</param>
         protected AbstractFpPoint(ECCurve curve, ECFieldElement x, ECFieldElement y)
             : base(curve, x, y)
         {
         }
 
+        /// <summary>Create a new <see cref="AbstractFpPoint"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="x">The first operand.</param>
+        /// <param name="y">The second operand.</param>
+        /// <param name="zs">The zs.</param>
         protected AbstractFpPoint(ECCurve curve, ECFieldElement x, ECFieldElement y, ECFieldElement[] zs)
             : base(curve, x, y, zs)
         {
         }
 
+        /// <inheritdoc/>
         protected internal override bool CompressionYTilde => AffineYCoord.TestBitZero();
 
+        /// <inheritdoc/>
         protected override bool SatisfiesCurveEquation()
         {
             ECFieldElement X = RawXCoord, Y = RawYCoord, A = Curve.A, B = Curve.B;
@@ -597,6 +717,7 @@ namespace Org.BouncyCastle.Math.EC
             return lhs.Equals(rhs);
         }
 
+        /// <inheritdoc/>
         public override ECPoint Subtract(ECPoint b)
         {
             if (b.IsInfinity)
@@ -625,9 +746,11 @@ namespace Org.BouncyCastle.Math.EC
         {
         }
 
+        /// <inheritdoc/>
         [Obsolete("Will be removed")]
         protected override ECPoint Detach() => new FpPoint(null, AffineXCoord, AffineYCoord);
 
+        /// <inheritdoc/>
         public override ECFieldElement GetZCoord(int index)
         {
             if (index == 1 && ECCurve.COORD_JACOBIAN_MODIFIED == CurveCoordinateSystem)
@@ -636,6 +759,7 @@ namespace Org.BouncyCastle.Math.EC
             return base.GetZCoord(index);
         }
 
+        /// <inheritdoc/>
         // B.3 pg 62
         public override ECPoint Add(ECPoint b)
         {
@@ -855,6 +979,7 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <inheritdoc/>
         // B.3 pg 62
         public override ECPoint Twice()
         {
@@ -864,7 +989,7 @@ namespace Org.BouncyCastle.Math.EC
             ECCurve curve = Curve;
 
             ECFieldElement Y1 = RawYCoord;
-            if (Y1.IsZero) 
+            if (Y1.IsZero)
                 return curve.Infinity;
 
             int coord = curve.CoordinateSystem;
@@ -984,6 +1109,7 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <inheritdoc/>
         public override ECPoint TwicePlus(ECPoint b)
         {
             if (this == b)
@@ -1051,6 +1177,7 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <inheritdoc/>
         public override ECPoint ThreeTimes()
         {
             if (IsInfinity)
@@ -1099,6 +1226,7 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <inheritdoc/>
         public override ECPoint TimesPow2(int e)
         {
             if (e < 0)
@@ -1111,7 +1239,7 @@ namespace Org.BouncyCastle.Math.EC
             ECCurve curve = Curve;
 
             ECFieldElement Y1 = RawYCoord;
-            if (Y1.IsZero) 
+            if (Y1.IsZero)
                 return curve.Infinity;
 
             int coord = curve.CoordinateSystem;
@@ -1141,7 +1269,7 @@ namespace Org.BouncyCastle.Math.EC
 
             for (int i = 0; i < e; ++i)
             {
-                if (Y1.IsZero) 
+                if (Y1.IsZero)
                     return curve.Infinity;
 
                 ECFieldElement X1Squared = X1.Square();
@@ -1181,14 +1309,32 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <summary>Return the double of a field element.</summary>
+        /// <param name="x">The element.</param>
+        /// <returns>The result.</returns>
         protected virtual ECFieldElement Two(ECFieldElement x) => x.Add(x);
 
+        /// <summary>Return three times a field element.</summary>
+        /// <param name="x">The element.</param>
+        /// <returns>The result.</returns>
         protected virtual ECFieldElement Three(ECFieldElement x) => Two(x).Add(x);
 
+        /// <summary>Return four times a field element.</summary>
+        /// <param name="x">The element.</param>
+        /// <returns>The result.</returns>
         protected virtual ECFieldElement Four(ECFieldElement x) => Two(Two(x));
 
+        /// <summary>Return eight times a field element.</summary>
+        /// <param name="x">The element.</param>
+        /// <returns>The result.</returns>
         protected virtual ECFieldElement Eight(ECFieldElement x) => Four(Two(x));
 
+        /// <summary>Calculate 2*a*b from a, b and their squares.</summary>
+        /// <param name="a">The first value.</param>
+        /// <param name="b">The second value.</param>
+        /// <param name="aSquared">The square of the first value.</param>
+        /// <param name="bSquared">The square of the second value.</param>
+        /// <returns>The result.</returns>
         protected virtual ECFieldElement DoubleProductFromSquares(ECFieldElement a, ECFieldElement b,
             ECFieldElement aSquared, ECFieldElement bSquared)
         {
@@ -1199,6 +1345,7 @@ namespace Org.BouncyCastle.Math.EC
             return a.Add(b).Square().Subtract(aSquared).Subtract(bSquared);
         }
 
+        /// <inheritdoc/>
         public override ECPoint Negate()
         {
             if (IsInfinity)
@@ -1213,6 +1360,10 @@ namespace Org.BouncyCastle.Math.EC
             return new FpPoint(curve, RawXCoord, RawYCoord.Negate());
         }
 
+        /// <summary>Calculate the extra coordinate W = a*Z^4 used by modified Jacobian coordinates.</summary>
+        /// <param name="Z">The Z coordinate.</param>
+        /// <param name="ZSquared">The square of the Z coordinate, or null.</param>
+        /// <returns>The W coordinate.</returns>
         protected virtual ECFieldElement CalculateJacobianModifiedW(ECFieldElement Z, ECFieldElement ZSquared)
         {
             ECFieldElement a4 = Curve.A;
@@ -1237,6 +1388,7 @@ namespace Org.BouncyCastle.Math.EC
             return W;
         }
 
+        /// <summary>Return the jacobian modified w.</summary>
         protected virtual ECFieldElement GetJacobianModifiedW()
         {
             ECFieldElement[] ZZ = RawZCoords;
@@ -1249,6 +1401,9 @@ namespace Org.BouncyCastle.Math.EC
             return W;
         }
 
+        /// <summary>Double this point in modified Jacobian coordinates.</summary>
+        /// <param name="calculateW">true to calculate the W coordinate of the result.</param>
+        /// <returns>The doubled point.</returns>
         protected virtual FpPoint TwiceJacobianModified(bool calculateW)
         {
             ECFieldElement X1 = RawXCoord, Y1 = RawYCoord, Z1 = RawZCoords[0], W1 = GetJacobianModifiedW();
@@ -1269,19 +1424,30 @@ namespace Org.BouncyCastle.Math.EC
         }
     }
 
-    public abstract class AbstractF2mPoint 
+    /// <summary>Base class for points on curves over a binary field.</summary>
+    public abstract class AbstractF2mPoint
         : ECPointBase
     {
+        /// <summary>Create a new <see cref="AbstractF2mPoint"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="x">The first operand.</param>
+        /// <param name="y">The second operand.</param>
         protected AbstractF2mPoint(ECCurve curve, ECFieldElement x, ECFieldElement y)
             : base(curve, x, y)
         {
         }
 
+        /// <summary>Create a new <see cref="AbstractF2mPoint"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="x">The first operand.</param>
+        /// <param name="y">The second operand.</param>
+        /// <param name="zs">The zs.</param>
         protected AbstractF2mPoint(ECCurve curve, ECFieldElement x, ECFieldElement y, ECFieldElement[] zs)
             : base(curve, x, y, zs)
         {
         }
 
+        /// <inheritdoc/>
         protected override bool SatisfiesCurveEquation()
         {
             ECCurve curve = Curve;
@@ -1296,7 +1462,7 @@ namespace Org.BouncyCastle.Math.EC
 
                 if (X.IsZero)
                 {
-                    // NOTE: For x == 0, we expect the affine-y instead of the lambda-y 
+                    // NOTE: For x == 0, we expect the affine-y instead of the lambda-y
                     lhs = Y.Square();
                     rhs = B;
                     if (!ZIsOne)
@@ -1353,6 +1519,7 @@ namespace Org.BouncyCastle.Math.EC
             return lhs.Equals(rhs);
         }
 
+        /// <inheritdoc/>
         protected override bool SatisfiesOrder()
         {
             ECCurve curve = Curve;
@@ -1362,7 +1529,7 @@ namespace Org.BouncyCastle.Math.EC
                 /*
                  * Check that 0 == Tr(X + A); then there exists a solution to L^2 + L = X + A, and
                  * so a halving is possible, so this point is the double of another.
-                 * 
+                 *
                  * Note: Tr(A) == 1 for cofactor 2 curves.
                  */
                 ECPoint N = Normalize();
@@ -1373,7 +1540,7 @@ namespace Org.BouncyCastle.Math.EC
             {
                 /*
                  * Solve L^2 + L = X + A to find the half of this point, if it exists (fail if not).
-                 * 
+                 *
                  * Note: Tr(A) == 0 for cofactor 4 curves.
                  */
                 ECPoint N = Normalize();
@@ -1391,7 +1558,7 @@ namespace Org.BouncyCastle.Math.EC
                 /*
                  * Either T or (T + X) is the square of a half-point's x coordinate (hx). In either
                  * case, the half-point can be halved again when 0 == Tr(hx + A).
-                 * 
+                 *
                  * Note: Tr(hx + A) == Tr(hx) == Tr(hx^2) == Tr(T) == Tr(T + X)
                  *
                  * Check that 0 == Tr(T); then there exists a solution to L^2 + L = hx + A, and so a
@@ -1403,6 +1570,7 @@ namespace Org.BouncyCastle.Math.EC
             return base.SatisfiesOrder();
         }
 
+        /// <inheritdoc/>
         public override ECPoint ScaleX(ECFieldElement scale)
         {
             if (IsInfinity)
@@ -1439,8 +1607,10 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <inheritdoc/>
         public override ECPoint ScaleXNegateY(ECFieldElement scale) => ScaleX(scale);
 
+        /// <inheritdoc/>
         public override ECPoint ScaleY(ECFieldElement scale)
         {
             if (IsInfinity)
@@ -1465,8 +1635,10 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <inheritdoc/>
         public override ECPoint ScaleYNegateX(ECFieldElement scale) => ScaleY(scale);
 
+        /// <inheritdoc/>
         public override ECPoint Subtract(ECPoint b)
         {
             if (b.IsInfinity)
@@ -1476,6 +1648,8 @@ namespace Org.BouncyCastle.Math.EC
             return Add(b.Negate());
         }
 
+        /// <summary>Apply the Frobenius map to this point (the tau function for Koblitz curves).</summary>
+        /// <returns>The result.</returns>
         public virtual AbstractF2mPoint Tau()
         {
             if (IsInfinity)
@@ -1508,6 +1682,9 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <summary>Apply the Frobenius map to this point a number of times.</summary>
+        /// <param name="pow">The number of times.</param>
+        /// <returns>The result.</returns>
         public virtual AbstractF2mPoint TauPow(int pow)
         {
             if (IsInfinity)
@@ -1571,9 +1748,11 @@ namespace Org.BouncyCastle.Math.EC
         {
         }
 
+        /// <inheritdoc/>
         [Obsolete("Will be removed")]
         protected override ECPoint Detach() => new F2mPoint(null, AffineXCoord, AffineYCoord);
 
+        /// <inheritdoc/>
         public override ECFieldElement YCoord
         {
             get
@@ -1610,6 +1789,7 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <inheritdoc/>
         protected internal override bool CompressionYTilde
         {
             get
@@ -1636,6 +1816,7 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <inheritdoc/>
         public override ECPoint Add(ECPoint b)
         {
             if (IsInfinity)
@@ -1813,6 +1994,7 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <inheritdoc/>
         public override ECPoint Twice()
         {
             if (IsInfinity)
@@ -1921,6 +2103,7 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <inheritdoc/>
         public override ECPoint TwicePlus(ECPoint b)
         {
             if (IsInfinity)
@@ -1986,6 +2169,7 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        /// <inheritdoc/>
         public override ECPoint Negate()
         {
             if (IsInfinity)

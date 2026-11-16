@@ -15,6 +15,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
          */
         protected AbstractF2mPoint[] m_preComp;
 
+        /// <summary>Gets or sets the pre comp.</summary>
         public virtual AbstractF2mPoint[] PreComp
         {
             get { return m_preComp; }

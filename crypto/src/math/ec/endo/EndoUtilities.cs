@@ -4,10 +4,16 @@ using Org.BouncyCastle.Math.EC.Multiplier;
 
 namespace Org.BouncyCastle.Math.EC.Endo
 {
+    /// <summary>Utility methods for endomorphisms.</summary>
     public abstract class EndoUtilities
     {
+        /// <summary>The name under which endomorphism precomputation data is stored.</summary>
         public static readonly string PRECOMP_NAME = "bc_endo";
 
+        /// <summary>Decompose a scalar into two parts for use with an endomorphism.</summary>
+        /// <param name="p">The scalar split parameters.</param>
+        /// <param name="k">The scalar.</param>
+        /// <returns>The two parts.</returns>
         public static BigInteger[] DecomposeScalar(ScalarSplitParameters p, BigInteger k)
         {
             int bits = p.Bits;
@@ -20,6 +26,10 @@ namespace Org.BouncyCastle.Math.EC.Endo
             return new BigInteger[]{ a, b };
         }
 
+        /// <summary>Apply an endomorphism to a point, caching the result with the point.</summary>
+        /// <param name="endomorphism">The endomorphism.</param>
+        /// <param name="p">The point.</param>
+        /// <returns>The mapped point.</returns>
         public static ECPoint MapPoint(ECEndomorphism endomorphism, ECPoint p)
         {
             EndoPreCompInfo precomp = (EndoPreCompInfo)p.Curve.Precompute(p, PRECOMP_NAME,
