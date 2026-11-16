@@ -25,7 +25,8 @@ namespace Org.BouncyCastle.Crypto.Engines
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
             this.key = (ElGamalKeyParameters)ParameterUtilities.GetRandom(parameters, out var providedRandom);
-            this.random = forEncryption ? CryptoServicesRegistrar.GetSecureRandom(providedRandom) : null;
+            // needed on both paths: decryption blinds its private exponent
+            this.random = CryptoServicesRegistrar.GetSecureRandom(providedRandom);
 
             this.forEncryption = forEncryption;
             this.bitSize = key.Parameters.P.BitLength;
@@ -110,7 +111,12 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                 // a shortcut, which generally relies on p being prime amongst other things.
                 // if a problem with this shows up, check the p and g values!
-                BigInteger m = gamma.ModPow(pSub1.Subtract(priv.X), p).ModMultiply(phi, p);
+                //
+                // gamma is caller-supplied and the exponent carries the private key, so it is blinded with a random
+                // multiple of p-1 before the variable-time ModPow; gamma^(p-1) = 1 for gamma in [2, p-2]. Not a
+                // multiple of the subgroup order: gamma need not lie in that subgroup.
+                BigInteger blindedExp = BigIntegers.CreateBlindedExponent(pSub1.Subtract(priv.X), pSub1, random);
+                BigInteger m = gamma.ModPow(blindedExp, p).ModMultiply(phi, p);
 
                 return BigIntegers.AsUnsignedByteArray(m);
             }
