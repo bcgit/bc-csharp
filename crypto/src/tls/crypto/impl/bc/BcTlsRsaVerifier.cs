@@ -14,11 +14,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public class BcTlsRsaVerifier
         : BcTlsVerifier
     {
+        /// <summary>Create a new <see cref="BcTlsRsaVerifier"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="publicKey">The public key.</param>
         public BcTlsRsaVerifier(BcTlsCrypto crypto, RsaKeyParameters publicKey)
             : base(crypto, publicKey)
         {
         }
 
+        /// <inheritdoc/>
         public override bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash)
         {
             IDigest nullDigest = new NullDigest();

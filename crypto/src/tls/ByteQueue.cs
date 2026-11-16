@@ -25,16 +25,23 @@ namespace Org.BouncyCastle.Tls
 
         private bool m_readOnlyBuf = false;
 
+        /// <summary>Create a new <see cref="ByteQueue"/>.</summary>
         public ByteQueue()
             : this(0)
         {
         }
 
+        /// <summary>Create a new <see cref="ByteQueue"/>.</summary>
+        /// <param name="capacity">The capacity.</param>
         public ByteQueue(int capacity)
         {
             this.m_databuf = capacity == 0 ? TlsUtilities.EmptyBytes : new byte[capacity];
         }
 
+        /// <summary>Create a new <see cref="ByteQueue"/>.</summary>
+        /// <param name="buf">The buffer.</param>
+        /// <param name="off">The offset into the array.</param>
+        /// <param name="len">The number of bytes.</param>
         public ByteQueue(byte[] buf, int off, int len)
         {
             this.m_databuf = buf;
@@ -86,6 +93,8 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Add some data to our buffer.</summary>
+        /// <param name="buffer">The buffer.</param>
         public void AddData(ReadOnlySpan<byte> buffer)
         {
             if (m_readOnlyBuf)
@@ -159,6 +168,9 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Read data from the buffer.</summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="skip">How many bytes from our data to skip.</param>
         public void Read(Span<byte> buffer, int skip)
         {
             if ((m_available - skip) < buffer.Length)
@@ -185,6 +197,8 @@ namespace Org.BouncyCastle.Tls
             return new HandshakeMessageInput(m_databuf, position, length);
         }
 
+        /// <summary>Read a 32-bit integer from the start of the queue without removing it.</summary>
+        /// <returns>The value read.</returns>
         public int ReadInt32()
         {
             if (m_available < 4)
@@ -193,6 +207,9 @@ namespace Org.BouncyCastle.Tls
             return TlsUtilities.ReadInt32(m_databuf, m_skipped);
         }
 
+        /// <summary>Read an unsigned 8-bit value from the queue without removing it.</summary>
+        /// <param name="skip">The number of bytes at the start of the queue to skip before reading.</param>
+        /// <returns>The value read.</returns>
         public short ReadUint8(int skip)
         {
             if (m_available < skip + 1)
@@ -201,6 +218,9 @@ namespace Org.BouncyCastle.Tls
             return TlsUtilities.ReadUint8(m_databuf, m_skipped + skip);
         }
 
+        /// <summary>Read an unsigned 16-bit value from the queue without removing it.</summary>
+        /// <param name="skip">The number of bytes at the start of the queue to skip before reading.</param>
+        /// <returns>The value read.</returns>
         public int ReadUint16(int skip)
         {
             if (m_available < skip + 2)
@@ -235,6 +255,9 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Remove data from the buffer.</summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="skip">How many bytes from our data to skip.</param>
         public void RemoveData(Span<byte> buffer, int skip)
         {
             Read(buffer, skip);
@@ -242,6 +265,10 @@ namespace Org.BouncyCastle.Tls
         }
 #endif
 
+        /// <summary>Remove data from the queue and return it.</summary>
+        /// <param name="len">The number of bytes to return.</param>
+        /// <param name="skip">The number of bytes at the start of the queue to discard first.</param>
+        /// <returns>The data.</returns>
         public byte[] RemoveData(int len, int skip)
         {
             byte[] buf = new byte[len];
@@ -249,6 +276,7 @@ namespace Org.BouncyCastle.Tls
             return buf;
         }
 
+        /// <summary>Release any excess storage.</summary>
         public void Shrink()
         {
             if (m_available == 0)

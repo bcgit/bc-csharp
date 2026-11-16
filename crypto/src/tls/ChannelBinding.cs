@@ -13,7 +13,9 @@ namespace Org.BouncyCastle.Tls
          * RFC 5929
          */
         public const int tls_server_end_point = 0;
+        /// <summary>The <c>tls_unique</c> constant, with the value <c>1</c>.</summary>
         public const int tls_unique = 1;
+        /// <summary>The <c>tls_unique_for_telnet</c> constant, with the value <c>2</c>.</summary>
         public const int tls_unique_for_telnet = 2;
 
         /*

@@ -7,19 +7,27 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>The TLS client protocol: runs a TLS handshake as the client and provides the secured streams.</summary>
     public class TlsClientProtocol
         : TlsProtocol
     {
+        /// <summary>The tls client.</summary>
         protected TlsClient m_tlsClient = null;
         internal TlsClientContextImpl m_tlsClientContext = null;
 
+        /// <summary>The client agreements.</summary>
         protected IDictionary<int, TlsAgreement> m_clientAgreements = null;
         internal OfferedPsks.BindersConfig m_clientBinders = null;
+        /// <summary>The client hello.</summary>
         protected ClientHello m_clientHello = null;
+        /// <summary>The key exchange.</summary>
         protected TlsKeyExchange m_keyExchange = null;
+        /// <summary>The authentication.</summary>
         protected TlsAuthentication m_authentication = null;
 
+        /// <summary>The certificate status.</summary>
         protected CertificateStatus m_certificateStatus = null;
+        /// <summary>The certificate request.</summary>
         protected CertificateRequest m_certificateRequest = null;
 
         /// <summary>Constructor for non-blocking mode.</summary>
@@ -78,6 +86,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <inheritdoc/>
         protected override void BeginHandshake()
         {
             base.BeginHandshake();
@@ -86,6 +95,7 @@ namespace Org.BouncyCastle.Tls
             this.m_connectionState = CS_CLIENT_HELLO;
         }
 
+        /// <inheritdoc/>
         protected override void CleanupHandshake()
         {
             base.CleanupHandshake();
@@ -100,6 +110,7 @@ namespace Org.BouncyCastle.Tls
             m_certificateRequest = null;
         }
 
+        /// <inheritdoc/>
         protected override TlsContext Context
         {
             get { return m_tlsClientContext; }
@@ -110,6 +121,7 @@ namespace Org.BouncyCastle.Tls
             get { return m_tlsClientContext; }
         }
 
+        /// <inheritdoc/>
         protected override TlsPeer Peer
         {
             get { return m_tlsClient; }
@@ -328,6 +340,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <inheritdoc/>
         protected override void HandleHandshakeMessage(short type, HandshakeMessageInput buf)
         {
             SecurityParameters securityParameters = m_tlsClientContext.SecurityParameters;

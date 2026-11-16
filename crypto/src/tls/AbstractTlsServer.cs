@@ -10,27 +10,45 @@ namespace Org.BouncyCastle.Tls
     public abstract class AbstractTlsServer
         : AbstractTlsPeer, TlsServer
     {
+        /// <summary>The context.</summary>
         protected TlsServerContext m_context;
+        /// <summary>The protocol versions.</summary>
         protected ProtocolVersion[] m_protocolVersions;
+        /// <summary>The cipher suites.</summary>
         protected int[] m_cipherSuites;
 
+        /// <summary>The offered cipher suites.</summary>
         protected int[] m_offeredCipherSuites;
+        /// <summary>The client extensions.</summary>
         protected IDictionary<int, byte[]> m_clientExtensions;
 
+        /// <summary>The encrypt then MAC offered.</summary>
         protected bool m_encryptThenMACOffered;
+        /// <summary>The max fragment length offered.</summary>
         protected short m_maxFragmentLengthOffered;
+        /// <summary>The truncated h mac offered.</summary>
         protected bool m_truncatedHMacOffered;
+        /// <summary>The client sent EC point formats.</summary>
         protected bool m_clientSentECPointFormats;
+        /// <summary>The certificate status request.</summary>
         protected CertificateStatusRequest m_certificateStatusRequest;
+        /// <summary>The status request v 2.</summary>
         protected IList<CertificateStatusRequestItemV2> m_statusRequestV2;
+        /// <summary>The trusted CA keys.</summary>
         protected IList<TrustedAuthority> m_trustedCAKeys;
 
+        /// <summary>The selected cipher suite.</summary>
         protected int m_selectedCipherSuite;
+        /// <summary>The client protocol names.</summary>
         protected IList<ProtocolName> m_clientProtocolNames;
+        /// <summary>The selected protocol name.</summary>
         protected ProtocolName m_selectedProtocolName;
 
+        /// <summary>The server extensions.</summary>
         protected readonly IDictionary<int, byte[]> m_serverExtensions = new Dictionary<int, byte[]>();
 
+        /// <summary>Create a new <see cref="AbstractTlsServer"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
         public AbstractTlsServer(TlsCrypto crypto)
             : base(crypto)
         {
@@ -54,6 +72,8 @@ namespace Org.BouncyCastle.Tls
         /// <returns><c>true</c> (the default) to echo "status_request" when the client offered it.</returns>
         protected virtual bool AllowCertificateStatus() => true;
 
+        /// <summary>Determine whether the encrypt_then_mac extension may be negotiated.</summary>
+        /// <returns>true if the extension may be negotiated, false otherwise.</returns>
         protected virtual bool AllowEncryptThenMac() => true;
 
         /// <summary>
@@ -69,16 +89,24 @@ namespace Org.BouncyCastle.Tls
         /// <returns><c>false</c> (the default) to leave "status_request_v2" unanswered.</returns>
         protected virtual bool AllowMultiCertStatus() => false;
 
+        /// <summary>Determine whether the truncated_hmac extension may be negotiated.</summary>
+        /// <returns>true if the extension may be negotiated, false otherwise.</returns>
         protected virtual bool AllowTruncatedHmac() => false;
 
+        /// <summary>Determine whether the trusted_ca_keys extension may be acknowledged.</summary>
+        /// <returns>true if the extension may be acknowledged, false otherwise.</returns>
         protected virtual bool AllowTrustedCAIndication() => false;
 
+        /// <summary>Return the detail message no cipher suite.</summary>
         protected virtual string GetDetailMessageNoCipherSuite() => "No selectable cipher suite";
 
+        /// <summary>Return the maximum default curve bits.</summary>
         protected virtual int GetMaximumDefaultCurveBits() => NamedGroup.GetCurveBits(NamedGroup.secp521r1);
 
+        /// <summary>Return the maximum default finite field bits.</summary>
         protected virtual int GetMaximumDefaultFiniteFieldBits() => NamedGroup.GetFiniteFieldBits(NamedGroup.ffdhe8192);
 
+        /// <summary>Return the maximum negotiable curve bits.</summary>
         protected virtual int GetMaximumNegotiableCurveBits()
         {
             int maxBits = 0;
@@ -102,6 +130,7 @@ namespace Org.BouncyCastle.Tls
             return maxBits;
         }
 
+        /// <summary>Return the maximum negotiable finite field bits.</summary>
         protected virtual int GetMaximumNegotiableFiniteFieldBits()
         {
             int maxBits = 0;
@@ -127,8 +156,19 @@ namespace Org.BouncyCastle.Tls
             return maxBits;
         }
 
+        /// <summary>Return the protocol names.</summary>
         protected virtual IList<ProtocolName> GetProtocolNames() => null;
 
+        /// <summary>Determine whether a cipher suite can be selected, given what the client supports.</summary>
+        /// <param name="cipherSuite">The cipher suite.</param>
+        /// <param name="availCurveBits">
+        /// The size in bits of the largest elliptic curve that can be used, or 0 if none.
+        /// </param>
+        /// <param name="availFiniteFieldBits">
+        /// The size in bits of the largest finite field group that can be used, or 0 if none.
+        /// </param>
+        /// <param name="sigAlgs">The signature algorithms that can be used.</param>
+        /// <returns>true if the cipher suite can be selected, false otherwise.</returns>
         protected virtual bool IsSelectableCipherSuite(int cipherSuite, int availCurveBits, int availFiniteFieldBits,
             IList<short> sigAlgs)
         {
@@ -138,8 +178,16 @@ namespace Org.BouncyCastle.Tls
                 && TlsUtilities.IsValidCipherSuiteForSignatureAlgorithms(cipherSuite, sigAlgs);
         }
 
+        /// <summary>
+        /// Determine whether the server's order of preference for cipher suites takes precedence over the client's.
+        /// </summary>
+        /// <returns>true if the server's preference is used, false if the client's is.</returns>
         protected virtual bool PreferLocalCipherSuites() => false;
 
+        /// <summary>
+        /// Determine whether the server's order of preference for supported groups takes precedence over the client's.
+        /// </summary>
+        /// <returns>true if the server's preference is used, false if the client's is.</returns>
         public virtual bool PreferLocalSupportedGroups() => false;
 
         /// <exception cref="IOException"/>
@@ -149,6 +197,9 @@ namespace Org.BouncyCastle.Tls
             return true;
         }
 
+        /// <summary>Select a finite field Diffie-Hellman group.</summary>
+        /// <param name="minimumFiniteFieldBits">The minimum size in bits of the group.</param>
+        /// <returns>The named group selected, or -1 if no suitable group is available.</returns>
         // TODO[api] Preferably return TlsDHConfig from here to support custom DH groups more easily
         protected virtual int SelectDH(int minimumFiniteFieldBits)
         {
@@ -181,6 +232,9 @@ namespace Org.BouncyCastle.Tls
             return -1;
         }
 
+        /// <summary>Select a finite field Diffie-Hellman group.</summary>
+        /// <param name="minimumFiniteFieldBits">The minimum size in bits of the group.</param>
+        /// <returns>The named group selected, or -1 if no suitable group is available.</returns>
         // TODO[api] Preferably return TlsDHConfig from here to support custom DH groups more easily
         protected virtual int SelectDHDefault(int minimumFiniteFieldBits)
         {
@@ -192,6 +246,9 @@ namespace Org.BouncyCastle.Tls
                 :  -1;
         }
 
+        /// <summary>Select an elliptic curve group.</summary>
+        /// <param name="minimumCurveBits">The minimum size in bits of the curve.</param>
+        /// <returns>The named group selected, or -1 if no suitable group is available.</returns>
         protected virtual int SelectECDH(int minimumCurveBits)
         {
             int[] clientSupportedGroups = m_context.SecurityParameters.ClientSupportedGroups;
@@ -219,6 +276,9 @@ namespace Org.BouncyCastle.Tls
             return -1;
         }
 
+        /// <summary>Select an elliptic curve group.</summary>
+        /// <param name="minimumCurveBits">The minimum size in bits of the curve.</param>
+        /// <returns>The named group selected, or -1 if no suitable group is available.</returns>
         protected virtual int SelectECDHDefault(int minimumCurveBits)
         {
             return minimumCurveBits <= 256 ? NamedGroup.secp256r1
@@ -227,6 +287,8 @@ namespace Org.BouncyCastle.Tls
                 :  -1;
         }
 
+        /// <summary>Select the application protocol to use from those offered by the client.</summary>
+        /// <returns>The selected protocol name, or null if none is selected.</returns>
         protected virtual ProtocolName SelectProtocolName()
         {
             IList<ProtocolName> serverProtocolNames = GetProtocolNames();
@@ -240,6 +302,14 @@ namespace Org.BouncyCastle.Tls
             return result;
         }
 
+        /// <summary>
+        /// Select the application protocol to use, given the protocol names of the client and server.
+        /// </summary>
+        /// <param name="clientProtocolNames">The protocol names offered by the client.</param>
+        /// <param name="serverProtocolNames">
+        /// The protocol names supported by the server, in order of preference.
+        /// </param>
+        /// <returns>The selected protocol name, or null if none is selected.</returns>
         protected virtual ProtocolName SelectProtocolName(IList<ProtocolName> clientProtocolNames,
             IList<ProtocolName> serverProtocolNames)
         {
@@ -251,10 +321,18 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        /// <summary>Determine whether the application protocol should be selected before the cipher suite.</summary>
+        /// <returns>true if the protocol name is selected early, false otherwise.</returns>
         protected virtual bool ShouldSelectProtocolNameEarly() => true;
 
+        /// <summary>
+        /// Determine whether the server's order of preference for client certificate types takes precedence over the
+        /// client's.
+        /// </summary>
+        /// <returns>true if the server's preference is used, false if the client's is.</returns>
         protected virtual bool PreferLocalClientCertificateTypes() => false;
 
+        /// <summary>Return the allowed client certificate types.</summary>
         protected virtual short[] GetAllowedClientCertificateTypes() => null;
 
         /// <summary>RFC 9146 DTLS connection ID.</summary>
@@ -267,6 +345,7 @@ namespace Org.BouncyCastle.Tls
         /// <returns>The connection ID to use.</returns>
         protected virtual byte[] GetNewConnectionID() => null;
 
+        /// <inheritdoc/>
         public virtual void Init(TlsServerContext context)
         {
             m_context = context;
@@ -275,10 +354,13 @@ namespace Org.BouncyCastle.Tls
             m_cipherSuites = GetSupportedCipherSuites();
         }
 
+        /// <inheritdoc/>
         public override ProtocolVersion[] GetProtocolVersions() => m_protocolVersions;
 
+        /// <inheritdoc/>
         public override int[] GetCipherSuites() => m_cipherSuites;
 
+        /// <inheritdoc/>
         public override void NotifyHandshakeBeginning()
         {
             base.NotifyHandshakeBeginning();
@@ -297,20 +379,26 @@ namespace Org.BouncyCastle.Tls
             m_serverExtensions.Clear();
         }
 
+        /// <inheritdoc/>
         public virtual TlsSession GetSessionToResume(byte[] sessionID) => null;
 
+        /// <inheritdoc/>
         public virtual byte[] GetNewSessionID() => null;
 
+        /// <inheritdoc/>
         public virtual TlsPskExternal GetExternalPsk(IList<PskIdentity> identities) => null;
 
+        /// <inheritdoc/>
         public virtual void NotifySession(TlsSession session)
         {
         }
 
+        /// <inheritdoc/>
         public virtual void NotifyClientVersion(ProtocolVersion clientVersion)
         {
         }
 
+        /// <inheritdoc/>
         public virtual void NotifyFallback(bool isFallback)
         {
             /*
@@ -345,11 +433,13 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <inheritdoc/>
         public virtual void NotifyOfferedCipherSuites(int[] offeredCipherSuites)
         {
             m_offeredCipherSuites = offeredCipherSuites;
         }
 
+        /// <inheritdoc/>
         public virtual void ProcessClientExtensions(IDictionary<int, byte[]> clientExtensions)
         {
             m_clientExtensions = clientExtensions;
@@ -386,6 +476,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <inheritdoc/>
         public virtual ProtocolVersion GetServerVersion()
         {
             ProtocolVersion[] serverVersions = GetProtocolVersions();
@@ -400,6 +491,7 @@ namespace Org.BouncyCastle.Tls
             throw new TlsFatalAlert(AlertDescription.protocol_version);
         }
 
+        /// <inheritdoc/>
         public virtual int[] GetSupportedGroups()
         {
             // TODO[tls13] The rest of this class assumes all named groups are supported
@@ -407,6 +499,7 @@ namespace Org.BouncyCastle.Tls
                 NamedGroup.ffdhe2048, NamedGroup.ffdhe3072, NamedGroup.ffdhe4096 };
         }
 
+        /// <inheritdoc/>
         public virtual int GetSelectedCipherSuite()
         {
             SecurityParameters securityParameters = m_context.SecurityParameters;
@@ -459,6 +552,7 @@ namespace Org.BouncyCastle.Tls
             throw new TlsFatalAlert(AlertDescription.handshake_failure, GetDetailMessageNoCipherSuite());
         }
 
+        /// <inheritdoc/>
         // IDictionary is (Int32 -> byte[])
         public virtual IDictionary<int, byte[]> GetServerExtensions()
         {
@@ -615,6 +709,7 @@ namespace Org.BouncyCastle.Tls
             return m_serverExtensions;
         }
 
+        /// <inheritdoc/>
         public virtual void GetServerExtensionsForConnection(IDictionary<int, byte[]> serverExtensions)
         {
             if (!ShouldSelectProtocolNameEarly())
@@ -656,18 +751,25 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <inheritdoc/>
         public virtual IList<SupplementalDataEntry> GetServerSupplementalData() => null;
 
+        /// <inheritdoc/>
         public abstract TlsCredentials GetCredentials();
 
+        /// <inheritdoc/>
         public virtual CertificateStatus GetCertificateStatus() => null;
 
+        /// <inheritdoc/>
         public virtual CertificateRequest GetCertificateRequest() => null;
 
+        /// <inheritdoc/>
         public virtual TlsPskIdentityManager GetPskIdentityManager() => null;
 
+        /// <inheritdoc/>
         public virtual TlsSrpLoginParameters GetSrpLoginParameters() => null;
 
+        /// <inheritdoc/>
         public virtual TlsDHConfig GetDHConfig()
         {
             int minimumFiniteFieldBits = TlsDHUtilities.GetMinimumFiniteFieldBits(m_selectedCipherSuite);
@@ -675,6 +777,7 @@ namespace Org.BouncyCastle.Tls
             return TlsDHUtilities.CreateNamedDHConfig(m_context, namedGroup);
         }
 
+        /// <inheritdoc/>
         public virtual TlsECConfig GetECDHConfig()
         {
             int minimumCurveBits = TlsEccUtilities.GetMinimumCurveBits(m_selectedCipherSuite);
@@ -682,15 +785,18 @@ namespace Org.BouncyCastle.Tls
             return TlsEccUtilities.CreateNamedECConfig(m_context, namedGroup);
         }
 
+        /// <inheritdoc/>
         public virtual void ProcessClientSupplementalData(IList<SupplementalDataEntry> clientSupplementalData)
         {
             if (clientSupplementalData != null)
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
         }
 
+        /// <inheritdoc/>
         public virtual void NotifyClientCertificate(Certificate clientCertificate) =>
             throw new TlsFatalAlert(AlertDescription.internal_error);
 
+        /// <inheritdoc/>
         public virtual NewSessionTicket GetNewSessionTicket()
         {
             /*

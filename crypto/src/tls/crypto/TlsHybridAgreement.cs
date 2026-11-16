@@ -4,6 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls.Crypto
 {
+    /// <summary>A key agreement combining two component agreements, for hybrid key exchange.</summary>
     public sealed class TlsHybridAgreement
         : TlsAgreement
     {
@@ -12,6 +13,11 @@ namespace Org.BouncyCastle.Tls.Crypto
         private readonly TlsAgreement m_secondAgreement;
         private readonly int m_peerValueSplit;
 
+        /// <summary>Create a new <see cref="TlsHybridAgreement"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="firstAgreement">The first agreement.</param>
+        /// <param name="secondAgreement">The second agreement.</param>
+        /// <param name="peerValueSplit">The peer value split.</param>
         public TlsHybridAgreement(TlsCrypto crypto, TlsAgreement firstAgreement, TlsAgreement secondAgreement,
             int peerValueSplit)
         {
@@ -21,6 +27,7 @@ namespace Org.BouncyCastle.Tls.Crypto
             m_peerValueSplit = peerValueSplit;
         }
 
+        /// <inheritdoc/>
         public byte[] GenerateEphemeral()
         {
             byte[] firstEphemeral = m_firstAgreement.GenerateEphemeral();
@@ -28,6 +35,7 @@ namespace Org.BouncyCastle.Tls.Crypto
             return Arrays.Concatenate(firstEphemeral, secondEphemeral);
         }
 
+        /// <inheritdoc/>
         public void ReceivePeerValue(byte[] peerValue)
         {
             if (peerValue.Length < m_peerValueSplit)
@@ -37,6 +45,7 @@ namespace Org.BouncyCastle.Tls.Crypto
             m_secondAgreement.ReceivePeerValue(Arrays.CopyOfRange(peerValue, m_peerValueSplit, peerValue.Length));
         }
 
+        /// <inheritdoc/>
         public TlsSecret CalculateSecret()
         {
             TlsSecret firstSecret = m_firstAgreement.CalculateSecret();

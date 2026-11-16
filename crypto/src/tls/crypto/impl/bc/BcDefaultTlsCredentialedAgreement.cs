@@ -11,8 +11,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public class BcDefaultTlsCredentialedAgreement
         : TlsCredentialedAgreement
     {
+        /// <summary>The agreement credentials.</summary>
         protected readonly TlsCredentialedAgreement m_agreementCredentials;
 
+        /// <summary>Create a new <see cref="BcDefaultTlsCredentialedAgreement"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="certificate">The certificate.</param>
+        /// <param name="privateKey">The private key.</param>
         public BcDefaultTlsCredentialedAgreement(BcTlsCrypto crypto, Certificate certificate,
             AsymmetricKeyParameter privateKey)
         {
@@ -43,11 +48,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <summary>Gets the certificate chain.</summary>
         public virtual Certificate Certificate
         {
             get { return m_agreementCredentials.Certificate; }
         }
 
+        /// <inheritdoc/>
         public virtual TlsSecret GenerateAgreement(TlsCertificate peerCertificate)
         {
             return m_agreementCredentials.GenerateAgreement(peerCertificate);

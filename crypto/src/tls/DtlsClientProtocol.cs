@@ -8,9 +8,11 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>The DTLS client protocol: runs a DTLS handshake as the client.</summary>
     public class DtlsClientProtocol
         : DtlsProtocol
     {
+        /// <summary>Create a new <see cref="DtlsClientProtocol"/>.</summary>
         public DtlsClientProtocol()
             : base()
         {
@@ -600,6 +602,8 @@ namespace Org.BouncyCastle.Tls
             return buf.ToArray();
         }
 
+        /// <summary>Cancel the session of the handshake, so that it cannot be resumed.</summary>
+        /// <param name="state">The handshake state.</param>
         protected virtual void CancelSession(ClientHandshakeState state)
         {
             if (state.sessionMasterSecret != null)
@@ -617,6 +621,10 @@ namespace Org.BouncyCastle.Tls
             state.tlsSession = null;
         }
 
+        /// <summary>Establish the session of the handshake as resumable, if appropriate.</summary>
+        /// <param name="state">The handshake state.</param>
+        /// <param name="sessionToResume">The session that was resumed, if any.</param>
+        /// <returns>true if the session was established, false otherwise.</returns>
         protected virtual bool EstablishSession(ClientHandshakeState state, TlsSession sessionToResume)
         {
             state.tlsSession = null;
@@ -652,6 +660,8 @@ namespace Org.BouncyCastle.Tls
             return true;
         }
 
+        /// <summary>Invalidate the session of the handshake after an error.</summary>
+        /// <param name="state">The handshake state.</param>
         protected virtual void InvalidateSession(ClientHandshakeState state)
         {
             if (state.tlsSession != null)
@@ -1135,6 +1145,7 @@ namespace Org.BouncyCastle.Tls
             return patched;
         }
 
+        /// <summary>The state of a client-side DTLS handshake.</summary>
         protected internal class ClientHandshakeState
         {
             internal TlsClient client = null;

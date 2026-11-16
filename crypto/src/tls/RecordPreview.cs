@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>A preview of a record: the size of the record and the limit on the content it can carry.</summary>
     public sealed class RecordPreview
     {
         private readonly int recordSize;
@@ -23,11 +24,13 @@ namespace Org.BouncyCastle.Tls
             this.contentLimit = contentLimit;
         }
 
+        /// <summary>Gets the content limit.</summary>
         public int ContentLimit
         {
             get { return contentLimit; }
         }
 
+        /// <summary>Gets the record size.</summary>
         public int RecordSize
         {
             get { return recordSize; }

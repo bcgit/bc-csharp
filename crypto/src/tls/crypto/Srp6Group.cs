@@ -18,11 +18,13 @@ namespace Org.BouncyCastle.Tls.Crypto
             this.g = g;
         }
 
+        /// <summary>Gets the g.</summary>
         public virtual BigInteger G
         {
             get { return g; }
         }
 
+        /// <summary>Gets the n.</summary>
         public virtual BigInteger N
         {
             get { return n; }

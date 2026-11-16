@@ -7,6 +7,7 @@ namespace Org.BouncyCastle.Tls.Crypto
     /// <summary>Basic config for SRP.</summary>
     public class TlsSrpConfig
     {
+        /// <summary>The explicit NG.</summary>
         protected BigInteger[] m_explicitNG;
 
         /// <summary>Return the (N, g) values used in SRP-6.</summary>

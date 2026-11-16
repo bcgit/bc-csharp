@@ -9,11 +9,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
     public abstract class AbstractTlsSecret
         : TlsSecret
     {
+        /// <summary>Copy the data of another secret.</summary>
+        /// <param name="other">The secret to copy from.</param>
+        /// <returns>A copy of the data.</returns>
         protected static byte[] CopyData(AbstractTlsSecret other)
         {
             return other.CopyData();
         }
 
+        /// <summary>The data.</summary>
         protected byte[] m_data;
 
         /// <summary>Base constructor.</summary>
@@ -23,14 +27,18 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             m_data = data;
         }
 
+        /// <summary>Check that the secret has not been destroyed.</summary>
+        /// <exception cref="InvalidOperationException">The secret has been destroyed.</exception>
         protected virtual void CheckAlive()
         {
             if (m_data == null)
                 throw new InvalidOperationException("Secret has already been extracted or destroyed");
         }
 
+        /// <summary>Gets the crypto.</summary>
         protected abstract AbstractTlsCrypto Crypto { get; }
 
+        /// <inheritdoc/>
         public virtual byte[] CalculateHmac(int cryptoHashAlgorithm, byte[] buf, int off, int len)
         {
             lock (this)
@@ -44,13 +52,16 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
         }
 
+        /// <inheritdoc/>
         public abstract TlsSecret DeriveUsingPrf(int prfAlgorithm, string label, byte[] seed, int length);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public abstract TlsSecret DeriveUsingPrf(int prfAlgorithm, ReadOnlySpan<char> label, ReadOnlySpan<byte> seed,
             int length);
 #endif
 
+        /// <inheritdoc/>
         public virtual void Destroy()
         {
             lock (this)
@@ -75,6 +86,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
         }
 
+        /// <inheritdoc/>
         public virtual byte[] Extract()
         {
             lock (this)
@@ -88,6 +100,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void ExtractTo(Span<byte> output)
         {
             lock (this)
@@ -100,14 +113,18 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 #endif
 
+        /// <inheritdoc/>
         public abstract TlsSecret HkdfExpand(int cryptoHashAlgorithm, byte[] info, int length);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public abstract TlsSecret HkdfExpand(int cryptoHashAlgorithm, ReadOnlySpan<byte> info, int length);
 #endif
 
+        /// <inheritdoc/>
         public abstract TlsSecret HkdfExtract(int cryptoHashAlgorithm, TlsSecret ikm);
 
+        /// <inheritdoc/>
         public virtual bool IsAlive()
         {
             lock (this)
@@ -116,6 +133,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
         }
 
+        /// <inheritdoc/>
         public virtual int Length
         {
             get

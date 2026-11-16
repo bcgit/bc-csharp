@@ -11,6 +11,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
     {
         private const long SequenceNumberPlaceholder = -1L;
 
+        /// <summary>Get the size of the MAC, as it appears in records for the connection.</summary>
+        /// <param name="cryptoParams">The crypto parameters.</param>
+        /// <param name="mac">The MAC.</param>
+        /// <returns>The MAC size in bytes.</returns>
         protected static int GetMacSize(TlsCryptoParameters cryptoParams, TlsMac mac)
         {
             int macSize = mac.MacLength;
@@ -21,10 +25,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return macSize;
         }
 
+        /// <summary>The crypto params.</summary>
         protected readonly TlsCryptoParameters m_cryptoParams;
+        /// <summary>The mac.</summary>
         protected readonly TlsHmac m_mac;
+        /// <summary>The digest block size.</summary>
         protected readonly int m_digestBlockSize;
+        /// <summary>The digest overhead.</summary>
         protected readonly int m_digestOverhead;
+        /// <summary>The mac size.</summary>
         protected readonly int m_macSize;
 
         /// <summary>Generate a new instance of a TlsMac.</summary>
@@ -51,16 +60,26 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
         }
 
+        /// <inheritdoc/>
         public virtual int Size
         {
             get { return m_macSize; }
         }
 
+        /// <inheritdoc/>
         public virtual byte[] CalculateMac(long seqNo, short type, byte[] msg, int msgOff, int msgLen)
         {
             return CalculateMac(seqNo, type, null, msg, msgOff, msgLen);
         }
 
+        /// <summary>Calculate the MAC of a record.</summary>
+        /// <param name="seqNo">The record sequence number.</param>
+        /// <param name="type">The record type.</param>
+        /// <param name="connectionID">The connection ID, or null.</param>
+        /// <param name="msg">The buffer holding the record.</param>
+        /// <param name="msgOff">The offset into <paramref name="msg"/> at which the record starts.</param>
+        /// <param name="msgLen">The length of the record.</param>
+        /// <returns>The MAC.</returns>
         // TODO[api] Replace TlsSuiteMac.CalculateMac (non-span version)
         public virtual byte[] CalculateMac(long seqNo, short type, byte[] connectionID, byte[] msg, int msgOff,
             int msgLen)
@@ -114,11 +133,18 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual byte[] CalculateMac(long seqNo, short type, ReadOnlySpan<byte> message)
         {
             return CalculateMac(seqNo, type, ReadOnlySpan<byte>.Empty, message);
         }
 
+        /// <summary>Calculate the MAC of a record.</summary>
+        /// <param name="seqNo">The record sequence number.</param>
+        /// <param name="type">The record type.</param>
+        /// <param name="connectionID">The connection ID, or null.</param>
+        /// <param name="message">The record.</param>
+        /// <returns>The MAC.</returns>
         // TODO[api] Replace TlsSuiteMac.CalculateMac (span version)
         public virtual byte[] CalculateMac(long seqNo, short type, ReadOnlySpan<byte> connectionID,
             ReadOnlySpan<byte> message)
@@ -166,12 +192,25 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual byte[] CalculateMacConstantTime(long seqNo, short type, byte[] msg, int msgOff, int msgLen,
             int fullLength, byte[] dummyData)
         {
             return CalculateMacConstantTime(seqNo, type, null, msg, msgOff, msgLen, fullLength, dummyData);
         }
 
+        /// <summary>
+        /// Calculate the MAC of a record in constant time with respect to the actual length of the record.
+        /// </summary>
+        /// <param name="seqNo">The record sequence number.</param>
+        /// <param name="type">The record type.</param>
+        /// <param name="connectionID">The connection ID, or null.</param>
+        /// <param name="msg">The buffer holding the record.</param>
+        /// <param name="msgOff">The offset into <paramref name="msg"/> at which the record starts.</param>
+        /// <param name="msgLen">The length of the record.</param>
+        /// <param name="fullLength">The full length of the data.</param>
+        /// <param name="dummyData">The dummy data to process to equalise the work.</param>
+        /// <returns>The MAC.</returns>
         // TODO[api] Replace TlsSuiteMac.CalculateMacConstantTime
         public virtual byte[] CalculateMacConstantTime(long seqNo, short type, byte[] connectionID, byte[] msg,
             int msgOff, int msgLen, int fullLength, byte[] dummyData)
@@ -202,6 +241,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return result;
         }
 
+        /// <summary>Get the number of digest blocks needed to process an input of the given length.</summary>
+        /// <param name="inputLength">The length of the input.</param>
+        /// <returns>The number of blocks.</returns>
         protected virtual int GetDigestBlockCount(int inputLength)
         {
             // NOTE: The input pad for HMAC is always a full digest block
@@ -210,6 +252,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return (inputLength + m_digestOverhead) / m_digestBlockSize;
         }
 
+        /// <summary>Get the length of the record header that is included in the MAC.</summary>
+        /// <param name="connectionID">The connection ID, or null.</param>
+        /// <returns>The length in bytes.</returns>
         protected virtual int GetHeaderLength(byte[] connectionID)
         {
             if (TlsImplUtilities.IsSsl(m_cryptoParams))
@@ -226,6 +271,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
         }
 
+        /// <summary>Truncate a MAC to the size used in records.</summary>
+        /// <param name="bs">The MAC.</param>
+        /// <returns>The truncated MAC.</returns>
         protected virtual byte[] Truncate(byte[] bs)
         {
             if (bs.Length <= m_macSize)

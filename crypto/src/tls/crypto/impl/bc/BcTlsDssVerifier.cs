@@ -11,15 +11,22 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public abstract class BcTlsDssVerifier
         : BcTlsVerifier
     {
+        /// <summary>Create a new <see cref="BcTlsDssVerifier"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="publicKey">The public key.</param>
         protected BcTlsDssVerifier(BcTlsCrypto crypto, AsymmetricKeyParameter publicKey)
             : base(crypto, publicKey)
         {
         }
 
+        /// <summary>Create the DSA implementation to use for verification.</summary>
+        /// <returns>The DSA implementation.</returns>
         protected abstract IDsa CreateDsaImpl();
 
+        /// <summary>Gets the signature algorithm.</summary>
         protected abstract short SignatureAlgorithm { get; }
 
+        /// <inheritdoc/>
         public override bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash)
         {
             SignatureAndHashAlgorithm algorithm = digitallySigned.Algorithm;

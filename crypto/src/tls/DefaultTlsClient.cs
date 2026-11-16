@@ -4,6 +4,9 @@ using Org.BouncyCastle.Tls.Crypto;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>
+    /// Base class for a TLS client that selects its own defaults for the cipher suites and key exchange.
+    /// </summary>
     public abstract class DefaultTlsClient
         : AbstractTlsClient
     {
@@ -37,11 +40,14 @@ namespace Org.BouncyCastle.Tls
             CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA,
         };
 
+        /// <summary>Create a new <see cref="DefaultTlsClient"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
         public DefaultTlsClient(TlsCrypto crypto)
             : base(crypto)
         {
         }
 
+        /// <inheritdoc/>
         protected override int[] GetSupportedCipherSuites()
         {
             return TlsUtilities.GetSupportedCipherSuites(Crypto, DefaultCipherSuites);

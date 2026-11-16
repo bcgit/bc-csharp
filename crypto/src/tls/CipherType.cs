@@ -9,7 +9,9 @@ namespace Org.BouncyCastle.Tls
     /// </remarks>
     public abstract class CipherType
     {
+        /// <summary>The <c>stream</c> constant, with the value <c>0</c>.</summary>
         public const int stream = 0;
+        /// <summary>The <c>block</c> constant, with the value <c>1</c>.</summary>
         public const int block = 1;
 
         /*

@@ -33,18 +33,24 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             RekeyEncoder();
         }
 
+        /// <inheritdoc/>
         public int GetCiphertextDecodeLimit(int plaintextLimit) => plaintextLimit + 1 + m_readHmac.MacLength;
 
+        /// <inheritdoc/>
         public int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit) =>
             System.Math.Min(plaintextLength, plaintextLimit) + 1 + m_writeHmac.MacLength;
 
+        /// <inheritdoc/>
         // TODO[api] Remove
         public int GetPlaintextLimit(int ciphertextLimit) => GetPlaintextEncodeLimit(ciphertextLimit);
 
+        /// <inheritdoc/>
         public int GetPlaintextDecodeLimit(int ciphertextLimit) => ciphertextLimit - m_readHmac.MacLength - 1;
 
+        /// <inheritdoc/>
         public int GetPlaintextEncodeLimit(int ciphertextLimit) => ciphertextLimit - m_writeHmac.MacLength - 1;
 
+        /// <inheritdoc/>
         public TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, byte[] plaintext, int plaintextOffset, int plaintextLength)
         {
@@ -97,6 +103,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, ReadOnlySpan<byte> plaintext)
         {
@@ -139,6 +146,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 #endif
 
+        /// <inheritdoc/>
         public TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
             byte[] ciphertext, int ciphertextOffset, int ciphertextLength)
         {
@@ -193,12 +201,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return new TlsDecodeResult(ciphertext, ciphertextOffset, plaintextLength, contentType);
         }
 
+        /// <inheritdoc/>
         public void RekeyDecoder() =>
             RekeyHmac(m_cryptoParams.SecurityParameters, m_readHmac, m_readNonce, !m_cryptoParams.IsServer);
 
+        /// <inheritdoc/>
         public void RekeyEncoder() =>
             RekeyHmac(m_cryptoParams.SecurityParameters, m_writeHmac, m_writeNonce, m_cryptoParams.IsServer);
 
+        /// <inheritdoc/>
         public bool UsesOpaqueRecordType => true;
 
         private void RekeyHmac(SecurityParameters securityParameters, TlsHmac hmac, byte[] nonce,

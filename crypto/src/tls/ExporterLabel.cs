@@ -9,8 +9,11 @@ namespace Org.BouncyCastle.Tls
          * RFC 5246
          */
         public const string client_finished = "client finished";
+        /// <summary>The <c>server_finished</c> constant, with the value <c>server finished</c>.</summary>
         public const string server_finished = "server finished";
+        /// <summary>The <c>master_secret</c> constant, with the value <c>master secret</c>.</summary>
         public const string master_secret = "master secret";
+        /// <summary>The <c>key_expansion</c> constant, with the value <c>key expansion</c>.</summary>
         public const string key_expansion = "key expansion";
 
         /*
@@ -22,6 +25,7 @@ namespace Org.BouncyCastle.Tls
          * RFC 5281
          */
         public const string ttls_keying_material = "ttls keying material";
+        /// <summary>The <c>ttls_challenge</c> constant, with the value <c>ttls challenge</c>.</summary>
         public const string ttls_challenge = "ttls challenge";
 
         /*

@@ -19,6 +19,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         byte[] CalculateMac(long seqNo, short type, byte[] message, int offset, int length);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Calculate the MAC of a record.</summary>
+        /// <param name="seqNo">The record sequence number.</param>
+        /// <param name="type">The record type.</param>
+        /// <param name="message">The record.</param>
+        /// <returns>The MAC.</returns>
         byte[] CalculateMac(long seqNo, short type, ReadOnlySpan<byte> message);
 #endif
 
