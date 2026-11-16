@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             DsaParameters dsaParams = param.Parameters;
 
             BigInteger x = GeneratePrivateKey(dsaParams.Q, param.Random);
-            BigInteger y = CalculatePublicKey(dsaParams.P, dsaParams.G, x);
+            BigInteger y = CalculatePublicKey(dsaParams, x);
 
             return new AsymmetricCipherKeyPair(
                 new DsaPublicKeyParameters(y, dsaParams),
@@ -66,9 +66,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
-        private static BigInteger CalculatePublicKey(BigInteger p, BigInteger g, BigInteger x)
-        {
-            return g.ModPow(x, p);
-        }
+        internal static BigInteger CalculatePublicKey(DsaParameters parameters, BigInteger x) =>
+            parameters.G.ModPow(x, parameters.P);
     }
 }

@@ -5,6 +5,7 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
@@ -48,8 +49,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
                     new DerInteger(dsaparameters.G)
                 };
 
-                // public key = g.modPow(x, p);
-                BigInteger pubKey = dsaparameters.P.ModPow(dsaPrivateKey.X, dsaparameters.P);
+                BigInteger pubKey = DsaKeyPairGenerator.CalculatePublicKey(dsaparameters, dsaPrivateKey.X);
                 vec.Add(new DerInteger(pubKey));
                 vec.Add(new DerInteger(dsaPrivateKey.X));
                 try

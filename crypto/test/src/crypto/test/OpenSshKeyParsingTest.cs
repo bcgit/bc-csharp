@@ -194,7 +194,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             var pubSpec = OpenSshPublicKeyUtilities.ParsePublicKey(Base64.Decode("AAAAB3NzaC1kc3MAAACBAJBB5+S4kZZYZLswaQ/zm3GM7YWmHsumwo/Xxu+z6Cg2l5PUoiBBZ4ET9EhhQuL2ja/zrCMCi0ZwiSRuSp36ayPrHLbNJb3VdOuJg8xExRa6F3YfVZfcTPUEKh6FU72fI31HrQmi4rpyHnWxL/iDX496ZG2Hdq6UkPISQpQwj4TtAAAAFQCP9TXcVahR/2rpfEhvdXR0PfhbRwAAAIBdXzAVqoOtb9zog6lNF1cGS1S06W9W/clvuwq2xF1s3bkoI/xUbFSc0IAPsGl2kcB61PAZqcop50lgpvYzt8cq/tbqz3ypq1dCQ0xdmJHj975QsRFax+w6xQ0kgpBhwcS2EOizKb+C+tRzndGpcDSoSMuVXp9i4wn5pJSTZxAYFQAAAIEAhQZc687zYxrEDR/1q6m4hw5GFxuVvLsC+bSHtMF0c11Qy4IPg7mBeP7K5Kq4WyJPtmZhuc5Bb12bJQR6qgd1uLn692fe1UK2kM6eWXBzhlzZ54BslfSKHGNN4qH+ln3Zaf/4rpKE7fvoinkrgkOZmj0PMx9D6wlpHKkXMUxeXtc="));
 
-            var privSpec = ParsePrivateKeyData("-----BEGIN DSA PRIVATE KEY-----\n" +
+            byte[] privBlob = ReadPemContent("-----BEGIN DSA PRIVATE KEY-----\n" +
                 "MIIBuwIBAAKBgQCQQefkuJGWWGS7MGkP85txjO2Fph7LpsKP18bvs+goNpeT1KIg\n" +
                 "QWeBE/RIYULi9o2v86wjAotGcIkkbkqd+msj6xy2zSW91XTriYPMRMUWuhd2H1WX\n" +
                 "3Ez1BCoehVO9nyN9R60JouK6ch51sS/4g1+PemRth3aulJDyEkKUMI+E7QIVAI/1\n" +
@@ -206,6 +206,12 @@ namespace Org.BouncyCastle.Crypto.Tests
                 "HGNN4qH+ln3Zaf/4rpKE7fvoinkrgkOZmj0PMx9D6wlpHKkXMUxeXtcCFELnLOJ8\n" +
                 "D0akSCUFY/iDLo/KnOIH\n" +
                 "-----END DSA PRIVATE KEY-----\n");
+
+            var privSpec = OpenSshPrivateKeyUtilities.ParsePrivateKeyBlob(privBlob);
+
+            // the encoding carries y = g^x mod p, which parsing does not read back
+            Assert.IsTrue(Arrays.AreEqual(privBlob, OpenSshPrivateKeyUtilities.EncodePrivateKey(privSpec)),
+                "DSA re-encoding");
 
             byte[] originalMessage = SecureRandom.GetNextBytes(secureRandom, 10);
 
@@ -491,11 +497,14 @@ namespace Org.BouncyCastle.Crypto.Tests
             Assert.IsTrue(Arrays.AreEqual(originalMessage, result), "Result did not match original message");
         }
 
-        private static AsymmetricKeyParameter ParsePrivateKeyData(string data)
+        private static AsymmetricKeyParameter ParsePrivateKeyData(string data) =>
+            OpenSshPrivateKeyUtilities.ParsePrivateKeyBlob(ReadPemContent(data));
+
+        private static byte[] ReadPemContent(string data)
         {
             using (var pemReader = new PemReader(new StringReader(data)))
             {
-                return OpenSshPrivateKeyUtilities.ParsePrivateKeyBlob(pemReader.ReadPemObject().Content);
+                return pemReader.ReadPemObject().Content;
             }
         }
     }
