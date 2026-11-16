@@ -266,6 +266,106 @@ namespace Org.BouncyCastle.Utilities
             return !ModOddIsCoprimeVar(x, y);
         }
 
+        /// <summary>(X + Y) mod M, for X and Y already in [0, M), in time independent of the values.</summary>
+        /// <remarks>
+        /// Use this rather than <c>X.Add(Y).Mod(M)</c> when either operand is secret: a reduction short-circuits when
+        /// its input is already below the modulus, so whether the sum crossed M would be visible. Operands outside
+        /// [0, M) are rejected rather than reduced, since reducing them is the variable-time step this avoids.
+        /// </remarks>
+        internal static BigInteger ModAdd(BigInteger M, BigInteger X, BigInteger Y)
+        {
+            CheckModOperands(M, X, Y);
+
+            // the extra bit of width means X + Y, below 2M, cannot carry out of the top word, so one conditional
+            // subtraction of M reduces it
+            int bits = M.BitLength + 1;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (bits <= 2049)
+            {
+                int len = Nat.GetLengthForBits(bits);
+                Span<uint> m = stackalloc uint[len];
+                Span<uint> x = stackalloc uint[len];
+                Span<uint> y = stackalloc uint[len];
+                Nat.FromBigInteger(bits, M, m);
+                Nat.FromBigInteger(bits, X, x);
+                Nat.FromBigInteger(bits, Y, y);
+
+                Nat.Add(len, x, y, x);
+                int borrow = Nat.Sub(len, x, m, y);     // y = x - M; borrow is -1 exactly when x < M
+                Nat.CMov(len, ~borrow, y, x);           // keep x - M unless the subtraction went negative
+                return Nat.ToBigInteger(len, x);
+            }
+            else
+#endif
+            {
+                uint[] m = Nat.FromBigInteger(bits, M);
+                uint[] x = Nat.FromBigInteger(bits, X);
+                uint[] y = Nat.FromBigInteger(bits, Y);
+                int len = m.Length;
+
+                Nat.Add(len, x, y, x);
+                int borrow = Nat.Sub(len, x, m, y);     // y = x - M; borrow is -1 exactly when x < M
+                Nat.CMov(len, ~borrow, y, 0, x, 0);     // keep x - M unless the subtraction went negative
+                return Nat.ToBigInteger(len, x);
+            }
+        }
+
+        /// <summary>(X * Y) mod M, for odd M and X, Y already in [0, M), in time independent of the values.</summary>
+        /// <remarks>
+        /// Montgomery multiplication over a fixed number of words. Use this rather than <c>X.Multiply(Y).Mod(M)</c> when
+        /// either operand is secret: that reduction is a real division whose work follows the quotient. Operands outside
+        /// [0, M) are rejected rather than reduced.
+        /// </remarks>
+        internal static BigInteger ModMult(BigInteger M, BigInteger X, BigInteger Y)
+        {
+            if (!M.TestBit(0))
+                throw new ArgumentException("must be odd", nameof(M));
+
+            CheckModOperands(M, X, Y);
+
+            int bits = M.BitLength;
+            int len = Nat.GetLengthForBits(bits);
+
+            // R = 2^(32 * len) exceeds the odd M, so they are coprime. R^2 mod M depends only on the public modulus.
+            BigInteger R2 = One.ShiftLeft(len << 6).Mod(M);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (bits <= 2048)
+            {
+                Span<uint> m = stackalloc uint[len];
+                Span<uint> x = stackalloc uint[len];
+                Span<uint> y = stackalloc uint[len];
+                Span<uint> r2 = stackalloc uint[len];
+                Span<uint> t = stackalloc uint[2 * len + 1];
+                Nat.FromBigInteger(bits, M, m);
+                Nat.FromBigInteger(bits, X, x);
+                Nat.FromBigInteger(bits, Y, y);
+                Nat.FromBigInteger(bits, R2, r2);
+                uint mDash = 0U - Mod.Inverse32(m[0]);
+
+                // the first product leaves X * Y * R^-1, the second multiplies by R^2 * R^-1 to undo it
+                MontgomeryMultiply(len, x, y, m, mDash, t, x);
+                MontgomeryMultiply(len, x, r2, m, mDash, t, x);
+                return Nat.ToBigInteger(len, x);
+            }
+            else
+#endif
+            {
+                uint[] m = Nat.FromBigInteger(bits, M);
+                uint[] x = Nat.FromBigInteger(bits, X);
+                uint[] y = Nat.FromBigInteger(bits, Y);
+                uint[] r2 = Nat.FromBigInteger(bits, R2);
+                uint[] t = new uint[2 * len + 1];
+                uint mDash = 0U - Mod.Inverse32(m[0]);
+
+                // the first product leaves X * Y * R^-1, the second multiplies by R^2 * R^-1 to undo it
+                MontgomeryMultiply(len, x, y, m, mDash, t, x);
+                MontgomeryMultiply(len, x, r2, m, mDash, t, x);
+                return Nat.ToBigInteger(len, x);
+            }
+        }
+
         /// <summary>
         /// Calculate the modular inverse of a value modulo an odd modulus, in constant time with respect to the value.
         /// </summary>
@@ -450,6 +550,50 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 
+        /// <summary>(X - Y) mod M, for X and Y already in [0, M), in time independent of the values.</summary>
+        /// <remarks>
+        /// Use this rather than <c>X.Subtract(Y).Mod(M)</c> when either operand is secret: reducing a negative value
+        /// costs more than a non-negative one, so whether X &lt; Y would be visible. Operands outside [0, M) are
+        /// rejected rather than reduced.
+        /// </remarks>
+        internal static BigInteger ModSubtract(BigInteger M, BigInteger X, BigInteger Y)
+        {
+            CheckModOperands(M, X, Y);
+
+            // X - Y lies in (-M, M), so one conditional addition of M reduces it; the width is that of ModAdd
+            int bits = M.BitLength + 1;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (bits <= 2049)
+            {
+                int len = Nat.GetLengthForBits(bits);
+                Span<uint> m = stackalloc uint[len];
+                Span<uint> x = stackalloc uint[len];
+                Span<uint> y = stackalloc uint[len];
+                Nat.FromBigInteger(bits, M, m);
+                Nat.FromBigInteger(bits, X, x);
+                Nat.FromBigInteger(bits, Y, y);
+
+                int borrow = Nat.Sub(len, x, y, x);     // borrow is -1 exactly when X < Y
+                Nat.Add(len, x, m, y);                  // y = x + M, discarding the carry off the top
+                Nat.CMov(len, borrow, y, x);            // take x + M only where the difference went negative
+                return Nat.ToBigInteger(len, x);
+            }
+            else
+#endif
+            {
+                uint[] m = Nat.FromBigInteger(bits, M);
+                uint[] x = Nat.FromBigInteger(bits, X);
+                uint[] y = Nat.FromBigInteger(bits, Y);
+                int len = m.Length;
+
+                int borrow = Nat.Sub(len, x, y, x);     // borrow is -1 exactly when X < Y
+                Nat.Add(len, x, m, y);                  // y = x + M, discarding the carry off the top
+                Nat.CMov(len, borrow, y, 0, x, 0);      // take x + M only where the difference went negative
+                return Nat.ToBigInteger(len, x);
+            }
+        }
+
         /// <summary>
         /// Write the unsigned big-endian encoding of a non-negative BigInteger to a stream, without leading zero bytes.
         /// </summary>
@@ -473,6 +617,72 @@ namespace Org.BouncyCastle.Utilities
 
                 outStr.Write(buffer, 0, buffer.Length);
             }
+        }
+
+        private static void CheckModOperands(BigInteger M, BigInteger X, BigInteger Y)
+        {
+            if (M.SignValue != 1)
+                throw new ArithmeticException("BigInteger: modulus not positive");
+            if (X.SignValue < 0 || X.CompareTo(M) >= 0 || Y.SignValue < 0 || Y.CompareTo(M) >= 0)
+                throw new ArgumentException("'X' and 'Y' must be in the range [0, M)");
+        }
+
+        // z = x * y * R^-1 mod m, for R = 2^(32 * len) and x, y in [0, m); z may alias x or y. Coarsely integrated
+        // operand scanning over a window of t (2 * len + 1 words) that moves up a word each step, in place of shifting
+        // the accumulator: step i adds x * y[i], then the multiple of m that clears the window's bottom word. Every loop
+        // runs a fixed number of times and no index depends on the values.
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void MontgomeryMultiply(int len, ReadOnlySpan<uint> x, ReadOnlySpan<uint> y,
+            ReadOnlySpan<uint> m, uint mDash, Span<uint> t, Span<uint> z)
+        {
+            t.Clear();
+
+            for (int i = 0; i < len; ++i)
+            {
+                // the window's top word has not been written yet, so it is zero
+                Span<uint> w = t.Slice(i, len + 2);
+
+                ulong c = (ulong)Nat.MulWordAddTo(len, y[i], x, w) + w[len];
+                w[len] = (uint)c;
+                w[len + 1] = (uint)(c >> 32);
+
+                c = (ulong)Nat.MulWordAddTo(len, w[0] * mDash, m, w) + w[len];
+                w[len] = (uint)c;
+                w[len + 1] += (uint)(c >> 32);
+            }
+
+            // the result, below 2m, is in t[len..2len]: subtract m unless it is already below m, which is when the
+            // subtraction goes negative and the top word is clear
+            ReadOnlySpan<uint> r = t.Slice(len, len + 1);
+            uint top = r[len];
+            int borrow = Nat.Sub(len, r, m, z);
+            int topSet = (int)((top | (0U - top)) >> 31);
+            Nat.CMov(len, borrow & (topSet - 1), r, z);
+        }
+#endif
+
+        private static void MontgomeryMultiply(int len, uint[] x, uint[] y, uint[] m, uint mDash, uint[] t, uint[] z)
+        {
+            Array.Clear(t, 0, t.Length);
+
+            for (int i = 0; i < len; ++i)
+            {
+                // the window t[i..i+len+1]: its top word has not been written yet, so it is zero
+                ulong c = (ulong)Nat.MulWordAddTo(len, y[i], x, 0, t, i) + t[i + len];
+                t[i + len] = (uint)c;
+                t[i + len + 1] = (uint)(c >> 32);
+
+                c = (ulong)Nat.MulWordAddTo(len, t[i] * mDash, m, 0, t, i) + t[i + len];
+                t[i + len] = (uint)c;
+                t[i + len + 1] += (uint)(c >> 32);
+            }
+
+            // the result, below 2m, is in t[len..2len]: subtract m unless it is already below m, which is when the
+            // subtraction goes negative and the top word is clear
+            uint top = t[2 * len];
+            int borrow = Nat.Sub(len, t, len, m, 0, z, 0);
+            int topSet = (int)((top | (0U - top)) >> 31);
+            Nat.CMov(len, borrow & (topSet - 1), t, len, z, 0);
         }
     }
 }
