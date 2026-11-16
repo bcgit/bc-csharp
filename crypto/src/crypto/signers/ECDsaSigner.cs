@@ -88,7 +88,8 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
             ECDomainParameters ec = key.Parameters;
             BigInteger n = ec.N;
-            BigInteger e = CalculateE(n, message);
+            // e is public, and CalculateE can leave it at or past n, which ModAdd below rejects rather than reduces
+            BigInteger e = CalculateE(n, message).Mod(n);
             BigInteger d = ((ECPrivateKeyParameters)key).D;
 
             if (kCalculator.IsDeterministic)
@@ -119,7 +120,10 @@ namespace Org.BouncyCastle.Crypto.Signers
                 }
                 while (r.SignValue == 0);
 
-                s = BigIntegers.ModOddInverse(n, k).Multiply(e.Add(d.Multiply(r))).Mod(n);
+                // s = k^-1 * (e + d * r) mod n, keeping the secret d and k^-1 off BigInteger.Mod, whose cost follows
+                // the quotient; d is in [1, n-1] by ValidatePrivateScalar, r is reduced, and ModOddInverse needs n odd
+                s = BigIntegers.ModMult(n, BigIntegers.ModOddInverse(n, k),
+                    BigIntegers.ModAdd(n, e, BigIntegers.ModMult(n, d, r)));
             }
             while (s.SignValue == 0);
 

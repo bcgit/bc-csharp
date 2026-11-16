@@ -91,7 +91,9 @@ namespace Org.BouncyCastle.Crypto.Signers
                 }
                 while (r.SignValue == 0);
 
-                s = k.Multiply(e).Add(d.Multiply(r)).Mod(n);
+                // keeping the secret d and nonce k off BigInteger.Mod, whose cost follows the quotient; d is in [1, n-1]
+                // by ValidatePrivateScalar, k is drawn below n, e and r are reduced
+                s = BigIntegers.ModAdd(n, BigIntegers.ModMult(n, k, e), BigIntegers.ModMult(n, d, r));
             }
             while (s.SignValue == 0);
 

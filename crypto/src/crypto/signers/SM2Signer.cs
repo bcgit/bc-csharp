@@ -181,8 +181,10 @@ namespace Org.BouncyCastle.Crypto.Signers
                 // A6
                 BigInteger dPlus1ModN = BigIntegers.ModOddInverse(n, d.Add(BigIntegers.One));
 
-                s = k.Subtract(r.Multiply(d)).Mod(n);
-                s = dPlus1ModN.Multiply(s).Mod(n);
+                // keeping the secret d and (1 + d)^-1 off BigInteger.Mod, whose cost follows the quotient; d is in
+                // [1, n-1] by ValidatePrivateScalar, k and r are reduced, and ModOddInverse needs n odd
+                s = BigIntegers.ModSubtract(n, k, BigIntegers.ModMult(n, r, d));
+                s = BigIntegers.ModMult(n, dPlus1ModN, s);
             }
             while (s.SignValue == 0);
 

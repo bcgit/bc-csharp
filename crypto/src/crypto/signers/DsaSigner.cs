@@ -86,7 +86,8 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
             DsaParameters parameters = key.Parameters;
             BigInteger q = parameters.Q;
-            BigInteger m = CalculateE(q, message);
+            // m is public, and CalculateE can leave it at or past q, which ModAdd below rejects rather than reduces
+            BigInteger m = CalculateE(q, message).Mod(q);
             BigInteger x = ((DsaPrivateKeyParameters)key).X;
 
             if (kCalculator.IsDeterministic)
@@ -102,9 +103,10 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             BigInteger r = parameters.G.ModPow(k, parameters.P).Mod(q);
 
-            k = BigIntegers.ModOddInverse(q, k).Multiply(m.Add(x.Multiply(r)));
-
-            BigInteger s = k.Mod(q);
+            // s = k^-1 * (m + x * r) mod q, keeping the secret x and k^-1 off BigInteger.Mod, whose cost follows the
+            // quotient; x is in [1, q-1] by DsaPrivateKeyParameters, r is reduced, and q is prime and so odd
+            BigInteger s = BigIntegers.ModMult(q, BigIntegers.ModOddInverse(q, k),
+                BigIntegers.ModAdd(q, m, BigIntegers.ModMult(q, x, r)));
 
             return new BigInteger[]{ r, s };
         }

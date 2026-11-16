@@ -6,6 +6,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
@@ -113,7 +114,9 @@ namespace Org.BouncyCastle.Crypto.Signers
             // generate s
             BigInteger x = privKey.D;                // private key value
             BigInteger u = ((ECPrivateKeyParameters) tempPair.Private).D; // temp's private key value
-            s = u.Subtract(r.Multiply(x)).Mod(n);
+            // keeping the secret x and ephemeral u off BigInteger.Mod, whose cost follows the quotient; both are in
+            // [1, n-1] by ValidatePrivateScalar, and r is reduced
+            s = BigIntegers.ModSubtract(n, u, BigIntegers.ModMult(n, r, x));
 
             return new BigInteger[]{ r, s };
         }

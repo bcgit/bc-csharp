@@ -83,7 +83,9 @@ namespace Org.BouncyCastle.Crypto.Signers
                 }
                 while (r.SignValue < 1);
 
-                s = r.Multiply(d).Add(e).Mod(n);
+                // keeping the secret d and ephemeral e off BigInteger.Mod, whose cost follows the quotient; d is in
+                // [1, n-1] by ValidatePrivateScalar, e is drawn in that range, and r is truncated below 2^(|n| - 1)
+                s = BigIntegers.ModAdd(n, BigIntegers.ModMult(n, r, d), e);
             }
             while (s.SignValue < 1);
 

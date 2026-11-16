@@ -72,9 +72,11 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             BigInteger r = parameters.A.ModPow(k, parameters.P).Mod(parameters.Q);
 
-            BigInteger s = k.Multiply(m).
-                Add(((Gost3410PrivateKeyParameters)key).X.Multiply(r)).
-                Mod(parameters.Q);
+            // keeping the secret x and nonce k off BigInteger.Mod, whose cost follows the quotient; x is in [1, q-1] by
+            // Gost3410PrivateKeyParameters, k is drawn below q, m and r are reduced, and q is prime and so odd
+            BigInteger q = parameters.Q;
+            BigInteger s = BigIntegers.ModAdd(q, BigIntegers.ModMult(q, k, m),
+                BigIntegers.ModMult(q, ((Gost3410PrivateKeyParameters)key).X, r));
 
             return new BigInteger[]{ r, s };
         }
