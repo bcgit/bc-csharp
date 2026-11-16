@@ -30,7 +30,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Utilities.Bzip2
 {
-	/**
+    /**
     * An input stream that decompresses from the BZip2 format (with the file
     * header chars) to be read as any other stream.
     *
@@ -40,8 +40,8 @@ namespace Org.BouncyCastle.Utilities.Bzip2
     * start of the BZIP2 stream to make it compatible with other PGP programs.
     */
     public class CBZip2InputStream
-        : BaseInputStream 
-	{
+        : BaseInputStream
+    {
         /*
         index of the last char in the block, so
         the block size == last + 1.
@@ -105,6 +105,8 @@ namespace Org.BouncyCastle.Utilities.Bzip2
         int j2;
         int z;
 
+        /// <summary>Create a new <see cref="CBZip2InputStream"/>.</summary>
+        /// <param name="zStream">The z stream.</param>
         public CBZip2InputStream(Stream zStream)
         {
             ll8 = null;
@@ -134,6 +136,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
             BeginBlock();
         }
 
+        /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
             Streams.ValidateBufferArguments(buffer, offset, count);
@@ -175,6 +178,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
         }
 #endif
 
+        /// <inheritdoc/>
         public override int ReadByte()
         {
             if (streamEnd)
@@ -272,6 +276,8 @@ namespace Org.BouncyCastle.Utilities.Bzip2
             m_streamCrc = Integers.RotateLeft(m_streamCrc, 1) ^ blockFinalCrc;
         }
 
+        /// <summary>Dispose of this stream without disposing of the underlying stream.</summary>
+        /// <param name="disposing">true when called from <c>Dispose</c>, false when called from a finalizer.</param>
         protected void Detach(bool disposing)
         {
             if (disposing)
@@ -281,6 +287,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
             base.Dispose(disposing);
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -841,14 +848,18 @@ namespace Org.BouncyCastle.Utilities.Bzip2
         }
     }
 
+    /// <summary>A <see cref="CBZip2InputStream"/> that leaves the underlying stream open when it is disposed.</summary>
     public class CBZip2InputStreamLeaveOpen
         : CBZip2InputStream
     {
+        /// <summary>Create a new <see cref="CBZip2InputStreamLeaveOpen"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
         public CBZip2InputStreamLeaveOpen(Stream outStream)
             : base(outStream)
         {
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             Detach(disposing);

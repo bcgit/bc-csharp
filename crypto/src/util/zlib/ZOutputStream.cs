@@ -7,8 +7,8 @@ modification, are permitted provided that the following conditions are met:
   1. Redistributions of source code must retain the above copyright notice,
      this list of conditions and the following disclaimer.
 
-  2. Redistributions in binary form must reproduce the above copyright 
-     notice, this list of conditions and the following disclaimer in 
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in
      the documentation and/or other materials provided with the distribution.
 
   3. The names of the authors may not be used to endorse or promote products
@@ -41,6 +41,10 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Utilities.Zlib
 {
+    /// <summary>
+    /// An output stream that compresses (or decompresses) the data written to it and writes the result to an underlying
+    /// stream.
+    /// </summary>
     public class ZOutputStream
         : BaseOutputStream
     {
@@ -53,14 +57,21 @@ namespace Org.BouncyCastle.Utilities.Zlib
 
         private const int BufferSize = 4096;
 
+        /// <summary>The zlib stream state.</summary>
         protected ZStream z;
+        /// <summary>The flush level.</summary>
         protected int flushLevel = JZlib.Z_NO_FLUSH;
+        /// <summary>The buffer for data to be written to the underlying stream.</summary>
         // TODO Allow custom buf
         protected byte[] buf = new byte[BufferSize];
+        /// <summary>The buf 1.</summary>
         protected byte[] buf1 = new byte[1];
+        /// <summary>true if the stream compresses data, false if it decompresses.</summary>
         protected bool compress;
 
+        /// <summary>The underlying stream.</summary>
         protected Stream output;
+        /// <summary>true once the stream has been closed.</summary>
         protected bool closed;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -69,16 +80,24 @@ namespace Org.BouncyCastle.Utilities.Zlib
         private byte[] spanBuf;
 #endif
 
+        /// <summary>Create a new <see cref="ZOutputStream"/>.</summary>
+        /// <param name="output">The buffer to write the output to.</param>
         public ZOutputStream(Stream output)
             : this(output, false)
         {
         }
 
+        /// <summary>Create a new <see cref="ZOutputStream"/>.</summary>
+        /// <param name="output">The buffer to write the output to.</param>
+        /// <param name="nowrap">true if nowrap, false otherwise.</param>
         public ZOutputStream(Stream output, bool nowrap)
             : this(output, GetDefaultZStream(nowrap))
         {
         }
 
+        /// <summary>Create a new <see cref="ZOutputStream"/>.</summary>
+        /// <param name="output">The buffer to write the output to.</param>
+        /// <param name="z">The result.</param>
         public ZOutputStream(Stream output, ZStream z)
             : base()
         {
@@ -99,11 +118,18 @@ namespace Org.BouncyCastle.Utilities.Zlib
             this.z = z;
         }
 
+        /// <summary>Create a new <see cref="ZOutputStream"/>.</summary>
+        /// <param name="output">The buffer to write the output to.</param>
+        /// <param name="level">The level.</param>
         public ZOutputStream(Stream output, int level)
             : this(output, level, false)
         {
         }
 
+        /// <summary>Create a new <see cref="ZOutputStream"/>.</summary>
+        /// <param name="output">The buffer to write the output to.</param>
+        /// <param name="level">The level.</param>
+        /// <param name="nowrap">true if nowrap, false otherwise.</param>
         public ZOutputStream(Stream output, int level, bool nowrap)
             : base()
         {
@@ -115,6 +141,8 @@ namespace Org.BouncyCastle.Utilities.Zlib
             this.z.deflateInit(level, nowrap);
         }
 
+        /// <summary>Dispose of this stream without disposing of the underlying stream.</summary>
+        /// <param name="disposing">true when called from <c>Dispose</c>, false when called from a finalizer.</param>
         protected void Detach(bool disposing)
         {
             if (disposing)
@@ -124,6 +152,7 @@ namespace Org.BouncyCastle.Utilities.Zlib
             base.Dispose(disposing);
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -161,6 +190,7 @@ namespace Org.BouncyCastle.Utilities.Zlib
             }
         }
 
+        /// <summary>Release the resources used by the zlib state.</summary>
         public virtual void End()
         {
             if (z == null)
@@ -173,6 +203,9 @@ namespace Org.BouncyCastle.Utilities.Zlib
             z = null;
         }
 
+        /// <summary>
+        /// Finish the compressed (or decompressed) data, flushing all pending output to the underlying stream.
+        /// </summary>
         public virtual void Finish()
         {
             do
@@ -201,27 +234,32 @@ namespace Org.BouncyCastle.Utilities.Zlib
             Flush();
         }
 
+        /// <inheritdoc/>
         public override void Flush()
         {
             output.Flush();
         }
 
+        /// <summary>Gets or sets the flush mode.</summary>
         public virtual int FlushMode
         {
             get { return flushLevel; }
             set { this.flushLevel = value; }
         }
 
+        /// <summary>Gets the total in.</summary>
         public virtual long TotalIn
         {
             get { return z.total_in; }
         }
 
+        /// <summary>Gets the total out.</summary>
         public virtual long TotalOut
         {
             get { return z.total_out; }
         }
 
+        /// <inheritdoc/>
         public override void Write(byte[] buffer, int offset, int count)
         {
             Streams.ValidateBufferArguments(buffer, offset, count);
@@ -272,6 +310,7 @@ namespace Org.BouncyCastle.Utilities.Zlib
         }
 #endif
 
+        /// <inheritdoc/>
         public override void WriteByte(byte value)
         {
             buf1[0] = value;
@@ -279,34 +318,51 @@ namespace Org.BouncyCastle.Utilities.Zlib
         }
     }
 
+    /// <summary>A <see cref="ZOutputStream"/> that leaves the underlying stream open when it is disposed.</summary>
     public class ZOutputStreamLeaveOpen
         : ZOutputStream
     {
+        /// <summary>Create a new <see cref="ZOutputStreamLeaveOpen"/>.</summary>
+        /// <param name="output">The buffer to write the output to.</param>
         public ZOutputStreamLeaveOpen(Stream output)
             : base(output)
         {
         }
 
+        /// <summary>Create a new <see cref="ZOutputStreamLeaveOpen"/>.</summary>
+        /// <param name="output">The buffer to write the output to.</param>
+        /// <param name="nowrap">true if nowrap, false otherwise.</param>
         public ZOutputStreamLeaveOpen(Stream output, bool nowrap)
             : base(output, nowrap)
         {
         }
 
+        /// <summary>Create a new <see cref="ZOutputStreamLeaveOpen"/>.</summary>
+        /// <param name="output">The buffer to write the output to.</param>
+        /// <param name="z">The result.</param>
         public ZOutputStreamLeaveOpen(Stream output, ZStream z)
             : base(output, z)
         {
         }
 
+        /// <summary>Create a new <see cref="ZOutputStreamLeaveOpen"/>.</summary>
+        /// <param name="output">The buffer to write the output to.</param>
+        /// <param name="level">The level.</param>
         public ZOutputStreamLeaveOpen(Stream output, int level)
             : base(output, level)
         {
         }
 
+        /// <summary>Create a new <see cref="ZOutputStreamLeaveOpen"/>.</summary>
+        /// <param name="output">The buffer to write the output to.</param>
+        /// <param name="level">The level.</param>
+        /// <param name="nowrap">true if nowrap, false otherwise.</param>
         public ZOutputStreamLeaveOpen(Stream output, int level, bool nowrap)
             : base(output, level, nowrap)
         {
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             Detach(disposing);

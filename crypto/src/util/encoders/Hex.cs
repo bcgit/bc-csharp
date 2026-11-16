@@ -18,12 +18,30 @@ namespace Org.BouncyCastle.Utilities.Encoders
         {
         }
 
+        /// <summary>Encode data as a hexadecimal string.</summary>
+        /// <param name="data">The data to encode.</param>
+        /// <returns>The hexadecimal string.</returns>
         public static string ToHexString(byte[] data) => ToHexString(data, false);
 
+        /// <summary>Encode data as a hexadecimal string.</summary>
+        /// <param name="data">The data to encode.</param>
+        /// <param name="upperCase">true to use upper case letters, false (the default) for lower case.</param>
+        /// <returns>The hexadecimal string.</returns>
         public static string ToHexString(byte[] data, bool upperCase) => ToHexString(data, 0, data.Length, upperCase);
 
+        /// <summary>Encode data as a hexadecimal string.</summary>
+        /// <param name="data">The data to encode.</param>
+        /// <param name="off">The offset into <paramref name="data"/> at which the data starts.</param>
+        /// <param name="length">The number of bytes to encode.</param>
+        /// <returns>The hexadecimal string.</returns>
         public static string ToHexString(byte[] data, int off, int length) => ToHexString(data, off, length, false);
 
+        /// <summary>Encode data as a hexadecimal string.</summary>
+        /// <param name="data">The data to encode.</param>
+        /// <param name="off">The offset into <paramref name="data"/> at which the data starts.</param>
+        /// <param name="length">The number of bytes to encode.</param>
+        /// <param name="upperCase">true to use upper case letters, false (the default) for lower case.</param>
+        /// <returns>The hexadecimal string.</returns>
         public static string ToHexString(byte[] data, int off, int length, bool upperCase)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -40,6 +58,10 @@ namespace Org.BouncyCastle.Utilities.Encoders
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Encode data as a hexadecimal string.</summary>
+        /// <param name="data">The data to encode.</param>
+        /// <param name="upperCase">true to use upper case letters, false (the default) for lower case.</param>
+        /// <returns>The hexadecimal string.</returns>
         public static string ToHexString(ReadOnlyMemory<byte> data, bool upperCase = false)
         {
             if (data.Length == 0)
@@ -109,6 +131,11 @@ namespace Org.BouncyCastle.Utilities.Encoders
          */
         public static byte[] Decode(byte[] data) => Decode(data, 0, data.Length);
 
+        /// <summary>Decode hexadecimal encoded data given as ASCII bytes.</summary>
+        /// <param name="data">The encoded data.</param>
+        /// <param name="off">The offset into <paramref name="data"/> at which the encoded data starts.</param>
+        /// <param name="length">The number of bytes of encoded data.</param>
+        /// <returns>The decoded bytes.</returns>
         public static byte[] Decode(byte[] data, int off, int length)
         {
             MemoryStream bOut = new MemoryStream((length + 1) / 2);
