@@ -89,12 +89,14 @@ namespace Org.BouncyCastle.Crypto.Signers
             Gost3410Parameters parameters = key.Parameters;
             BigInteger m = CalculateM(parameters.Q, message);
 
-            if (r.SignValue < 0 || parameters.Q.CompareTo(r) <= 0)
+            // r in the range [1,q-1]
+            if (r.SignValue <= 0 || parameters.Q.CompareTo(r) <= 0)
             {
                 return false;
             }
 
-            if (s.SignValue < 0 || parameters.Q.CompareTo(s) <= 0)
+            // s in the range [1,q-1]
+            if (s.SignValue <= 0 || parameters.Q.CompareTo(s) <= 0)
             {
                 return false;
             }
