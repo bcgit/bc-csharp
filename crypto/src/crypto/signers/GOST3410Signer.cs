@@ -60,8 +60,8 @@ namespace Org.BouncyCastle.Crypto.Signers
          */
         public virtual BigInteger[] GenerateSignature(byte[] message)
         {
-            BigInteger m = new BigInteger(1, message, bigEndian: false);
             Gost3410Parameters parameters = key.Parameters;
+            BigInteger m = CalculateM(parameters.Q, message);
             BigInteger k;
 
             do
@@ -86,8 +86,8 @@ namespace Org.BouncyCastle.Crypto.Signers
          */
         public virtual bool VerifySignature(byte[] message, BigInteger r, BigInteger s)
         {
-            BigInteger m = new BigInteger(1, message, bigEndian: false);
             Gost3410Parameters parameters = key.Parameters;
+            BigInteger m = CalculateM(parameters.Q, message);
 
             if (r.SignValue < 0 || parameters.Q.CompareTo(r) <= 0)
             {
@@ -110,6 +110,14 @@ namespace Org.BouncyCastle.Crypto.Signers
             BigInteger u = z1.Multiply(z2).Mod(parameters.P).Mod(parameters.Q);
 
             return u.Equals(r);
+        }
+
+        // GOST R 34.10-94, as RFC 5832 for 2001: m = H(M) mod q, and m = 0 becomes 1. Otherwise a signature over such a
+        // digest is s = x * r, giving up the private key as s * r^-1, and verification accepts r = 1 with any s.
+        private static BigInteger CalculateM(BigInteger q, byte[] message)
+        {
+            BigInteger m = new BigInteger(1, message, bigEndian: false).Mod(q);
+            return m.SignValue == 0 ? BigInteger.One : m;
         }
     }
 }

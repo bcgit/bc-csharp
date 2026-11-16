@@ -65,10 +65,9 @@ namespace Org.BouncyCastle.Crypto.Signers
             if (!forSigning)
                 throw new InvalidOperationException("not initialized for signing");
 
-            BigInteger e = new BigInteger(1, message, bigEndian: false);
-
             ECDomainParameters ec = key.Parameters;
             BigInteger n = ec.N;
+            BigInteger e = CalculateE(n, message);
             BigInteger d = ((ECPrivateKeyParameters)key).D;
 
             BigInteger r, s;
@@ -109,8 +108,8 @@ namespace Org.BouncyCastle.Crypto.Signers
             if (forSigning)
                 throw new InvalidOperationException("not initialized for verification");
 
-            BigInteger e = new BigInteger(1, message, bigEndian: false);
             BigInteger n = key.Parameters.N;
+            BigInteger e = CalculateE(n, message);
 
             // r in the range [1,n-1]
             if (r.CompareTo(BigInteger.One) < 0 || r.CompareTo(n) >= 0)
@@ -143,6 +142,14 @@ namespace Org.BouncyCastle.Crypto.Signers
         protected virtual ECMultiplier CreateBasePointMultiplier()
         {
             return new FixedPointCombMultiplier();
+        }
+
+        // RFC 5832 / RFC 7091 sec. 6.1 step 2 and sec. 6.2 step 3: e = alpha mod q, and e = 0 becomes 1. Otherwise a
+        // signature over such a digest is s = d * r, giving up the private key as s * r^-1.
+        private static BigInteger CalculateE(BigInteger n, byte[] message)
+        {
+            BigInteger e = new BigInteger(1, message, bigEndian: false).Mod(n);
+            return e.SignValue == 0 ? BigInteger.One : e;
         }
     }
 }
