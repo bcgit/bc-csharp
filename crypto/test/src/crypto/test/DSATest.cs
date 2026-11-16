@@ -31,7 +31,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             byte[] keyData = Hex.Decode("b5014e4b60ef2ba8b6211b4062ba3224e0427dd3");
 
-            SecureRandom keyRandom = FixedSecureRandom.From(keyData, keyData);
+            // key, then nonce, then one byte for the signer's exponent blinding
+            SecureRandom keyRandom = FixedSecureRandom.From(keyData, keyData, Hex.Decode("01"));
 
             BigInteger r = new BigInteger("68076202252361894315274692543577577550894681403");
             BigInteger s = new BigInteger("1089214853334067536215539335472893651470583479365");
@@ -155,7 +156,9 @@ namespace Org.BouncyCastle.Crypto.Tests
                 "X value incorrect");
 
             DsaSigner signer = new DsaSigner();
-            signer.Init(true, new ParametersWithRandom(kp.Private, FixedSecureRandom.From(Hex.Decode("349C55648DCF992F3F33E8026CFAC87C1D2BA075"))));
+            // nonce, then one byte for the exponent blinding
+            signer.Init(true, new ParametersWithRandom(kp.Private,
+                FixedSecureRandom.From(Hex.Decode("349C55648DCF992F3F33E8026CFAC87C1D2BA075"), Hex.Decode("01"))));
 
             byte[] msg = Hex.Decode("A9993E364706816ABA3E25717850C26C9CD0D89D");
 
@@ -266,7 +269,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             DsaSigner signer = new DsaSigner();
 
             signer.Init(true, new ParametersWithRandom(kp.Private,
-                FixedSecureRandom.From(Hex.Decode("735959CC4463B8B440E407EECA8A473BF6A6D1FE657546F67D401F05"))));
+                FixedSecureRandom.From(Hex.Decode("735959CC4463B8B440E407EECA8A473BF6A6D1FE657546F67D401F05"),
+                    Hex.Decode("01"))));
 
             byte[] msg = Hex.Decode("23097D223405D8228642A477BDA255B32AADBCE4BDA0B3F7E36C9DA7");
 
@@ -375,7 +379,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             DsaSigner signer = new DsaSigner();
 
             signer.Init(true, new ParametersWithRandom(kp.Private,
-                FixedSecureRandom.From(Hex.Decode("0CAF2EF547EC49C4F3A6FE6DF4223A174D01F2C115D49A6F73437C29A2A8458C"))));
+                FixedSecureRandom.From(Hex.Decode("0CAF2EF547EC49C4F3A6FE6DF4223A174D01F2C115D49A6F73437C29A2A8458C"),
+                    Hex.Decode("01"))));
 
             byte[] msg = Hex.Decode("BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD");
 
@@ -498,7 +503,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             DsaSigner signer = new DsaSigner();
 
             signer.Init(true, new ParametersWithRandom(kp.Private,
-                FixedSecureRandom.From(Hex.Decode("A6902C1E6E3943C5628061588A8B007BCCEA91DBF12915483F04B24AB0678BEE"))));
+                FixedSecureRandom.From(Hex.Decode("A6902C1E6E3943C5628061588A8B007BCCEA91DBF12915483F04B24AB0678BEE"),
+                    Hex.Decode("01"))));
 
             byte[] msg = Hex.Decode("BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD");
 

@@ -57,7 +57,8 @@ namespace Org.BouncyCastle.Crypto.Signers
                     throw new InvalidKeyException("DSA private key required for signing");
 
                 this.key = dsaPrivateKeyParameters;
-                this.random = InitSecureRandom(!kCalculator.IsDeterministic, providedRandom);
+                // needed even for a deterministic k: signing blinds the exponent
+                this.random = InitSecureRandom(true, providedRandom);
             }
             else
             {
@@ -101,7 +102,10 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             BigInteger k = kCalculator.NextK();
 
-            BigInteger r = parameters.G.ModPow(k, parameters.P).Mod(q);
+            // k gives up x through s if it leaks, so the exponent is blinded with a random multiple of q before the
+            // variable-time ModPow; g has order q, so r is unchanged
+            BigInteger blindedK = BigIntegers.CreateBlindedExponent(k, q, random);
+            BigInteger r = parameters.G.ModPow(blindedK, parameters.P).Mod(q);
 
             // s = k^-1 * (m + x * r) mod q, keeping the secret x and k^-1 off BigInteger.Mod, whose cost follows the
             // quotient; x is in [1, q-1] by DsaPrivateKeyParameters, r is reduced, and q is prime and so odd
