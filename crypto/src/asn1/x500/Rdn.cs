@@ -6,6 +6,9 @@ namespace Org.BouncyCastle.Asn1.X500
     public class Rdn
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="Rdn"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="Rdn"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="Rdn"/>, or null if <paramref name="obj"/> is null.</returns>
         public static Rdn GetInstance(object obj)
         {
             if (obj == null)
@@ -15,9 +18,17 @@ namespace Org.BouncyCastle.Asn1.X500
             return new Rdn(Asn1Set.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="Rdn"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Rdn"/>.</returns>
         public static Rdn GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Rdn(Asn1Set.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="Rdn"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Rdn"/>.</returns>
         public static Rdn GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Rdn(Asn1Set.GetTagged(taggedObject, declaredExplicit));
 
@@ -40,6 +51,8 @@ namespace Org.BouncyCastle.Asn1.X500
         {
         }
 
+        /// <summary>Create a new <see cref="Rdn"/>.</summary>
+        /// <param name="attrTAndV">The attr t and v.</param>
         public Rdn(AttributeTypeAndValue attrTAndV)
         {
             m_values = new DerSet(attrTAndV);
@@ -55,6 +68,7 @@ namespace Org.BouncyCastle.Asn1.X500
             m_values = new DerSet(aAndVs);
         }
 
+        /// <summary>Gets a value indicating whether this is multi valued.</summary>
         public virtual bool IsMultiValued => m_values.Count > 1;
 
         /**
@@ -64,9 +78,11 @@ namespace Org.BouncyCastle.Asn1.X500
          */
         public virtual int Count => m_values.Count;
 
+        /// <summary>Return the first.</summary>
         public virtual AttributeTypeAndValue GetFirst() =>
             m_values.Count == 0 ? null : AttributeTypeAndValue.GetInstance(m_values[0]);
 
+        /// <summary>Return the types and values.</summary>
         public virtual AttributeTypeAndValue[] GetTypesAndValues() =>
             m_values.MapElements(AttributeTypeAndValue.GetInstance);
 

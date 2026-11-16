@@ -33,9 +33,17 @@ namespace Org.BouncyCastle.Asn1.X509
             return new OtherName(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="OtherName"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="OtherName"/>.</returns>
         public static OtherName GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new OtherName(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="OtherName"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="OtherName"/>.</returns>
         public static OtherName GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new OtherName(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -68,10 +76,13 @@ namespace Org.BouncyCastle.Asn1.X509
             m_value = value ?? throw new ArgumentNullException(nameof(value));
         }
 
+        /// <summary>Gets the type ID.</summary>
         public virtual DerObjectIdentifier TypeID => m_typeID;
 
+        /// <summary>Gets the value.</summary>
         public Asn1Encodable Value => m_value;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() =>
             new DerSequence(m_typeID, new DerTaggedObject(true, 0, m_value));
     }

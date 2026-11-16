@@ -9,8 +9,10 @@ namespace Org.BouncyCastle.Asn1
     public class DerNull
         : Asn1Null
     {
+        /// <summary>The shared instance of <see cref="DerNull"/>.</summary>
         public static readonly DerNull Instance = new DerNull();
 
+        /// <summary>Create a new <see cref="DerNull"/>.</summary>
         // TODO[api] Make private
         protected internal DerNull()
         {
@@ -28,8 +30,10 @@ namespace Org.BouncyCastle.Asn1
         internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo) =>
             new PrimitiveDerEncoding(tagClass, tagNo, Array.Empty<byte>());
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object) => asn1Object is DerNull;
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode() => -1;
     }
 }

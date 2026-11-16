@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Parser for a BER encoded OCTET STRING.</summary>
     [Obsolete("Check for 'Asn1OctetStringParser' instead")]
     public class BerOctetStringParser
         : Asn1OctetStringParser
@@ -16,8 +17,10 @@ namespace Org.BouncyCastle.Asn1
             m_parser = parser;
         }
 
+        /// <inheritdoc/>
         public Stream GetOctetStream() => new ConstructedOctetStream(m_parser);
 
+        /// <inheritdoc/>
         public Asn1Object ToAsn1Object()
         {
             try

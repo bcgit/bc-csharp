@@ -9,6 +9,11 @@ namespace Org.BouncyCastle.Asn1.X509
     public class CertificatePolicies
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CertificatePolicies"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="CertificatePolicies"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="CertificatePolicies"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CertificatePolicies GetInstance(object obj)
         {
             if (obj == null)
@@ -18,12 +23,23 @@ namespace Org.BouncyCastle.Asn1.X509
             return new CertificatePolicies(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="CertificatePolicies"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertificatePolicies"/>.</returns>
         public static CertificatePolicies GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
             new CertificatePolicies(Asn1Sequence.GetInstance(obj, isExplicit));
 
+        /// <summary>Return an <see cref="CertificatePolicies"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertificatePolicies"/>.</returns>
         public static CertificatePolicies GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertificatePolicies(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
+        /// <summary>Get the extension of this type from a table of extensions, if it is present.</summary>
+        /// <param name="extensions">The extensions, or null.</param>
+        /// <returns>The value, or null if the extension is not present.</returns>
         public static CertificatePolicies FromExtensions(X509Extensions extensions) =>
             GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.CertificatePolicies));
 
@@ -44,6 +60,8 @@ namespace Org.BouncyCastle.Asn1.X509
             m_elements = DerSequence.FromElement(name ?? throw new ArgumentNullException(nameof(name)));
         }
 
+        /// <summary>Create a new <see cref="CertificatePolicies"/>.</summary>
+        /// <param name="policyInformation">The policy information.</param>
         public CertificatePolicies(PolicyInformation[] policyInformation)
         {
             if (Arrays.IsNullOrContainsNull(policyInformation))
@@ -58,6 +76,9 @@ namespace Org.BouncyCastle.Asn1.X509
         public virtual PolicyInformation[] GetPolicyInformation() =>
             m_elements.MapElements(PolicyInformation.GetInstance);
 
+        /// <summary>Get the policy information for a policy.</summary>
+        /// <param name="policyIdentifier">The policy identifier.</param>
+        /// <returns>The policy information, or null if there is none.</returns>
         public virtual PolicyInformation GetPolicyInformation(DerObjectIdentifier policyIdentifier)
         {
             // Elements are known to be PolicyInformation by construction
@@ -69,8 +90,10 @@ namespace Org.BouncyCastle.Asn1.X509
             return null;
         }
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => m_elements;
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder("CertificatePolicies: ");

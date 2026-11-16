@@ -13,12 +13,15 @@ namespace Org.BouncyCastle.Asn1.X9
     {
         private ECFieldElement f;
 
+        /// <summary>Create a new <see cref="X9FieldElement"/>.</summary>
+        /// <param name="f">The f.</param>
         public X9FieldElement(
             ECFieldElement f)
         {
             this.f = f;
         }
 
+        /// <summary>Gets the value.</summary>
         public ECFieldElement Value
         {
             get { return f; }

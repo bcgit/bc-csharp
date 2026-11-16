@@ -63,6 +63,9 @@ namespace Org.BouncyCastle.Asn1.UA
             return z;
         }
 
+        /// <summary>Encode a point in the compressed form defined by DSTU 4145.</summary>
+        /// <param name="q">The point.</param>
+        /// <returns>The encoded point.</returns>
         public static byte[] EncodePoint(ECPoint q)
         {
             q = q.Normalize();
@@ -87,6 +90,10 @@ namespace Org.BouncyCastle.Asn1.UA
             return bytes;
         }
 
+        /// <summary>Decode a point that was encoded in the compressed form defined by DSTU 4145.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="bytes">The encoding.</param>
+        /// <returns>The point.</returns>
         public static ECPoint DecodePoint(ECCurve curve, byte[] bytes)
         {
             ECFieldElement k = curve.FromBigInteger(BigInteger.ValueOf(bytes[bytes.Length - 1] & 0x1));

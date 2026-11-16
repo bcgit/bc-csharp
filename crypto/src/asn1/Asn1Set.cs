@@ -8,6 +8,7 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Base class for the ASN.1 SET type.</summary>
     public abstract class Asn1Set
         : Asn1Object, IReadOnlyCollection<Asn1Encodable>
     {
@@ -76,6 +77,10 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1Set)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
+        /// <summary>Return an <see cref="Asn1Set"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="Asn1Set"/>, or null if <paramref name="element"/> is of another type.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="element"/> is null.</exception>
         public static Asn1Set GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -87,6 +92,10 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="Asn1Set"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Asn1Set"/>.</returns>
         public static Asn1Set GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (Asn1Set)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
@@ -95,6 +104,7 @@ namespace Org.BouncyCastle.Asn1
         internal readonly Asn1Encodable[] m_elements;
         internal DerEncoding[] m_sortedDerEncodings;
 
+        /// <summary>Create a new <see cref="Asn1Set"/>.</summary>
         // TODO[api] Remove 'protected'
         protected internal Asn1Set()
         {
@@ -102,6 +112,8 @@ namespace Org.BouncyCastle.Asn1
             m_sortedDerEncodings = null;
         }
 
+        /// <summary>Create a new <see cref="Asn1Set"/>.</summary>
+        /// <param name="element">The element.</param>
         // TODO[api] Remove 'protected'
         protected internal Asn1Set(Asn1Encodable element)
         {
@@ -112,6 +124,9 @@ namespace Org.BouncyCastle.Asn1
             m_sortedDerEncodings = null;
         }
 
+        /// <summary>Create a new <see cref="Asn1Set"/>.</summary>
+        /// <param name="elements">The elements.</param>
+        /// <param name="doSort">true if do sort, false otherwise.</param>
         // TODO[api] Remove 'protected'
         protected internal Asn1Set(Asn1Encodable[] elements, bool doSort)
         {
@@ -130,6 +145,9 @@ namespace Org.BouncyCastle.Asn1
             m_sortedDerEncodings = sortedDerEncodings;
         }
 
+        /// <summary>Create a new <see cref="Asn1Set"/>.</summary>
+        /// <param name="elementVector">The element vector.</param>
+        /// <param name="doSort">true if do sort, false otherwise.</param>
         // TODO[api] Remove 'protected'
         protected internal Asn1Set(Asn1EncodableVector elementVector, bool doSort)
         {
@@ -170,8 +188,11 @@ namespace Org.BouncyCastle.Asn1
             m_elements = _elements;
             m_sortedDerEncodings = sortedDerEncodings;
         }
-
-        // TODO[api] Remove (unused internally)
+        
+        /// <summary>Create a new <see cref="Asn1Set"/>.</summary>
+        /// <param name="isSorted">true if is sorted, false otherwise.</param>
+        /// <param name="elements">The elements.</param>
+        /// // TODO[api] Remove (unused internally)
         protected internal Asn1Set(bool isSorted, Asn1Encodable[] elements)
         {
             Debug.Assert(!isSorted);
@@ -187,6 +208,7 @@ namespace Org.BouncyCastle.Asn1
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 
+        /// <summary>Return the enumerator.</summary>
         public virtual IEnumerator<Asn1Encodable> GetEnumerator()
         {
             IEnumerable<Asn1Encodable> e = m_elements;
@@ -201,10 +223,16 @@ namespace Org.BouncyCastle.Asn1
          */
         public virtual Asn1Encodable this[int index] => m_elements[index];
 
+        /// <summary>Gets the count.</summary>
         public virtual int Count => m_elements.Length;
 
+        /// <summary>Apply a function to each element of the set.</summary>
+        /// <param name="func">The function to apply.</param>
+        /// <returns>An array of the results.</returns>
         public virtual T[] MapElements<T>(Func<Asn1Encodable, T> func) => CollectionUtilities.Map(m_elements, func);
 
+        /// <summary>Return the elements of the set as an array.</summary>
+        /// <returns>A copy of the elements.</returns>
         public virtual Asn1Encodable[] ToArray() => Asn1EncodableVector.CloneElements(m_elements);
 
         private class Asn1SetParserImpl
@@ -241,8 +269,10 @@ namespace Org.BouncyCastle.Asn1
             public virtual Asn1Object ToAsn1Object() => m_outer;
         }
 
+        /// <summary>Gets the parser.</summary>
         public Asn1SetParser Parser => new Asn1SetParserImpl(this);
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode()
         {
             int i = Count;
@@ -257,6 +287,7 @@ namespace Org.BouncyCastle.Asn1
             return hc;
         }
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             if (!(asn1Object is Asn1Set that))
@@ -278,6 +309,7 @@ namespace Org.BouncyCastle.Asn1
             return true;
         }
 
+        /// <inheritdoc/>
         public override string ToString() => CollectionUtilities.ToString(m_elements);
 
         private protected static DerEncoding[] SortElements(Asn1Encodable[] elements)

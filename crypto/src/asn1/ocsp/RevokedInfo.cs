@@ -4,9 +4,15 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Ocsp
 {
+    /// <summary>The RevokedInfo structure of RFC 6960.</summary>
     public class RevokedInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="RevokedInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="RevokedInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="RevokedInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static RevokedInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -16,20 +22,33 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             return new RevokedInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="RevokedInfo"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RevokedInfo"/>.</returns>
         public static RevokedInfo GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new RevokedInfo(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="RevokedInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RevokedInfo"/>.</returns>
         public static RevokedInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new RevokedInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1GeneralizedTime m_revocationTime;
         private readonly CrlReason m_revocationReason;
 
+        /// <summary>Create a new <see cref="RevokedInfo"/>.</summary>
+        /// <param name="revocationTime">The revocation time.</param>
         public RevokedInfo(Asn1GeneralizedTime revocationTime)
             : this(revocationTime, null)
         {
         }
 
+        /// <summary>Create a new <see cref="RevokedInfo"/>.</summary>
+        /// <param name="revocationTime">The revocation time.</param>
+        /// <param name="revocationReason">The revocation reason.</param>
         public RevokedInfo(Asn1GeneralizedTime revocationTime, CrlReason revocationReason)
         {
             m_revocationTime = revocationTime ?? throw new ArgumentNullException("revocationTime");
@@ -53,8 +72,10 @@ namespace Org.BouncyCastle.Asn1.Ocsp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the revocation time.</summary>
         public Asn1GeneralizedTime RevocationTime => m_revocationTime;
 
+        /// <summary>Gets the revocation reason.</summary>
         public CrlReason RevocationReason => m_revocationReason;
 
         /**

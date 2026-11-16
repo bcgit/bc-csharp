@@ -14,6 +14,11 @@ namespace Org.BouncyCastle.Asn1.Esf
     public class CommitmentTypeQualifier
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CommitmentTypeQualifier"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="CommitmentTypeQualifier"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="CommitmentTypeQualifier"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CommitmentTypeQualifier GetInstance(object obj)
         {
             if (obj == null)
@@ -25,6 +30,10 @@ namespace Org.BouncyCastle.Asn1.Esf
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="CommitmentTypeQualifier"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CommitmentTypeQualifier"/>.</returns>
         public static CommitmentTypeQualifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -32,6 +41,10 @@ namespace Org.BouncyCastle.Asn1.Esf
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="CommitmentTypeQualifier"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CommitmentTypeQualifier"/>.</returns>
         public static CommitmentTypeQualifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -60,7 +73,7 @@ namespace Org.BouncyCastle.Asn1.Esf
          */
         public CommitmentTypeQualifier(DerObjectIdentifier commitmentTypeIdentifier, Asn1Encodable qualifier)
         {
-			m_commitmentTypeIdentifier = commitmentTypeIdentifier
+            m_commitmentTypeIdentifier = commitmentTypeIdentifier
                 ?? throw new ArgumentNullException(nameof(commitmentTypeIdentifier));
             m_qualifier = qualifier;
         }
@@ -89,24 +102,27 @@ namespace Org.BouncyCastle.Asn1.Esf
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the commitment type identifier.</summary>
         public DerObjectIdentifier CommitmentTypeIdentifier => m_commitmentTypeIdentifier;
 
+        /// <summary>Gets the qualifier data.</summary>
         public Asn1Encodable QualifierData => m_qualifier;
 
+        /// <summary>Gets the qualifier.</summary>
         [Obsolete("Use 'QualifierData' instead")]
         public Asn1Object Qualifier => m_qualifier?.ToAsn1Object();
 
-		/**
+        /**
         * Returns a DER-encodable representation of this instance.
         *
         * @return a <code>Asn1Object</code> value
         */
-		public override Asn1Object ToAsn1Object()
-		{
+        public override Asn1Object ToAsn1Object()
+        {
             Asn1EncodableVector v = new Asn1EncodableVector(2);
             v.Add(m_commitmentTypeIdentifier);
             v.AddOptional(m_qualifier);
-			return new DerSequence(v);
-		}
+            return new DerSequence(v);
+        }
     }
 }

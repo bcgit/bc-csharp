@@ -27,6 +27,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     {
         private readonly Asn1Sequence m_data;
 
+        /// <summary>Return an <see cref="EncryptedData"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="EncryptedData"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="EncryptedData"/>, or null if <paramref name="obj"/> is null.</returns>
         public static EncryptedData GetInstance(object obj)
         {
             if (obj == null)
@@ -36,9 +41,17 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new EncryptedData(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="EncryptedData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EncryptedData"/>.</returns>
         public static EncryptedData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new EncryptedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="EncryptedData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EncryptedData"/>.</returns>
         public static EncryptedData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new EncryptedData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -58,16 +71,23 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="EncryptedData"/>.</summary>
+        /// <param name="contentType">The content type.</param>
+        /// <param name="encryptionAlgorithm">The encryption algorithm.</param>
+        /// <param name="content">The content.</param>
         public EncryptedData(DerObjectIdentifier contentType, AlgorithmIdentifier encryptionAlgorithm,
             Asn1Encodable content)
         {
             m_data = new BerSequence(contentType, encryptionAlgorithm, new BerTaggedObject(false, 0, content));
         }
 
+        /// <summary>Gets the content type.</summary>
         public DerObjectIdentifier ContentType => DerObjectIdentifier.GetInstance(m_data[0]);
 
+        /// <summary>Gets the encryption algorithm.</summary>
         public AlgorithmIdentifier EncryptionAlgorithm => AlgorithmIdentifier.GetInstance(m_data[1]);
 
+        /// <summary>Gets the content.</summary>
         public Asn1OctetString Content
         {
             get
@@ -81,6 +101,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             }
         }
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => new BerSequence(DerInteger.Zero, m_data);
     }
 }

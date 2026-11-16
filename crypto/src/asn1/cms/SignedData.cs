@@ -6,6 +6,9 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class SignedData
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="SignedData"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="SignedData"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="SignedData"/>, or null if <paramref name="obj"/> is null.</returns>
         public static SignedData GetInstance(object obj)
         {
             if (obj == null)
@@ -15,9 +18,17 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new SignedData(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="SignedData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SignedData"/>.</returns>
         public static SignedData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SignedData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="SignedData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SignedData"/>.</returns>
         public static SignedData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SignedData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -33,6 +44,12 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly bool m_digsBer;
         private readonly bool m_sigsBer;
 
+        /// <summary>Create a new <see cref="SignedData"/>.</summary>
+        /// <param name="digestAlgorithms">The digest algorithms.</param>
+        /// <param name="contentInfo">The content info.</param>
+        /// <param name="certificates">The certificates.</param>
+        /// <param name="crls">The crls.</param>
+        /// <param name="signerInfos">The signer infos.</param>
         // TODO[api] Rename 'contentInfo' to 'encapContentInfo'
         public SignedData(Asn1Set digestAlgorithms, ContentInfo contentInfo, Asn1Set certificates, Asn1Set crls,
             Asn1Set signerInfos)
@@ -95,17 +112,23 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_sigsBer = m_signerInfos is BerSet;
         }
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
+        /// <summary>Gets the digest algorithms.</summary>
         public Asn1Set DigestAlgorithms => m_digestAlgorithms;
 
+        /// <summary>Gets the encap content info.</summary>
         public ContentInfo EncapContentInfo => m_encapContentInfo;
 
+        /// <summary>Gets the certificates.</summary>
         public Asn1Set Certificates => m_certificates;
 
+        /// <summary>Gets the CR ls.</summary>
         // TODO[api] Rename to Crls
         public Asn1Set CRLs => m_crls;
 
+        /// <summary>Gets the signer infos.</summary>
         public Asn1Set SignerInfos => m_signerInfos;
 
         /**

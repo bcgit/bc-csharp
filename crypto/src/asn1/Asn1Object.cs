@@ -4,9 +4,11 @@ using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Base class for the ASN.1 primitive and constructed types.</summary>
     public abstract class Asn1Object
         : Asn1Encodable
     {
+        /// <inheritdoc/>
         public override void EncodeTo(Stream output)
         {
             using (var asn1Out = Asn1OutputStream.Create(output, Ber, leaveOpen: true))
@@ -15,6 +17,7 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <inheritdoc/>
         public override void EncodeTo(Stream output, string encoding)
         {
             using (var asn1Out = Asn1OutputStream.Create(output, encoding, leaveOpen: true))
@@ -37,6 +40,9 @@ namespace Org.BouncyCastle.Asn1
             return result;
         }
 
+        /// <summary>Determine whether this object is equal to another.</summary>
+        /// <param name="other">The object to compare with.</param>
+        /// <returns>true if the objects are equal, false otherwise.</returns>
         public bool Equals(Asn1Object other)
         {
             return this == other || Asn1Equals(other);
@@ -73,6 +79,7 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        /// <inheritdoc/>
         public sealed override Asn1Object ToAsn1Object() => this;
 
         internal abstract IAsn1Encoding GetEncoding(int encoding);
@@ -83,7 +90,12 @@ namespace Org.BouncyCastle.Asn1
 
         internal abstract DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo);
 
+        /// <summary>Determine whether this object is equal to another ASN.1 object of the same type.</summary>
+        /// <param name="asn1Object">The object to compare with.</param>
+        /// <returns>true if the objects are equal, false otherwise.</returns>
         protected abstract bool Asn1Equals(Asn1Object asn1Object);
+        /// <summary>Calculate a hash code consistent with <c>Asn1Equals</c>.</summary>
+        /// <returns>The hash code.</returns>
         protected abstract int Asn1GetHashCode();
 
         internal bool CallAsn1Equals(Asn1Object obj)

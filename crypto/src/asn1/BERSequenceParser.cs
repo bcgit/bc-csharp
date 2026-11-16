@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Parser for a BER encoded SEQUENCE.</summary>
     [Obsolete("Check for 'Asn1SequenceParser' instead")]
     public class BerSequenceParser
         : Asn1SequenceParser
@@ -13,8 +14,10 @@ namespace Org.BouncyCastle.Asn1
             m_parser = parser;
         }
 
+        /// <inheritdoc/>
         public IAsn1Convertible ReadObject() => m_parser.ReadObject();
 
+        /// <inheritdoc/>
         public Asn1Object ToAsn1Object() => Parse(m_parser);
 
         internal static BerSequence Parse(Asn1StreamParser sp) => BerSequence.FromVector(sp.ReadVector());

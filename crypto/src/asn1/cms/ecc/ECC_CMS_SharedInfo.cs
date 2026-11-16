@@ -15,6 +15,11 @@ namespace Org.BouncyCastle.Asn1.Cms.Ecc
     public class ECC_CMS_SharedInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="ECC_CMS_SharedInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="ECC_CMS_SharedInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="ECC_CMS_SharedInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static ECC_CMS_SharedInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -24,9 +29,17 @@ namespace Org.BouncyCastle.Asn1.Cms.Ecc
             return new ECC_CMS_SharedInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="ECC_CMS_SharedInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ECC_CMS_SharedInfo"/>.</returns>
         public static ECC_CMS_SharedInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ECC_CMS_SharedInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="ECC_CMS_SharedInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ECC_CMS_SharedInfo"/>.</returns>
         public static ECC_CMS_SharedInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ECC_CMS_SharedInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -34,11 +47,18 @@ namespace Org.BouncyCastle.Asn1.Cms.Ecc
         private readonly Asn1OctetString m_entityUInfo;
         private readonly Asn1OctetString m_suppPubInfo;
 
+        /// <summary>Create a new <see cref="ECC_CMS_SharedInfo"/>.</summary>
+        /// <param name="keyInfo">The key info.</param>
+        /// <param name="suppPubInfo">The supp pub info.</param>
         public ECC_CMS_SharedInfo(AlgorithmIdentifier keyInfo, Asn1OctetString suppPubInfo)
             : this(keyInfo, entityUInfo: null, suppPubInfo)
         {
         }
 
+        /// <summary>Create a new <see cref="ECC_CMS_SharedInfo"/>.</summary>
+        /// <param name="keyInfo">The key info.</param>
+        /// <param name="entityUInfo">The entity u info.</param>
+        /// <param name="suppPubInfo">The supp pub info.</param>
         public ECC_CMS_SharedInfo(AlgorithmIdentifier keyInfo, Asn1OctetString entityUInfo, Asn1OctetString suppPubInfo)
         {
             m_keyInfo = keyInfo ?? throw new ArgumentNullException(nameof(keyInfo));
@@ -60,6 +80,7 @@ namespace Org.BouncyCastle.Asn1.Cms.Ecc
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);

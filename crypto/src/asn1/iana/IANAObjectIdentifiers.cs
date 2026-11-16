@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Iana
 {
+    /// <summary>Object identifiers for IANA-registered arcs.</summary>
     // TODO[api] Make static
     public abstract class IanaObjectIdentifiers
     {
@@ -58,12 +59,16 @@ namespace Org.BouncyCastle.Asn1.Iana
         /** 1.3.6.1.5.5.7.6 */
         public static readonly DerObjectIdentifier id_alg = internet.Branch("5.5.7.6");
 
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.6.30</c>.</summary>
         public static readonly DerObjectIdentifier id_RSASSA_PSS_SHAKE128 = id_alg.Branch("30");
 
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.6.31</c>.</summary>
         public static readonly DerObjectIdentifier id_RSASSA_PSS_SHAKE256 = id_alg.Branch("31");
 
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.6.32</c>.</summary>
         public static readonly DerObjectIdentifier id_ecdsa_with_shake128 = id_alg.Branch("32");
 
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.6.33</c>.</summary>
         public static readonly DerObjectIdentifier id_ecdsa_with_shake256 = id_alg.Branch("33");
 
         /** 1.3.6.1.5.5.7.6.34 id-alg-xmss-hashsig (RFC 9802) */
@@ -72,6 +77,7 @@ namespace Org.BouncyCastle.Asn1.Iana
         /** 1.3.6.1.5.5.7.6.35 id-alg-xmssmt-hashsig (RFC 9802) */
         public static readonly DerObjectIdentifier id_alg_xmssmt_hashsig = id_alg.Branch("35");
 
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.6.36</c>.</summary>
         public static readonly DerObjectIdentifier id_alg_unsigned = id_alg.Branch("36");
 
         /** 1.3.6.1.5.5.7.6.37 id-MLDSA44-RSA2048-PSS-SHA256 */
@@ -126,6 +132,7 @@ namespace Org.BouncyCastle.Asn1.Iana
         public static readonly DerObjectIdentifier id_MLKEM768_ECDH_P384_SHA3_256 = id_alg.Branch("60");
         /** 1.3.6.1.5.5.7.6.61 id-MLKEM768-ECDH-brainpoolP256r1-SHA3-256 */
         public static readonly DerObjectIdentifier id_MLKEM768_ECDH_brainpoolP256r1_SHA3_256 = id_alg.Branch("61");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.6.61</c>.</summary>
         [Obsolete("Use 'id_MLKEM768_ECDH_brainpoolP256r1_SHA3_256' instead")]
         public static readonly DerObjectIdentifier id_MLKEM768_ECDH_BP256_SHA3_256 = id_MLKEM768_ECDH_brainpoolP256r1_SHA3_256;
         /** 1.3.6.1.5.5.7.6.62 id-MLKEM1024-RSA3072-SHA3-256 */
@@ -134,6 +141,7 @@ namespace Org.BouncyCastle.Asn1.Iana
         public static readonly DerObjectIdentifier id_MLKEM1024_ECDH_P384_SHA3_256 = id_alg.Branch("63");
         /** 1.3.6.1.5.5.7.6.64 id-MLKEM1024-ECDH-brainpoolP384r1-SHA3-256 */
         public static readonly DerObjectIdentifier id_MLKEM1024_ECDH_brainpoolP384r1_SHA3_256 = id_alg.Branch("64");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.6.64</c>.</summary>
         [Obsolete("Use 'id_MLKEM1024_ECDH_brainpoolP384r1_SHA3_256' instead")]
         public static readonly DerObjectIdentifier id_MLKEM1024_ECDH_BP384_SHA3_256 = id_MLKEM1024_ECDH_brainpoolP384r1_SHA3_256;
         /** 1.3.6.1.5.5.7.6.65 id-MLKEM1024-X448-SHA3-256 */

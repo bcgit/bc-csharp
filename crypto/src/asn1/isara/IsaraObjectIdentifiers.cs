@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Asn1.Isara
 {
+    /// <summary>Object identifiers for ISARA.</summary>
     public static class IsaraObjectIdentifiers
     {
         /*

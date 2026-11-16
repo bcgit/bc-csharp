@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>Parser for a DER encoded EXTERNAL.</summary>
     // TODO[asn1] Replace with BerExternalParser, DLExternalParser (currently functions as DLExternalParser already)
     public class DerExternalParser
         : Asn1Encodable
@@ -13,8 +14,11 @@ namespace Org.BouncyCastle.Asn1
             m_parser = parser;
         }
 
+        /// <summary>Read the external object.</summary>
+        /// <returns>The object read.</returns>
         public IAsn1Convertible ReadObject() => m_parser.ReadObject();
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => Parse(m_parser);
 
         internal static DLExternal Parse(Asn1StreamParser sp)

@@ -2,14 +2,19 @@ using System;
 
 namespace Org.BouncyCastle.Asn1
 {
+    /// <summary>ASN.1 GeneralizedTime with DER encoding.</summary>
     public class DerGeneralizedTime
         : Asn1GeneralizedTime
     {
+        /// <summary>Create a new <see cref="DerGeneralizedTime"/>.</summary>
+        /// <param name="timeString">The time string.</param>
         public DerGeneralizedTime(string timeString)
             : base(timeString)
         {
         }
 
+        /// <summary>Create a new <see cref="DerGeneralizedTime"/>.</summary>
+        /// <param name="dateTime">The date time.</param>
         public DerGeneralizedTime(DateTime dateTime)
             : base(dateTime)
         {

@@ -17,17 +17,26 @@ namespace Org.BouncyCastle.Asn1.X509
     public class ReasonFlags
         : DerBitString
     {
+        /// <summary>The unused reason flag.</summary>
         public const int Unused                 = (1 << 7);
+        /// <summary>The keyCompromise reason flag.</summary>
         public const int KeyCompromise          = (1 << 6);
+        /// <summary>The cACompromise reason flag.</summary>
         public const int CACompromise           = (1 << 5);
+        /// <summary>The affiliationChanged reason flag.</summary>
         public const int AffiliationChanged     = (1 << 4);
+        /// <summary>The superseded reason flag.</summary>
         public const int Superseded             = (1 << 3);
+        /// <summary>The cessationOfOperation reason flag.</summary>
         public const int CessationOfOperation   = (1 << 2);
+        /// <summary>The certificateHold reason flag.</summary>
         public const int CertificateHold        = (1 << 1);
+        /// <summary>The privilegeWithdrawn reason flag.</summary>
         public const int PrivilegeWithdrawn     = (1 << 0);
+        /// <summary>The aACompromise reason flag.</summary>
         public const int AACompromise           = (1 << 15);
 
-		/**
+        /**
          * @param reasons - the bitwise OR of the Key Reason flags giving the
          * allowed uses for the key.
          */
@@ -36,6 +45,8 @@ namespace Org.BouncyCastle.Asn1.X509
         {
         }
 
+        /// <summary>Create a new <see cref="ReasonFlags"/>.</summary>
+        /// <param name="reasons">The reasons.</param>
         public ReasonFlags(
             DerBitString reasons)
              : base(reasons.GetBytes(), reasons.PadBits)
