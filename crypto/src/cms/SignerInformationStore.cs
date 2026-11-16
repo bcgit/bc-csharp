@@ -30,6 +30,8 @@ namespace Org.BouncyCastle.Cms
             m_all = new List<SignerInformation>(signerInfos);
         }
 
+        /// <summary>Gets the first signer matching the passed in selector, or null if there are no matches.</summary>
+        /// <param name="selector">The signer ID to select against.</param>
         public SignerInformation this[SignerID selector] => GetFirstSigner(selector);
 
         /// <summary>
@@ -83,6 +85,7 @@ namespace Org.BouncyCastle.Cms
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 
+        /// <summary>Return an enumerator over all the signers in the store.</summary>
         public IEnumerator<SignerInformation> GetEnumerator()
         {
             IEnumerable<SignerInformation> e = CollectionUtilities.Proxy(m_all);

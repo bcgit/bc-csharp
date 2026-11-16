@@ -30,6 +30,10 @@ namespace Org.BouncyCastle.Cms
             m_all = new List<RecipientInformation>(recipientInfos);
         }
 
+        /// <summary>
+        /// Gets the first recipient matching the passed in selector, or null if there are no matches.
+        /// </summary>
+        /// <param name="selector">The recipient ID to select against.</param>
         public RecipientInformation this[RecipientID selector] => GetFirstRecipient(selector);
 
         /// <summary>
@@ -83,6 +87,7 @@ namespace Org.BouncyCastle.Cms
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 
+        /// <summary>Return an enumerator over all the recipients in the store.</summary>
         public IEnumerator<RecipientInformation> GetEnumerator()
         {
             IEnumerable<RecipientInformation> e = CollectionUtilities.Proxy(m_all);

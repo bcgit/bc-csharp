@@ -6,12 +6,14 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Cms
 {
+    /// <summary>Base class for generators of CMS authenticated data.</summary>
     public class CmsAuthenticatedGenerator
         : CmsEnvelopedGenerator
     {
         internal CmsAttributeTableGenerator m_authGen = null;
         internal CmsAttributeTableGenerator m_unauthGen = null;
 
+        /// <summary>Create a generator using the default source of randomness.</summary>
         public CmsAuthenticatedGenerator()
         {
         }
@@ -23,12 +25,14 @@ namespace Org.BouncyCastle.Cms
         {
         }
 
+        /// <summary>Gets or sets the generator for the authenticated attributes.</summary>
         public CmsAttributeTableGenerator AuthenticatedAttributeGenerator
         {
             get { return m_authGen; }
             set { m_authGen = value; }
         }
 
+        /// <summary>Gets or sets the generator for the unauthenticated attributes.</summary>
         public CmsAttributeTableGenerator UnauthenticatedAttributeGenerator
         {
             get { return m_unauthGen; }

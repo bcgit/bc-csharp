@@ -20,74 +20,148 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-     * General class for generating a CMS enveloped-data message.
-     *
-     * A simple example of usage.
-     *
-     * <pre>
-     *      CMSEnvelopedDataGenerator  fact = new CMSEnvelopedDataGenerator();
-     *
-     *      fact.addKeyTransRecipient(cert);
-     *
-     *      CMSEnvelopedData         data = fact.generate(content, algorithm, "BC");
-     * </pre>
-     */
+    /// <summary>General class for generating a CMS enveloped-data message.</summary>
+    /// <remarks>
+    /// Add one or more recipients, then use the generator of a specific message type to produce the message.
+    /// </remarks>
     public abstract class CmsEnvelopedGenerator
     {
+        /// <summary>The object identifier (as a string) of the DES in CBC mode content encryption algorithm.</summary>
         public static readonly string DesCbc = OiwObjectIdentifiers.DesCbc.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the triple DES in CBC mode content encryption algorithm.
+        /// </summary>
         public static readonly string DesEde3Cbc = PkcsObjectIdentifiers.DesEde3Cbc.Id;
+        /// <summary>The object identifier (as a string) of the RC2 in CBC mode content encryption algorithm.</summary>
         public static readonly string RC2Cbc = PkcsObjectIdentifiers.RC2Cbc.Id;
         // TODO[api] Change to static readonly
+        /// <summary>The object identifier (as a string) of the IDEA in CBC mode content encryption algorithm.</summary>
         public const string IdeaCbc = "1.3.6.1.4.1.188.7.1.1.2";
         //public static readonly string IdeaCbc           = MiscObjectIdentifiers.as_sys_sec_alg_ideaCBC.Id;
         // TODO[api] Change to static readonly
+        /// <summary>
+        /// The object identifier (as a string) of the CAST5 in CBC mode content encryption algorithm.
+        /// </summary>
         public const string Cast5Cbc = "1.2.840.113533.7.66.10";
         //public static readonly string CastCbc           = MiscObjectIdentifiers.cast5CBC.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the AES-128 in CBC mode content encryption algorithm.
+        /// </summary>
         public static readonly string Aes128Cbc = NistObjectIdentifiers.IdAes128Cbc.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the AES-192 in CBC mode content encryption algorithm.
+        /// </summary>
         public static readonly string Aes192Cbc = NistObjectIdentifiers.IdAes192Cbc.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the AES-256 in CBC mode content encryption algorithm.
+        /// </summary>
         public static readonly string Aes256Cbc = NistObjectIdentifiers.IdAes256Cbc.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the AES-128 in CCM mode content encryption algorithm.
+        /// </summary>
         public static readonly string Aes128Ccm = NistObjectIdentifiers.IdAes128Ccm.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the AES-192 in CCM mode content encryption algorithm.
+        /// </summary>
         public static readonly string Aes192Ccm = NistObjectIdentifiers.IdAes192Ccm.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the AES-256 in CCM mode content encryption algorithm.
+        /// </summary>
         public static readonly string Aes256Ccm = NistObjectIdentifiers.IdAes256Ccm.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the AES-128 in GCM mode content encryption algorithm.
+        /// </summary>
         public static readonly string Aes128Gcm = NistObjectIdentifiers.IdAes128Gcm.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the AES-192 in GCM mode content encryption algorithm.
+        /// </summary>
         public static readonly string Aes192Gcm = NistObjectIdentifiers.IdAes192Gcm.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the AES-256 in GCM mode content encryption algorithm.
+        /// </summary>
         public static readonly string Aes256Gcm = NistObjectIdentifiers.IdAes256Gcm.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the Camellia-128 in CBC mode content encryption algorithm.
+        /// </summary>
         public static readonly string Camellia128Cbc = NttObjectIdentifiers.IdCamellia128Cbc.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the Camellia-192 in CBC mode content encryption algorithm.
+        /// </summary>
         public static readonly string Camellia192Cbc = NttObjectIdentifiers.IdCamellia192Cbc.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the Camellia-256 in CBC mode content encryption algorithm.
+        /// </summary>
         public static readonly string Camellia256Cbc = NttObjectIdentifiers.IdCamellia256Cbc.Id;
+        /// <summary>The object identifier (as a string) of the SEED in CBC mode content encryption algorithm.</summary>
         public static readonly string SeedCbc = KisaObjectIdentifiers.IdSeedCbc.Id;
 
+        /// <summary>The object identifier (as a string) of the triple DES key wrap algorithm.</summary>
         public static readonly string DesEde3Wrap = PkcsObjectIdentifiers.IdAlgCms3DesWrap.Id;
+        /// <summary>The object identifier (as a string) of the AES-128 key wrap algorithm.</summary>
         public static readonly string Aes128Wrap = NistObjectIdentifiers.IdAes128Wrap.Id;
+        /// <summary>The object identifier (as a string) of the AES-192 key wrap algorithm.</summary>
         public static readonly string Aes192Wrap = NistObjectIdentifiers.IdAes192Wrap.Id;
+        /// <summary>The object identifier (as a string) of the AES-256 key wrap algorithm.</summary>
         public static readonly string Aes256Wrap = NistObjectIdentifiers.IdAes256Wrap.Id;
+        /// <summary>The object identifier (as a string) of the Camellia-128 key wrap algorithm.</summary>
         public static readonly string Camellia128Wrap = NttObjectIdentifiers.IdCamellia128Wrap.Id;
+        /// <summary>The object identifier (as a string) of the Camellia-192 key wrap algorithm.</summary>
         public static readonly string Camellia192Wrap = NttObjectIdentifiers.IdCamellia192Wrap.Id;
+        /// <summary>The object identifier (as a string) of the Camellia-256 key wrap algorithm.</summary>
         public static readonly string Camellia256Wrap = NttObjectIdentifiers.IdCamellia256Wrap.Id;
+        /// <summary>The object identifier (as a string) of the SEED key wrap algorithm.</summary>
         public static readonly string SeedWrap = KisaObjectIdentifiers.IdNpkiAppCmsSeedWrap.Id;
 
+        /// <summary>The object identifier (as a string) of the GOST 28147-89 key wrap algorithm.</summary>
         public static readonly string Gost28147Wrap = CryptoProObjectIdentifiers.id_Gost28147_89_None_KeyWrap.Id;
+        /// <summary>The object identifier (as a string) of the GOST 28147-89 CryptoPro key wrap algorithm.</summary>
         public static readonly string Gost28147CryptoProWrap = CryptoProObjectIdentifiers.id_Gost28147_89_CryptoPro_KeyWrap.Id;
 
+        /// <summary>
+        /// The object identifier (as a string) of the ephemeral-static ECDH with a SHA-1 KDF key agreement scheme.
+        /// </summary>
         public static readonly string ECDHSha1Kdf = X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the cofactor ECDH with a SHA-1 KDF key agreement scheme.
+        /// </summary>
         public static readonly string ECCDHSha1Kdf = X9ObjectIdentifiers.DHSinglePassCofactorDHSha1KdfScheme.Id;
+        /// <summary>The object identifier (as a string) of the ECMQV with a SHA-1 KDF key agreement scheme.</summary>
         public static readonly string ECMqvSha1Kdf = X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme.Id;
 
+        /// <summary>The object identifier (as a string) of the ECDH with a SHA-224 KDF key agreement scheme.</summary>
         public static readonly string ECDHSha224Kdf = SecObjectIdentifiers.dhSinglePass_stdDH_sha224kdf_scheme.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the cofactor ECDH with a SHA-224 KDF key agreement scheme.
+        /// </summary>
         public static readonly string ECCDHSha224Kdf = SecObjectIdentifiers.dhSinglePass_cofactorDH_sha224kdf_scheme.Id;
+        /// <summary>The object identifier (as a string) of the ECMQV with a SHA-224 KDF key agreement scheme.</summary>
         public static readonly string ECMqvSha224Kdf = SecObjectIdentifiers.mqvSinglePass_sha224kdf_scheme.Id;
 
+        /// <summary>The object identifier (as a string) of the ECDH with a SHA-256 KDF key agreement scheme.</summary>
         public static readonly string ECDHSha256Kdf = SecObjectIdentifiers.dhSinglePass_stdDH_sha256kdf_scheme.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the cofactor ECDH with a SHA-256 KDF key agreement scheme.
+        /// </summary>
         public static readonly string ECCDHSha256Kdf = SecObjectIdentifiers.dhSinglePass_cofactorDH_sha256kdf_scheme.Id;
+        /// <summary>The object identifier (as a string) of the ECMQV with a SHA-256 KDF key agreement scheme.</summary>
         public static readonly string ECMqvSha256Kdf = SecObjectIdentifiers.mqvSinglePass_sha256kdf_scheme.Id;
 
+        /// <summary>The object identifier (as a string) of the ECDH with a SHA-384 KDF key agreement scheme.</summary>
         public static readonly string ECDHSha384Kdf = SecObjectIdentifiers.dhSinglePass_stdDH_sha384kdf_scheme.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the cofactor ECDH with a SHA-384 KDF key agreement scheme.
+        /// </summary>
         public static readonly string ECCDHSha384Kdf = SecObjectIdentifiers.dhSinglePass_cofactorDH_sha384kdf_scheme.Id;
+        /// <summary>The object identifier (as a string) of the ECMQV with a SHA-384 KDF key agreement scheme.</summary>
         public static readonly string ECMqvSha384Kdf = SecObjectIdentifiers.mqvSinglePass_sha384kdf_scheme.Id;
 
+        /// <summary>The object identifier (as a string) of the ECDH with a SHA-512 KDF key agreement scheme.</summary>
         public static readonly string ECDHSha512Kdf = SecObjectIdentifiers.dhSinglePass_stdDH_sha512kdf_scheme.Id;
+        /// <summary>
+        /// The object identifier (as a string) of the cofactor ECDH with a SHA-512 KDF key agreement scheme.
+        /// </summary>
         public static readonly string ECCDHSha512Kdf = SecObjectIdentifiers.dhSinglePass_cofactorDH_sha512kdf_scheme.Id;
+        /// <summary>The object identifier (as a string) of the ECMQV with a SHA-512 KDF key agreement scheme.</summary>
         public static readonly string ECMqvSha512Kdf = SecObjectIdentifiers.mqvSinglePass_sha512kdf_scheme.Id;
 
         internal readonly List<RecipientInfoGenerator> recipientInfoGenerators = new List<RecipientInfoGenerator>();
@@ -98,6 +172,7 @@ namespace Org.BouncyCastle.Cms
         internal OriginatorInformation m_originatorInformation = null;
 
         // TODO[api] Restrict to internal
+        /// <summary>Create a generator using the default source of randomness.</summary>
         protected CmsEnvelopedGenerator()
             : this(CryptoServicesRegistrar.GetSecureRandom())
         {
@@ -114,24 +189,23 @@ namespace Org.BouncyCastle.Cms
             m_random = random;
         }
 
+        /// <summary>Gets or sets the generator for the unprotected attributes.</summary>
         public CmsAttributeTableGenerator UnprotectedAttributeGenerator
         {
             get { return this.unprotectedAttributeGenerator; }
             set { this.unprotectedAttributeGenerator = value; }
         }
 
+        /// <summary>Gets or sets the originator information to include, or null for none.</summary>
         public OriginatorInformation OriginatorInformation
         {
             get { return m_originatorInformation; }
             set { m_originatorInformation = value; }
         }
 
-        /**
-         * add a recipient.
-         *
-         * @param cert recipient's public key certificate
-         * @exception ArgumentException if there is a problem with the certificate
-         */
+        /// <summary>Add a recipient.</summary>
+        /// <param name="cert">The recipient's public key certificate.</param>
+        /// <exception cref="ArgumentException">There is a problem with the certificate.</exception>
         public void AddKeyTransRecipient(X509Certificate cert)
         {
             var algorithm = cert.SubjectPublicKeyInfo.Algorithm;
@@ -139,26 +213,22 @@ namespace Org.BouncyCastle.Cms
             AddRecipientInfoGenerator(new KeyTransRecipientInfoGenerator(cert, keyWrapper));
         }
 
-        /**
-         * add a recipient.
-         *
-         * @param algorithm to override automatic selection (useful for OAEP with PKCS#1v1.5 certs)
-         * @param cert recipient's public key certificate
-         * @exception ArgumentException if there is a problem with the certificate
-         */
+        /// <summary>Add a recipient.</summary>
+        /// <param name="algorithm">
+        /// The algorithm, to override automatic selection (useful for OAEP with PKCS#1v1.5 certs).
+        /// </param>
+        /// <param name="cert">The recipient's public key certificate.</param>
+        /// <exception cref="ArgumentException">There is a problem with the certificate.</exception>
         public void AddKeyTransRecipient(string algorithm, X509Certificate cert)
         {
             var keyWrapper = new Asn1KeyWrapper(algorithm, cert);
             AddRecipientInfoGenerator(new KeyTransRecipientInfoGenerator(cert, keyWrapper));
         }
 
-        /**
-         * add a recipient
-         *
-         * @param key the public key used by the recipient
-         * @param subKeyId the identifier for the recipient's public key
-         * @exception ArgumentException if there is a problem with the key
-         */
+        /// <summary>Add a recipient.</summary>
+        /// <param name="pubKey">The public key used by the recipient.</param>
+        /// <param name="subKeyId">The identifier for the recipient's public key.</param>
+        /// <exception cref="ArgumentException">There is a problem with the key.</exception>
         public void AddKeyTransRecipient(AsymmetricKeyParameter pubKey, byte[] subKeyId)
         {
             SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey);
@@ -166,14 +236,12 @@ namespace Org.BouncyCastle.Cms
                 new KeyTransRecipientInfoGenerator(subKeyId, new Asn1KeyWrapper(info.Algorithm, pubKey)));
         }
 
-        /**
-         * add a recipient
-         *
-         * @param algorithm to override automatic selection (useful for OAEP with PKCS#1v1.5 certs)
-         * @param key the public key used by the recipient
-         * @param subKeyId the identifier for the recipient's public key
-         * @exception ArgumentException if there is a problem with the key
-         */
+        /// <summary>Add a recipient.</summary>
+        /// <param name="algorithm">The algorithm, to override automatic selection (useful for OAEP with PKCS#1v1.5
+        /// certs).</param>
+        /// <param name="pubKey">The public key used by the recipient.</param>
+        /// <param name="subKeyId">The identifier for the recipient's public key.</param>
+        /// <exception cref="ArgumentException">There is a problem with the key.</exception>
         public void AddKeyTransRecipient(string algorithm, AsymmetricKeyParameter pubKey, byte[] subKeyId)
         {
             SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey);
@@ -181,11 +249,10 @@ namespace Org.BouncyCastle.Cms
                 new KeyTransRecipientInfoGenerator(subKeyId, new Asn1KeyWrapper(algorithm, pubKey)));
         }
 
-        /**
-         * add a KEK recipient.
-         * @param key the secret key to use for wrapping
-         * @param keyIdentifier the byte string that identifies the key
-         */
+        /// <summary>Add a KEK recipient.</summary>
+        /// <param name="keyAlgorithm">The algorithm of the key encryption key.</param>
+        /// <param name="key">The secret key to use for wrapping.</param>
+        /// <param name="keyIdentifier">The byte string that identifies the key.</param>
         public void AddKekRecipient(
             string keyAlgorithm, // TODO Remove need for this parameter
             KeyParameter key,
@@ -194,11 +261,10 @@ namespace Org.BouncyCastle.Cms
             AddKekRecipient(keyAlgorithm, key, new KekIdentifier(keyIdentifier, null, null));
         }
 
-        /**
-         * add a KEK recipient.
-         * @param key the secret key to use for wrapping
-         * @param keyIdentifier the byte string that identifies the key
-         */
+        /// <summary>Add a KEK recipient.</summary>
+        /// <param name="keyAlgorithm">The algorithm of the key encryption key.</param>
+        /// <param name="key">The secret key to use for wrapping.</param>
+        /// <param name="kekIdentifier">The identifier of the key.</param>
         public void AddKekRecipient(
             string keyAlgorithm, // TODO Remove need for this parameter
             KeyParameter key,
@@ -212,6 +278,9 @@ namespace Org.BouncyCastle.Cms
             recipientInfoGenerators.Add(kekrig);
         }
 
+        /// <summary>Add a password based recipient.</summary>
+        /// <param name="pbeKey">The password based key.</param>
+        /// <param name="kekAlgorithmOid">The object identifier of the key encryption algorithm.</param>
         public void AddPasswordRecipient(CmsPbeKey pbeKey, string kekAlgorithmOid)
         {
             if (pbeKey == null)
@@ -231,17 +300,14 @@ namespace Org.BouncyCastle.Cms
             recipientInfoGenerators.Add(prig);
         }
 
-        /**
-         * Add a key agreement based recipient.
-         *
-         * @param agreementAlgorithm key agreement algorithm to use.
-         * @param senderPrivateKey private key to initialise sender side of agreement with.
-         * @param senderPublicKey sender public key to include with message.
-         * @param recipientCert recipient's public key certificate.
-         * @param cekWrapAlgorithm OID for key wrapping algorithm to use.
-         * @exception SecurityUtilityException if the algorithm requested cannot be found
-         * @exception InvalidKeyException if the keys are inappropriate for the algorithm specified
-         */
+        /// <summary>Add a key agreement based recipient.</summary>
+        /// <param name="agreementAlgorithm">key agreement algorithm to use.</param>
+        /// <param name="senderPrivateKey">private key to initialise sender side of agreement with.</param>
+        /// <param name="senderPublicKey">sender public key to include with message.</param>
+        /// <param name="recipientCert">recipient's public key certificate.</param>
+        /// <param name="cekWrapAlgorithm">OID for key wrapping algorithm to use.</param>
+        /// <exception cref="SecurityUtilityException">if the algorithm requested cannot be found</exception>
+        /// <exception cref="InvalidKeyException">if the keys are inappropriate for the algorithm specified</exception>
         public void AddKeyAgreementRecipient(
             string agreementAlgorithm,
             AsymmetricKeyParameter senderPrivateKey,
@@ -255,17 +321,16 @@ namespace Org.BouncyCastle.Cms
                 cekWrapAlgorithm);
         }
 
-        /**
-         * Add multiple key agreement based recipients (sharing a single KeyAgreeRecipientInfo structure).
-         *
-         * @param agreementAlgorithm key agreement algorithm to use.
-         * @param senderPrivateKey private key to initialise sender side of agreement with.
-         * @param senderPublicKey sender public key to include with message.
-         * @param recipientCerts recipients' public key certificates.
-         * @param cekWrapAlgorithm OID for key wrapping algorithm to use.
-         * @exception SecurityUtilityException if the algorithm requested cannot be found
-         * @exception InvalidKeyException if the keys are inappropriate for the algorithm specified
-         */
+        /// <summary>
+        /// Add multiple key agreement based recipients (sharing a single KeyAgreeRecipientInfo structure).
+        /// </summary>
+        /// <param name="agreementAlgorithm">key agreement algorithm to use.</param>
+        /// <param name="senderPrivateKey">private key to initialise sender side of agreement with.</param>
+        /// <param name="senderPublicKey">sender public key to include with message.</param>
+        /// <param name="recipientCerts">recipients' public key certificates.</param>
+        /// <param name="cekWrapAlgorithm">OID for key wrapping algorithm to use.</param>
+        /// <exception cref="SecurityUtilityException">if the algorithm requested cannot be found</exception>
+        /// <exception cref="InvalidKeyException">if the keys are inappropriate for the algorithm specified</exception>
         public void AddKeyAgreementRecipients(
             string agreementAlgorithm,
             AsymmetricKeyParameter senderPrivateKey,
@@ -291,6 +356,14 @@ namespace Org.BouncyCastle.Cms
             });
         }
 
+        /// <summary>Add a key agreement based recipient identified by a key identifier.</summary>
+        /// <param name="agreementAlgorithm">The key agreement algorithm to use.</param>
+        /// <param name="senderPrivateKey">The private key to initialise the sender side of the agreement with.</param>
+        /// <param name="senderPublicKey">The sender public key to include with the message.</param>
+        /// <param name="recipientKeyID">The identifier of the recipient's public key.</param>
+        /// <param name="recipientPublicKey">The recipient's public key.</param>
+        /// <param name="cekWrapAlgorithm">The object identifier of the key wrapping algorithm to use.</param>
+        /// <exception cref="ArgumentException">A key is of the wrong kind (private or public).</exception>
         public void AddKeyAgreementRecipient(
             string agreementAlgorithm,
             AsymmetricKeyParameter senderPrivateKey,
@@ -323,10 +396,18 @@ namespace Org.BouncyCastle.Cms
             recipientInfoGenerators.Add(recipientInfoGenerator);
         }
 
+        /// <summary>Generate the ASN.1 parameters for the given encryption algorithm.</summary>
+        /// <param name="encryptionOid">The encryption algorithm's object identifier.</param>
+        /// <param name="encKeyBytes">The encryption key.</param>
         [Obsolete("Will be removed")]
         protected internal virtual Asn1Encodable GenerateAsn1Parameters(string encryptionOid, byte[] encKeyBytes) =>
             Asn1CipherBuilderWithKey.ImplGenerateAsn1Parameters(m_random, encryptionOid, encKeyBytes);
 
+        /// <summary>Return the algorithm identifier for the given encryption algorithm.</summary>
+        /// <param name="encryptionOid">The encryption algorithm's object identifier.</param>
+        /// <param name="encKey">The encryption key.</param>
+        /// <param name="asn1Params">The ASN.1 algorithm parameters.</param>
+        /// <param name="cipherParameters">The cipher parameters to use with the algorithm.</param>
         [Obsolete("Will be removed")]
         protected internal virtual AlgorithmIdentifier GetAlgorithmIdentifier(string encryptionOid,
             KeyParameter encKey, Asn1Encodable asn1Params, out ICipherParameters cipherParameters)

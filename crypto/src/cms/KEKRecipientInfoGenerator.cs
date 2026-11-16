@@ -19,131 +19,131 @@ namespace Org.BouncyCastle.Cms
     /// <see cref="CmsEnvelopedGenerator.AddKekRecipient(string, KeyParameter, byte[])"/> and related overloads.
     /// </summary>
     internal class KekRecipientInfoGenerator
-		: RecipientInfoGenerator
-	{
-		private KeyParameter	keyEncryptionKey;
-		// TODO Can get this from keyEncryptionKey?		
-		private string			keyEncryptionKeyOID;
-		private KekIdentifier	kekIdentifier;
+        : RecipientInfoGenerator
+    {
+        private KeyParameter keyEncryptionKey;
+        // TODO Can get this from keyEncryptionKey?
+        private string keyEncryptionKeyOID;
+        private KekIdentifier kekIdentifier;
 
-		// Derived
-		private AlgorithmIdentifier keyEncryptionAlgorithm;
+        // Derived
+        private AlgorithmIdentifier keyEncryptionAlgorithm;
 
-		/// <summary>Creates an unconfigured KEK recipient generator.</summary>
-		internal KekRecipientInfoGenerator()
-		{
-		}
+        /// <summary>Creates an unconfigured KEK recipient generator.</summary>
+        internal KekRecipientInfoGenerator()
+        {
+        }
 
-		/// <summary>Sets the KEK identifier carried in the generated RecipientInfo.</summary>
-		internal KekIdentifier KekIdentifier
-		{
-			set { this.kekIdentifier = value; }
-		}
+        /// <summary>Sets the KEK identifier carried in the generated RecipientInfo.</summary>
+        internal KekIdentifier KekIdentifier
+        {
+            set { this.kekIdentifier = value; }
+        }
 
-		/// <summary>Sets the key-encryption key and derives the wrap algorithm identifier.</summary>
-		internal KeyParameter KeyEncryptionKey
-		{
-			set
-			{
-				this.keyEncryptionKey = value;
-				this.keyEncryptionAlgorithm = DetermineKeyEncAlg(keyEncryptionKeyOID, keyEncryptionKey);
-			}
-		}
+        /// <summary>Sets the key-encryption key and derives the wrap algorithm identifier.</summary>
+        internal KeyParameter KeyEncryptionKey
+        {
+            set
+            {
+                this.keyEncryptionKey = value;
+                this.keyEncryptionAlgorithm = DetermineKeyEncAlg(keyEncryptionKeyOID, keyEncryptionKey);
+            }
+        }
 
-		/// <summary>Sets the base symmetric algorithm name used to select the CMS wrap OID.</summary>
-		internal string KeyEncryptionKeyOID
-		{
-			set { this.keyEncryptionKeyOID = value; }
-		}
+        /// <summary>Sets the base symmetric algorithm name used to select the CMS wrap OID.</summary>
+        internal string KeyEncryptionKeyOID
+        {
+            set { this.keyEncryptionKeyOID = value; }
+        }
 
-		/// <summary>Wraps <paramref name="contentEncryptionKey"/> with the configured KEK.</summary>
-		/// <param name="contentEncryptionKey">The content-encryption key to wrap.</param>
-		/// <param name="random">A source of randomness.</param>
-		/// <returns>A CMS RecipientInfo for KEK transport.</returns>
-		public RecipientInfo Generate(KeyParameter contentEncryptionKey, SecureRandom random)
-		{
-			byte[] keyBytes = contentEncryptionKey.GetKey();
+        /// <summary>Wraps <paramref name="contentEncryptionKey"/> with the configured KEK.</summary>
+        /// <param name="contentEncryptionKey">The content-encryption key to wrap.</param>
+        /// <param name="random">A source of randomness.</param>
+        /// <returns>A CMS RecipientInfo for KEK transport.</returns>
+        public RecipientInfo Generate(KeyParameter contentEncryptionKey, SecureRandom random)
+        {
+            byte[] keyBytes = contentEncryptionKey.GetKey();
 
             IWrapper keyWrapper = WrapperUtilities.GetWrapper(keyEncryptionAlgorithm.Algorithm);
-			keyWrapper.Init(true, new ParametersWithRandom(keyEncryptionKey, random));
-        	Asn1OctetString encryptedKey = new DerOctetString(
-				keyWrapper.Wrap(keyBytes, 0, keyBytes.Length));
+            keyWrapper.Init(true, new ParametersWithRandom(keyEncryptionKey, random));
+            Asn1OctetString encryptedKey = new DerOctetString(
+                keyWrapper.Wrap(keyBytes, 0, keyBytes.Length));
 
-			return new RecipientInfo(new KekRecipientInfo(kekIdentifier, keyEncryptionAlgorithm, encryptedKey));
-		}
+            return new RecipientInfo(new KekRecipientInfo(kekIdentifier, keyEncryptionAlgorithm, encryptedKey));
+        }
 
-		private static AlgorithmIdentifier DetermineKeyEncAlg(
-			string algorithm, KeyParameter key)
-		{
-			if (Platform.StartsWith(algorithm, "DES"))
-			{
-				return new AlgorithmIdentifier(
-					PkcsObjectIdentifiers.IdAlgCms3DesWrap,
-					DerNull.Instance);
-			}
+        private static AlgorithmIdentifier DetermineKeyEncAlg(
+            string algorithm, KeyParameter key)
+        {
+            if (Platform.StartsWith(algorithm, "DES"))
+            {
+                return new AlgorithmIdentifier(
+                    PkcsObjectIdentifiers.IdAlgCms3DesWrap,
+                    DerNull.Instance);
+            }
             else if (Platform.StartsWith(algorithm, "RC2"))
-			{
-				return new AlgorithmIdentifier(
-					PkcsObjectIdentifiers.IdAlgCmsRC2Wrap,
-					DerInteger.ValueOf(58));
-			}
-			else if (Platform.StartsWith(algorithm, "AES"))
-			{
-				int length = key.KeyLength * 8;
-				DerObjectIdentifier wrapOid;
+            {
+                return new AlgorithmIdentifier(
+                    PkcsObjectIdentifiers.IdAlgCmsRC2Wrap,
+                    DerInteger.ValueOf(58));
+            }
+            else if (Platform.StartsWith(algorithm, "AES"))
+            {
+                int length = key.KeyLength * 8;
+                DerObjectIdentifier wrapOid;
 
-				if (length == 128)
-				{
-					wrapOid = NistObjectIdentifiers.IdAes128Wrap;
-				}
-				else if (length == 192)
-				{
-					wrapOid = NistObjectIdentifiers.IdAes192Wrap;
-				}
-				else if (length == 256)
-				{
-					wrapOid = NistObjectIdentifiers.IdAes256Wrap;
-				}
-				else
-				{
-					throw new ArgumentException("illegal keysize in AES");
-				}
+                if (length == 128)
+                {
+                    wrapOid = NistObjectIdentifiers.IdAes128Wrap;
+                }
+                else if (length == 192)
+                {
+                    wrapOid = NistObjectIdentifiers.IdAes192Wrap;
+                }
+                else if (length == 256)
+                {
+                    wrapOid = NistObjectIdentifiers.IdAes256Wrap;
+                }
+                else
+                {
+                    throw new ArgumentException("illegal keysize in AES");
+                }
 
-				return new AlgorithmIdentifier(wrapOid);  // parameters absent
-			}
-			else if (Platform.StartsWith(algorithm, "SEED"))
-			{
-				// parameters absent
-				return new AlgorithmIdentifier(KisaObjectIdentifiers.IdNpkiAppCmsSeedWrap);
-			}
-			else if (Platform.StartsWith(algorithm, "CAMELLIA"))
-			{
-				int length = key.KeyLength * 8;
-				DerObjectIdentifier wrapOid;
+                return new AlgorithmIdentifier(wrapOid);  // parameters absent
+            }
+            else if (Platform.StartsWith(algorithm, "SEED"))
+            {
+                // parameters absent
+                return new AlgorithmIdentifier(KisaObjectIdentifiers.IdNpkiAppCmsSeedWrap);
+            }
+            else if (Platform.StartsWith(algorithm, "CAMELLIA"))
+            {
+                int length = key.KeyLength * 8;
+                DerObjectIdentifier wrapOid;
 
-				if (length == 128)
-				{
-					wrapOid = NttObjectIdentifiers.IdCamellia128Wrap;
-				}
-				else if (length == 192)
-				{
-					wrapOid = NttObjectIdentifiers.IdCamellia192Wrap;
-				}
-				else if (length == 256)
-				{
-					wrapOid = NttObjectIdentifiers.IdCamellia256Wrap;
-				}
-				else
-				{
-					throw new ArgumentException("illegal keysize in Camellia");
-				}
+                if (length == 128)
+                {
+                    wrapOid = NttObjectIdentifiers.IdCamellia128Wrap;
+                }
+                else if (length == 192)
+                {
+                    wrapOid = NttObjectIdentifiers.IdCamellia192Wrap;
+                }
+                else if (length == 256)
+                {
+                    wrapOid = NttObjectIdentifiers.IdCamellia256Wrap;
+                }
+                else
+                {
+                    throw new ArgumentException("illegal keysize in Camellia");
+                }
 
-				return new AlgorithmIdentifier(wrapOid); // parameters must be absent
-			}
-			else
-			{
-				throw new ArgumentException("unknown algorithm");
-			}
-		}
-	}
+                return new AlgorithmIdentifier(wrapOid); // parameters must be absent
+            }
+            else
+            {
+                throw new ArgumentException("unknown algorithm");
+            }
+        }
+    }
 }

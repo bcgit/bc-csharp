@@ -41,11 +41,16 @@ namespace Org.BouncyCastle.Cms
         private readonly bool isCounterSignature;
 
         // TODO[api] Avoid having protected fields (maybe seal the class too?)
+        /// <summary>The underlying ASN.1 signer info.</summary>
         protected SignerInfo info;
+        /// <summary>The digest algorithm used by the signer.</summary>
         protected AlgorithmIdentifier digestAlgorithm;
         // TODO[api] Rename to 'signatureAlgorithm'
+        /// <summary>The signature algorithm used by the signer.</summary>
         protected AlgorithmIdentifier encryptionAlgorithm;
+        /// <summary>The signed attributes, or null if there are none.</summary>
         protected readonly Asn1Set signedAttributeSet;
+        /// <summary>The unsigned attributes, or null if there are none.</summary>
         protected readonly Asn1Set unsignedAttributeSet;
 
         internal SignerInformation(SignerInfo info, DerObjectIdentifier contentType, CmsProcessable content,
@@ -247,13 +252,13 @@ namespace Org.BouncyCastle.Cms
                     /*
                      * Countersignature values have the same meaning as SignerInfo values
                      * for ordinary signatures, except that:
-                     * 
+                     *
                      *   1. The signedAttributes field MUST NOT contain a content-type
                      *      attribute; there is no content type for countersignatures.
-                     * 
+                     *
                      *   2. The signedAttributes field MUST contain a message-digest
                      *      attribute if it contains any other attributes.
-                     * 
+                     *
                      *   3. The input to the message-digesting process is the contents
                      *      octets of the DER encoding of the signatureValue field of the
                      *      SignerInfo value with which the attribute is associated.
@@ -382,7 +387,7 @@ namespace Org.BouncyCastle.Cms
 
                 /*
                  * TODO[cms] Note somewhat of a contradiction here for signed-attributes-present behaviour
-                 * 
+                 *
                  * draft-ietf-lamps-cms-sphincs-plus-19 4.
                  *
                  * When signed attributes are absent, the SLH-DSA (pure mode) signature is computed over the content.

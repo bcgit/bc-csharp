@@ -256,7 +256,7 @@ namespace Org.BouncyCastle.Cms
                     m_ecGen.Dispose();
                     m_eciGen.Dispose();
 
-                    // [TODO] auth attributes go here 
+                    // [TODO] auth attributes go here
                     m_authGen.AddObject(DerOctetString.WithContents(MacUtilities.DoFinal(m_mac)));
                     // [TODO] unauth attributes go here
 

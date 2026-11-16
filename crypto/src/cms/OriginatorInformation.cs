@@ -6,10 +6,14 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
+    /// <summary>The originator information (certificates and CRLs) of a CMS enveloped or authenticated data.</summary>
     public class OriginatorInformation
     {
         private readonly OriginatorInfo m_originatorInfo;
 
+        /// <summary>Create a new <see cref="OriginatorInformation"/>.</summary>
+        /// <param name="originatorInfo">The underlying ASN.1 originator info.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="originatorInfo"/> is null.</exception>
         public OriginatorInformation(OriginatorInfo originatorInfo)
         {
             m_originatorInfo = originatorInfo ?? throw new ArgumentNullException(nameof(originatorInfo));

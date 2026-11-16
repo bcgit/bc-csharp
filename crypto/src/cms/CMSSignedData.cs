@@ -11,29 +11,26 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-     * general class for handling a pkcs7-signature message.
-     *
-     * A simple example of usage - note, in the example below the validity of
-     * the certificate isn't verified, just the fact that one of the certs
-     * matches the given signer...
-     *
-     * <pre>
-     *  IX509Store              certs = s.GetCertificates();
-     *  SignerInformationStore  signers = s.GetSignerInfos();
-     *
-     *  foreach (SignerInformation signer in signers.GetSigners())
-     *  {
-     *      ArrayList       certList = new ArrayList(certs.GetMatches(signer.SignerID));
-     *      X509Certificate cert = (X509Certificate) certList[0];
-     *
-     *      if (signer.Verify(cert.GetPublicKey()))
-     *      {
-     *          verified++;
-     *      }
-     *  }
-     * </pre>
-     */
+    /// <summary>General class for handling a PKCS #7 / CMS signed-data message.</summary>
+    /// <example>
+    /// A simple example of usage. Note that the validity of the certificate isn't verified here, just the fact that
+    /// one of the certificates matches the given signer:
+    /// <code>
+    /// IStore&lt;X509Certificate&gt; certs = s.GetCertificates();
+    /// SignerInformationStore signers = s.GetSignerInfos();
+    ///
+    /// foreach (SignerInformation signer in signers)
+    /// {
+    ///     var certList = new List&lt;X509Certificate&gt;(certs.EnumerateMatches(signer.SignerID));
+    ///     X509Certificate cert = certList[0];
+    ///
+    ///     if (signer.Verify(cert))
+    ///     {
+    ///         verified++;
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
     public class CmsSignedData
     {
         private readonly ContentInfo m_contentInfo;
@@ -54,43 +51,68 @@ namespace Org.BouncyCastle.Cms
             m_signerInfoStore = signerInfoStore;
         }
 
+        /// <summary>Create a signed data object from its encoding.</summary>
+        /// <param name="sigBlock">The encoded ContentInfo.</param>
         public CmsSignedData(byte[] sigBlock)
             : this(CmsUtilities.ReadContentInfo(sigBlock))
         {
         }
 
+        /// <summary>Create a signed data object for detached content from its encoding.</summary>
+        /// <param name="signedContent">The detached content that was signed.</param>
+        /// <param name="sigBlock">The encoded ContentInfo.</param>
         [Obsolete("Use 'CmsSignedData(CmsTypedData, byte[])' instead")]
         public CmsSignedData(CmsProcessable signedContent, byte[] sigBlock)
             : this(signedContent, CmsUtilities.ReadContentInfo(sigBlock))
         {
         }
 
+        /// <summary>Create a signed data object for detached content from its encoding.</summary>
+        /// <param name="signedContent">The detached content that was signed.</param>
+        /// <param name="sigBlock">The encoded ContentInfo.</param>
         public CmsSignedData(CmsTypedData signedContent, byte[] sigBlock)
             : this(signedContent, CmsUtilities.ReadContentInfo(sigBlock))
         {
         }
 
+        /// <summary>
+        /// Create a signed data object for detached content, given only its digests, from its encoding.
+        /// </summary>
+        /// <param name="hashes">The precomputed digests of the detached content, keyed by digest algorithm OID.</param>
+        /// <param name="sigBlock">The encoded ContentInfo.</param>
         public CmsSignedData(IDictionary<string, byte[]> hashes, byte[] sigBlock)
             : this(hashes, CmsUtilities.ReadContentInfo(sigBlock))
         {
         }
 
+        /// <summary>Create a signed data object for detached content, reading the encoding from a stream.</summary>
+        /// <param name="signedContent">The detached content that was signed.</param>
+        /// <param name="sigData">A stream containing the encoded ContentInfo.</param>
         [Obsolete("Use 'CmsSignedData(CmsTypedData, Stream)' instead")]
         public CmsSignedData(CmsProcessable signedContent, Stream sigData)
             : this(signedContent, CmsUtilities.ReadContentInfo(sigData))
         {
         }
 
+        /// <summary>Create a signed data object for detached content, reading the encoding from a stream.</summary>
+        /// <param name="signedContent">The detached content that was signed.</param>
+        /// <param name="sigData">A stream containing the encoded ContentInfo.</param>
         public CmsSignedData(CmsTypedData signedContent, Stream sigData)
             : this(signedContent, CmsUtilities.ReadContentInfo(sigData))
         {
         }
 
+        /// <summary>Create a signed data object, reading the encoding from a stream.</summary>
+        /// <param name="sigData">A stream containing the encoded ContentInfo.</param>
         public CmsSignedData(Stream sigData)
             : this(CmsUtilities.ReadContentInfo(sigData))
         {
         }
 
+        /// <summary>Create a signed data object for detached content.</summary>
+        /// <param name="signedContent">The detached content that was signed.</param>
+        /// <param name="sigData">The ContentInfo carrying the signed data.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="sigData"/> is null.</exception>
         [Obsolete("Use 'CmsSignedData(CmsTypedData, ContentInfo)' instead")]
         public CmsSignedData(CmsProcessable signedContent, ContentInfo sigData)
         {
@@ -100,6 +122,12 @@ namespace Org.BouncyCastle.Cms
             m_signedContent = signedContent;
         }
 
+        /// <summary>Create a signed data object for detached content.</summary>
+        /// <param name="signedContent">The detached content that was signed.</param>
+        /// <param name="sigData">The ContentInfo carrying the signed data.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="signedContent"/> or <paramref name="sigData"/> is null.
+        /// </exception>
         public CmsSignedData(CmsTypedData signedContent, ContentInfo sigData)
         {
             // Restriction follows bc-java behaviour
@@ -112,6 +140,10 @@ namespace Org.BouncyCastle.Cms
             m_signedContent = signedContent;
         }
 
+        /// <summary>Create a signed data object for detached content, given only its digests.</summary>
+        /// <param name="hashes">The precomputed digests of the detached content, keyed by digest algorithm OID.</param>
+        /// <param name="sigData">The ContentInfo carrying the signed data.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="sigData"/> is null.</exception>
         public CmsSignedData(IDictionary<string, byte[]> hashes, ContentInfo sigData)
         {
             m_contentInfo = sigData ?? throw new ArgumentNullException(nameof(sigData));
@@ -120,6 +152,11 @@ namespace Org.BouncyCastle.Cms
             m_hashes = hashes;
         }
 
+        /// <summary>
+        /// Create a signed data object (the content, if any, is taken from the encapsulated content info).
+        /// </summary>
+        /// <param name="sigData">The ContentInfo carrying the signed data.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="sigData"/> is null.</exception>
         public CmsSignedData(ContentInfo sigData)
         {
             m_contentInfo = sigData ?? throw new ArgumentNullException(nameof(sigData));
@@ -164,39 +201,20 @@ namespace Org.BouncyCastle.Cms
             return new CmsSignedData(m_contentInfo.ContentType, newContent, m_signedContent, m_signerInfoStore);
         }
 
-        /**
-         * return the ContentInfo
-         */
+        /// <summary>Gets the underlying ContentInfo.</summary>
         public ContentInfo ContentInfo => m_contentInfo;
 
-        /**
-         * return a X509Store containing the attribute certificates, if any, contained
-         * in this message.
-         *
-         * @param type type of store to create
-         * @return a store of attribute certificates
-         * @exception NoSuchStoreException if the store type isn't available.
-         * @exception CmsException if a general exception prevents creation of the X509Store
-         */
+        /// <summary>Return a store containing the attribute certificates, if any, contained in this message.</summary>
+        /// <returns>A store of attribute certificates.</returns>
         public IStore<X509V2AttributeCertificate> GetAttributeCertificates() =>
             CmsSignedHelper.GetAttributeCertificates(SignedData.Certificates);
 
-        /**
-         * return a X509Store containing the public key certificates, if any, contained in this message.
-         *
-         * @return a store of public key certificates
-         * @exception NoSuchStoreException if the store type isn't available.
-         * @exception CmsException if a general exception prevents creation of the X509Store
-         */
+        /// <summary>Return a store containing the public key certificates, if any, contained in this message.</summary>
+        /// <returns>A store of public key certificates.</returns>
         public IStore<X509Certificate> GetCertificates() => CmsSignedHelper.GetCertificates(SignedData.Certificates);
 
-        /**
-         * return a X509Store containing CRLs, if any, contained in this message.
-         *
-         * @return a store of CRLs
-         * @exception NoSuchStoreException if the store type isn't available.
-         * @exception CmsException if a general exception prevents creation of the X509Store
-         */
+        /// <summary>Return a store containing the CRLs, if any, contained in this message.</summary>
+        /// <returns>A store of CRLs.</returns>
         public IStore<X509Crl> GetCrls() => CmsSignedHelper.GetCrls(SignedData.CRLs);
 
         /// <remarks>Does not preserve the original order in SignedData.DigestAlgorithms.</remarks>
@@ -213,28 +231,25 @@ namespace Org.BouncyCastle.Cms
             return CollectionUtilities.ReadOnly(result);
         }
 
+        /// <summary>Return the digest algorithms used by the signers, as listed in the signed data.</summary>
         public IEnumerable<AlgorithmIdentifier> GetDigestAlgorithms() =>
             CollectionUtilities.Select(SignedData.DigestAlgorithms, AlgorithmIdentifier.GetInstance);
 
-        /**
-         * return the ASN.1 encoded representation of this object.
-         */
+        /// <summary>Return the ASN.1 encoded representation of this object.</summary>
         public byte[] GetEncoded() => m_contentInfo.GetEncoded();
 
-        /**
-         * return the ASN.1 encoded representation of this object using the specified encoding.
-         *
-         * @param encoding the ASN.1 encoding format to use ("BER" or "DER").
-         */
+        /// <summary>Return the ASN.1 encoded representation of this object using the specified encoding.</summary>
+        /// <param name="encoding">The ASN.1 encoding format to use ("BER" or "DER").</param>
         public byte[] GetEncoded(string encoding) => m_contentInfo.GetEncoded(encoding);
 
+        /// <summary>
+        /// Return a store of the other revocation information of the given format, if any, contained in this message.
+        /// </summary>
+        /// <param name="otherRevInfoFormat">The OID of the other revocation information format.</param>
         public IStore<Asn1Encodable> GetOtherRevInfos(DerObjectIdentifier otherRevInfoFormat) =>
             CmsSignedHelper.GetOtherRevInfos(m_signedData.CRLs, otherRevInfoFormat);
 
-        /**
-         * return the collection of signers that are associated with the
-         * signatures for the message.
-         */
+        /// <summary>Return the collection of signers that are associated with the signatures for the message.</summary>
         public SignerInformationStore GetSignerInfos()
         {
             if (m_signerInfoStore == null)
@@ -266,13 +281,16 @@ namespace Org.BouncyCastle.Cms
             return m_signerInfoStore;
         }
 
+        /// <summary>Whether this is a certificate management message (no content and no signers).</summary>
         public bool IsCertificateManagementMessage =>
             m_signedData.EncapContentInfo.Content == null && m_signedData.SignerInfos.Count == 0;
 
+        /// <summary>Whether this is a detached signature (no encapsulated content, but at least one signer).</summary>
         public bool IsDetachedSignature =>
             m_signedData.EncapContentInfo.Content == null && m_signedData.SignerInfos.Count > 0;
 
         // TODO[api] Change return type to CmsTypedData (only when dropping CmsProcessable constructors too)
+        /// <summary>Gets the signed content, or null if it is neither encapsulated nor supplied.</summary>
         public CmsProcessable SignedContent => m_signedContent;
 
         /// <summary>
@@ -281,31 +299,30 @@ namespace Org.BouncyCastle.Cms
         /// </summary>
         public DerObjectIdentifier SignedContentType => SignedData.EncapContentInfo.ContentType;
 
+        /// <summary>Gets the underlying ASN.1 signed data.</summary>
         public SignedData SignedData => m_signedData;
 
         /// <summary>Return the version number for this object.</summary>
         public int Version => SignedData.Version.IntValueExact;
 
-        /**
-         * Return a new CMSSignedData which guarantees to have the passed in digestAlgorithm
-         * in it. Uses the DefaultDigestAlgorithmFinder for creating the digest sets.
-         *
-         * @param signedData      the signed data object to be used as a base.
-         * @param digestAlgorithm the digest algorithm to be added to the signed data.
-         * @return a new signed data object.
-         */
+        /// <summary>
+        /// Return a new <see cref="CmsSignedData"/> which is guaranteed to contain the passed in digest algorithm. Uses
+        /// <see cref="DefaultDigestAlgorithmFinder"/> for creating the digest sets.
+        /// </summary>
+        /// <param name="signedData">The signed data object to be used as a base.</param>
+        /// <param name="digestAlgorithm">The digest algorithm to be added to the signed data.</param>
+        /// <returns>A new signed data object.</returns>
         public static CmsSignedData AddDigestAlgorithm(CmsSignedData signedData, AlgorithmIdentifier digestAlgorithm) =>
             AddDigestAlgorithm(signedData, digestAlgorithm, DefaultDigestAlgorithmFinder.Instance);
 
-        /**
-         * Return a new CMSSignedData which guarantees to have the passed in digestAlgorithm
-         * in it. Uses the passed in IDigestAlgorithmFinder for creating the digest sets.
-         *
-         * @param signedData      the signed data object to be used as a base.
-         * @param digestAlgorithm the digest algorithm to be added to the signed data.
-         * @param digestAlgorithmFinder the digest algorithm finder to generate the digest set with.
-         * @return a new signed data object.
-         */
+        /// <summary>
+        /// Return a new <see cref="CmsSignedData"/> which is guaranteed to contain the passed in digest algorithm. Uses
+        /// the passed in <see cref="IDigestAlgorithmFinder"/> for creating the digest sets.
+        /// </summary>
+        /// <param name="signedData">The signed data object to be used as a base.</param>
+        /// <param name="digestAlgorithm">The digest algorithm to be added to the signed data.</param>
+        /// <param name="digestAlgorithmFinder">The digest algorithm finder to generate the digest set with.</param>
+        /// <returns>A new signed data object.</returns>
         public static CmsSignedData AddDigestAlgorithm(CmsSignedData signedData, AlgorithmIdentifier digestAlgorithm,
             IDigestAlgorithmFinder digestAlgorithmFinder)
         {
@@ -328,30 +345,33 @@ namespace Org.BouncyCastle.Cms
                 signedData.m_signerInfoStore);
         }
 
-        /**
-         * Replace the SignerInformation store associated with this CMSSignedData object with the new one passed in
-         * using the DefaultDigestAlgorithmFinder for creating the digest sets. You would probably only want
-         * to do this if you wanted to change the unsigned attributes associated with a signer, or perhaps delete one.
-         *
-         * @param signedData             the signed data object to be used as a base.
-         * @param signerInformationStore the new signer information store to use.
-         * @return a new signed data object.
-         */
+        /// <summary>
+        /// Replace the <see cref="SignerInformationStore"/> associated with this object with the new one passed in,
+        /// using <see cref="DefaultDigestAlgorithmFinder"/> for creating the digest sets.
+        /// </summary>
+        /// <remarks>
+        /// You would probably only want to do this if you wanted to change the unsigned attributes associated with a
+        /// signer, or perhaps delete one.
+        /// </remarks>
+        /// <param name="signedData">The signed data object to be used as a base.</param>
+        /// <param name="signerInformationStore">The new signer information store to use.</param>
+        /// <returns>A new signed data object.</returns>
         public static CmsSignedData ReplaceSigners(CmsSignedData signedData,
             SignerInformationStore signerInformationStore) =>
                 ReplaceSigners(signedData, signerInformationStore, DefaultDigestAlgorithmFinder.Instance);
 
-        /**
-         * Replace the SignerInformation store associated with this CMSSignedData object with the new one passed in
-         * using the passed in IDigestAlgorithmFinder for creating the digest sets. You would probably only
-         * want to do this if you wanted to change the unsigned attributes associated with a signer, or perhaps delete
-         * one.
-         *
-         * @param signedData             the signed data object to be used as a base.
-         * @param signerInformationStore the new signer information store to use.
-         * @param digestAlgorithmFinder the digest algorithm finder to generate the digest set with.
-         * @return a new signed data object.
-         */
+        /// <summary>
+        /// Replace the <see cref="SignerInformationStore"/> associated with this object with the new one passed in,
+        /// using the passed in <see cref="IDigestAlgorithmFinder"/> for creating the digest sets.
+        /// </summary>
+        /// <remarks>
+        /// You would probably only want to do this if you wanted to change the unsigned attributes associated with a
+        /// signer, or perhaps delete one.
+        /// </remarks>
+        /// <param name="signedData">The signed data object to be used as a base.</param>
+        /// <param name="signerInformationStore">The new signer information store to use.</param>
+        /// <param name="digestAlgorithmFinder">The digest algorithm finder to generate the digest set with.</param>
+        /// <returns>A new signed data object.</returns>
         public static CmsSignedData ReplaceSigners(CmsSignedData signedData,
             SignerInformationStore signerInformationStore, IDigestAlgorithmFinder digestAlgorithmFinder)
         {
@@ -386,22 +406,30 @@ namespace Org.BouncyCastle.Cms
                 signerInformationStore);
         }
 
-        /**
-         * Replace the certificate and CRL information associated with this
-         * CmsSignedData object with the new one passed in.
-         *
-         * @param signedData the signed data object to be used as a base.
-         * @param x509Certs the new certificates to be used.
-         * @param x509Crls the new CRLs to be used.
-         * @return a new signed data object.
-         * @exception CmsException if there is an error processing the stores
-         */
+        /// <summary>
+        /// Replace the certificate and CRL information associated with this object with the new ones passed in.
+        /// </summary>
+        /// <param name="signedData">The signed data object to be used as a base.</param>
+        /// <param name="x509Certs">The new certificates to be used.</param>
+        /// <param name="x509Crls">The new CRLs to be used.</param>
+        /// <returns>A new signed data object.</returns>
+        /// <exception cref="CmsException">If there is an error processing the stores.</exception>
         public static CmsSignedData ReplaceCertificatesAndCrls(CmsSignedData signedData,
             IStore<X509Certificate> x509Certs, IStore<X509Crl> x509Crls)
         {
             return ReplaceCertificatesAndRevocations(signedData, x509Certs, x509Crls, null, null);
         }
 
+        /// <summary>
+        /// Replace the certificate, CRL and attribute certificate information associated with this object with the new
+        /// ones passed in.
+        /// </summary>
+        /// <param name="signedData">The signed data object to be used as a base.</param>
+        /// <param name="x509Certs">The new certificates to be used.</param>
+        /// <param name="x509Crls">The new CRLs to be used.</param>
+        /// <param name="x509AttrCerts">The new attribute certificates to be used.</param>
+        /// <returns>A new signed data object.</returns>
+        /// <exception cref="CmsException">If there is an error processing the stores.</exception>
         public static CmsSignedData ReplaceCertificatesAndCrls(CmsSignedData signedData,
             IStore<X509Certificate> x509Certs, IStore<X509Crl> x509Crls,
             IStore<X509V2AttributeCertificate> x509AttrCerts)
@@ -409,6 +437,17 @@ namespace Org.BouncyCastle.Cms
             return ReplaceCertificatesAndRevocations(signedData, x509Certs, x509Crls, x509AttrCerts, null);
         }
 
+        /// <summary>
+        /// Replace the certificate, attribute certificate and revocation information (CRLs and other revocation
+        /// information) associated with this object with the new ones passed in.
+        /// </summary>
+        /// <param name="signedData">The signed data object to be used as a base.</param>
+        /// <param name="x509Certs">The new certificates to be used.</param>
+        /// <param name="x509Crls">The new CRLs to be used.</param>
+        /// <param name="x509AttrCerts">The new attribute certificates to be used.</param>
+        /// <param name="otherRevocationInfos">The new other revocation information to be used.</param>
+        /// <returns>A new signed data object.</returns>
+        /// <exception cref="CmsException">If there is an error processing the stores.</exception>
         public static CmsSignedData ReplaceCertificatesAndRevocations(CmsSignedData signedData,
             IStore<X509Certificate> x509Certs, IStore<X509Crl> x509Crls,
             IStore<X509V2AttributeCertificate> x509AttrCerts, IStore<OtherRevocationInfoFormat> otherRevocationInfos)
