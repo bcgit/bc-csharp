@@ -181,6 +181,7 @@ namespace Org.BouncyCastle.Asn1
 
         /// <summary>Create a new <see cref="DerInteger"/>.</summary>
         /// <param name="bytes">The bytes.</param>
+        // TODO[api] Rename parameter to contents
         public DerInteger(byte[] bytes)
             : this(bytes, clone: true)
         {
