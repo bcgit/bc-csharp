@@ -17,8 +17,10 @@ namespace Org.BouncyCastle.Crypto.Fpe
      */
     public static class SP80038G
     {
+        /// <summary>The name of the property that disables all FPE algorithms.</summary>
         [Obsolete("Use 'Properties.FpeDisable' instead")]
         public static readonly string FpeDisableProperty = Properties.FpeDisable;
+        /// <summary>The name of the property that disables the FF1 algorithm.</summary>
         [Obsolete("Use 'Properties.FpeDisableFf1' instead")]
         public static readonly string FpeDisableFf1Property = Properties.FpeDisableFf1;
 

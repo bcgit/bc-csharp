@@ -7,12 +7,12 @@ namespace Org.BouncyCastle.Crypto.Modes
 {
     /// <summary>Implements Cipher-Block-Chaining (CBC) mode on top of a simple cipher.</summary>
     public sealed class CbcBlockCipher
-		: IBlockCipherMode
+        : IBlockCipherMode
     {
-        private byte[]			IV, cbcV, cbcNextV;
-		private int				blockSize;
-        private IBlockCipher	cipher;
-        private bool			encrypting;
+        private byte[] IV, cbcV, cbcNextV;
+        private int blockSize;
+        private IBlockCipher cipher;
+        private bool encrypting;
 
         /// <summary>Basic constructor.</summary>
         /// <param name="cipher">The block cipher to be used as the basis of chaining.</param>
@@ -33,7 +33,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         /// <summary>Initialise the cipher and, possibly, the initialisation vector (IV).</summary>
         /// <remarks>If an IV isn't passed as part of the parameter, the IV will be all zeros.</remarks>
-        /// <param name="forEncryption">If true the cipher is initialised for encryption, if false for decryption.</param>
+        /// <param name="forEncryption">
+        /// If true the cipher is initialised for encryption, if false for decryption.
+        /// </param>
         /// <param name="parameters">The key and other data required by the cipher.</param>
         /// <exception cref="ArgumentException">If the parameters argument is inappropriate.</exception>
         public void Init(bool forEncryption, ICipherParameters parameters)
@@ -56,7 +58,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 Arrays.Fill(IV, 0x00);
             }
 
-			Reset();
+            Reset();
 
             // if null it's an IV changed only (key is to be reused).
             if (parameters != null)
@@ -77,10 +79,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
         /// <summary>Indicates whether this cipher can handle partial blocks.</summary>
-		public bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
+        public bool IsPartialBlockOkay
+        {
+            get { return false; }
+        }
 
         /// <summary>Return the block size of the underlying cipher.</summary>
         /// <returns>The block size in bytes.</returns>
@@ -89,6 +91,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return cipher.GetBlockSize();
         }
 
+        /// <inheritdoc/>
         public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -97,12 +100,13 @@ namespace Org.BouncyCastle.Crypto.Modes
                 : DecryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
 #else
             return encrypting
-				? EncryptBlock(input, inOff, output, outOff)
-				: DecryptBlock(input, inOff, output, outOff);
+                ? EncryptBlock(input, inOff, output, outOff)
+                : DecryptBlock(input, inOff, output, outOff);
 #endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             return encrypting
@@ -115,7 +119,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         public void Reset()
         {
             Array.Copy(IV, 0, cbcV, 0, IV.Length);
-			Array.Clear(cbcNextV, 0, cbcNextV.Length);
+            Array.Clear(cbcNextV, 0, cbcNextV.Length);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

@@ -18,6 +18,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         private uint[] X = new uint[16];
         private int xOff;
 
+        /// <summary>Create a new <see cref="MD5Digest"/>.</summary>
         public MD5Digest()
         {
             Reset();
@@ -29,13 +30,13 @@ namespace Org.BouncyCastle.Crypto.Digests
         */
         public MD5Digest(MD5Digest t)
             : base(t)
-		{
-			CopyIn(t);
-		}
+        {
+            CopyIn(t);
+        }
 
-		private void CopyIn(MD5Digest t)
-		{
-			base.CopyIn(t);
+        private void CopyIn(MD5Digest t)
+        {
+            base.CopyIn(t);
             H1 = t.H1;
             H2 = t.H2;
             H3 = t.H3;
@@ -45,11 +46,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             xOff = t.xOff;
         }
 
+        /// <inheritdoc/>
         public override string AlgorithmName
         {
             get { return "MD5"; }
         }
 
+        /// <inheritdoc/>
         public override int GetDigestSize()
         {
             return DigestLength;
@@ -97,6 +100,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             X[15] = (uint)((ulong)bitLength >> 32);
         }
 
+        /// <inheritdoc/>
         public override int DoFinal(
             byte[] output,
             int outOff)
@@ -114,6 +118,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int DoFinal(Span<byte> output)
         {
             Finish();
@@ -311,16 +316,18 @@ namespace Org.BouncyCastle.Crypto.Digests
             xOff = 0;
         }
 
-		public override IMemoable Copy()
-		{
-			return new MD5Digest(this);
-		}
+        /// <inheritdoc/>
+        public override IMemoable Copy()
+        {
+            return new MD5Digest(this);
+        }
 
-		public override void Reset(IMemoable other)
-		{
-			MD5Digest d = (MD5Digest)other;
+        /// <inheritdoc/>
+        public override void Reset(IMemoable other)
+        {
+            MD5Digest d = (MD5Digest)other;
 
-			CopyIn(d);
-		}
-	}
+            CopyIn(d);
+        }
+    }
 }

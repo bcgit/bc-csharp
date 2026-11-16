@@ -50,6 +50,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
+        /// <summary>Create a new <see cref="OpenBsdBCrypt"/>.</summary>
         [Obsolete("Use static methods instead")]
         public OpenBsdBCrypt()
         {

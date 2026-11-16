@@ -32,6 +32,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
     {
         private ECPrivateKeyParameters m_privateKey;
 
+        /// <inheritdoc/>
         public virtual void Init(ICipherParameters parameters)
         {
             var kParam = ParameterUtilities.IgnoreRandom(parameters);
@@ -42,8 +43,10 @@ namespace Org.BouncyCastle.Crypto.Agreement
             m_privateKey = ecPrivateKeyParameters;
         }
 
+        /// <inheritdoc/>
         public virtual int GetFieldSize() => m_privateKey.Parameters.Curve.FieldElementEncodingLength;
 
+        /// <inheritdoc/>
         public virtual BigInteger CalculateAgreement(ICipherParameters pubKey) =>
             CalculateAgreementFieldElement(m_privateKey, (ECPublicKeyParameters)pubKey).ToBigInteger();
 

@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Parameters for IES that also specify the size of the cipher key.</summary>
     public class IesWithCipherParameters : IesParameters
     {
         private int cipherKeySize;
@@ -21,6 +22,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.cipherKeySize = cipherKeySize;
         }
 
+        /// <summary>Gets the cipher key size.</summary>
         public int CipherKeySize
         {
             get

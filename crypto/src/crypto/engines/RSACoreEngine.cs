@@ -68,6 +68,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return (m_bitSize - 1) / 8;
         }
 
+        /// <inheritdoc/>
         public virtual BigInteger ConvertInput(byte[] inBuf, int inOff, int inLen)
         {
             CheckInitialised();
@@ -88,6 +89,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return input;
         }
 
+        /// <inheritdoc/>
         public virtual byte[] ConvertOutput(BigInteger result)
         {
             CheckInitialised();
@@ -97,6 +99,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 : BigIntegers.AsUnsignedByteArray(result);
         }
 
+        /// <inheritdoc/>
         public virtual BigInteger ProcessBlock(BigInteger input)
         {
             CheckInitialised();

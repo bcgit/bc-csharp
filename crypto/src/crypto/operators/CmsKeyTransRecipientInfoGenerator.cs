@@ -13,16 +13,25 @@ namespace Org.BouncyCastle.Operators
     public class CmsKeyTransRecipientInfoGenerator
         : KeyTransRecipientInfoGenerator
     {
+        /// <summary>Create a new <see cref="CmsKeyTransRecipientInfoGenerator"/>.</summary>
+        /// <param name="recipCert">The recip cert.</param>
+        /// <param name="keyWrapper">The key wrapper.</param>
         public CmsKeyTransRecipientInfoGenerator(X509Certificate recipCert, IKeyWrapper keyWrapper)
             : base(new Asn1.Cms.IssuerAndSerialNumber(recipCert.CertificateStructure), keyWrapper)
         {
         }
 
+        /// <summary>Create a new <see cref="CmsKeyTransRecipientInfoGenerator"/>.</summary>
+        /// <param name="issuerAndSerial">The issuer and serial.</param>
+        /// <param name="keyWrapper">The key wrapper.</param>
         public CmsKeyTransRecipientInfoGenerator(IssuerAndSerialNumber issuerAndSerial, IKeyWrapper keyWrapper)
             : base(issuerAndSerial, keyWrapper)
         {
         }
 
+        /// <summary>Create a new <see cref="CmsKeyTransRecipientInfoGenerator"/>.</summary>
+        /// <param name="subjectKeyID">The subject key ID.</param>
+        /// <param name="keyWrapper">The key wrapper.</param>
         public CmsKeyTransRecipientInfoGenerator(byte[] subjectKeyID, IKeyWrapper keyWrapper) : base(subjectKeyID, keyWrapper)
         {
         }

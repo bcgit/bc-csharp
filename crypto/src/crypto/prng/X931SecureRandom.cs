@@ -4,6 +4,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Prng
 {
+    /// <summary>A source of randomness based on the ANSI X9.31 random number generator.</summary>
     public class X931SecureRandom
         :   SecureRandom
     {
@@ -19,6 +20,7 @@ namespace Org.BouncyCastle.Crypto.Prng
             this.mPredictionResistant = predictionResistant;
         }
 
+        /// <inheritdoc/>
         public override void SetSeed(byte[] seed)
         {
             lock (this)
@@ -31,6 +33,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override void SetSeed(Span<byte> seed)
         {
             lock (this)
@@ -43,6 +46,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         }
 #endif
 
+        /// <inheritdoc/>
         public override void SetSeed(long seed)
         {
             lock (this)
@@ -55,11 +59,13 @@ namespace Org.BouncyCastle.Crypto.Prng
             }
         }
 
+        /// <inheritdoc/>
         public override void NextBytes(byte[] bytes)
         {
             NextBytes(bytes, 0, bytes.Length);
         }
 
+        /// <inheritdoc/>
         public override void NextBytes(byte[] buf, int off, int len)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -78,6 +84,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override void NextBytes(Span<byte> buffer)
         {
             lock (this)
@@ -92,12 +99,14 @@ namespace Org.BouncyCastle.Crypto.Prng
         }
 #endif
 
+        /// <inheritdoc/>
         public override byte[] GenerateSeed(int numBytes)
         {
             return EntropyUtilities.GenerateSeed(mDrbg.EntropySource, numBytes);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override void GenerateSeed(Span<byte> seed)
         {
             EntropyUtilities.GenerateSeed(mDrbg.EntropySource, seed);

@@ -8,13 +8,16 @@ namespace Org.BouncyCastle.Crypto.Paddings
     public class ZeroBytePadding
         : IBlockCipherPadding
     {
+        /// <inheritdoc/>
         public string PaddingName => "ZeroBytePadding";
 
+        /// <inheritdoc/>
         public void Init(SecureRandom random)
         {
             // nothing to do.
         }
 
+        /// <inheritdoc/>
         public int AddPadding(byte[] input, int inOff)
         {
             int added = input.Length - inOff;
@@ -28,6 +31,7 @@ namespace Org.BouncyCastle.Crypto.Paddings
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int AddPadding(Span<byte> block, int position)
         {
             int count = block.Length - position;
@@ -36,6 +40,7 @@ namespace Org.BouncyCastle.Crypto.Paddings
         }
 #endif
 
+        /// <inheritdoc/>
         public int PadCount(byte[] input)
         {
             int count = 0, still00Mask = -1;
@@ -51,6 +56,7 @@ namespace Org.BouncyCastle.Crypto.Paddings
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int PadCount(ReadOnlySpan<byte> block)
         {
             int count = 0, still00Mask = -1;

@@ -18,10 +18,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_macKeySize = macKeySize;
         }
 
+        /// <summary>Return the derivation v.</summary>
         public byte[] GetDerivationV() => m_derivation;
 
+        /// <summary>Return the encoding v.</summary>
         public byte[] GetEncodingV() => m_encoding;
 
+        /// <summary>Gets the mac key size.</summary>
         public int MacKeySize => m_macKeySize;
     }
 }

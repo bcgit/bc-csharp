@@ -120,6 +120,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return L(tau(Z));
         }
 
+        /// <inheritdoc/>
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
             KeyParameter keyParameter = parameters as KeyParameter;
@@ -138,16 +139,19 @@ namespace Org.BouncyCastle.Crypto.Engines
             ExpandKey(forEncryption, key);
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "SM4"; }
         }
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize()
         {
             return BlockSize;
         }
 
+        /// <inheritdoc/>
         public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (null == rk)
@@ -178,6 +182,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (null == rk)

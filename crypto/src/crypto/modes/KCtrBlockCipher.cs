@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 Array.Clear(IV, 0, IV.Length);
                 Array.Copy(iv, 0, IV, diff, iv.Length);
-         
+
                 parameters = ivParam.Parameters;
             }
             else
@@ -95,6 +95,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             get { return cipher.AlgorithmName + "/KCTR"; }
         }
 
+        /// <inheritdoc/>
         public bool IsPartialBlockOkay
         {
             get { return true; }
@@ -110,11 +111,13 @@ namespace Org.BouncyCastle.Crypto.Modes
             return cipher.GetBlockSize();
         }
 
+        /// <inheritdoc/>
         public byte ReturnByte(byte input)
         {
             return CalculateByte(input);
         }
 
+        /// <inheritdoc/>
         public void ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, len, "input buffer too short");
@@ -131,6 +134,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.OutputLength(output, input.Length, "output buffer too short");
@@ -142,6 +146,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <summary>Encrypt or decrypt a single byte.</summary>
+        /// <param name="b">The byte to process.</param>
+        /// <returns>The processed byte.</returns>
         protected byte CalculateByte(byte b)
         {
             if (byteCount == 0)
@@ -190,6 +197,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             int blockSize = GetBlockSize();

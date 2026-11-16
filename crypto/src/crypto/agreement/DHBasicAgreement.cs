@@ -20,6 +20,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
         private DHPrivateKeyParameters m_key;
         private DHParameters m_dhParams;
 
+        /// <inheritdoc/>
         public virtual void Init(ICipherParameters parameters)
         {
             var kParam = ParameterUtilities.IgnoreRandom(parameters);
@@ -31,6 +32,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
             m_dhParams = m_key.Parameters;
         }
 
+        /// <inheritdoc/>
         public virtual int GetFieldSize() => (m_key.Parameters.P.BitLength + 7) / 8;
 
         /// <summary>

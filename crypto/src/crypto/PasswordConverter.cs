@@ -17,8 +17,10 @@
             m_converterFunction = converterFunction;
         }
 
+        /// <inheritdoc/>
         public byte[] Convert(char[] password) => m_converterFunction(password);
 
+        /// <inheritdoc/>
         public string Name => m_name;
 
         /// <summary>Do a straight char[] to 8 bit conversion.</summary>

@@ -14,6 +14,8 @@ namespace Org.BouncyCastle.Crypto.Modes
     {
         private readonly int m_blockSize;
 
+        /// <summary>Create a new <see cref="CtsBlockCipher"/>.</summary>
+        /// <param name="cipher">The cipher.</param>
         public CtsBlockCipher(IBlockCipher cipher)
             : this(EcbBlockCipher.GetBlockCipherMode(cipher))
         {
@@ -37,6 +39,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             bufOff = 0;
         }
 
+        /// <inheritdoc/>
         public override int GetBlockSize() => m_blockSize;
 
         /**
@@ -94,6 +97,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int ProcessByte(byte input, Span<byte> output)
         {
             int resultLen = 0;
@@ -181,6 +185,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             int resultLen = 0;
@@ -286,6 +291,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int DoFinal(Span<byte> output)
         {
             try

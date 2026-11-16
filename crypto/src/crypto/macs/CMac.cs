@@ -11,17 +11,17 @@ namespace Org.BouncyCastle.Crypto.Macs
     * <p>
     * CMAC is analogous to OMAC1 - see also en.wikipedia.org/wiki/CMAC
     * </p><p>
-    * CMAC is a NIST recomendation - see 
+    * CMAC is a NIST recomendation - see
     * csrc.nist.gov/CryptoToolkit/modes/800-38_Series_Publications/SP800-38B.pdf
     * </p><p>
     * CMAC/OMAC1 is a blockcipher-based message authentication code designed and
     * analyzed by Tetsu Iwata and Kaoru Kurosawa.
     * </p><p>
-    * CMAC/OMAC1 is a simple variant of the CBC MAC (Cipher Block Chaining Message 
+    * CMAC/OMAC1 is a simple variant of the CBC MAC (Cipher Block Chaining Message
     * Authentication Code). OMAC stands for One-Key CBC MAC.
     * </p><p>
     * It supports 128- or 64-bits block ciphers, with any key size, and returns
-    * a MAC with dimension less or equal to the block size of the underlying 
+    * a MAC with dimension less or equal to the block size of the underlying
     * cipher.
     * </p>
     */
@@ -69,8 +69,8 @@ namespace Org.BouncyCastle.Crypto.Macs
         * @param macSizeInBits the size of the MAC in bits, must be a multiple of 8 and @lt;= 128.
         */
         public CMac(
-            IBlockCipher	cipher,
-            int				macSizeInBits)
+            IBlockCipher cipher,
+            int macSizeInBits)
         {
             if ((macSizeInBits % 8) != 0)
                 throw new ArgumentException("MAC size must be multiple of 8");
@@ -100,6 +100,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             bufOff = 0;
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return m_cipherMode.AlgorithmName; }
@@ -132,6 +133,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             return ret;
         }
 
+        /// <inheritdoc/>
         public void Init(ICipherParameters parameters)
         {
             if (parameters is KeyParameter)
@@ -153,11 +155,13 @@ namespace Org.BouncyCastle.Crypto.Macs
             Reset();
         }
 
+        /// <inheritdoc/>
         public int GetMacSize()
         {
             return macSize;
         }
 
+        /// <inheritdoc/>
         public void Update(byte input)
         {
             if (bufOff == buf.Length)
@@ -169,6 +173,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             buf[bufOff++] = input;
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] inBytes, int inOff, int len)
         {
             if (len < 0)
@@ -206,6 +211,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             int blockSize = m_cipherMode.GetBlockSize();
@@ -233,6 +239,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] outBytes, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -267,6 +274,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             int blockSize = m_cipherMode.GetBlockSize();

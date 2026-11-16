@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Crypto.Digests
     * "Handbook of Applied Cryptography", pages 344 - 347.
     */
     public abstract class GeneralDigest
-		: IDigest, IMemoable
+        : IDigest, IMemoable
     {
         private const int BYTE_LENGTH = 64;
 
@@ -24,19 +24,22 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
         internal GeneralDigest(GeneralDigest t)
-		{
-			xBuf = new byte[t.xBuf.Length];
-			CopyIn(t);
-		}
+        {
+            xBuf = new byte[t.xBuf.Length];
+            CopyIn(t);
+        }
 
-		protected void CopyIn(GeneralDigest t)
-		{
+        /// <summary>Copy the state of another digest of this type into this one.</summary>
+        /// <param name="t">The digest to copy the state from.</param>
+        protected void CopyIn(GeneralDigest t)
+        {
             Array.Copy(t.xBuf, 0, xBuf, 0, t.xBuf.Length);
 
             xBufOff = t.xBufOff;
             byteCount = t.byteCount;
         }
 
+        /// <inheritdoc/>
         public void Update(byte input)
         {
             xBuf[xBufOff++] = input;
@@ -50,6 +53,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             byteCount++;
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(
             byte[]  input,
             int     inOff,
@@ -96,6 +100,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             int length = input.Length;
@@ -139,6 +144,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <summary>Add the padding and length to the data and process the final blocks.</summary>
         public void Finish()
         {
             long    bitLength = (byteCount << 3);
@@ -153,30 +159,38 @@ namespace Org.BouncyCastle.Crypto.Digests
             ProcessBlock();
         }
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             byteCount = 0;
             xBufOff = 0;
-			Array.Clear(xBuf, 0, xBuf.Length);
+            Array.Clear(xBuf, 0, xBuf.Length);
         }
 
-		public int GetByteLength()
-		{
-			return BYTE_LENGTH;
-		}
+        /// <inheritdoc/>
+        public int GetByteLength()
+        {
+            return BYTE_LENGTH;
+        }
 
-		internal abstract void ProcessWord(byte[] input, int inOff);
+        internal abstract void ProcessWord(byte[] input, int inOff);
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal abstract void ProcessWord(ReadOnlySpan<byte> word);
 #endif
         internal abstract void ProcessLength(long bitLength);
         internal abstract void ProcessBlock();
+        /// <inheritdoc/>
         public abstract string AlgorithmName { get; }
-		public abstract int GetDigestSize();
+        /// <inheritdoc/>
+        public abstract int GetDigestSize();
+        /// <inheritdoc/>
         public abstract int DoFinal(byte[] output, int outOff);
-		public abstract IMemoable Copy();
-		public abstract void Reset(IMemoable t);
+        /// <inheritdoc/>
+        public abstract IMemoable Copy();
+        /// <inheritdoc/>
+        public abstract void Reset(IMemoable t);
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public abstract int DoFinal(Span<byte> output);
 #endif
     }

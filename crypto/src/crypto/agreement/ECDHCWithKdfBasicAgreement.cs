@@ -7,6 +7,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Agreement
 {
+    /// <summary>Cofactor ECDH key agreement followed by a key derivation function.</summary>
     // TODO[api] Rename to ECDhcWithKdfBasicAgreement, avoid inheritance
     public sealed class ECDHCWithKdfBasicAgreement
         : ECDHCBasicAgreement
@@ -15,6 +16,9 @@ namespace Org.BouncyCastle.Crypto.Agreement
         private readonly IDerivationFunction m_kdf;
         private byte[] m_ukm;
 
+        /// <summary>Create a new <see cref="ECDHCWithKdfBasicAgreement"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="kdf">The kdf.</param>
         [Obsolete("Use '(AlgorithmIdentifier, ...)' instead")]
         public ECDHCWithKdfBasicAgreement(string algorithm, IDerivationFunction kdf)
             : this(DHKdfParameters.WithDefaultParameters(algorithm), kdf)
@@ -33,6 +37,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
             base.Init(parameters);
         }
 
+        /// <inheritdoc/>
         public override BigInteger CalculateAgreement(ICipherParameters pubKey)
         {
             BigInteger result = base.CalculateAgreement(pubKey);

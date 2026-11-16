@@ -5,25 +5,36 @@ using Org.BouncyCastle.Math.EC.Multiplier;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
-	public class MqvPrivateParameters
-		: ICipherParameters
-	{
-		private readonly ECPrivateKeyParameters staticPrivateKey;
-		private readonly ECPrivateKeyParameters ephemeralPrivateKey;
-		private readonly ECPublicKeyParameters ephemeralPublicKey;
-		
-		public MqvPrivateParameters(
-			ECPrivateKeyParameters	staticPrivateKey,
-			ECPrivateKeyParameters	ephemeralPrivateKey)
-			: this(staticPrivateKey, ephemeralPrivateKey, null)
-		{
-		}
+    /// <summary>
+    /// The private parameters for an MQV key agreement: the static and ephemeral private keys, and optionally the
+    /// ephemeral public key.
+    /// </summary>
+    public class MqvPrivateParameters
+        : ICipherParameters
+    {
+        private readonly ECPrivateKeyParameters staticPrivateKey;
+        private readonly ECPrivateKeyParameters ephemeralPrivateKey;
+        private readonly ECPublicKeyParameters ephemeralPublicKey;
 
-		public MqvPrivateParameters(
-			ECPrivateKeyParameters	staticPrivateKey,
-			ECPrivateKeyParameters	ephemeralPrivateKey,
-			ECPublicKeyParameters	ephemeralPublicKey)
-		{
+        /// <summary>Create a new <see cref="MqvPrivateParameters"/>.</summary>
+        /// <param name="staticPrivateKey">The static private key.</param>
+        /// <param name="ephemeralPrivateKey">The ephemeral private key.</param>
+        public MqvPrivateParameters(
+            ECPrivateKeyParameters staticPrivateKey,
+            ECPrivateKeyParameters ephemeralPrivateKey)
+            : this(staticPrivateKey, ephemeralPrivateKey, null)
+        {
+        }
+
+        /// <summary>Create a new <see cref="MqvPrivateParameters"/>.</summary>
+        /// <param name="staticPrivateKey">The static private key.</param>
+        /// <param name="ephemeralPrivateKey">The ephemeral private key.</param>
+        /// <param name="ephemeralPublicKey">The ephemeral public key.</param>
+        public MqvPrivateParameters(
+            ECPrivateKeyParameters staticPrivateKey,
+            ECPrivateKeyParameters ephemeralPrivateKey,
+            ECPublicKeyParameters ephemeralPublicKey)
+        {
             if (staticPrivateKey == null)
                 throw new ArgumentNullException("staticPrivateKey");
             if (ephemeralPrivateKey == null)
@@ -47,21 +58,24 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.staticPrivateKey = staticPrivateKey;
             this.ephemeralPrivateKey = ephemeralPrivateKey;
             this.ephemeralPublicKey = ephemeralPublicKey;
-		}
+        }
 
+        /// <summary>Gets the static private key.</summary>
         public virtual ECPrivateKeyParameters StaticPrivateKey
-		{
-			get { return staticPrivateKey; }
-		}
+        {
+            get { return staticPrivateKey; }
+        }
 
+        /// <summary>Gets the ephemeral private key.</summary>
         public virtual ECPrivateKeyParameters EphemeralPrivateKey
-		{
-			get { return ephemeralPrivateKey; }
-		}
+        {
+            get { return ephemeralPrivateKey; }
+        }
 
+        /// <summary>Gets the ephemeral public key.</summary>
         public virtual ECPublicKeyParameters EphemeralPublicKey
-		{
-			get { return ephemeralPublicKey; }
-		}
-	}
+        {
+            get { return ephemeralPublicKey; }
+        }
+    }
 }

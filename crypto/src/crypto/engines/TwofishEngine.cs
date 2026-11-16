@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     * by Raif S. Naffah.
     */
     public sealed class TwofishEngine
-		: IBlockCipher
+        : IBlockCipher
     {
         private static readonly byte[,] P =  {
         {  // p0
@@ -222,6 +222,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private byte[] workingKey;
 
+        /// <summary>Create a new <see cref="TwofishEngine"/>.</summary>
         public TwofishEngine()
         {
             // calculate the MDS matrix
@@ -269,10 +270,10 @@ namespace Org.BouncyCastle.Crypto.Engines
             ICipherParameters parameters)
         {
             if (!(parameters is KeyParameter))
-				throw new ArgumentException("invalid parameter passed to Twofish init - " + Platform.GetTypeName(parameters));
+                throw new ArgumentException("invalid parameter passed to Twofish init - " + Platform.GetTypeName(parameters));
 
-			this.encrypting = forEncryption;
-			this.workingKey = ((KeyParameter)parameters).GetKey();
+            this.encrypting = forEncryption;
+            this.workingKey = ((KeyParameter)parameters).GetKey();
 
             int keyBits = this.workingKey.Length * 8;
             switch (keyBits)
@@ -286,15 +287,17 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
 
             this.k64Cnt = this.workingKey.Length / 8;
-			SetKey(this.workingKey);
+            SetKey(this.workingKey);
         }
 
-		public string AlgorithmName
+        /// <inheritdoc/>
+        public string AlgorithmName
         {
             get { return "Twofish"; }
         }
 
-		public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
+        /// <inheritdoc/>
+        public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (workingKey == null)
                 throw new InvalidOperationException("Twofish not initialised");
@@ -326,6 +329,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (workingKey == null)
@@ -347,6 +351,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public int GetBlockSize()
         {
             return BLOCK_SIZE;
@@ -663,12 +668,12 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         /**
         * Reed-Solomon code parameters: (12,8) reversible code:
-		* <p>
+        * <p>
         * <pre>
         * G(x) = x^4 + (a+1/a)x^3 + ax^2 + (a+1/a)x + 1
         * </pre>
         * where a = primitive root of field generator 0x14D
-		* </p>
+        * </p>
         */
         private  int RS_rem(int x)
         {

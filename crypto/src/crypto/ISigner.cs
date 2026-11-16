@@ -2,6 +2,9 @@ using System;
 
 namespace Org.BouncyCastle.Crypto
 {
+    /// <summary>
+    /// Interface for signature generation and verification, where the message is supplied incrementally.
+    /// </summary>
     public interface ISigner
     {
         /// <summary>The algorithm name.</summary>
@@ -28,6 +31,7 @@ namespace Org.BouncyCastle.Crypto
         void BlockUpdate(ReadOnlySpan<byte> input);
 #endif
 
+        /// <summary>Return the max signature size.</summary>
         int GetMaxSignatureSize();
 
         /// <summary>Generate a signature for the message we've been loaded with using the key we were initialised with.

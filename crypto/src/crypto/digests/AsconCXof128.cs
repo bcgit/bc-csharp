@@ -28,16 +28,23 @@ namespace Org.BouncyCastle.Crypto.Digests
         private int m_bufPos = 0;
         private bool m_squeezing = false;
 
+        /// <summary>Create a new <see cref="AsconCXof128"/>.</summary>
         public AsconCXof128()
             : this(Array.Empty<byte>())
         {
         }
 
+        /// <summary>Create a new <see cref="AsconCXof128"/>.</summary>
+        /// <param name="z">The result.</param>
         public AsconCXof128(byte[] z)
             : this(z, 0, z.Length)
         {
         }
 
+        /// <summary>Create a new <see cref="AsconCXof128"/>.</summary>
+        /// <param name="z">The result.</param>
+        /// <param name="zOff">The z off.</param>
+        /// <param name="zLen">The z len.</param>
         public AsconCXof128(byte[] z, int zOff, int zLen)
         {
             Arrays.ValidateSegment(z, zOff, zLen);
@@ -55,12 +62,16 @@ namespace Org.BouncyCastle.Crypto.Digests
             Z4 = S4;
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName => "Ascon-CXOF128";
 
+        /// <inheritdoc/>
         public int GetDigestSize() => 32;
 
+        /// <inheritdoc/>
         public int GetByteLength() => Rate;
 
+        /// <inheritdoc/>
         public void Update(byte input)
         {
             if (m_squeezing)
@@ -75,6 +86,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int inLen)
         {
             Check.DataLength(input, inOff, inLen, "input buffer too short");
@@ -120,6 +132,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             if (m_squeezing)
@@ -154,12 +167,14 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
             return OutputFinal(output, outOff, GetDigestSize());
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             int digestSize = GetDigestSize();
@@ -170,6 +185,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public void Reset()
         {
             S0 = Z0;
@@ -183,6 +199,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             m_squeezing = false;
         }
 
+        /// <inheritdoc/>
         public int OutputFinal(byte[] output, int outOff, int outLen)
         {
             Check.OutputLength(output, outOff, outLen, "output buffer is too short");
@@ -199,6 +216,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int OutputFinal(Span<byte> output)
         {
             int length = Output(output);
@@ -209,6 +227,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public int Output(byte[] output, int outOff, int outLen)
         {
             Check.OutputLength(output, outOff, outLen, "output buffer is too short");
@@ -261,6 +280,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int Output(Span<byte> output)
         {
             int result = output.Length;

@@ -53,16 +53,19 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+        /// <inheritdoc/>
         public override string AlgorithmName
         {
             get { return "DESede"; }
         }
 
+        /// <inheritdoc/>
         public override int GetBlockSize()
         {
             return BLOCK_SIZE;
         }
 
+        /// <inheritdoc/>
         public override int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (workingKey1 == null)
@@ -94,6 +97,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (workingKey1 == null)

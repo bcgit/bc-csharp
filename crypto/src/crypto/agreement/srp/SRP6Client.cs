@@ -15,25 +15,39 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
     /// </remarks>
     public class Srp6Client
     {
+        /// <summary>The safe prime modulus <c>N</c>.</summary>
         protected BigInteger N;
+        /// <summary>The generator <c>g</c> of the group.</summary>
         protected BigInteger g;
 
+        /// <summary>The client's private value <c>a</c>.</summary>
         protected BigInteger privA;
+        /// <summary>The client's public value <c>A</c>.</summary>
         protected BigInteger pubA;
 
+        /// <summary>The server's public value <c>B</c>.</summary>
         protected BigInteger B;
 
+        /// <summary>The private key <c>x</c>, derived from the salt, identity and password.</summary>
         protected BigInteger x;
+        /// <summary>The random scrambling parameter <c>u</c>.</summary>
         protected BigInteger u;
+        /// <summary>The shared session secret <c>S</c>.</summary>
         protected BigInteger S;
 
+        /// <summary>The client's evidence message <c>M1</c>.</summary>
         protected BigInteger M1;
+        /// <summary>The server's evidence message <c>M2</c>.</summary>
         protected BigInteger M2;
+        /// <summary>The session key derived from the shared secret.</summary>
         protected BigInteger Key;
 
+        /// <summary>The digest used by the protocol.</summary>
         protected IDigest digest;
+        /// <summary>The source of randomness.</summary>
         protected SecureRandom random;
 
+        /// <summary>Create a new <see cref="Srp6Client"/>.</summary>
         public Srp6Client()
         {
         }
@@ -51,6 +65,10 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             this.random = CryptoServicesRegistrar.GetSecureRandom(random);
         }
 
+        /// <summary>Create a new <see cref="Srp6Client"/>.</summary>
+        /// <param name="group">The group.</param>
+        /// <param name="digest">The digest.</param>
+        /// <param name="random">The source of randomness.</param>
         public virtual void Init(Srp6GroupParameters group, IDigest digest, SecureRandom random)
         {
             Init(group.N, group.G, digest, random);
@@ -83,6 +101,8 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             return S;
         }
 
+        /// <summary>Select the client's private value.</summary>
+        /// <returns>The private value <c>a</c>.</returns>
         protected virtual BigInteger SelectPrivateValue()
         {
             return Srp6Utilities.GeneratePrivateValue(digest, N, g, random);

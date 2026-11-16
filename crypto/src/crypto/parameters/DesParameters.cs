@@ -4,28 +4,35 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Parameters for DES, holding the key.</summary>
     public class DesParameters
-		: KeyParameter
+        : KeyParameter
     {
+        /// <summary>Create a new <see cref="DesParameters"/>.</summary>
+        /// <param name="key">The key.</param>
         public DesParameters(
             byte[] key)
-			: base(key)
+            : base(key)
         {
             if (IsWeakKey(key))
-				throw new ArgumentException("attempt to create weak DES key");
+                throw new ArgumentException("attempt to create weak DES key");
         }
 
-		public DesParameters(
-			byte[]	key,
-			int		keyOff,
-			int		keyLen)
-			: base(key, keyOff, keyLen)
-		{
-			if (IsWeakKey(key, keyOff))
-				throw new ArgumentException("attempt to create weak DES key");
-		}
+        /// <summary>Create a new <see cref="DesParameters"/>.</summary>
+        /// <param name="key">The key.</param>
+        /// <param name="keyOff">The key off.</param>
+        /// <param name="keyLen">The key len.</param>
+        public DesParameters(
+            byte[] key,
+            int keyOff,
+            int keyLen)
+            : base(key, keyOff, keyLen)
+        {
+            if (IsWeakKey(key, keyOff))
+                throw new ArgumentException("attempt to create weak DES key");
+        }
 
-		/*
+        /*
         * DES Key Length in bytes.
         */
         public const int DesKeyLength = 8;
@@ -87,9 +94,17 @@ namespace Org.BouncyCastle.Crypto.Parameters
 #endif
         }
 
+        /// <summary>Determine whether a key is one of the known weak or semi-weak DES keys.</summary>
+        /// <param name="key">The key material.</param>
+        /// <returns>true if the key is weak, false otherwise.</returns>
+        /// <exception cref="ArgumentException">The key material is too short.</exception>
         public static bool IsWeakKey(byte[] key) => IsWeakKey(key, 0);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Determine whether a key is one of the known weak or semi-weak DES keys.</summary>
+        /// <param name="key">The key material.</param>
+        /// <returns>true if the key is weak, false otherwise.</returns>
+        /// <exception cref="ArgumentException">The key material is too short.</exception>
         public static bool IsWeakKey(ReadOnlySpan<byte> key)
         {
             if (key.Length < DesKeyLength)
@@ -105,6 +120,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 #endif
 
+        /// <summary>Adjust a byte so that it has odd parity, by flipping its lowest bit if necessary.</summary>
+        /// <param name="b">The byte to adjust.</param>
+        /// <returns>The byte with odd parity.</returns>
         public static byte SetOddParity(byte b)
         {
             uint parity = b ^ 1U;
@@ -130,6 +148,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
         }
 
+        /// <summary>Create a new <see cref="DesParameters"/>.</summary>
+        /// <param name="bytes">The bytes.</param>
+        /// <param name="off">The offset into the array.</param>
+        /// <param name="len">The number of bytes.</param>
         public static void SetOddParity(byte[] bytes, int off, int len)
         {
             for (int i = 0; i < len; i++)
@@ -139,6 +161,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Set the odd parity.</summary>
+        /// <param name="bytes">The bytes.</param>
         public static void SetOddParity(Span<byte> bytes)
         {
             for (int i = 0; i < bytes.Length; i++)

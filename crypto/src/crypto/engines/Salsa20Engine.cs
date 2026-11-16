@@ -22,6 +22,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     public class Salsa20Engine
         : IStreamCipher
     {
+        /// <summary>The default number of rounds.</summary>
         public static readonly int DEFAULT_ROUNDS = 20;
 
         /** Constants */
@@ -43,6 +44,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             state[3] = TAU_SIGMA[tsOff + 3];
         }
 
+        /// <summary>The number of rounds.</summary>
         protected int rounds;
 
         /*
@@ -80,10 +82,11 @@ namespace Org.BouncyCastle.Crypto.Engines
             this.rounds = rounds;
         }
 
+        /// <inheritdoc/>
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
-            /* 
-             * Salsa20 encryption and decryption is completely symmetrical, so the 'forEncryption' is 
+            /*
+             * Salsa20 encryption and decryption is completely symmetrical, so the 'forEncryption' is
              * irrelevant. (Like 90% of stream ciphers)
              */
 
@@ -122,8 +125,10 @@ namespace Org.BouncyCastle.Crypto.Engines
             initialised = true;
         }
 
+        /// <summary>Gets the nonce size.</summary>
         protected virtual int NonceSize => 8;
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get
@@ -137,6 +142,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+        /// <inheritdoc/>
         public virtual byte ReturnByte(byte input)
         {
             if (LimitExceeded())
@@ -154,6 +160,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return output;
         }
 
+        /// <summary>Advance the block counter.</summary>
         protected virtual void AdvanceCounter()
         {
             if (++engineState[8] == 0)
@@ -162,6 +169,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+        /// <inheritdoc/>
         public virtual void ProcessBytes(byte[] inBytes, int inOff, int len, byte[] outBytes, int outOff)
         {
             if (!initialised)
@@ -186,6 +194,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (!initialised)
@@ -209,6 +218,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             index = 0;
@@ -216,12 +226,16 @@ namespace Org.BouncyCastle.Crypto.Engines
             ResetCounter();
         }
 
+        /// <summary>Reset the block counter.</summary>
         protected virtual void ResetCounter()
         {
             engineState[8] = 0;
             engineState[9] = 0;
         }
 
+        /// <summary>Set up the key and the initialization vector.</summary>
+        /// <param name="keyBytes">The key.</param>
+        /// <param name="ivBytes">The initialization vector.</param>
         protected virtual void SetKey(byte[] keyBytes, byte[] ivBytes)
         {
             if (keyBytes != null)
@@ -244,6 +258,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             Pack.LE_To_UInt32(ivBytes, 0, engineState, 6, 2);
         }
 
+        /// <summary>Generate a block of key stream.</summary>
+        /// <param name="output">The buffer to receive the key stream.</param>
         protected virtual void GenerateKeyStream(byte[] output)
         {
             SalsaCore(rounds, engineState, x);

@@ -22,6 +22,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Operators.Utilities
 {
+    /// <summary>The default finder of signature algorithm identifiers.</summary>
     public class DefaultSignatureAlgorithmFinder
         : ISignatureAlgorithmFinder
     {

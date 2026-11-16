@@ -5,26 +5,28 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
-	/// <remarks>
-	/// <p>Implementation of RipeMD 320.</p>
-	/// <p><b>Note:</b> this algorithm offers the same level of security as RipeMD160.</p>
-	/// </remarks>
+    /// <remarks>
+    /// <p>Implementation of RipeMD 320.</p>
+    /// <p><b>Note:</b> this algorithm offers the same level of security as RipeMD160.</p>
+    /// </remarks>
     public class RipeMD320Digest
-		: GeneralDigest
+        : GeneralDigest
     {
+        /// <inheritdoc/>
         public override string AlgorithmName
-		{
-			get { return "RIPEMD320"; }
-		}
+        {
+            get { return "RIPEMD320"; }
+        }
 
-		public override int GetDigestSize()
-		{
-			return DigestLength;
-		}
+        /// <inheritdoc/>
+        public override int GetDigestSize()
+        {
+            return DigestLength;
+        }
 
-		private const int DigestLength = 40;
+        private const int DigestLength = 40;
 
-		private int H0, H1, H2, H3, H4, H5, H6, H7, H8, H9; // IV's
+        private int H0, H1, H2, H3, H4, H5, H6, H7, H8, H9; // IV's
 
         private int[] X = new int[16];
         private int xOff;
@@ -39,14 +41,14 @@ namespace Org.BouncyCastle.Crypto.Digests
         /// message digest.
         /// </summary>
         public RipeMD320Digest(RipeMD320Digest t)
-			: base(t)
+            : base(t)
         {
-			CopyIn(t);
-		}
+            CopyIn(t);
+        }
 
-		private void CopyIn(RipeMD320Digest t)
-		{
-			base.CopyIn(t);
+        private void CopyIn(RipeMD320Digest t)
+        {
+            base.CopyIn(t);
 
             H0 = t.H0;
             H1 = t.H1;
@@ -97,6 +99,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             X[15] = (int)((ulong)bitLength >> 32);
         }
 
+        /// <inheritdoc/>
         public override int DoFinal(byte[] output, int outOff)
         {
             Finish();
@@ -118,6 +121,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int DoFinal(Span<byte> output)
         {
             Finish();
@@ -463,17 +467,19 @@ namespace Org.BouncyCastle.Crypto.Digests
                 X[i] = 0;
             }
         }
-		
-		public override IMemoable Copy()
-		{
-			return new RipeMD320Digest(this);
-		}
 
-		public override void Reset(IMemoable other)
-		{
-			RipeMD320Digest d = (RipeMD320Digest)other;
+        /// <inheritdoc/>
+        public override IMemoable Copy()
+        {
+            return new RipeMD320Digest(this);
+        }
 
-			CopyIn(d);
-		}
+        /// <inheritdoc/>
+        public override void Reset(IMemoable other)
+        {
+            RipeMD320Digest d = (RipeMD320Digest)other;
+
+            CopyIn(d);
+        }
     }
 }

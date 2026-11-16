@@ -7,57 +7,66 @@ namespace Org.BouncyCastle.Crypto.Parameters
 {
     /// <summary>Diffie-Hellman private key parameters.</summary>
     public class DHPrivateKeyParameters
-		: DHKeyParameters
+        : DHKeyParameters
     {
         private readonly BigInteger x;
 
         /// <summary>Initializes a new instance of <see cref="DHPrivateKeyParameters"/>.</summary>
         /// <param name="x">The private value X.</param>
         /// <param name="parameters">The DH domain parameters.</param>
-		public DHPrivateKeyParameters(
-            BigInteger		x,
-            DHParameters	parameters)
-			: base(true, parameters)
+        public DHPrivateKeyParameters(
+            BigInteger x,
+            DHParameters parameters)
+            : base(true, parameters)
         {
             this.x = x;
         }
 
-		public DHPrivateKeyParameters(
-            BigInteger			x,
-            DHParameters		parameters,
-		    DerObjectIdentifier	algorithmOid)
-			: base(true, parameters, algorithmOid)
+        /// <summary>Create a new <see cref="DHPrivateKeyParameters"/>.</summary>
+        /// <param name="x">The first operand.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="algorithmOid">The algorithm object identifier.</param>
+        public DHPrivateKeyParameters(
+            BigInteger x,
+            DHParameters parameters,
+            DerObjectIdentifier algorithmOid)
+            : base(true, parameters, algorithmOid)
         {
             this.x = x;
         }
 
         /// <summary>Gets the private value X.</summary>
-		public BigInteger X
+        public BigInteger X
         {
             get { return x; }
         }
 
-		public override bool Equals(
-			object obj)
+        /// <inheritdoc/>
+        public override bool Equals(
+            object obj)
         {
-			if (obj == this)
-				return true;
+            if (obj == this)
+                return true;
 
-			DHPrivateKeyParameters other = obj as DHPrivateKeyParameters;
+            DHPrivateKeyParameters other = obj as DHPrivateKeyParameters;
 
-			if (other == null)
-				return false;
+            if (other == null)
+                return false;
 
-			return Equals(other);
+            return Equals(other);
         }
 
-		protected bool Equals(
-			DHPrivateKeyParameters other)
-		{
-			return x.Equals(other.x) && base.Equals(other);
-		}
+        /// <summary>Determine whether these parameters are equal to another instance.</summary>
+        /// <param name="other">The instance to compare with.</param>
+        /// <returns>true if the parameters are equal, false otherwise.</returns>
+        protected bool Equals(
+            DHPrivateKeyParameters other)
+        {
+            return x.Equals(other.x) && base.Equals(other);
+        }
 
-		public override int GetHashCode()
+        /// <inheritdoc/>
+        public override int GetHashCode()
         {
             return x.GetHashCode() ^ base.GetHashCode();
         }

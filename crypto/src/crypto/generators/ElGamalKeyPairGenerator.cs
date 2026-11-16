@@ -17,6 +17,7 @@ namespace Org.BouncyCastle.Crypto.Generators
     {
         private ElGamalKeyGenerationParameters m_parameters;
 
+        /// <inheritdoc/>
         public void Init(KeyGenerationParameters parameters)
         {
             var elGamalParameters = (ElGamalKeyGenerationParameters)parameters;
@@ -27,6 +28,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             m_parameters = elGamalParameters;
         }
 
+        /// <inheritdoc/>
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
             ElGamalParameters egp = m_parameters.Parameters;

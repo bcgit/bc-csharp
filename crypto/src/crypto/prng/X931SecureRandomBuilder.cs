@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Crypto.Prng
 {
+    /// <summary>Builder for <see cref="X931SecureRandom"/> instances.</summary>
     public class X931SecureRandomBuilder
     {
         private readonly SecureRandom mRandom;          // JDK 1.1 complains on final.
@@ -59,6 +60,9 @@ namespace Org.BouncyCastle.Crypto.Prng
             this.mEntropySourceProvider = entropySourceProvider;
         }
 
+        /// <summary>Set the date/time vector to use.</summary>
+        /// <param name="dateTimeVector">The date/time vector.</param>
+        /// <returns>This builder.</returns>
         public X931SecureRandomBuilder SetDateTimeVector(byte[] dateTimeVector)
         {
             this.mDateTimeVector = dateTimeVector;

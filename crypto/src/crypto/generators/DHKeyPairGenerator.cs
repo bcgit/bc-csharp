@@ -17,6 +17,7 @@ namespace Org.BouncyCastle.Crypto.Generators
     {
         private DHKeyGenerationParameters m_parameters;
 
+        /// <inheritdoc/>
         public virtual void Init(KeyGenerationParameters parameters)
         {
             var dhParameters = (DHKeyGenerationParameters)parameters;
@@ -27,6 +28,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             m_parameters = dhParameters;
         }
 
+        /// <inheritdoc/>
         public virtual AsymmetricCipherKeyPair GenerateKeyPair()
         {
             DHParameters dhp = m_parameters.Parameters;

@@ -14,8 +14,10 @@ namespace Org.BouncyCastle.Crypto.Engines
     public class XSalsa20Engine
         : Salsa20Engine
     {
+        /// <inheritdoc/>
         public override string AlgorithmName => "XSalsa20";
 
+        /// <inheritdoc/>
         protected override int NonceSize => 24;
 
         /// <summary>

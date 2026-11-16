@@ -2,17 +2,20 @@ using System;
 
 namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
+    /// <summary>A GCM exponentiator that computes powers by repeated squaring, without precomputed tables.</summary>
     [Obsolete("Will be removed")]
     public class BasicGcmExponentiator
         : IGcmExponentiator
     {
         private GcmUtilities.FieldElement x;
 
+        /// <inheritdoc/>
         public void Init(byte[] x)
         {
             GcmUtilities.AsFieldElement(x, out this.x);
         }
 
+        /// <inheritdoc/>
         public void ExponentiateX(long pow, byte[] output)
         {
             GcmUtilities.FieldElement y;

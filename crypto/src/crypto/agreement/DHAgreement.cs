@@ -27,6 +27,11 @@ namespace Org.BouncyCastle.Crypto.Agreement
         private SecureRandom m_random;
         private BigInteger m_privateValue;
 
+        /// <summary>Initialise the agreement with the private key of this party.</summary>
+        /// <param name="parameters">
+        /// The private key (<see cref="DHPrivateKeyParameters"/>), optionally with a source of randomness.
+        /// </param>
+        /// <exception cref="ArgumentException">The parameters do not hold a Diffie-Hellman private key.</exception>
         public void Init(ICipherParameters parameters)
         {
             var kParam = ParameterUtilities.GetRandom(parameters, out var providedRandom);

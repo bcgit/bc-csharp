@@ -22,6 +22,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         private DsaKeyGenerationParameters param;
 
+        /// <inheritdoc/>
         public void Init(
             KeyGenerationParameters parameters)
         {
@@ -34,6 +35,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             this.param = (DsaKeyGenerationParameters) parameters;
         }
 
+        /// <inheritdoc/>
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
             DsaParameters dsaParams = param.Parameters;

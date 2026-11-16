@@ -22,6 +22,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     public sealed class TnepresEngine
         : SerpentEngineBase
     {
+        /// <inheritdoc/>
         public override string AlgorithmName
         {
             get { return "Tnepres"; }

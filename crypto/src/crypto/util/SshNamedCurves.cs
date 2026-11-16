@@ -10,6 +10,7 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
+    /// <summary>The names that OpenSSH uses for elliptic curves.</summary>
     public static class SshNamedCurves
     {
         private static readonly Dictionary<string, DerObjectIdentifier> objIds =
