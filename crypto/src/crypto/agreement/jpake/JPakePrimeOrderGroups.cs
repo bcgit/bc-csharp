@@ -15,6 +15,9 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
     /// </summary>
     public class JPakePrimeOrderGroups
     {
+        // The pre-approved groups skip the checks, through the constructor that is obsolete for anyone else
+#pragma warning disable CS0618 // Type or member is obsolete
+
         /// <summary>
         /// From Sun's JDK JavaDoc (docs/guide/security/CryptoSpec.html#AppB)
         /// 1024-bit p, 160-bit q and 1024-bit g for 80-bit security.
@@ -104,5 +107,6 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
                     "787F7DED3B30E1A22D09F1FBDA1ABBBFBF25CAE05A13F812E34563F99410E73B", 16),
             true
         );
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 }
