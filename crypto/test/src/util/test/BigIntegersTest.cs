@@ -146,6 +146,38 @@ namespace Org.BouncyCastle.Utilities.Test
                 () => BigIntegers.ModMult(BigInteger.Four, BigInteger.One, BigInteger.One));
         }
 
+        [Test]
+        public void ModPowBaseBlinded()
+        {
+            // prime moduli, down to the smallest with room for a blinding value in [2, M - 2]
+            BigInteger[] moduli = { SakkeQ, Sm9N, P256N, BigInteger.ValueOf(5), BigInteger.ValueOf(7) };
+
+            foreach (BigInteger m in moduli)
+            {
+                BigInteger mSub1 = m.Subtract(BigInteger.One);
+                BigInteger[] bases = { BigInteger.One, mSub1, RandomBelow(mSub1).Add(BigInteger.One),
+                    RandomBelow(mSub1).Add(BigInteger.One) };
+                BigInteger[] exponents = { BigInteger.Zero, BigInteger.One, mSub1, RandomBelow(m), RandomBelow(m),
+                    new BigInteger(m.BitLength + 64, Random) };
+
+                foreach (BigInteger x in bases)
+                {
+                    foreach (BigInteger e in exponents)
+                    {
+                        // the blinding value differs on each call and must cancel exactly
+                        Assert.AreEqual(x.ModPow(e, m), BigIntegers.ModPowBaseBlinded(m, x, e, Random));
+                    }
+                }
+            }
+
+            // the base must be in [1, M)
+            foreach (BigInteger x in new BigInteger[]{ BigInteger.Zero, BigInteger.One.Negate(), P256N })
+            {
+                Assert.Throws<ArgumentException>(
+                    () => BigIntegers.ModPowBaseBlinded(P256N, x, BigInteger.Two, Random));
+            }
+        }
+
         private static void CheckModAdd(BigInteger m, BigInteger x, BigInteger y) =>
             CheckResult(m, x, y, x.Add(y).Mod(m), BigIntegers.ModAdd(m, x, y));
 

@@ -550,6 +550,34 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 
+        /// <summary>
+        /// X^E mod M for odd prime M and X in [1, M), with the base blinded so that a chosen X cannot steer the timing.
+        /// </summary>
+        /// <remarks>
+        /// For a fresh random v this computes (X * v)^E * (v^-1)^E. <see cref="BigInteger.ModPow"/> is not constant
+        /// time, and with a fixed secret exponent its timing for chosen bases can be accumulated over many calls
+        /// (Kocher 1996, Brumley and Boneh 2003); here neither exponentiation sees a base the caller of the enclosing
+        /// operation knows. The exponent itself is not randomized: the operations it causes are the same on every
+        /// call, so their count remains visible, but once. Costs two exponentiations and an inversion.
+        /// </remarks>
+        // TODO Replace by a constant-time exponentiation when one is available
+        internal static BigInteger ModPowBaseBlinded(BigInteger M, BigInteger X, BigInteger E, SecureRandom random)
+        {
+            // zero cannot be blinded (the product with v stays zero), and ModMult below rejects X >= M
+            if (X.SignValue <= 0)
+                throw new ArgumentException("must be positive", nameof(X));
+
+            // the blinding is only as good as v is secret, so v stays on the fixed-time helpers. M is prime, so any v
+            // in range is invertible.
+            BigInteger v = CreateRandomInRange(BigInteger.Two, M.Subtract(BigInteger.Two), random);
+            BigInteger vInv = ModOddInverse(M, v);
+
+            BigInteger blinded = ModMult(M, X, v).ModPow(E, M);
+            BigInteger unblind = vInv.ModPow(E, M);
+
+            return ModMult(M, blinded, unblind);
+        }
+
         /// <summary>(X - Y) mod M, for X and Y already in [0, M), in time independent of the values.</summary>
         /// <remarks>
         /// Use this rather than <c>X.Subtract(Y).Mod(M)</c> when either operand is secret: reducing a negative value
