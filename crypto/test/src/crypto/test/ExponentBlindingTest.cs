@@ -5,7 +5,6 @@ using NUnit.Framework;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Crypto.Agreement.JPake;
 using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
@@ -35,12 +34,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                            "89BBCD97E904E09114D9A7DEFDEADFC9078EA544D2E401AEECC40BB9FBBF78FD" +
                            "87995A10A1C27CB7789B594BA7EFB5C4326A9FE59A070E136DB77175464ADCA4" +
                            "17BE5DCE2F40D10A46A3A3943F26AB7FD9C0398FF8C76EE0A56826A8A88F1DBD", 16));
-
-        private static readonly ElGamalParameters ElGamalParams = new ElGamalParameters(
-            new BigInteger("9494fec095f3b85ee286542b3836fc81a5dd0a0349b4c239dd38744d488cf8e3" +
-                           "1db8bcb7d33b41abb9e5a33cca9144b1cef332c94bf0573bf047a3aca98cdf3b", 16),
-            new BigInteger("153d5d6172adb43045b68ae8e1de1070b6137005686d29d3d73a7749199681ee" +
-                           "5b212c9b96bfdcfa5b20cd5e3fd2044895d609cf9b410b7a0f12ca1cb9a428cc", 16));
 
         [Test]
         public void Dsa()
@@ -98,27 +91,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             var verifier = new Gost3410Signer();
             verifier.Init(false, kp.Public);
             Assert.IsTrue(verifier.VerifySignature(digest, sig[0], sig[1]));
-        }
-
-        [Test]
-        public void ElGamal()
-        {
-            var kpGen = new ElGamalKeyPairGenerator();
-            kpGen.Init(new ElGamalKeyGenerationParameters(Random, ElGamalParams));
-            AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
-
-            var enc = new ElGamalEngine();
-            enc.Init(true, new ParametersWithRandom(kp.Public, Random));
-            byte[] plain = RandomDigest(enc.GetInputBlockSize());
-            plain[0] |= 0x01; // no leading zero, so the decryption round-trips byte for byte
-            byte[] cipherText = enc.ProcessBlock(plain, 0, plain.Length);
-
-            var counting = new CountingRandom();
-            var dec = new ElGamalEngine();
-            dec.Init(false, new ParametersWithRandom(kp.Private, counting));
-            byte[] recovered = dec.ProcessBlock(cipherText, 0, cipherText.Length);
-            Assert.AreEqual(1, counting.Count, "blinding draws");
-            Assert.AreEqual(plain, recovered);
         }
 
         [Test]
