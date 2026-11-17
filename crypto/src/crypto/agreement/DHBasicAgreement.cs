@@ -3,6 +3,7 @@ using System;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Agreement
 {
@@ -59,7 +60,10 @@ namespace Org.BouncyCastle.Crypto.Agreement
                 ? pub.Y
                 : new DHPublicKeyParameters(pub.Y, m_dhParams).Y;
 
-            BigInteger result = peerY.ModPow(m_key.X, p);
+            // The exponent is our private value, long lived for static-static agreement, and the peer chooses the base,
+            // so the base is blinded: the timing of the variable-time ModPow could otherwise be accumulated against
+            // the key over many agreements. A key used only once gains nothing from this, but that cannot be told here.
+            BigInteger result = BigIntegers.ModPowBaseBlinded(p, peerY, m_key.X, m_random);
             if (result.Equals(BigInteger.One))
                 throw new InvalidOperationException("Shared key can't be 1");
 

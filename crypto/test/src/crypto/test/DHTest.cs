@@ -529,6 +529,63 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
+        // Base blinding does not depend on the group order or on the exponent length, so these only vary them
+        private static readonly TestCaseData[] BaseBlindingGroups =
+        {
+            new TestCaseData(DHStandardGroups.rfc2409_768).SetArgDisplayNames("safe prime"),
+            new TestCaseData(new DHParameters(DHStandardGroups.rfc2409_768.P, DHStandardGroups.rfc2409_768.G))
+                .SetArgDisplayNames("no q"),
+            new TestCaseData(DHStandardGroups.rfc7919_ffdhe2048).SetArgDisplayNames("short exponent"),
+        };
+
+        /// <summary>
+        /// The peer chooses the base that is raised to our private value, so DHBasicAgreement blinds that base with a
+        /// random value. The result must be unchanged, and the blinding must draw on the random given to Init.
+        /// </summary>
+        [TestCaseSource(nameof(BaseBlindingGroups))]
+        public void BasicAgreementBlindsBase(DHParameters dhParams)
+        {
+            var kpGen = new DHBasicKeyPairGenerator();
+            kpGen.Init(new DHKeyGenerationParameters(new SecureRandom(), dhParams));
+            AsymmetricCipherKeyPair kp1 = kpGen.GenerateKeyPair(), kp2 = kpGen.GenerateKeyPair();
+
+            var counting = new CallCountingRandom();
+            var agreement = new DHBasicAgreement();
+            agreement.Init(new ParametersWithRandom(kp1.Private, counting));
+            BigInteger z = agreement.CalculateAgreement(kp2.Public);
+            Assert.Greater(counting.Calls, 0, "blinding draws");
+
+            BigInteger x1 = ((DHPrivateKeyParameters)kp1.Private).X;
+            Assert.AreEqual(((DHPublicKeyParameters)kp2.Public).Y.ModPow(x1, dhParams.P), z);
+        }
+
+        /// <summary>
+        /// DHAgreement blinds the base that is raised to its long-term key; the result must be unchanged, so both sides
+        /// still agree, and the blinding must draw on the random given to Init.
+        /// </summary>
+        [TestCaseSource(nameof(BaseBlindingGroups))]
+        public void AgreementBlindsBase(DHParameters dhParams)
+        {
+            var kpGen = new DHBasicKeyPairGenerator();
+            kpGen.Init(new DHKeyGenerationParameters(new SecureRandom(), dhParams));
+            AsymmetricCipherKeyPair kp1 = kpGen.GenerateKeyPair(), kp2 = kpGen.GenerateKeyPair();
+
+            var counting = new CallCountingRandom();
+            var alice = new DHAgreement();
+            alice.Init(new ParametersWithRandom(kp1.Private, counting));
+            var bob = new DHAgreement();
+            bob.Init(kp2.Private);
+
+            BigInteger aliceMessage = alice.CalculateMessage();
+            BigInteger bobMessage = bob.CalculateMessage();
+
+            counting.Calls = 0;
+            BigInteger z = alice.CalculateAgreement((DHPublicKeyParameters)kp2.Public, bobMessage);
+            Assert.Greater(counting.Calls, 0, "blinding draws");
+
+            Assert.AreEqual(bob.CalculateAgreement((DHPublicKeyParameters)kp1.Public, aliceMessage), z);
+        }
+
         [Test]
         public void BasicAgreementRevalidatesPublicKey()
         {
@@ -765,6 +822,26 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
 
             public override BigInteger Y => m_weakY;
+        }
+
+        private sealed class CallCountingRandom
+            : SecureRandom
+        {
+            internal int Calls;
+
+            public override void NextBytes(byte[] buf)
+            {
+                ++Calls;
+                base.NextBytes(buf);
+            }
+
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void NextBytes(Span<byte> buffer)
+            {
+                ++Calls;
+                base.NextBytes(buffer);
+            }
+#endif
         }
     }
 }
