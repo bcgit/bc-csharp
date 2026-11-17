@@ -63,30 +63,6 @@ namespace Org.BouncyCastle.Crypto.Engines
                 NaccacheSternPrivateKeyParameters priv = (NaccacheSternPrivateKeyParameters)key;
                 modulusLength = (priv.Modulus.BitLength + 7) / 8;
                 var primes = priv.SmallPrimesList;
-                lookup = new byte[primes.Count][][];
-                for (int i = 0; i < primes.Count; i++)
-                {
-                    BigInteger actualPrime = primes[i];
-                    int actualPrimeValue = actualPrime.IntValue;
-
-                    lookup[i] = new byte[actualPrimeValue][];
-                    lookup[i][0] = BigIntegers.AsUnsignedByteArray(modulusLength, BigInteger.One);
-
-                    // entry j is g^(j * phi(n) / p) = h^j for h = g^(phi(n) / p), so one exponentiation and then
-                    // repeated multiplication build the table. The exponent carries phi(n), the private key, so it is
-                    // blinded with a random multiple of phi(n) before the variable-time ModPow; g is coprime to n, so h
-                    // is unchanged. The entries are as sensitive as the key (h - 1 shares a prime factor with n), so
-                    // the chain uses the fixed-time ModMult rather than ModMultiply, whose reduction follows the value.
-                    BigInteger exponent = BigIntegers.CreateBlindedExponent(PhiNOverSmallPrime(priv, actualPrime),
-                        priv.PhiN, random);
-                    BigInteger h = priv.G.ModPow(exponent, priv.Modulus);
-                    BigInteger entry = BigInteger.One;
-                    for (int j = 1; j < actualPrimeValue; j++)
-                    {
-                        entry = BigIntegers.ModMult(priv.Modulus, entry, h);
-                        lookup[i][j] = BigIntegers.AsUnsignedByteArray(modulusLength, entry);
-                    }
-                }
 
                 // sum_i d_i * (sigma / p_i) * ((sigma / p_i)^-1 mod p_i) is below count * sigma, so bitlength(count)
                 // masked subtractions of sigma * 2^j reduce it mod sigma; the accumulator is sized for that sum
@@ -99,19 +75,47 @@ namespace Org.BouncyCastle.Crypto.Engines
                 int reductions = Integers.BitLength(primes.Count);
                 int crtBits = sigma.BitLength + reductions;
 
+                BigInteger[] cofactors = new BigInteger[primes.Count];
                 crtCofactors = new uint[primes.Count][];
                 crtInverses = new uint[primes.Count];
                 for (int i = 0; i < primes.Count; i++)
                 {
-                    BigInteger cofactor = sigma.Divide(primes[i]);
-                    crtCofactors[i] = Nat.FromBigInteger(crtBits, cofactor);
-                    crtInverses[i] = (uint)cofactor.ModInverse(primes[i]).IntValue;
+                    cofactors[i] = ExactDivide(sigma, primes[i], sigma.BitLength);
+                    crtCofactors[i] = Nat.FromBigInteger(crtBits, cofactors[i]);
+                    crtInverses[i] = (uint)cofactors[i].ModInverse(primes[i]).IntValue;
                 }
 
                 crtSigmaMultiples = new uint[reductions][];
                 for (int j = 0; j < reductions; j++)
                 {
                     crtSigmaMultiples[j] = Nat.FromBigInteger(crtBits, sigma.ShiftLeft(j));
+                }
+
+                // phi(n) / p_i = (phi(n) / sigma) * (sigma / p_i), so one exact division serves every table
+                BigInteger phiNOverSigma = PhiNOver(priv, sigma);
+
+                lookup = new byte[primes.Count][][];
+                for (int i = 0; i < primes.Count; i++)
+                {
+                    int actualPrimeValue = primes[i].IntValue;
+
+                    lookup[i] = new byte[actualPrimeValue][];
+                    lookup[i][0] = BigIntegers.AsUnsignedByteArray(modulusLength, BigInteger.One);
+
+                    // entry j is g^(j * phi(n) / p) = h^j for h = g^(phi(n) / p), so one exponentiation and then
+                    // repeated multiplication build the table. The exponent carries phi(n), the private key, so it is
+                    // blinded with a random multiple of phi(n) before the variable-time ModPow; g is coprime to n, so h
+                    // is unchanged. The entries are as sensitive as the key (h - 1 shares a prime factor with n), so
+                    // the chain uses the fixed-time ModMult rather than ModMultiply, whose reduction follows the value.
+                    BigInteger exponent = BigIntegers.CreateBlindedExponent(phiNOverSigma.Multiply(cofactors[i]),
+                        priv.PhiN, random);
+                    BigInteger h = priv.G.ModPow(exponent, priv.Modulus);
+                    BigInteger entry = BigInteger.One;
+                    for (int j = 1; j < actualPrimeValue; j++)
+                    {
+                        entry = BigIntegers.ModMult(priv.Modulus, entry, h);
+                        lookup[i][j] = BigIntegers.AsUnsignedByteArray(modulusLength, entry);
+                    }
                 }
             }
             else
@@ -206,7 +210,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     // key, so the exponent is blinded before the variable-time ModPow. input^phi(n) = 1 (mod n) for any
                     // input coprime to n, so the result is unchanged; an input sharing a factor with n fails the
                     // lookup either way.
-                    BigInteger exponent = BigIntegers.CreateBlindedExponent(PhiNOverSmallPrime(priv, primes[i]),
+                    BigInteger exponent = BigIntegers.CreateBlindedExponent(PhiNOver(priv, primes[i]),
                         priv.PhiN, random);
                     BigInteger exp = input.ModPow(exponent, priv.Modulus);
                     byte[][] al = lookup[i];
@@ -342,18 +346,22 @@ namespace Org.BouncyCastle.Crypto.Engines
             return retval;
         }
 
-        // phi(n) / p for one of the key's small primes, without BigInteger.Divide, whose shift-and-subtract loop follows
-        // the bits of the quotient. p divides sigma, which divides phi(n), so the division is exact and the quotient is
-        // below 2^k for k the modulus bit length; it is therefore phi(n) * p^-1 mod 2^k, one multiplication and a mask.
-        // Only correct when p divides phi(n), hence kept local to this engine.
-        // TODO Consider word-level exact division (one pass using p^-1 mod 2^32) instead of the full multiply; currently
-        // negligible next to the ModPow each result feeds.
-        private static BigInteger PhiNOverSmallPrime(NaccacheSternPrivateKeyParameters priv, BigInteger p)
-        {
-            BigInteger m = BigInteger.One.ShiftLeft(priv.Modulus.BitLength);
-            BigInteger q = priv.PhiN.Multiply(p.ModInverse(m)).Mod(m);
+        // phi(n) / d for d sigma or one of the key's small primes. d divides sigma, which divides phi(n), so the
+        // division is exact, and the quotient is below 2^k for k the modulus bit length.
+        private static BigInteger PhiNOver(NaccacheSternPrivateKeyParameters priv, BigInteger d) =>
+            ExactDivide(priv.PhiN, d, priv.Modulus.BitLength);
 
-            Debug.Assert(q.Multiply(p).Equals(priv.PhiN));
+        // x / d for odd d dividing x, with the quotient below 2^bits, without BigInteger.Divide, whose
+        // shift-and-subtract loop follows the bits of the quotient: it is x * d^-1 mod 2^bits, one multiplication and a
+        // mask. Only correct when d divides x, hence kept local to this engine.
+        // TODO Consider word-level exact division (one pass using d^-1 mod 2^32) instead of the full multiply; currently
+        // negligible next to the ModPow each result feeds.
+        private static BigInteger ExactDivide(BigInteger x, BigInteger d, int bits)
+        {
+            BigInteger m = BigInteger.One.ShiftLeft(bits);
+            BigInteger q = x.Multiply(d.ModInverse(m)).Mod(m);
+
+            Debug.Assert(q.Multiply(d).Equals(x));
 
             return q;
         }
