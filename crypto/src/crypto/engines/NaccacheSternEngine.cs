@@ -24,6 +24,10 @@ namespace Org.BouncyCastle.Crypto.Engines
         // byte by byte without the length itself saying anything
         private byte[][][] lookup = null;
 
+        // phi(n) / p for each small prime p, the exponent decryption raises the ciphertext to. Worked out once when the
+        // tables are built rather than divided out again for every block; no more sensitive than the tables themselves.
+        private BigInteger[] phiNOverPrime = null;
+
         private int modulusLength;
 
         // CRT recombination data, derived only from the small primes: for each prime p_i, sigma / p_i (at the
@@ -91,12 +95,16 @@ namespace Org.BouncyCastle.Crypto.Engines
                     crtSigmaMultiples[j] = Nat.FromBigInteger(crtBits, sigma.ShiftLeft(j));
                 }
 
-                // phi(n) / p_i = (phi(n) / sigma) * (sigma / p_i), so one exact division serves every table
-                BigInteger phiNOverSigma = PhiNOver(priv, sigma);
+                // phi(n) / p_i = (phi(n) / sigma) * (sigma / p_i), so one exact division serves every prime. sigma
+                // divides phi(n), and the quotient is below 2^k for k the modulus bit length.
+                BigInteger phiNOverSigma = ExactDivide(priv.PhiN, sigma, priv.Modulus.BitLength);
 
+                phiNOverPrime = new BigInteger[primes.Count];
                 lookup = new byte[primes.Count][][];
                 for (int i = 0; i < primes.Count; i++)
                 {
+                    phiNOverPrime[i] = phiNOverSigma.Multiply(cofactors[i]);
+
                     int actualPrimeValue = primes[i].IntValue;
 
                     lookup[i] = new byte[actualPrimeValue][];
@@ -110,8 +118,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     // If p divides both P - 1 and Q - 1 for n = PQ (always so for p = 2), then h = 1 for every g,
                     // every entry is 1, and that digit always decrypts as 0; the key is invalid but this does not
                     // detect it.
-                    BigInteger exponent = BigIntegers.CreateBlindedExponent(phiNOverSigma.Multiply(cofactors[i]),
-                        priv.PhiN, random);
+                    BigInteger exponent = BigIntegers.CreateBlindedExponent(phiNOverPrime[i], priv.PhiN, random);
                     BigInteger h = priv.G.ModPow(exponent, priv.Modulus);
                     BigInteger entry = BigInteger.One;
                     for (int j = 1; j < actualPrimeValue; j++)
@@ -213,8 +220,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     // key, so the exponent is blinded before the variable-time ModPow. input^phi(n) = 1 (mod n) for any
                     // input coprime to n, so the result is unchanged; an input sharing a factor with n fails the
                     // lookup either way.
-                    BigInteger exponent = BigIntegers.CreateBlindedExponent(PhiNOver(priv, primes[i]),
-                        priv.PhiN, random);
+                    BigInteger exponent = BigIntegers.CreateBlindedExponent(phiNOverPrime[i], priv.PhiN, random);
                     BigInteger exp = input.ModPow(exponent, priv.Modulus);
                     byte[][] al = lookup[i];
                     if (al.Length != primes[i].IntValue)
@@ -348,11 +354,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             return retval;
         }
-
-        // phi(n) / d for d sigma or one of the key's small primes. d divides sigma, which divides phi(n), so the
-        // division is exact, and the quotient is below 2^k for k the modulus bit length.
-        private static BigInteger PhiNOver(NaccacheSternPrivateKeyParameters priv, BigInteger d) =>
-            ExactDivide(priv.PhiN, d, priv.Modulus.BitLength);
 
         // x / d for odd d dividing x, with the quotient below 2^bits, without BigInteger.Divide, whose
         // shift-and-subtract loop follows the bits of the quotient: it is x * d^-1 mod 2^bits, one multiplication and a
