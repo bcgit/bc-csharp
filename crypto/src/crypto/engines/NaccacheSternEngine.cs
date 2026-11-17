@@ -1,9 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -25,6 +25,12 @@ namespace Org.BouncyCastle.Crypto.Engines
         private byte[][][] lookup = null;
 
         private int modulusLength;
+
+        // CRT recombination data, derived only from the small primes: for each prime p_i, sigma / p_i (at the
+        // accumulator length) and its inverse mod p_i; and sigma * 2^j for the final reduction
+        private uint[][] crtCofactors;
+        private uint[] crtInverses;
+        private uint[][] crtSigmaMultiples;
 
         private SecureRandom random;
 
@@ -80,6 +86,32 @@ namespace Org.BouncyCastle.Crypto.Engines
                         entry = BigIntegers.ModMult(priv.Modulus, entry, h);
                         lookup[i][j] = BigIntegers.AsUnsignedByteArray(modulusLength, entry);
                     }
+                }
+
+                // sum_i d_i * (sigma / p_i) * ((sigma / p_i)^-1 mod p_i) is below count * sigma, so bitlength(count)
+                // masked subtractions of sigma * 2^j reduce it mod sigma; the accumulator is sized for that sum
+                BigInteger sigma = BigInteger.One;
+                for (int i = 0; i < primes.Count; i++)
+                {
+                    sigma = sigma.Multiply(primes[i]);
+                }
+
+                int reductions = Integers.BitLength(primes.Count);
+                int crtBits = sigma.BitLength + reductions;
+
+                crtCofactors = new uint[primes.Count][];
+                crtInverses = new uint[primes.Count];
+                for (int i = 0; i < primes.Count; i++)
+                {
+                    BigInteger cofactor = sigma.Divide(primes[i]);
+                    crtCofactors[i] = Nat.FromBigInteger(crtBits, cofactor);
+                    crtInverses[i] = (uint)cofactor.ModInverse(primes[i]).IntValue;
+                }
+
+                crtSigmaMultiples = new uint[reductions][];
+                for (int j = 0; j < reductions; j++)
+                {
+                    crtSigmaMultiples[j] = Nat.FromBigInteger(crtBits, sigma.ShiftLeft(j));
                 }
             }
             else
@@ -157,52 +189,66 @@ namespace Org.BouncyCastle.Crypto.Engines
             if (forEncryption)
                 return Encrypt(input);
 
-            var plain = new List<BigInteger>();
             NaccacheSternPrivateKeyParameters priv = (NaccacheSternPrivateKeyParameters)key;
             var primes = priv.SmallPrimesList;
-            // Get Chinese Remainders of CipherText
-            for (int i = 0; i < primes.Count; i++)
+
+            // The plaintext is recombined from its digits d_i = plaintext mod p_i by the CRT, in a fixed-length
+            // accumulator so that neither the digits nor the sum steer the work (BigInteger arithmetic shortcuts zero
+            // operands, sizes products by their values, and reduces by shift-and-subtract over the quotient).
+            int crtLength = crtCofactors[0].Length;
+            uint[] acc = Nat.Create(crtLength);
+            uint[] tmp = Nat.Create(crtLength);
+            try
             {
-                // input is the caller's ciphertext and the exponent is derived from phi(n), which is the private
-                // key, so the exponent is blinded before the variable-time ModPow. input^phi(n) = 1 (mod n) for any
-                // input coprime to n, so the result is unchanged; an input sharing a factor with n fails the lookup
-                // either way.
-                BigInteger exponent = BigIntegers.CreateBlindedExponent(PhiNOverSmallPrime(priv, primes[i]),
-                    priv.PhiN, random);
-                BigInteger exp = input.ModPow(exponent, priv.Modulus);
-                byte[][] al = lookup[i];
-                if (al.Length != primes[i].IntValue)
+                for (int i = 0; i < primes.Count; i++)
                 {
-                    throw new InvalidCipherTextException("Error in lookup Array for "
-                                    + primes[i].IntValue
-                                    + ": Size mismatch. Expected ArrayList with length "
-                                    + primes[i].IntValue + " but found ArrayList of length "
-                                    + al.Length);
+                    // input is the caller's ciphertext and the exponent is derived from phi(n), which is the private
+                    // key, so the exponent is blinded before the variable-time ModPow. input^phi(n) = 1 (mod n) for any
+                    // input coprime to n, so the result is unchanged; an input sharing a factor with n fails the
+                    // lookup either way.
+                    BigInteger exponent = BigIntegers.CreateBlindedExponent(PhiNOverSmallPrime(priv, primes[i]),
+                        priv.PhiN, random);
+                    BigInteger exp = input.ModPow(exponent, priv.Modulus);
+                    byte[][] al = lookup[i];
+                    if (al.Length != primes[i].IntValue)
+                    {
+                        throw new InvalidCipherTextException("Error in lookup Array for "
+                                        + primes[i].IntValue
+                                        + ": Size mismatch. Expected ArrayList with length "
+                                        + primes[i].IntValue + " but found ArrayList of length "
+                                        + al.Length);
+                    }
+
+                    // the CRT term d_i * (sigma / p_i) * ((sigma / p_i)^-1 mod p_i) mod sigma is (sigma / p_i) * t_i
+                    // for t_i = d_i * (sigma / p_i)^-1 mod p_i, and the lookup yields t_i directly, so each term is
+                    // below sigma and needs no reduction of its own
+                    if (!FixedTimeLookup(al, BigIntegers.AsUnsignedByteArray(modulusLength, exp), crtInverses[i],
+                        out uint t))
+                    {
+                        throw new InvalidCipherTextException("Lookup failed");
+                    }
+
+                    Nat.MulWordAddTo(crtLength, t, crtCofactors[i], 0, acc, 0);
                 }
-                int lookedup = FixedTimeIndexOf(al, BigIntegers.AsUnsignedByteArray(modulusLength, exp));
 
-                if (lookedup == -1)
-                    throw new InvalidCipherTextException("Lookup failed");
+                // acc < count * sigma <= 2^reductions * sigma, and each masked subtraction of sigma * 2^j halves the
+                // bound, leaving acc < sigma
+                for (int j = crtSigmaMultiples.Length - 1; j >= 0; --j)
+                {
+                    int borrow = Nat.Sub(crtLength, acc, crtSigmaMultiples[j], tmp);
+                    Nat.CMov(crtLength, ~borrow, tmp, 0, acc, 0);
+                }
 
-                plain.Add(BigInteger.ValueOf(lookedup));
+                // No check that g^test re-encrypts to the input: a valid ciphertext need not equal g^test, since
+                // probabilistic encryption multiplies in x^sigma and AddCryptedBlocks can leave a sum beyond sigma
+                BigInteger test = Nat.ToBigInteger(crtLength, acc);
+                return test.ToByteArray();
             }
-            BigInteger test = ChineseRemainder(plain, primes);
-
-            // Should not be used as an oracle, so reencrypt output to see
-            // if it corresponds to input
-
-            // this breaks probabilisic encryption, so disable it. Anyway, we do
-            // use the first n primes for key generation, so it is pretty easy
-            // to guess them. But as stated in the paper, this is not a security
-            // breach. So we can just work with the correct sigma.
-
-            // if ((key.G.ModPow(test, key.Modulus)).Equals(input)) {
-            //      output = test.ToByteArray();
-            // } else {
-            //      output = null;
-            // }
-
-            return test.ToByteArray();
+            finally
+            {
+                Arrays.ZeroMemory(acc);
+                Arrays.ZeroMemory(tmp);
+            }
         }
 
         /**
@@ -296,37 +342,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             return retval;
         }
 
-        /**
-        * Computes the integer x that is expressed through the given primes and the
-        * congruences with the chinese remainder theorem (CRT).
-        *
-        * @param congruences
-        *            the congruences c_i
-        * @param primes
-        *            the primes p_i
-        * @return an integer x for that x % p_i == c_i
-        */
-        private static BigInteger ChineseRemainder(IList<BigInteger> congruences, IList<BigInteger> primes)
-        {
-            BigInteger retval = BigInteger.Zero;
-            BigInteger all = BigInteger.One;
-            for (int i = 0; i < primes.Count; i++)
-            {
-                all = all.Multiply(primes[i]);
-            }
-            for (int i = 0; i < primes.Count; i++)
-            {
-                BigInteger a = primes[i];
-                BigInteger b = all.Divide(a);
-                BigInteger b2 = b.ModInverse(a);
-                BigInteger tmp = b.Multiply(b2);
-                tmp = tmp.Multiply(congruences[i]);
-                retval = retval.Add(tmp);
-            }
-
-            return retval.Mod(all);
-        }
-
         // phi(n) / p for one of the key's small primes, without BigInteger.Divide, whose shift-and-subtract loop follows
         // the bits of the quotient. p divides sigma, which divides phi(n), so the division is exact and the quotient is
         // below 2^k for k the modulus bit length; it is therefore phi(n) * p^-1 mod 2^k, one multiplication and a mask.
@@ -343,11 +358,17 @@ namespace Org.BouncyCastle.Crypto.Engines
             return q;
         }
 
-        // The index of the match is the plaintext digit for this prime, so returning as soon as it is found (as
-        // List.IndexOf did) made the running time reveal it. Scan the whole table and select the index by mask.
-        private static int FixedTimeIndexOf(byte[][] table, byte[] value)
+        // The index of the match is the plaintext digit d for this prime (the table length p), so returning as soon as
+        // it is found (as List.IndexOf did) made the running time reveal it. Scan the whole table and select by mask.
+        // The CRT needs d only as d * inv mod p, so that is what is selected, from a running j * inv mod p.
+        private static bool FixedTimeLookup(byte[][] table, byte[] value, uint inv, out uint digitTimesInv)
         {
-            int found = 0;                                  // 0 for no match, else index + 1
+            uint p = (uint)table.Length;
+            Debug.Assert(p <= int.MaxValue && inv < p);
+
+            int found = 0;                                  // -1 once something has matched
+            uint r = 0;                                     // j * inv mod p
+            uint result = 0;
 
             for (int j = 0; j < table.Length; ++j)
             {
@@ -360,12 +381,18 @@ namespace Org.BouncyCastle.Crypto.Engines
                 }
 
                 int isEqual = (diff - 1) >> 31;             // -1 when equal, 0 otherwise
-                int stillLooking = (found - 1) >> 31;       // -1 until something has matched
 
-                found |= (j + 1) & isEqual & stillLooking;
+                result |= r & (uint)(isEqual & ~found);
+                found |= isEqual;
+
+                // r + inv < 2p, and with p below 2^31 the difference r + inv - p is in (-2^31, 2^31)
+                uint s = r + inv;
+                uint below = (uint)((int)(s - p) >> 31);    // all ones when s < p
+                r = s - (p & ~below);
             }
 
-            return found - 1;
+            digitTimesInv = result;
+            return found != 0;
         }
     }
 }

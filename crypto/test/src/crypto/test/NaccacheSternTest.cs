@@ -314,6 +314,40 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         /// <summary>
+        /// Decryption recombines the digits by the CRT in a fixed-length accumulator, reduced mod sigma by masked
+        /// subtractions. This walks the whole plaintext range [0, sigma) of the paper key with a prime stride, plus its
+        /// ends, so the sums before reduction spread over [0, count * sigma).
+        /// </summary>
+        [Test]
+        public void TestPlaintextRange()
+        {
+            var pubParameters = new NaccacheSternKeyParameters(false, g, n, sigma.BitLength);
+            var privParameters = new NaccacheSternPrivateKeyParameters(g, n, sigma.BitLength, smallPrimes, phi_n);
+
+            var enc = new NaccacheSternEngine();
+            enc.Init(true, pubParameters);
+
+            var dec = new NaccacheSternEngine();
+            dec.Init(false, privParameters);
+
+            int sigmaValue = sigma.IntValue;
+            var values = new List<int>{ 0, 1, sigmaValue - 2, sigmaValue - 1 };
+            for (int m = 2; m < sigmaValue - 2; m += 1009)
+            {
+                values.Add(m);
+            }
+
+            foreach (int m in values)
+            {
+                byte[] plain = BigInteger.ValueOf(m).ToByteArray();
+                byte[] cipherText = enc.ProcessBlock(plain, 0, plain.Length);
+                byte[] recovered = dec.ProcessBlock(cipherText, 0, cipherText.Length);
+
+                Assert.AreEqual(BigInteger.ValueOf(m), new BigInteger(1, recovered), "recovered m = " + m);
+            }
+        }
+
+        /// <summary>
         /// Counts blinding draws only: the blinding multiple is seven bits, so it is the only single-byte request
         /// the decrypt path makes.
         /// </summary>
