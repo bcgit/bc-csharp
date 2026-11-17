@@ -24,9 +24,11 @@ namespace Org.BouncyCastle.Crypto.Engines
         // byte by byte without the length itself saying anything
         private byte[][][] lookup = null;
 
-        // phi(n) / p for each small prime p, the exponent decryption raises the ciphertext to. Worked out once when the
-        // tables are built rather than divided out again for every block; no more sensitive than the tables themselves.
-        private BigInteger[] phiNOverPrime = null;
+        // Decryption raises the ciphertext to phi(n) / sigma, once per block, and that power to sigma / p for each
+        // small prime p. phi(n) / sigma is secret, worked out once when the tables are built rather than divided out
+        // again for every block, and no more sensitive than the tables themselves; the sigma / p are not secret.
+        private BigInteger phiNOverSigma = null;
+        private BigInteger[] sigmaOverPrime = null;
 
         private int modulusLength;
 
@@ -61,7 +63,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             // construct lookup table for faster decryption if necessary
             if (!this.forEncryption)
             {
-                // decryption blinds its private exponents
+                // building the tables blinds its exponents, and decryption the ciphertext
                 random = CryptoServicesRegistrar.GetSecureRandom(providedRandom);
 
                 NaccacheSternPrivateKeyParameters priv = (NaccacheSternPrivateKeyParameters)key;
@@ -79,14 +81,14 @@ namespace Org.BouncyCastle.Crypto.Engines
                 int reductions = Integers.BitLength(primes.Count);
                 int crtBits = sigma.BitLength + reductions;
 
-                BigInteger[] cofactors = new BigInteger[primes.Count];
+                sigmaOverPrime = new BigInteger[primes.Count];
                 crtCofactors = new uint[primes.Count][];
                 crtInverses = new uint[primes.Count];
                 for (int i = 0; i < primes.Count; i++)
                 {
-                    cofactors[i] = ExactDivide(sigma, primes[i], sigma.BitLength);
-                    crtCofactors[i] = Nat.FromBigInteger(crtBits, cofactors[i]);
-                    crtInverses[i] = (uint)cofactors[i].ModInverse(primes[i]).IntValue;
+                    sigmaOverPrime[i] = ExactDivide(sigma, primes[i], sigma.BitLength);
+                    crtCofactors[i] = Nat.FromBigInteger(crtBits, sigmaOverPrime[i]);
+                    crtInverses[i] = (uint)sigmaOverPrime[i].ModInverse(primes[i]).IntValue;
                 }
 
                 crtSigmaMultiples = new uint[reductions][];
@@ -97,14 +99,11 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                 // phi(n) / p_i = (phi(n) / sigma) * (sigma / p_i), so one exact division serves every prime. sigma
                 // divides phi(n), and the quotient is below 2^k for k the modulus bit length.
-                BigInteger phiNOverSigma = ExactDivide(priv.PhiN, sigma, priv.Modulus.BitLength);
+                phiNOverSigma = ExactDivide(priv.PhiN, sigma, priv.Modulus.BitLength);
 
-                phiNOverPrime = new BigInteger[primes.Count];
                 lookup = new byte[primes.Count][][];
                 for (int i = 0; i < primes.Count; i++)
                 {
-                    phiNOverPrime[i] = phiNOverSigma.Multiply(cofactors[i]);
-
                     int actualPrimeValue = primes[i].IntValue;
 
                     lookup[i] = new byte[actualPrimeValue][];
@@ -118,7 +117,11 @@ namespace Org.BouncyCastle.Crypto.Engines
                     // If p divides both P - 1 and Q - 1 for n = PQ (always so for p = 2), then h = 1 for every g,
                     // every entry is 1, and that digit always decrypts as 0; the key is invalid but this does not
                     // detect it.
-                    BigInteger exponent = BigIntegers.CreateBlindedExponent(phiNOverPrime[i], priv.PhiN, random);
+                    // TODO As decryption does, compute g^(phi(n) / sigma) once and raise it to sigma / p for each
+                    // prime: one full-size exponentiation rather than one per prime. Those powers would have a
+                    // secret base, so this wants a constant-time exponentiation first.
+                    BigInteger exponent = BigIntegers.CreateBlindedExponent(
+                        phiNOverSigma.Multiply(sigmaOverPrime[i]), priv.PhiN, random);
                     BigInteger h = priv.G.ModPow(exponent, priv.Modulus);
                     BigInteger entry = BigInteger.One;
                     for (int j = 1; j < actualPrimeValue; j++)
@@ -205,6 +208,19 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             NaccacheSternPrivateKeyParameters priv = (NaccacheSternPrivateKeyParameters)key;
             var primes = priv.SmallPrimesList;
+            BigInteger modulus = priv.Modulus;
+
+            // The digit for each small prime p comes from input^(phi(n) / p) = (input^(phi(n) / sigma))^(sigma / p), so
+            // the secret exponent phi(n) / sigma is used once per block and the exponents per prime are not secret.
+            // input is the caller's ciphertext and phi(n) / sigma is as good as the private key, so the base is blinded
+            // for that exponentiation: the timing of the variable-time ModPow could otherwise be accumulated against
+            // the key over many decryptions. An input that is zero mod n has no digits, and one sharing a factor with n
+            // fails the lookup below, as it always did.
+            input = input.Mod(modulus);
+            if (input.SignValue == 0)
+                throw new InvalidCipherTextException("Lookup failed");
+
+            BigInteger power = BigIntegers.ModPowBaseBlinded(modulus, input, phiNOverSigma, random);
 
             // The plaintext is recombined from its digits d_i = plaintext mod p_i by the CRT, in a fixed-length
             // accumulator so that neither the digits nor the sum steer the work (BigInteger arithmetic shortcuts zero
@@ -216,12 +232,9 @@ namespace Org.BouncyCastle.Crypto.Engines
             {
                 for (int i = 0; i < primes.Count; i++)
                 {
-                    // input is the caller's ciphertext and the exponent is derived from phi(n), which is the private
-                    // key, so the exponent is blinded before the variable-time ModPow. input^phi(n) = 1 (mod n) for any
-                    // input coprime to n, so the result is unchanged; an input sharing a factor with n fails the
-                    // lookup either way.
-                    BigInteger exponent = BigIntegers.CreateBlindedExponent(phiNOverPrime[i], priv.PhiN, random);
-                    BigInteger exp = input.ModPow(exponent, priv.Modulus);
+                    // the base here is a function of the plaintext only (g^(m * phi(n) / sigma) for plaintext m), so
+                    // the variable-time ModPow can at most tell something of the plaintext, nothing of the key
+                    BigInteger exp = power.ModPow(sigmaOverPrime[i], modulus);
                     byte[][] al = lookup[i];
                     if (al.Length != primes[i].IntValue)
                     {

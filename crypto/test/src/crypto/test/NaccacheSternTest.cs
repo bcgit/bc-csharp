@@ -279,8 +279,9 @@ namespace Org.BouncyCastle.Crypto.Tests
         /// Decryption recovers the plaintext one digit per small prime, by finding the digit's entry in a
         /// precomputed table; the index found is the digit, so the search must scan the whole table. This walks a
         /// plaintext range that hits every entry of every table (the paper key's digits are the plaintext modulo
-        /// 3, 5, 7, 11, 13 and 17) and checks each recovered value. It also counts the blinding draws: one per
-        /// prime when the tables are built, then one per prime per decryption.
+        /// 3, 5, 7, 11, 13 and 17) and checks each recovered value. It also checks the blinding: building the
+        /// tables blinds one exponent per prime, and each decryption blinds the ciphertext it raises to the secret
+        /// exponent, so it draws on the random given to Init, though no longer for an exponent.
         /// </summary>
         [Test]
         public void TestEveryDigitAndBlinding()
@@ -305,10 +306,12 @@ namespace Org.BouncyCastle.Crypto.Tests
                 byte[] cipherText = enc.ProcessBlock(plain, 0, plain.Length);
 
                 counting.Count = 0;
+                counting.Calls = 0;
 
                 byte[] recovered = dec.ProcessBlock(cipherText, 0, cipherText.Length);
 
-                Assert.AreEqual(smallPrimes.Count, counting.Count, "blinding draws for m = " + m);
+                Assert.Greater(counting.Calls, 0, "base blinding draws for m = " + m);
+                Assert.AreEqual(0, counting.Count, "exponent blinding draws for m = " + m);
                 Assert.AreEqual(BigInteger.ValueOf(m), new BigInteger(1, recovered), "recovered m = " + m);
             }
         }
@@ -348,16 +351,18 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         /// <summary>
-        /// Counts blinding draws only: the blinding multiple is seven bits, so it is the only single-byte request
-        /// the decrypt path makes.
+        /// Count is of exponent blinding draws only: the blinding multiple is seven bits, so it is the only
+        /// single-byte request the engine makes. Calls is of every request.
         /// </summary>
         private sealed class CountingRandom
             : SecureRandom
         {
             internal int Count;
+            internal int Calls;
 
             public override void NextBytes(byte[] buf)
             {
+                ++Calls;
                 if (buf.Length == 1)
                 {
                     ++Count;
@@ -368,6 +373,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             public override void NextBytes(Span<byte> buffer)
             {
+                ++Calls;
                 if (buffer.Length == 1)
                 {
                     ++Count;
