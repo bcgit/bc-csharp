@@ -19,17 +19,19 @@ namespace Org.BouncyCastle.Crypto.Agreement
     {
         private DHPrivateKeyParameters m_key;
         private DHParameters m_dhParams;
+        private SecureRandom m_random;
 
         /// <inheritdoc/>
         public virtual void Init(ICipherParameters parameters)
         {
-            var kParam = ParameterUtilities.IgnoreRandom(parameters);
+            var kParam = ParameterUtilities.GetRandom(parameters, out var providedRandom);
 
             if (!(kParam is DHPrivateKeyParameters dhPrivateKeyParameters))
                 throw new ArgumentException($"{nameof(DHBasicAgreement)} expects {nameof(DHPrivateKeyParameters)}");
 
             m_key = dhPrivateKeyParameters;
             m_dhParams = m_key.Parameters;
+            m_random = CryptoServicesRegistrar.GetSecureRandom(providedRandom);
         }
 
         /// <inheritdoc/>

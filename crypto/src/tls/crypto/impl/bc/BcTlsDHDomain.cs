@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             DHPublicKeyParameters publicKey, bool padded)
         {
             DHBasicAgreement basicAgreement = new DHBasicAgreement();
-            basicAgreement.Init(privateKey);
+            basicAgreement.Init(new ParametersWithRandom(privateKey, crypto.SecureRandom));
             BigInteger agreementValue = basicAgreement.CalculateAgreement(publicKey);
             byte[] secret = EncodeValue(privateKey.Parameters, padded, agreementValue);
             return crypto.AdoptLocalSecret(secret);
