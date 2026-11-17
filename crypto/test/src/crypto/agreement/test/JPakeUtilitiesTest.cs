@@ -40,6 +40,37 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
             Assert.AreEqual(Name + ": Okay", resultText);
         }
 
+        /// <summary>
+        /// The scalar arithmetic mod q runs in fixed time on operands in [0, q); direct callers may still pass values
+        /// outside that range, which are reduced first as before.
+        /// </summary>
+        [Test]
+        public void TestScalarArithmetic()
+        {
+            JPakePrimeOrderGroup pg1 = JPakePrimeOrderGroups.SUN_JCE_1024;
+            BigInteger p = pg1.P, q = pg1.Q, g = pg1.G;
+
+            SecureRandom random = new SecureRandom();
+            IDigest digest = new Sha256Digest();
+
+            BigInteger x2 = JPakeUtilities.GenerateX2(q, random);
+            BigInteger s = JPakeUtilities.CalculateS(q, "password".ToCharArray());
+            BigInteger expected = x2.Multiply(s).Mod(q);
+
+            Assert.AreEqual(expected, JPakeUtilities.CalculateX2s(q, x2, s));
+            Assert.AreEqual(expected, JPakeUtilities.CalculateX2s(q, x2.Add(q), s.Subtract(q)));
+
+            foreach (BigInteger x in new BigInteger[]{ x2, x2.Add(q), x2.Subtract(q) })
+            {
+                BigInteger gx = g.ModPow(x, p);
+                BigInteger[] zkp = JPakeUtilities.CalculateZeroKnowledgeProof(p, q, g, gx, x, "participantId", digest,
+                    random);
+
+                // throws if the proof does not hold
+                JPakeUtilities.ValidateZeroKnowledgeProof(p, q, g, gx, zkp, "participantId", digest);
+            }
+        }
+
         public void TestValidateGx4()
         {
             JPakeUtilities.ValidateGx4(Ten);

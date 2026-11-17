@@ -126,7 +126,9 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         /// </summary>
         public static BigInteger CalculateX2s(BigInteger q, BigInteger x2, BigInteger s)
         {
-            return x2.ModMultiply(s, q);
+            // x2 * s carries the password, so it is formed in fixed time rather than by ModMultiply, whose reduction
+            // follows the value
+            return BigIntegers.ModMult(q, Reduce(q, x2), Reduce(q, s));
         }
 
         /// <summary>
@@ -173,11 +175,11 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
             BigInteger gv = g.ModPow(BlindExponent(v, q, random), p);
             BigInteger h = CalculateHashForZeroKnowledgeProof(g, gv, gx, participantId, digest); // h
 
-            return new BigInteger[]
-            {
-                gv,
-                v.Subtract(x.Multiply(h)).Mod(q) // r = v-x*h
-            };
+            // r = v - x * h, formed in fixed time since x and v are secret; h is public and may be negative
+            BigInteger xh = BigIntegers.ModMult(q, Reduce(q, x), h.Mod(q));
+            BigInteger r = BigIntegers.ModSubtract(q, v, xh);
+
+            return new BigInteger[]{ gv, r };
         }
 
         private static BigInteger CalculateHashForZeroKnowledgeProof(BigInteger g, BigInteger gr, BigInteger gx,
@@ -288,7 +290,10 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         public static BigInteger CalculateKeyingMaterial(BigInteger p, BigInteger q,
             BigInteger gx4, BigInteger x2, BigInteger s, BigInteger B, SecureRandom random)
         {
-            BigInteger negX2s = BlindExponent(x2.Multiply(s).Negate().Mod(q), q, random);
+            // -(x2 * s) mod q in fixed time, as both carry secrets
+            x2 = Reduce(q, x2);
+            BigInteger x2s = BigIntegers.ModMult(q, x2, Reduce(q, s));
+            BigInteger negX2s = BlindExponent(BigIntegers.ModSubtract(q, Zero, x2s), q, random);
 
             return gx4.ModPow(negX2s, p).ModMultiply(B, p).ModPow(BlindExponent(x2, q, random), p);
         }
@@ -298,6 +303,11 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         // JPakePrimeOrderGroup is built, and each value received from the other participant is checked the same way
         // by ValidateZeroKnowledgeProof before it is used as a base. That makes a multiple of q sound, and it matters
         // for cost: the exponents are the size of q, so a multiple of p - 1 would grow them to the size of p.
+        // The fixed-time helpers need operands in [0, q). JPakeParticipant only ever passes such values, so the
+        // variable-time reduction here serves only direct callers passing values outside that range.
+        private static BigInteger Reduce(BigInteger q, BigInteger x) =>
+            x.SignValue < 0 || x.CompareTo(q) >= 0 ? x.Mod(q) : x;
+
         private static BigInteger BlindExponent(BigInteger e, BigInteger order, SecureRandom random) =>
             BigIntegers.CreateBlindedExponent(e, order, CryptoServicesRegistrar.GetSecureRandom(random));
 
