@@ -254,6 +254,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                 // No check that g^test re-encrypts to the input: a valid ciphertext need not equal g^test, since
                 // probabilistic encryption multiplies in x^sigma and AddCryptedBlocks can leave a sum beyond sigma
+                // TODO[api] Encode the plaintext straight from acc, without the BigInteger round trip, and unsigned as
+                // the RSA and ElGamal engines do: the signed ToByteArray adds a 0x00 when the top bit is set (the value
+                // is never negative), which can take the output past GetOutputBlockSize(). ProcessData concatenates
+                // these value-length blocks, so decrypting there also loses any block's leading zero bytes.
                 BigInteger test = Nat.ToBigInteger(crtLength, acc);
                 return test.ToByteArray();
             }
