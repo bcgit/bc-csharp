@@ -530,6 +530,49 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         [Test]
+        public void BasicAgreementRevalidatesPublicKey()
+        {
+            // DHBasicAgreement raises the peer's Y to our private key, so Y must pass the same range and subgroup
+            // checks as at construction. DHWeakPubKey passes construction with a valid dummy Y, then returns another
+            // value from the overridden (virtual) Y property, so CalculateAgreement must re-validate.
+            DHParameters dhParams = DHStandardGroups.rfc2409_768;
+            BigInteger p = dhParams.P, q = dhParams.Q;
+
+            var kpGen = new DHBasicKeyPairGenerator();
+            kpGen.Init(new DHKeyGenerationParameters(new SecureRandom(), dhParams));
+
+            var agreement = new DHBasicAgreement();
+            agreement.Init(kpGen.GenerateKeyPair().Private);
+
+            // a value in range but outside the order-q subgroup (a quadratic non-residue, for this safe prime)
+            BigInteger outsideSubgroup = BigInteger.Three;
+            while (outsideSubgroup.ModPow(q, p).Equals(BigInteger.One))
+            {
+                outsideSubgroup = outsideSubgroup.Add(BigInteger.One);
+            }
+
+            BigInteger orderTwo = p.Subtract(BigInteger.One);
+            var weakValues = new BigInteger[]{ BigInteger.Zero, BigInteger.One, orderTwo, p, outsideSubgroup };
+
+            foreach (BigInteger weakY in weakValues)
+            {
+                try
+                {
+                    agreement.CalculateAgreement(new DHWeakPubKey(weakY, dhParams));
+                    Assert.Fail("DHBasicAgreement accepted malicious public key " + weakY);
+                }
+                catch (ArgumentException)
+                {
+                    // expected
+                }
+            }
+
+            // an exact DHPublicKeyParameters is still accepted without re-validation
+            var peer = (DHPublicKeyParameters)kpGen.GenerateKeyPair().Public;
+            Assert.IsNotNull(agreement.CalculateAgreement(peer));
+        }
+
+        [Test]
         public void MaliciousMessage()
         {
             // Both peer-supplied values to CalculateAgreement are raised to our (potentially static)
@@ -716,7 +759,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             private readonly BigInteger m_weakY;
 
             internal DHWeakPubKey(BigInteger weakY, DHParameters parameters)
-                : base(BigInteger.Two, parameters)
+                : base(parameters.G, parameters)
             {
                 m_weakY = weakY;
             }

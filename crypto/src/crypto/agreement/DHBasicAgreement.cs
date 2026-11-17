@@ -52,9 +52,12 @@ namespace Org.BouncyCastle.Crypto.Agreement
 
             BigInteger p = m_dhParams.P;
 
-            BigInteger peerY = pub.Y;
-            if (peerY == null || peerY.CompareTo(BigInteger.One) <= 0 || peerY.CompareTo(p.Subtract(BigInteger.One)) >= 0)
-                throw new ArgumentException("Diffie-Hellman public key is weak");
+            // A normally-constructed DHPublicKeyParameters already validated its Y (range, and subgroup when the
+            // parameters carry q); but Y is virtual and a subclass can override it to return an unvalidated value, so
+            // re-validate unless pub is exactly the base type.
+            BigInteger peerY = pub.GetType() == typeof(DHPublicKeyParameters)
+                ? pub.Y
+                : new DHPublicKeyParameters(pub.Y, m_dhParams).Y;
 
             BigInteger result = peerY.ModPow(m_key.X, p);
             if (result.Equals(BigInteger.One))

@@ -587,7 +587,7 @@ namespace Org.BouncyCastle.Tests
                 }
                 catch (ArgumentException ex)
                 {
-                    Assert.True("Diffie-Hellman public key is weak".Equals(ex.Message), "wrong message (CalculateAgreement)");
+                    Assert.True(ex.Message.StartsWith("invalid DH public key"), "wrong message (CalculateAgreement)");
                 }
             }
         }
