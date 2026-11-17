@@ -27,7 +27,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
          *            the public lower sigma bound up to which data can be encrypted
          * @param smallPrimes
          *            the small primes, of which sigma is constructed in the right
-         *            order
+         *            order. Each must divide exactly one of p - 1 and q - 1, so 2 is
+         *            never valid: otherwise g^(phi(n) / p_i) = 1 for every g and
+         *            decryption cannot recover the plaintext modulo p_i (this is not
+         *            checked)
          * @param phi_n
          *            the private modulus phi(n) = (p-1)(q-1)
          */

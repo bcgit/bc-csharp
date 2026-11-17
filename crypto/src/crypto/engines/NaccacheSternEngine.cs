@@ -107,6 +107,9 @@ namespace Org.BouncyCastle.Crypto.Engines
                     // blinded with a random multiple of phi(n) before the variable-time ModPow; g is coprime to n, so h
                     // is unchanged. The entries are as sensitive as the key (h - 1 shares a prime factor with n), so
                     // the chain uses the fixed-time ModMult rather than ModMultiply, whose reduction follows the value.
+                    // If p divides both P - 1 and Q - 1 for n = PQ (always so for p = 2), then h = 1 for every g,
+                    // every entry is 1, and that digit always decrypts as 0; the key is invalid but this does not
+                    // detect it.
                     BigInteger exponent = BigIntegers.CreateBlindedExponent(phiNOverSigma.Multiply(cofactors[i]),
                         priv.PhiN, random);
                     BigInteger h = priv.G.ModPow(exponent, priv.Modulus);

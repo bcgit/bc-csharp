@@ -15,6 +15,8 @@ namespace Org.BouncyCastle.Crypto.Generators
     public class NaccacheSternKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
+        // No 2: p - 1 and q - 1 are both even, so g^(phi(n) / 2) = 1 for every g, and the search for g below would
+        // never end (decryption could not recover the plaintext modulo 2 either)
         private static readonly int[] smallPrimes =
         {
             3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67,
