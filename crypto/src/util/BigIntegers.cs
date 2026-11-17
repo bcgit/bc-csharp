@@ -376,7 +376,11 @@ namespace Org.BouncyCastle.Utilities
         /// <exception cref="ArithmeticException">
         /// <paramref name="M"/> is not positive, or <paramref name="X"/> is not invertible.
         /// </exception>
-        public static BigInteger ModOddInverse(BigInteger M, BigInteger X)
+        public static BigInteger ModOddInverse(BigInteger M, BigInteger X) =>
+            ImplModOddInverse(M, X) ?? throw new ArithmeticException("BigInteger not invertible");
+
+        // null when X is not invertible
+        private static BigInteger ImplModOddInverse(BigInteger M, BigInteger X)
         {
             if (!M.TestBit(0))
                 throw new ArgumentException("must be odd", nameof(M));
@@ -399,7 +403,7 @@ namespace Org.BouncyCastle.Utilities
                 Nat.FromBigInteger(bits, M, m);
                 Nat.FromBigInteger(bits, X, x);
                 if (0 == Mod.ModOddInverse(m, x, z))
-                    throw new ArithmeticException("BigInteger not invertible");
+                    return null;
                 return Nat.ToBigInteger(len, z);
             }
             else
@@ -410,7 +414,7 @@ namespace Org.BouncyCastle.Utilities
                 int len = m.Length;
                 uint[] z = Nat.Create(len);
                 if (0 == Mod.ModOddInverse(m, x, z))
-                    throw new ArithmeticException("BigInteger not invertible");
+                    return null;
                 return Nat.ToBigInteger(len, z);
             }
         }
@@ -551,7 +555,7 @@ namespace Org.BouncyCastle.Utilities
         }
 
         /// <summary>
-        /// X^E mod M for odd prime M and X in [1, M), with the base blinded so that a chosen X cannot steer the timing.
+        /// X^E mod M for odd M and X in [1, M), with the base blinded so that a chosen X cannot steer the timing.
         /// </summary>
         /// <remarks>
         /// For a fresh random v this computes (X * v)^E * (v^-1)^E. <see cref="BigInteger.ModPow"/> is not constant
@@ -567,10 +571,15 @@ namespace Org.BouncyCastle.Utilities
             if (X.SignValue <= 0)
                 throw new ArgumentException("must be positive", nameof(X));
 
-            // the blinding is only as good as v is secret, so v stays on the fixed-time helpers. M is prime, so any v
-            // in range is invertible.
-            BigInteger v = CreateRandomInRange(BigInteger.Two, M.Subtract(BigInteger.Two), random);
-            BigInteger vInv = ModOddInverse(M, v);
+            // the blinding is only as good as v is secret, so v stays on the fixed-time helpers. For a prime M the
+            // first v is always invertible; for a composite M, one sharing a factor with M is redrawn.
+            BigInteger v, vInv;
+            do
+            {
+                v = CreateRandomInRange(BigInteger.Two, M.Subtract(BigInteger.Two), random);
+                vInv = ImplModOddInverse(M, v);
+            }
+            while (vInv == null);
 
             BigInteger blinded = ModMult(M, X, v).ModPow(E, M);
             BigInteger unblind = vInv.ModPow(E, M);

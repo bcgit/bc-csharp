@@ -149,8 +149,10 @@ namespace Org.BouncyCastle.Utilities.Test
         [Test]
         public void ModPowBaseBlinded()
         {
-            // prime moduli, down to the smallest with room for a blinding value in [2, M - 2]
-            BigInteger[] moduli = { SakkeQ, Sm9N, P256N, BigInteger.ValueOf(5), BigInteger.ValueOf(7) };
+            // prime moduli, down to the smallest with room for a blinding value in [2, M - 2], and composite ones,
+            // for which a blinding value sharing a factor with M has to be redrawn (most of them, for 15 and 1155)
+            BigInteger[] moduli = { SakkeQ, Sm9N, P256N, BigInteger.ValueOf(5), BigInteger.ValueOf(7),
+                BigInteger.ValueOf(15), BigInteger.ValueOf(1155), Sm9N.Multiply(P256N) };
 
             foreach (BigInteger m in moduli)
             {
