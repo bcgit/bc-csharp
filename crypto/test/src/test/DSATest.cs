@@ -31,164 +31,164 @@ namespace Org.BouncyCastle.Tests
         private static readonly SecureRandom Random = FixedSecureRandom.From(k1, k2);
 
         // TODO How shall we satisfy this compatibility test?
-//		[Test]
-//		public void TestCompat()
-//		{
-//			if (Security.getProvider("SUN") == null)
-//				return;
-//			ISigner s = SignerUtilities.GetSigner("DSA", "SUN");
-//			KeyPairGenerator g = KeyPairGenerator.GetInstance("DSA", "SUN");
-//			byte[] data = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
+//      [Test]
+//      public void TestCompat()
+//      {
+//          if (Security.getProvider("SUN") == null)
+//              return;
+//          ISigner s = SignerUtilities.GetSigner("DSA", "SUN");
+//          KeyPairGenerator g = KeyPairGenerator.GetInstance("DSA", "SUN");
+//          byte[] data = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
 //
-//			g.initialize(512, new SecureRandom());
+//          g.initialize(512, new SecureRandom());
 //
-//			KeyPair p = g.generateKeyPair();
+//          KeyPair p = g.generateKeyPair();
 //
-//			PrivateKey sKey = p.Private;
-//			PublicKey vKey = p.Public;
+//          PrivateKey sKey = p.Private;
+//          PublicKey vKey = p.Public;
 //
-//			//
-//			// sign SUN - verify with BC
-//			//
-//			s.Init(true, sKey);
+//          //
+//          // sign SUN - verify with BC
+//          //
+//          s.Init(true, sKey);
 //
-//			s.update(data);
+//          s.update(data);
 //
-//			byte[] sigBytes = s.GenerateSignature();
+//          byte[] sigBytes = s.GenerateSignature();
 //
-//			s = SignerUtilities.GetSigner("DSA");
+//          s = SignerUtilities.GetSigner("DSA");
 //
-//			s.Init(false, vKey);
+//          s.Init(false, vKey);
 //
-//			s.update(data);
+//          s.update(data);
 //
-//			if (!s.VerifySignature(sigBytes))
-//			{
-//				Fail("SUN -> BC verification failed");
-//			}
+//          if (!s.VerifySignature(sigBytes))
+//          {
+//              Fail("SUN -> BC verification failed");
+//          }
 //
-//			//
-//			// sign BC - verify with SUN
-//			//
+//          //
+//          // sign BC - verify with SUN
+//          //
 //
-//			s.Init(true, sKey);
+//          s.Init(true, sKey);
 //
-//			s.update(data);
+//          s.update(data);
 //
-//			sigBytes = s.GenerateSignature();
+//          sigBytes = s.GenerateSignature();
 //
-//			s = SignerUtilities.GetSigner("DSA", "SUN");
+//          s = SignerUtilities.GetSigner("DSA", "SUN");
 //
-//			s.Init(false, vKey);
+//          s.Init(false, vKey);
 //
-//			s.update(data);
+//          s.update(data);
 //
-//			if (!s.VerifySignature(sigBytes))
-//			{
-//				Fail("BC -> SUN verification failed");
-//			}
+//          if (!s.VerifySignature(sigBytes))
+//          {
+//              Fail("BC -> SUN verification failed");
+//          }
 //
-//			//
-//			// key encoding test - BC decoding Sun keys
-//			//
-//			KeyFactory f = KeyFactory.GetInstance("DSA");
-//			X509EncodedKeySpec x509s = new X509EncodedKeySpec(vKey.GetEncoded());
-//			DSAPublicKey k1 = (DSAPublicKey)f.generatePublic(x509s);
+//          //
+//          // key encoding test - BC decoding Sun keys
+//          //
+//          KeyFactory f = KeyFactory.GetInstance("DSA");
+//          X509EncodedKeySpec x509s = new X509EncodedKeySpec(vKey.GetEncoded());
+//          DSAPublicKey k1 = (DSAPublicKey)f.generatePublic(x509s);
 //
-//			if (!k1.Y.Equals(((DSAPublicKey)vKey).Y))
-//			{
-//				Fail("public number not decoded properly");
-//			}
+//          if (!k1.Y.Equals(((DSAPublicKey)vKey).Y))
+//          {
+//              Fail("public number not decoded properly");
+//          }
 //
-//			if (!k1.Parameters.G.Equals(((DSAPublicKey)vKey).Parameters.G))
-//			{
-//				Fail("public generator not decoded properly");
-//			}
+//          if (!k1.Parameters.G.Equals(((DSAPublicKey)vKey).Parameters.G))
+//          {
+//              Fail("public generator not decoded properly");
+//          }
 //
-//			if (!k1.Parameters.P.Equals(((DSAPublicKey)vKey).Parameters.P))
-//			{
-//				Fail("public p value not decoded properly");
-//			}
+//          if (!k1.Parameters.P.Equals(((DSAPublicKey)vKey).Parameters.P))
+//          {
+//              Fail("public p value not decoded properly");
+//          }
 //
-//			if (!k1.Parameters.Q.Equals(((DSAPublicKey)vKey).Parameters.Q))
-//			{
-//				Fail("public q value not decoded properly");
-//			}
+//          if (!k1.Parameters.Q.Equals(((DSAPublicKey)vKey).Parameters.Q))
+//          {
+//              Fail("public q value not decoded properly");
+//          }
 //
-//			PKCS8EncodedKeySpec pkcs8 = new PKCS8EncodedKeySpec(sKey.GetEncoded());
-//			DSAPrivateKey k2 = (DSAPrivateKey)f.generatePrivate(pkcs8);
+//          PKCS8EncodedKeySpec pkcs8 = new PKCS8EncodedKeySpec(sKey.GetEncoded());
+//          DSAPrivateKey k2 = (DSAPrivateKey)f.generatePrivate(pkcs8);
 //
-//			if (!k2.X.Equals(((DSAPrivateKey)sKey).X))
-//			{
-//				Fail("private number not decoded properly");
-//			}
+//          if (!k2.X.Equals(((DSAPrivateKey)sKey).X))
+//          {
+//              Fail("private number not decoded properly");
+//          }
 //
-//			if (!k2.Parameters.G.Equals(((DSAPrivateKey)sKey).Parameters.G))
-//			{
-//				Fail("private generator not decoded properly");
-//			}
+//          if (!k2.Parameters.G.Equals(((DSAPrivateKey)sKey).Parameters.G))
+//          {
+//              Fail("private generator not decoded properly");
+//          }
 //
-//			if (!k2.Parameters.P.Equals(((DSAPrivateKey)sKey).Parameters.P))
-//			{
-//				Fail("private p value not decoded properly");
-//			}
+//          if (!k2.Parameters.P.Equals(((DSAPrivateKey)sKey).Parameters.P))
+//          {
+//              Fail("private p value not decoded properly");
+//          }
 //
-//			if (!k2.Parameters.Q.Equals(((DSAPrivateKey)sKey).Parameters.Q))
-//			{
-//				Fail("private q value not decoded properly");
-//			}
+//          if (!k2.Parameters.Q.Equals(((DSAPrivateKey)sKey).Parameters.Q))
+//          {
+//              Fail("private q value not decoded properly");
+//          }
 //
-//			//
-//			// key decoding test - SUN decoding BC keys
-//			//
-//			f = KeyFactory.GetInstance("DSA", "SUN");
-//			x509s = new X509EncodedKeySpec(k1.GetEncoded());
+//          //
+//          // key decoding test - SUN decoding BC keys
+//          //
+//          f = KeyFactory.GetInstance("DSA", "SUN");
+//          x509s = new X509EncodedKeySpec(k1.GetEncoded());
 //
-//			vKey = (DSAPublicKey)f.generatePublic(x509s);
+//          vKey = (DSAPublicKey)f.generatePublic(x509s);
 //
-//			if (!k1.Y.Equals(((DSAPublicKey)vKey).Y))
-//			{
-//				Fail("public number not decoded properly");
-//			}
+//          if (!k1.Y.Equals(((DSAPublicKey)vKey).Y))
+//          {
+//              Fail("public number not decoded properly");
+//          }
 //
-//			if (!k1.Parameters.G.Equals(((DSAPublicKey)vKey).Parameters.G))
-//			{
-//				Fail("public generator not decoded properly");
-//			}
+//          if (!k1.Parameters.G.Equals(((DSAPublicKey)vKey).Parameters.G))
+//          {
+//              Fail("public generator not decoded properly");
+//          }
 //
-//			if (!k1.Parameters.P.Equals(((DSAPublicKey)vKey).Parameters.P))
-//			{
-//				Fail("public p value not decoded properly");
-//			}
+//          if (!k1.Parameters.P.Equals(((DSAPublicKey)vKey).Parameters.P))
+//          {
+//              Fail("public p value not decoded properly");
+//          }
 //
-//			if (!k1.Parameters.Q.Equals(((DSAPublicKey)vKey).Parameters.Q))
-//			{
-//				Fail("public q value not decoded properly");
-//			}
+//          if (!k1.Parameters.Q.Equals(((DSAPublicKey)vKey).Parameters.Q))
+//          {
+//              Fail("public q value not decoded properly");
+//          }
 //
-//			pkcs8 = new PKCS8EncodedKeySpec(k2.GetEncoded());
-//			sKey = (DSAPrivateKey)f.generatePrivate(pkcs8);
+//          pkcs8 = new PKCS8EncodedKeySpec(k2.GetEncoded());
+//          sKey = (DSAPrivateKey)f.generatePrivate(pkcs8);
 //
-//			if (!k2.X.Equals(((DSAPrivateKey)sKey).X))
-//			{
-//				Fail("private number not decoded properly");
-//			}
+//          if (!k2.X.Equals(((DSAPrivateKey)sKey).X))
+//          {
+//              Fail("private number not decoded properly");
+//          }
 //
-//			if (!k2.Parameters.G.Equals(((DSAPrivateKey)sKey).Parameters.G))
-//			{
-//				Fail("private generator not decoded properly");
-//			}
+//          if (!k2.Parameters.G.Equals(((DSAPrivateKey)sKey).Parameters.G))
+//          {
+//              Fail("private generator not decoded properly");
+//          }
 //
-//			if (!k2.Parameters.P.Equals(((DSAPrivateKey)sKey).Parameters.P))
-//			{
-//				Fail("private p value not decoded properly");
-//			}
+//          if (!k2.Parameters.P.Equals(((DSAPrivateKey)sKey).Parameters.P))
+//          {
+//              Fail("private p value not decoded properly");
+//          }
 //
-//			if (!k2.Parameters.Q.Equals(((DSAPrivateKey)sKey).Parameters.Q))
-//			{
-//				Fail("private q value not decoded properly");
-//			}
-//		}
+//          if (!k2.Parameters.Q.Equals(((DSAPrivateKey)sKey).Parameters.Q))
+//          {
+//              Fail("private q value not decoded properly");
+//          }
+//      }
 
         [Test]
         public void TestNoneWithDSA()
@@ -268,9 +268,9 @@ namespace Org.BouncyCastle.Tests
 
             ISigner sgr = SignerUtilities.GetSigner("ECDSA");
 
-//			KeyFactory f = KeyFactory.GetInstance("ECDSA");
-//			PrivateKey sKey = f.generatePrivate(priKey);
-//			PublicKey vKey = f.generatePublic(pubKey);
+//          KeyFactory f = KeyFactory.GetInstance("ECDSA");
+//          PrivateKey sKey = f.generatePrivate(priKey);
+//          PublicKey vKey = f.generatePublic(pubKey);
             AsymmetricKeyParameter sKey = priKey;
             AsymmetricKeyParameter vKey = pubKey;
 
@@ -410,8 +410,8 @@ namespace Org.BouncyCastle.Tests
         }
 
         private void DoTestECDsa239BitBinary(
-            string				algorithm,
-            DerObjectIdentifier	oid)
+            string              algorithm,
+            DerObjectIdentifier oid)
         {
             BigInteger r = new BigInteger("21596333210419611985018340039034612628818151486841789642455876922391552");
             BigInteger s = new BigInteger("197030374000731686738334997654997227052849804072198819102649413465737174");
@@ -456,7 +456,7 @@ namespace Org.BouncyCastle.Tests
 
         private void DoTestBadStrength(int strength)
         {
-//			IAsymmetricCipherKeyPairGenerator g = GeneratorUtilities.GetKeyPairGenerator("DSA");
+//          IAsymmetricCipherKeyPairGenerator g = GeneratorUtilities.GetKeyPairGenerator("DSA");
 
             // test exception
             //
@@ -467,7 +467,7 @@ namespace Org.BouncyCastle.Tests
                 DsaParametersGenerator pGen = new DsaParametersGenerator();
                 pGen.Init(strength, 80, rand);
 
-                //				g.Init(new DsaKeyGenerationParameters(rand, pGen.GenerateParameters()));
+                //              g.Init(new DsaKeyGenerationParameters(rand, pGen.GenerateParameters()));
 
                 Assert.Fail("illegal parameter " + strength + " check failed.");
             }
@@ -598,24 +598,24 @@ namespace Org.BouncyCastle.Tests
         [Test]
         public void TestParameters()
         {
-//			AlgorithmParameterGenerator a = AlgorithmParameterGenerator.GetInstance("DSA");
-//			a.init(512, random);
+//          AlgorithmParameterGenerator a = AlgorithmParameterGenerator.GetInstance("DSA");
+//          a.init(512, random);
             DsaParametersGenerator a = new DsaParametersGenerator();
             a.Init(512, 20, Random);
 
-//			AlgorithmParameters parameters = a.generateParameters();
+//          AlgorithmParameters parameters = a.generateParameters();
             DsaParameters p = a.GenerateParameters();
 
-//			byte[] encodeParams = parameters.GetEncoded();
+//          byte[] encodeParams = parameters.GetEncoded();
             byte[] encodeParams = new DsaParameter(p.P, p.Q, p.G).GetDerEncoded();
 
-//			AlgorithmParameters a2 = AlgorithmParameters.GetInstance("DSA");
-//			a2.init(encodeParams);
+//          AlgorithmParameters a2 = AlgorithmParameters.GetInstance("DSA");
+//          a2.init(encodeParams);
             DsaParameter dsaP = DsaParameter.GetInstance(Asn1Object.FromByteArray(encodeParams));
             DsaParameters p2 = new DsaParameters(dsaP.P, dsaP.Q, dsaP.G);
 
             // a and a2 should be equivalent!
-//			byte[] encodeParams_2 = a2.GetEncoded();
+//          byte[] encodeParams_2 = a2.GetEncoded();
             byte[] encodeParams_2 = new DsaParameter(p2.P, p2.Q, p2.G).GetDerEncoded();
 
             if (!Arrays.AreEqual(encodeParams, encodeParams_2))
@@ -623,17 +623,17 @@ namespace Org.BouncyCastle.Tests
                 Assert.Fail("encode/Decode parameters failed");
             }
 
-//			DSAParameterSpec dsaP = (DSAParameterSpec)parameters.getParameterSpec(typeof(DSAParameterSpec));
+//          DSAParameterSpec dsaP = (DSAParameterSpec)parameters.getParameterSpec(typeof(DSAParameterSpec));
 
-//			KeyPairGenerator g = KeyPairGenerator.GetInstance("DSA");
+//          KeyPairGenerator g = KeyPairGenerator.GetInstance("DSA");
             IAsymmetricCipherKeyPairGenerator g = GeneratorUtilities.GetKeyPairGenerator("DSA");
-//			g.initialize(dsaP, new SecureRandom());
+//          g.initialize(dsaP, new SecureRandom());
             g.Init(new DsaKeyGenerationParameters(new SecureRandom(), p));
-//			KeyPair p = g.generateKeyPair();
+//          KeyPair p = g.generateKeyPair();
             AsymmetricCipherKeyPair pair = g.GenerateKeyPair();
 
-//			PrivateKey sKey = p.Private;
-//			PublicKey vKey = p.Public;
+//          PrivateKey sKey = p.Private;
+//          PublicKey vKey = p.Public;
             AsymmetricKeyParameter sKey = pair.Private;
             AsymmetricKeyParameter vKey = pair.Public;
 
