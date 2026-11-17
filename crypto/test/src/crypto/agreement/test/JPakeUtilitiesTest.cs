@@ -117,10 +117,10 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
             BigInteger x3 = JPakeUtilities.GenerateX1(pg1.Q, random);
             BigInteger x4 = JPakeUtilities.GenerateX2(pg1.Q, random);
 
-            BigInteger gx1 = JPakeUtilities.CalculateGx(pg1.P, pg1.G, x1);
-            BigInteger gx2 = JPakeUtilities.CalculateGx(pg1.P, pg1.G, x2);
-            BigInteger gx3 = JPakeUtilities.CalculateGx(pg1.P, pg1.G, x3);
-            BigInteger gx4 = JPakeUtilities.CalculateGx(pg1.P, pg1.G, x4);
+            BigInteger gx1 = JPakeUtilities.CalculateGx(pg1.P, pg1.Q, pg1.G, x1, random);
+            BigInteger gx2 = JPakeUtilities.CalculateGx(pg1.P, pg1.Q, pg1.G, x2, random);
+            BigInteger gx3 = JPakeUtilities.CalculateGx(pg1.P, pg1.Q, pg1.G, x3, random);
+            BigInteger gx4 = JPakeUtilities.CalculateGx(pg1.P, pg1.Q, pg1.G, x4, random);
 
             BigInteger gB = JPakeUtilities.CalculateGA(pg1.P, gx3, gx1, gx2);
 
@@ -186,7 +186,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
             IDigest digest1 = new Sha256Digest();
 
             BigInteger x1 = JPakeUtilities.GenerateX1(pg1.Q, random);
-            BigInteger gx1 = JPakeUtilities.CalculateGx(pg1.P, pg1.G, x1);
+            BigInteger gx1 = JPakeUtilities.CalculateGx(pg1.P, pg1.Q, pg1.G, x1, random);
             string participantId1 = "participant1";
 
             BigInteger[] zkp1 = JPakeUtilities.CalculateZeroKnowledgeProof(pg1.P, pg1.Q, pg1.G, gx1, x1, participantId1, digest1, random);
@@ -235,7 +235,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
 
             // wrong gx
             BigInteger x2 = JPakeUtilities.GenerateX2(pg1.Q, random);
-            BigInteger gx2 = JPakeUtilities.CalculateGx(pg1.P, pg1.G, x2);
+            BigInteger gx2 = JPakeUtilities.CalculateGx(pg1.P, pg1.Q, pg1.G, x2, random);
             try
             {
                 JPakeUtilities.ValidateZeroKnowledgeProof(pg1.P, pg1.Q, pg1.G, gx2, zkp1, participantId1, digest1);

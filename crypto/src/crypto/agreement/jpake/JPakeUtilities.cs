@@ -83,9 +83,33 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         /// <summary>
         /// Calculate g^x mod p as done in round 1.
         /// </summary>
+        /// <remarks>
+        /// x is a private ephemeral value, and without q to blind the exponent with, a multiple of p - 1 is used
+        /// instead: always sound, but it grows the exponent from the size of q to the size of p.
+        /// </remarks>
+        [Obsolete("Use 'CalculateGx(p, q, g, x, random)' instead")]
         public static BigInteger CalculateGx(BigInteger p, BigInteger g, BigInteger x)
         {
-            return g.ModPow(x, p);
+            return g.ModPow(BlindExponent(x, p.Subtract(One), null), p);
+        }
+
+        /// <summary>
+        /// Calculate g^x mod p as done in round 1.
+        /// </summary>
+        /// <remarks>
+        /// x is the participant's private ephemeral value, and leaking it lets an attacker brute-force the password,
+        /// so the exponent is blinded with a random multiple of q. g must have order q, as checked when a
+        /// <see cref="JPakePrimeOrderGroup"/> is built.
+        /// </remarks>
+        /// <param name="p">The prime modulus.</param>
+        /// <param name="q">The prime order of g.</param>
+        /// <param name="g">The generator.</param>
+        /// <param name="x">The private exponent.</param>
+        /// <param name="random">The source of the blinding, or null for the default.</param>
+        public static BigInteger CalculateGx(BigInteger p, BigInteger q, BigInteger g, BigInteger x,
+            SecureRandom random)
+        {
+            return g.ModPow(BlindExponent(x, q, random), p);
         }
 
         /// <summary>
@@ -110,8 +134,26 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         /// </summary>
         public static BigInteger CalculateA(BigInteger p, BigInteger q, BigInteger gA, BigInteger x2s)
         {
+            return CalculateA(p, q, gA, x2s, null);
+        }
+
+        /// <summary>
+        /// Calculate A as done in round 2.
+        /// </summary>
+        /// <remarks>
+        /// x2s carries the password, so the exponent is blinded with a random multiple of q. gA must have order q; as
+        /// formed by <see cref="CalculateGA"/>, it is a product of values each checked to have order q.
+        /// </remarks>
+        /// <param name="p">The prime modulus.</param>
+        /// <param name="q">The prime order of gA.</param>
+        /// <param name="gA">The base, from <see cref="CalculateGA"/>.</param>
+        /// <param name="x2s">The private exponent, from <see cref="CalculateX2s"/>.</param>
+        /// <param name="random">The source of the blinding, or null for the default.</param>
+        public static BigInteger CalculateA(BigInteger p, BigInteger q, BigInteger gA, BigInteger x2s,
+            SecureRandom random)
+        {
             // A = ga^(x*s)
-            return gA.ModPow(x2s, p);
+            return gA.ModPow(BlindExponent(x2s, q, random), p);
         }
 
         /// <summary>
@@ -126,7 +168,9 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
             BigInteger vMax = q.Subtract(One);
             BigInteger v = BigIntegers.CreateRandomInRange(vMin, vMax, random);
 
-            BigInteger gv = g.ModPow(v, p);
+            // r below is published, so recovering v from the timing of this call would give up x as (v - r) / h; the
+            // exponent is blinded with a random multiple of q, g having order q
+            BigInteger gv = g.ModPow(BlindExponent(v, q, random), p);
             BigInteger h = CalculateHashForZeroKnowledgeProof(g, gv, gx, participantId, digest); // h
 
             return new BigInteger[]
@@ -219,8 +263,43 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         public static BigInteger CalculateKeyingMaterial(BigInteger p, BigInteger q,
             BigInteger gx4, BigInteger x2, BigInteger s, BigInteger B)
         {
-            return gx4.ModPow(x2.Multiply(s).Negate().Mod(q), p).ModMultiply(B, p).ModPow(x2, p);
+            return CalculateKeyingMaterial(p, q, gx4, x2, s, B, null);
         }
+
+        /// <summary>
+        /// Calculates the keying material, which can be done after round 2 has completed.
+        /// A session key must be derived from this key material using a secure key derivation function (KDF).
+        /// The KDF used to derive the key is handled externally (i.e. not by JPAKEParticipant).
+        ///
+        /// KeyingMaterial = (B/g^{x2*x4*s})^x2
+        /// </summary>
+        /// <remarks>
+        /// One exponent carries the password and the other the private ephemeral x2, so both are blinded with a random
+        /// multiple of q. gx4 and B must each have order q, as checked by <see cref="ValidateZeroKnowledgeProof"/>, so
+        /// the product raised by the second exponentiation does too.
+        /// </remarks>
+        /// <param name="p">The prime modulus.</param>
+        /// <param name="q">The prime order of the group.</param>
+        /// <param name="gx4">The other participant's g^x4.</param>
+        /// <param name="x2">This participant's private x2.</param>
+        /// <param name="s">The password, from CalculateS.</param>
+        /// <param name="B">The other participant's round 2 value.</param>
+        /// <param name="random">The source of the blinding, or null for the default.</param>
+        public static BigInteger CalculateKeyingMaterial(BigInteger p, BigInteger q,
+            BigInteger gx4, BigInteger x2, BigInteger s, BigInteger B, SecureRandom random)
+        {
+            BigInteger negX2s = BlindExponent(x2.Multiply(s).Negate().Mod(q), q, random);
+
+            return gx4.ModPow(negX2s, p).ModMultiply(B, p).ModPow(BlindExponent(x2, q, random), p);
+        }
+
+        // A private exponent gets a random multiple of the group order added before the variable-time ModPow, so the
+        // exponent differs on each call. Every base J-PAKE raises has order q: g is checked with g^q = 1 when the
+        // JPakePrimeOrderGroup is built, and each value received from the other participant is checked the same way
+        // by ValidateZeroKnowledgeProof before it is used as a base. That makes a multiple of q sound, and it matters
+        // for cost: the exponents are the size of q, so a multiple of p - 1 would grow them to the size of p.
+        private static BigInteger BlindExponent(BigInteger e, BigInteger order, SecureRandom random) =>
+            BigIntegers.CreateBlindedExponent(e, order, CryptoServicesRegistrar.GetSecureRandom(random));
 
         /// <summary>
         /// Validates that the given participant ids are not equal.

@@ -3,6 +3,7 @@ using System;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1.CryptoPro;
+using Org.BouncyCastle.Crypto.Agreement.JPake;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Generators;
@@ -118,6 +119,69 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] recovered = dec.ProcessBlock(cipherText, 0, cipherText.Length);
             Assert.AreEqual(1, counting.Count, "blinding draws");
             Assert.AreEqual(plain, recovered);
+        }
+
+        [Test]
+        public void JPake()
+        {
+            JPakePrimeOrderGroup group = JPakePrimeOrderGroups.SUN_JCE_1024;
+            char[] password = "password".ToCharArray();
+
+            var counting = new CountingRandom();
+            var alice = new JPakeParticipant("alice", password, group, new Sha256Digest(), counting);
+            var bob = new JPakeParticipant("bob", password, group, new Sha256Digest(), Random);
+
+            // g^x1, g^x2 and the commitment in each of their two proofs
+            JPakeRound1Payload aliceRound1 = alice.CreateRound1PayloadToSend();
+            Assert.AreEqual(4, counting.Count, "round 1 blinding draws");
+            JPakeRound1Payload bobRound1 = bob.CreateRound1PayloadToSend();
+            alice.ValidateRound1PayloadReceived(bobRound1);
+            bob.ValidateRound1PayloadReceived(aliceRound1);
+
+            // A and the commitment in its proof
+            counting.Count = 0;
+            JPakeRound2Payload aliceRound2 = alice.CreateRound2PayloadToSend();
+            Assert.AreEqual(2, counting.Count, "round 2 blinding draws");
+            JPakeRound2Payload bobRound2 = bob.CreateRound2PayloadToSend();
+            alice.ValidateRound2PayloadReceived(bobRound2);
+            bob.ValidateRound2PayloadReceived(aliceRound2);
+
+            // the two exponentiations of the keying material
+            counting.Count = 0;
+            BigInteger aliceKeyingMaterial = alice.CalculateKeyingMaterial();
+            Assert.AreEqual(2, counting.Count, "keying material blinding draws");
+            Assert.AreEqual(bob.CalculateKeyingMaterial(), aliceKeyingMaterial);
+        }
+
+        [Test]
+        public void JPakeUtilitiesUnchanged()
+        {
+            JPakePrimeOrderGroup group = JPakePrimeOrderGroups.SUN_JCE_1024;
+            BigInteger p = group.P, q = group.Q, g = group.G;
+
+            BigInteger x = JPakeUtilities.GenerateX2(q, Random);
+            BigInteger gx = g.ModPow(x, p);
+
+            var counting = new CountingRandom();
+            Assert.AreEqual(gx, JPakeUtilities.CalculateGx(p, q, g, x, counting));
+            Assert.AreEqual(1, counting.Count, "CalculateGx blinding draws");
+#pragma warning disable CS0618 // Type or member is obsolete
+            Assert.AreEqual(gx, JPakeUtilities.CalculateGx(p, g, x));
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            BigInteger gA = g.ModPow(JPakeUtilities.GenerateX2(q, Random), p);
+            BigInteger x2s = JPakeUtilities.GenerateX2(q, Random);
+            BigInteger A = gA.ModPow(x2s, p);
+            Assert.AreEqual(A, JPakeUtilities.CalculateA(p, q, gA, x2s, null));
+            Assert.AreEqual(A, JPakeUtilities.CalculateA(p, q, gA, x2s));
+
+            BigInteger gx4 = g.ModPow(JPakeUtilities.GenerateX2(q, Random), p);
+            BigInteger x2 = JPakeUtilities.GenerateX2(q, Random);
+            BigInteger s = JPakeUtilities.CalculateS(q, "password".ToCharArray());
+            BigInteger B = g.ModPow(JPakeUtilities.GenerateX2(q, Random), p);
+            BigInteger keyingMaterial = gx4.ModPow(x2.Multiply(s).Negate().Mod(q), p).ModMultiply(B, p).ModPow(x2, p);
+            Assert.AreEqual(keyingMaterial, JPakeUtilities.CalculateKeyingMaterial(p, q, gx4, x2, s, B, null));
+            Assert.AreEqual(keyingMaterial, JPakeUtilities.CalculateKeyingMaterial(p, q, gx4, x2, s, B));
         }
 
         private static AsymmetricCipherKeyPair GenerateDsaKeyPair()

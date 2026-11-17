@@ -229,8 +229,8 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
             this.x1 = JPakeUtilities.GenerateX1(q, random);
             this.x2 = JPakeUtilities.GenerateX2(q, random);
 
-            this.gx1 = JPakeUtilities.CalculateGx(p, g, x1);
-            this.gx2 = JPakeUtilities.CalculateGx(p, g, x2);
+            this.gx1 = JPakeUtilities.CalculateGx(p, q, g, x1, random);
+            this.gx2 = JPakeUtilities.CalculateGx(p, q, g, x2, random);
             BigInteger[] knowledgeProofForX1 = JPakeUtilities.CalculateZeroKnowledgeProof(p, q, g, gx1, x1, participantId, digest, random);
             BigInteger[] knowledgeProofForX2 = JPakeUtilities.CalculateZeroKnowledgeProof(p, q, g, gx2, x2, participantId, digest, random);
 
@@ -287,7 +287,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
             BigInteger gA = JPakeUtilities.CalculateGA(p, gx1, gx3, gx4);
             BigInteger s = JPakeUtilities.CalculateS(q, password);
             BigInteger x2s = JPakeUtilities.CalculateX2s(q, x2, s);
-            BigInteger A = JPakeUtilities.CalculateA(p, q, gA, x2s);
+            BigInteger A = JPakeUtilities.CalculateA(p, q, gA, x2s, random);
             BigInteger[] knowledgeProofForX2s = JPakeUtilities.CalculateZeroKnowledgeProof(p, q, gA, A, x2s, participantId, digest, random);
 
             this.state = STATE_ROUND_2_CREATED;
@@ -366,7 +366,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
             Array.Clear(password, 0, password.Length);
             this.password = null;
 
-            BigInteger keyingMaterial = JPakeUtilities.CalculateKeyingMaterial(p, q, gx4, x2, s, b);
+            BigInteger keyingMaterial = JPakeUtilities.CalculateKeyingMaterial(p, q, gx4, x2, s, b, random);
 
             // Clear the ephemeral private key fields as well.
             // Note that we're relying on the garbage collector to do its job to clean these up.

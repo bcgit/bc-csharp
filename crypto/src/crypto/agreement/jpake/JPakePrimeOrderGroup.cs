@@ -64,6 +64,9 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         /// Constructor used by the pre-approved groups in JPakePrimeOrderGroups.
         /// These pre-approved groups can avoid the expensive checks.
         /// User-specified groups should not use this constructor.
+        ///
+        /// Skipping the checks is only safe for a group known to be valid: J-PAKE blinds its private exponents with
+        /// multiples of q, which leaves the results unchanged only if g^q mod p equals 1.
         /// </summary>
         // TODO[api] Make this internal.
         [Obsolete("Use 'JPakePrimeOrderGroup(p, q, g)' or a group from 'JPakePrimeOrderGroups' instead")]
