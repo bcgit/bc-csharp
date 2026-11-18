@@ -5,10 +5,10 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
-    /// <summary>An implementation of the AES Key Wrap with Padding specification as described in RFC 3349.</summary>
+    /// <summary>An implementation of the AES Key Wrap specification as described in RFC 3394.</summary>
     /// <remarks>
     /// For further details see: Schaad, J. and R. Housley, "Advanced Encryption Standard (AES) Key Wrap Algorithm",
-    /// RFC 3394, DOI 10.17487/RFC3394, September 2002, &lt;https://www.rfc-editor.org/info/rfc3394\&gt;, and
+    /// RFC 3394, DOI 10.17487/RFC3394, September 2002, &lt;https://www.rfc-editor.org/info/rfc3394&gt;, and
     /// http://csrc.nist.gov/encryption/kms/key-wrap.pdf.
     /// </remarks>
     public class Rfc3394WrapEngine
