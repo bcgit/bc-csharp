@@ -6,6 +6,7 @@ using Org.BouncyCastle.Asn1.Bsi;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.GM;
+using Org.BouncyCastle.Asn1.Iana;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -256,6 +257,12 @@ namespace Org.BouncyCastle.Crypto.Operators
             {
                 AddAlgorithm(compositeMLDsa.Name, compositeMLDsa.Oid, isNoParams: true);
             }
+
+            /*
+             * XMSS / XMSS^MT: RFC 9802 requires the parameters to be absent
+             */
+            AddAlgorithm("XMSS", IanaObjectIdentifiers.id_alg_xmss_hashsig, isNoParams: true);
+            AddAlgorithm("XMSSMT", IanaObjectIdentifiers.id_alg_xmssmt_hashsig, isNoParams: true);
         }
 
         private static void AddAlgorithm(string name, DerObjectIdentifier oid, bool isNoParams)

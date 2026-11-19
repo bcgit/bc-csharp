@@ -5,6 +5,7 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Iana;
+using Org.BouncyCastle.Asn1.Isara;
 using Org.BouncyCastle.Asn1.Kisa;
 using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Nist;
@@ -18,6 +19,7 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -307,6 +309,14 @@ namespace Org.BouncyCastle.Security
                 EdECObjectIdentifiers.id_X25519);
             AddKpgAlgorithm("X448",
                 EdECObjectIdentifiers.id_X448);
+            AddKpgAlgorithm("XMSS",
+                IanaObjectIdentifiers.id_alg_xmss_hashsig,
+                PqcObjectIdentifiers.xmss,
+                IsaraObjectIdentifiers.id_alg_xmss);
+            AddKpgAlgorithm("XMSSMT",
+                IanaObjectIdentifiers.id_alg_xmssmt_hashsig,
+                PqcObjectIdentifiers.xmss_mt,
+                IsaraObjectIdentifiers.id_alg_xmssmt);
 
             /*
              * Composite ML-DSA: each combination is its own algorithm, with its own OID.
@@ -487,6 +497,12 @@ namespace Org.BouncyCastle.Security
 
             if (canonicalName == "X448")
                 return new X448KeyPairGenerator();
+
+            if (canonicalName == "XMSS")
+                return new XmssKeyPairGenerator();
+
+            if (canonicalName == "XMSSMT")
+                return new XmssMTKeyPairGenerator();
 
             throw new SecurityUtilityException("KeyPairGenerator " + algorithm
                 + " (" + canonicalName + ") not supported.");

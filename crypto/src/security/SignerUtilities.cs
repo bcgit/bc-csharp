@@ -7,6 +7,8 @@ using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Eac;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.GM;
+using Org.BouncyCastle.Asn1.Iana;
+using Org.BouncyCastle.Asn1.Isara;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -20,6 +22,7 @@ using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
+using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -607,6 +610,19 @@ namespace Org.BouncyCastle.Security
                 AddAlgorithm(compositeMLDsa.Name, compositeMLDsa.Oid, isNoRandom: false);
             }
 
+            /*
+             * XMSS / XMSS^MT (RFC 8391). The RFC 9802 OIDs are the primary ones; the BC and ISARA OIDs are kept as
+             * aliases so that signatures made under them still resolve. Signing is deterministic - the randomness is
+             * PRF(SK_PRF, idx_sig) - so no SecureRandom is wanted.
+             */
+            AddAlgorithm("XMSS", IanaObjectIdentifiers.id_alg_xmss_hashsig, isNoRandom: true);
+            AlgorithmOidMap[PqcObjectIdentifiers.xmss] = "XMSS";
+            AlgorithmOidMap[IsaraObjectIdentifiers.id_alg_xmss] = "XMSS";
+
+            AddAlgorithm("XMSSMT", IanaObjectIdentifiers.id_alg_xmssmt_hashsig, isNoRandom: true);
+            AlgorithmOidMap[PqcObjectIdentifiers.xmss_mt] = "XMSSMT";
+            AlgorithmOidMap[IsaraObjectIdentifiers.id_alg_xmssmt] = "XMSSMT";
+
 #if DEBUG
             foreach (var key in AlgorithmMap.Keys)
             {
@@ -969,6 +985,12 @@ namespace Org.BouncyCastle.Security
             {
                 return new CompositeMLDsaSigner(compositeMLDsaParameters);
             }
+
+            if (mechanism.Equals("XMSS"))
+                return new XmssSigner();
+
+            if (mechanism.Equals("XMSSMT"))
+                return new XmssMTSigner();
 
             return null;
         }

@@ -11,6 +11,7 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Signers.Xmss;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
@@ -240,6 +241,9 @@ namespace Org.BouncyCastle.Pkcs
 
                 return PrivateKeyInfo.Create(algID, new DerOctetString(slhDsaKey.GetEncoded()), attributes, publicKey);
             }
+
+            if (privateKey is XmssPrivateKeyParameters || privateKey is XmssMTPrivateKeyParameters)
+                return XmssKeyUtilities.CreatePrivateKeyInfo(privateKey, attributes);
 
             throw new ArgumentException("Class provided is not convertible: " + Platform.GetTypeName(privateKey));
         }
