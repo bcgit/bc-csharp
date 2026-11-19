@@ -544,7 +544,11 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 // Compare the tag from the message with the calculated one
                 if (!Arrays.FixedTimeEquals(macBlock, tag))
+                {
+                    // GetMac() must not return the expected tag: it is a valid tag for the rejected input
+                    macBlock = null;
                     throw new InvalidCipherTextException("mac check in OCB failed");
+                }
             }
 
             Reset(false);
@@ -635,7 +639,11 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 // Compare the tag from the message with the calculated one
                 if (!Arrays.FixedTimeEquals(macBlock, tag))
+                {
+                    // GetMac() must not return the expected tag: it is a valid tag for the rejected input
+                    macBlock = null;
                     throw new InvalidCipherTextException("mac check in OCB failed");
+                }
             }
 
             Reset(false);

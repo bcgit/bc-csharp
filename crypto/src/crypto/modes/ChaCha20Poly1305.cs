@@ -675,7 +675,11 @@ namespace Org.BouncyCastle.Crypto.Modes
                 FinishData(State.DecFinal);
 
                 if (!Arrays.FixedTimeEquals(MacSize, m_mac, 0, m_buf, resultLen))
+                {
+                    // GetMac() must not return the expected tag: it is a valid tag for the rejected input
+                    Array.Clear(m_mac, 0, MacSize);
                     throw new InvalidCipherTextException($"mac check in {AlgorithmName} failed");
+                }
 
                 break;
             }
@@ -740,7 +744,11 @@ namespace Org.BouncyCastle.Crypto.Modes
                 FinishData(State.DecFinal);
 
                 if (!Arrays.FixedTimeEquals(MacSize, m_mac, 0, m_buf, resultLen))
+                {
+                    // GetMac() must not return the expected tag: it is a valid tag for the rejected input
+                    Array.Clear(m_mac, 0, MacSize);
                     throw new InvalidCipherTextException($"mac check in {AlgorithmName} failed");
+                }
 
                 break;
             }
