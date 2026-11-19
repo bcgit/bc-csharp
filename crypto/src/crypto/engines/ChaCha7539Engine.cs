@@ -23,6 +23,11 @@ namespace Org.BouncyCastle.Crypto.Engines
     public class ChaCha7539Engine
         : Salsa20Engine
     {
+        // Set once the block for counter 0xFFFFFFFF (the last one RFC 8439 allows) has been generated, and cleared only
+        // by ResetCounter (via Init/Reset). While set, no further keystream block is produced: the counter has wrapped
+        // to 0, so another block would repeat earlier keystream.
+        private bool m_counterExhausted;
+
         /// <summary>
         /// Creates a 20 rounds ChaCha engine.
         /// </summary>
@@ -40,17 +45,19 @@ namespace Org.BouncyCastle.Crypto.Engines
         /// <inheritdoc/>
         protected override void AdvanceCounter()
         {
-            // TODO[chacha] Counter 0xFFFFFFFF is never usable (its keystream is generated, then rejected here), though
-            // RFC 8439 allows it. Also, the throw leaves the counter at 0, so a caller that catches and continues will
-            // reuse keystream. Consider a sticky "exhausted" state (and then relax the check in ProcessBlocks to match).
+            // The counter is advanced as soon as a block's keystream is generated, before that keystream is used, so
+            // wrapping here only means no further block may be generated; the check is in CheckCounterNotExhausted.
             if (++engineState[12] == 0)
-                throw new InvalidOperationException("attempt to increase counter past 2^32.");
+            {
+                m_counterExhausted = true;
+            }
         }
 
         /// <inheritdoc/>
         protected override void ResetCounter()
         {
             engineState[12] = 0;
+            m_counterExhausted = false;
         }
 
         /// <inheritdoc/>
@@ -72,8 +79,20 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         /// <inheritdoc/>
-        protected override void GenerateKeyStream(byte[] output) =>
+        protected override void GenerateKeyStream(byte[] output)
+        {
+            CheckCounterNotExhausted();
             ChaChaEngine.ChaChaCore(rounds, engineState, output);
+        }
+
+        private void CheckCounterNotExhausted()
+        {
+            if (m_counterExhausted)
+                throw new InvalidOperationException("attempt to increase counter past 2^32.");
+        }
+
+        /// <summary>The number of keystream blocks that can still be generated.</summary>
+        private ulong RemainingBlocks => m_counterExhausted ? 0UL : (1UL << 32) - engineState[12];
 
         internal void DoFinal(byte[] inBuf, int inOff, int inLen, byte[] outBuf, int outOff)
         {
@@ -111,6 +130,8 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             if (!initialised)
                 throw new InvalidOperationException(AlgorithmName + " not initialised");
+            if (m_counterExhausted)
+                throw new MaxBytesExceededException("2^38 byte limit per IV would be exceeded; Change IV");
             if (LimitExceeded(64U))
                 throw new MaxBytesExceededException("2^38 byte limit per IV would be exceeded; Change IV");
 
@@ -127,7 +148,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 throw new InvalidOperationException(AlgorithmName + " not initialised");
 
             int len = input.Length & -64;
-            if (((uint)len >> 6) > ~engineState[12])
+            if (((uint)len >> 6) > RemainingBlocks)
                 throw new MaxBytesExceededException("2^38 byte limit per IV would be exceeded; Change IV");
             if (LimitExceeded((uint)len))
                 throw new MaxBytesExceededException("2^38 byte limit per IV would be exceeded; Change IV");
@@ -144,6 +165,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             if (input.Length >= 64)
             {
                 ImplProcessBlock(input, output);
+            }
+
+            // The SIMD paths advance engineState[12] directly, bypassing AdvanceCounter. The check above allows the
+            // counter to reach 2^32 only on the last block, so ending at 0 after processing anything means it wrapped.
+            if (len > 0 && engineState[12] == 0)
+            {
+                m_counterExhausted = true;
             }
 
             return len;
@@ -184,6 +212,8 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             if (!initialised)
                 throw new InvalidOperationException(AlgorithmName + " not initialised");
+            if (m_counterExhausted)
+                throw new MaxBytesExceededException("2^38 byte limit per IV would be exceeded; Change IV");
             if (LimitExceeded(64U))
                 throw new MaxBytesExceededException("2^38 byte limit per IV would be exceeded; Change IV");
 
@@ -200,7 +230,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 throw new InvalidOperationException(AlgorithmName + " not initialised");
 
             len &= -64;
-            if (((uint)len >> 6) > ~engineState[12])
+            if (((uint)len >> 6) > RemainingBlocks)
                 throw new MaxBytesExceededException("2^38 byte limit per IV would be exceeded; Change IV");
             if (LimitExceeded((uint)len))
                 throw new MaxBytesExceededException("2^38 byte limit per IV would be exceeded; Change IV");
